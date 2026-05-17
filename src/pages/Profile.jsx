@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts'
 import Layout from '../components/Layout'
 import { useProfile } from '../hooks/useProfile'
 import { useAuth } from '../hooks/useAuth'
+import { useBodyWeight } from '../hooks/useBodyWeight'
 
 // ── Shared label style ──────────────────────────────────────────────────
 const LABEL = {
@@ -112,6 +116,174 @@ function DaysPicker({ value, onChange }) {
         )
       })}
     </div>
+  )
+}
+
+// ── Weight chart tooltip ────────────────────────────────────────────────
+function WeightTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={{
+      background: 'var(--c-surface)',
+      border: '1px solid var(--c-border-subtle)',
+      padding: '7px 11px',
+      borderRadius: '10px',
+      fontSize: '11px',
+    }}>
+      <p style={{ color: 'var(--c-text-dim)', letterSpacing: '0.06em', marginBottom: '2px' }}>{label}</p>
+      <p style={{ color: 'var(--c-text)', fontWeight: 700 }}>
+        {payload[0].value} {payload[0].payload.unit}
+      </p>
+    </div>
+  )
+}
+
+// ── Body weight section ─────────────────────────────────────────────────
+function BodyWeightSection() {
+  const { logs, chartData, latestLog, loading, adding, addLog, deleteLog } = useBodyWeight()
+  const [inputWeight, setInputWeight] = useState('')
+  const [inputUnit, setInputUnit] = useState(latestLog?.unit ?? 'kg')
+
+  // Sync unit with latest entry when it loads
+  useEffect(() => {
+    if (latestLog?.unit) setInputUnit(latestLog.unit)
+  }, [latestLog?.unit])
+
+  const handleAdd = async () => {
+    const val = parseFloat(inputWeight)
+    if (!val || val <= 0) return
+    await addLog(val, inputUnit)
+    setInputWeight('')
+  }
+
+  const recentLogs = [...logs].reverse().slice(0, 10)
+
+  return (
+    <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+      <p style={SECTION_TITLE}>Peso corporal</p>
+
+      {/* Quick-add input */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        <input
+          type="number"
+          value={inputWeight}
+          onChange={e => setInputWeight(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleAdd()}
+          placeholder={latestLog ? `Último: ${latestLog.weight} ${latestLog.unit}` : 'Ej: 75'}
+          className="input-field"
+          style={{ flex: 1 }}
+        />
+        <div style={{ display: 'flex', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
+          {['kg', 'lb'].map(u => (
+            <button
+              key={u}
+              type="button"
+              onClick={() => setInputUnit(u)}
+              style={{
+                padding: '0 14px',
+                fontSize: '11px', fontWeight: 700,
+                background: inputUnit === u ? 'var(--c-accent)' : 'transparent',
+                color: inputUnit === u ? '#fff' : 'var(--c-text-dim)',
+                transition: 'all 150ms var(--ease-out)',
+                height: '100%',
+              }}
+            >
+              {u}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={adding || !inputWeight}
+          style={{
+            padding: '0 16px',
+            background: 'var(--c-accent)',
+            color: '#fff',
+            fontSize: '12px', fontWeight: 800,
+            borderRadius: '10px',
+            opacity: adding || !inputWeight ? 0.5 : 1,
+            transition: 'opacity 150ms',
+            flexShrink: 0,
+          }}
+        >
+          {adding ? '...' : '+ Log'}
+        </button>
+      </div>
+
+      {loading && (
+        <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', textAlign: 'center', padding: '24px 0' }} className="animate-pulse">
+          Cargando...
+        </p>
+      )}
+
+      {/* Chart */}
+      {!loading && chartData.length >= 2 && (
+        <div style={{ height: '140px', width: '100%', marginBottom: '20px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+              <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
+              <Tooltip content={<WeightTooltip />} />
+              <Line
+                type="monotone"
+                dataKey="peso"
+                stroke="#FF2D2D"
+                strokeWidth={2}
+                dot={{ fill: '#FF2D2D', r: 3, strokeWidth: 0 }}
+                activeDot={{ fill: '#FF2D2D', r: 5, strokeWidth: 0 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && logs.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '20px 0 8px' }}>
+          <p style={{ color: 'var(--c-text-muted)', fontSize: '11px' }}>Registra tu primer peso arriba.</p>
+        </div>
+      )}
+
+      {/* Recent log list */}
+      {!loading && recentLogs.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+          {recentLogs.map((log, i) => {
+            const dateStr = new Date(log.logged_at).toLocaleDateString('es', {
+              weekday: 'short', month: 'short', day: 'numeric',
+            })
+            const isFirst = i === 0
+            return (
+              <div
+                key={log.id}
+                style={{
+                  display: 'flex', alignItems: 'center',
+                  padding: '9px 0',
+                  borderTop: isFirst ? 'none' : '1px solid var(--c-border-subtle)',
+                }}
+              >
+                <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', flex: 1 }}>{dateStr}</span>
+                <span style={{ color: 'var(--c-text)', fontWeight: 800, fontSize: '14px' }}>
+                  {log.weight}
+                  <span style={{ color: 'var(--c-text-dim)', fontWeight: 400, fontSize: '11px', marginLeft: '3px' }}>{log.unit}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => deleteLog(log.id)}
+                  aria-label="Eliminar"
+                  style={{ color: 'var(--c-text-ghost)', fontSize: '12px', marginLeft: '12px', padding: '2px 6px' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+                >
+                  ✕
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
   )
 }
 
@@ -309,6 +481,9 @@ export default function Profile() {
               </div>
             </div>
           </section>
+
+          {/* ── Peso corporal ── */}
+          <BodyWeightSection />
 
           {/* ── Save ── */}
           {saveError && (
