@@ -210,14 +210,22 @@ export function useActiveWorkout(workoutId) {
 
   // Add exercise to workout (creates exercise if not exists, then adds workout_exercise)
   const addExercise = async (exerciseName) => {
+    const name = exerciseName.trim()
+
     // Upsert exercise (unique per user+name)
     const { data: exerciseData, error: exError } = await supabase
       .from('exercises')
-      .upsert({ user_id: user.id, name: exerciseName.trim() }, { onConflict: 'user_id,name' })
+      .upsert({ user_id: user.id, name }, { onConflict: 'user_id,name' })
       .select()
       .single()
 
     if (exError) throw exError
+
+    // Also add to global library so it appears in future searches for everyone
+    await supabase
+      .from('exercises_library')
+      .upsert({ name, muscle_group: 'Personalizado' }, { onConflict: 'name' })
+      .select()
 
     // Determine next sort order
     const nextOrder = workoutExercises.length

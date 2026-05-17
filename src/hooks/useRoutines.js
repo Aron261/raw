@@ -66,12 +66,19 @@ export function useRoutines() {
   }
 
   const addExerciseToRoutine = async (routineId, exerciseName) => {
+    const name = exerciseName.trim()
+
     const { data: exercise, error: exErr } = await supabase
       .from('exercises')
-      .upsert({ user_id: user.id, name: exerciseName.trim() }, { onConflict: 'user_id,name' })
+      .upsert({ user_id: user.id, name }, { onConflict: 'user_id,name' })
       .select()
       .single()
     if (exErr) throw exErr
+
+    // Also add to global library so it appears in future searches for everyone
+    await supabase
+      .from('exercises_library')
+      .upsert({ name, muscle_group: 'Personalizado' }, { onConflict: 'name' })
 
     const routine = routines.find(r => r.id === routineId)
     const nextOrder = routine?.routine_exercises?.length || 0

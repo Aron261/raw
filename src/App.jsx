@@ -8,6 +8,7 @@ import ExerciseDetail from './pages/ExerciseDetail'
 import History from './pages/History'
 import Progress from './pages/Progress'
 import Routines from './pages/Routines'
+import Profile from './pages/Profile'
 
 // Protected layout wrapper that checks auth
 function RequireAuth({ children, auth }) {
@@ -64,6 +65,8 @@ function AppWithAuth() {
           <Route path="/history" element={<RequireAuth auth={auth}><History /></RequireAuth>} />
 
           <Route path="/progress" element={<RequireAuth auth={auth}><Progress /></RequireAuth>} />
+
+          <Route path="/profile" element={<RequireAuth auth={auth}><Profile /></RequireAuth>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
