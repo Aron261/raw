@@ -133,7 +133,41 @@ export function useWorkouts() {
     await fetchWorkouts()
   }
 
-  return { workouts, loading, error, fetchWorkouts, createWorkout, createWorkoutFromRoutine, updateWorkout, deleteWorkout }
+  // Create a new blank workout copying the same exercises (no sets) from a past workout
+  const duplicateWorkout = async (sourceWorkout) => {
+    const { data: newWorkout, error: wErr } = await supabase
+      .from('workouts')
+      .insert({ user_id: user.id, name: sourceWorkout.name, started_at: new Date().toISOString() })
+      .select()
+      .single()
+    if (wErr) throw wErr
+
+    // Copy exercises in order, blank sets
+    const exercises = [...(sourceWorkout.workout_exercises || [])].sort((a, b) => a.sort_order - b.sort_order)
+    for (let i = 0; i < exercises.length; i++) {
+      const we = exercises[i]
+      const exName = we.exercises?.name
+      if (!exName) continue
+
+      const { data: ex, error: exErr } = await supabase
+        .from('exercises')
+        .upsert({ user_id: user.id, name: exName }, { onConflict: 'user_id,name' })
+        .select().single()
+      if (exErr) throw exErr
+
+      await supabase.from('workout_exercises').insert({
+        workout_id: newWorkout.id,
+        exercise_id: ex.id,
+        sort_order: i,
+        unit: we.unit || 'lb',
+      })
+    }
+
+    await fetchWorkouts()
+    return newWorkout
+  }
+
+  return { workouts, loading, error, fetchWorkouts, createWorkout, createWorkoutFromRoutine, updateWorkout, deleteWorkout, duplicateWorkout }
 }
 
 // Hook to manage a single active workout

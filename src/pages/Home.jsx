@@ -123,7 +123,7 @@ function RoutinePickerModal({ routines, onSelectBlank, onSelectRoutine, onClose 
 // ── Main page ──────────────────────────────────────────────────────────
 export default function Home() {
   const { user, signOut } = useAuth()
-  const { workouts, loading, error, createWorkout, createWorkoutFromRoutine, deleteWorkout } = useWorkouts()
+  const { workouts, loading, error, createWorkout, createWorkoutFromRoutine, deleteWorkout, duplicateWorkout } = useWorkouts()
   const { routines, loading: routinesLoading } = useRoutines()
   const navigate = useNavigate()
 
@@ -250,7 +250,7 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {recentWorkouts.map((workout, i) => (
                 <div key={workout.id} className="stagger-item" style={{ animationDelay: `${i * 50}ms` }}>
-                  <WorkoutCard workout={workout} onDelete={deleteWorkout} />
+                  <WorkoutCard workout={workout} onDelete={deleteWorkout} onDuplicate={duplicateWorkout} />
                 </div>
               ))}
             </div>

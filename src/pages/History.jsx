@@ -4,7 +4,7 @@ import { useWorkouts } from '../hooks/useWorkout'
 
 
 export default function History() {
-  const { workouts, loading, error, fetchWorkouts, deleteWorkout } = useWorkouts()
+  const { workouts, loading, error, fetchWorkouts, deleteWorkout, duplicateWorkout } = useWorkouts()
 
   // Group workouts by month
   const grouped = workouts.reduce((acc, workout) => {
@@ -61,7 +61,7 @@ export default function History() {
                 <h2 className="text-text-muted text-xs uppercase tracking-widest mb-3">{month}</h2>
                 <div className="space-y-3">
                   {monthWorkouts.map(workout => (
-                    <WorkoutCard key={workout.id} workout={workout} onDelete={deleteWorkout} />
+                    <WorkoutCard key={workout.id} workout={workout} onDelete={deleteWorkout} onDuplicate={duplicateWorkout} />
                   ))}
                 </div>
               </div>

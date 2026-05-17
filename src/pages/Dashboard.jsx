@@ -216,6 +216,48 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* ── Muscle group volume (last 7 days) ── */}
+        <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', marginTop: '20px' }}>
+          <SectionLabel>Volumen por músculo — últimos 7 días</SectionLabel>
+
+          {loading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {[...Array(4)].map((_, i) => <Skeleton key={i} height={32} />)}
+            </div>
+          ) : !data?.muscleGroupData?.length ? (
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', padding: '16px 0' }}>
+              Sin datos esta semana. Registra un entreno para ver el desglose.
+            </p>
+          ) : (() => {
+            const max = data.muscleGroupData[0].volume
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {data.muscleGroupData.map((mg, i) => (
+                  <div key={mg.group} className="stagger-item" style={{ animationDelay: `${i * 35}ms` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '5px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--c-text)' }}>
+                        {mg.group}
+                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-text-dim)', fontVariantNumeric: 'tabular-nums' }}>
+                        {mg.volume.toLocaleString()} lb
+                      </span>
+                    </div>
+                    <div style={{ height: '6px', background: 'var(--c-surface-2)', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%',
+                        width: `${(mg.volume / max) * 100}%`,
+                        background: i === 0 ? 'var(--c-accent)' : `oklch(${55 + i * 4}% 0.04 255)`,
+                        borderRadius: '999px',
+                        transition: 'width 600ms var(--ease-out)',
+                      }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
+        </div>
       </div>
     </Layout>
   )

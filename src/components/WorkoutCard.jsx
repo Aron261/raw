@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { formatDuration, calcVolume } from '../hooks/useWorkout'
 import { pressProps } from '../lib/ui'
 
-export default function WorkoutCard({ workout, onDelete }) {
+export default function WorkoutCard({ workout, onDelete, onDuplicate }) {
   const navigate = useNavigate()
   const [deleting, setDeleting] = useState(false)
+  const [duplicating, setDuplicating] = useState(false)
 
   const { totalVolume, exerciseCount, dateStr, duration, isActive, unit } = useMemo(() => {
     const allSets = workout.workout_exercises?.flatMap(we => we.sets || []) || []
@@ -39,6 +40,18 @@ export default function WorkoutCard({ workout, onDelete }) {
     }
   }
 
+  const handleDuplicate = async (e) => {
+    e.stopPropagation()
+    setDuplicating(true)
+    try {
+      const newWorkout = await onDuplicate(workout)
+      navigate(`/workout/${newWorkout.id}`)
+    } catch (err) {
+      console.error(err)
+      setDuplicating(false)
+    }
+  }
+
   return (
     <div style={{ position: 'relative' }}>
       <button
@@ -49,7 +62,7 @@ export default function WorkoutCard({ workout, onDelete }) {
           border: '1px solid var(--c-border-subtle)',
           borderRadius: '16px',
           padding: '14px 16px',
-          paddingRight: onDelete ? '44px' : '16px', // room for delete btn
+          paddingRight: (onDelete || onDuplicate) ? '44px' : '16px', // room for action btns
           display: 'block',
           width: '100%',
           transition: `transform 160ms var(--ease-out), border-color 150ms var(--ease-out)`,
@@ -102,29 +115,52 @@ export default function WorkoutCard({ workout, onDelete }) {
         </div>
       </button>
 
-      {/* Delete button — sits outside the main button to avoid nesting */}
-      {onDelete && (
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          aria-label="Eliminar entreno"
-          style={{
-            position: 'absolute',
-            top: '50%',
-            right: '12px',
-            transform: 'translateY(-50%)',
-            color: 'var(--c-text-ghost)',
-            fontSize: '13px',
-            lineHeight: 1,
-            padding: '6px',
-            transition: `color 150ms var(--ease-out)`,
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
-        >
-          {deleting ? <span className="spinner" style={{ width: '11px', height: '11px' }} /> : '✕'}
-        </button>
-      )}
+      {/* Action buttons — sit outside the main button to avoid nesting */}
+      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px', padding: '8px 8px' }}>
+        {onDuplicate && (
+          <button
+            onClick={handleDuplicate}
+            disabled={duplicating}
+            aria-label="Duplicar entreno"
+            style={{
+              color: 'var(--c-text-ghost)',
+              fontSize: '13px',
+              lineHeight: 1,
+              padding: '5px',
+              transition: `color 150ms var(--ease-out)`,
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--c-text-secondary)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+          >
+            {duplicating
+              ? <span className="spinner" style={{ width: '11px', height: '11px' }} />
+              : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+              )}
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            aria-label="Eliminar entreno"
+            style={{
+              color: 'var(--c-text-ghost)',
+              fontSize: '13px',
+              lineHeight: 1,
+              padding: '5px',
+              transition: `color 150ms var(--ease-out)`,
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+          >
+            {deleting ? <span className="spinner" style={{ width: '11px', height: '11px' }} /> : '✕'}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

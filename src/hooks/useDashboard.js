@@ -97,6 +97,42 @@ export function useDashboard() {
           .sort((a, b) => b.best1RM - a.best1RM)
           .slice(0, 6)
 
+        // ── Muscle group volume (last 7 days) ─────────────────────────
+        const sevenDaysAgo = new Date()
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+        // Collect unique exercise names from recent workouts
+        const recentWorkouts = workouts.filter(w => new Date(w.started_at) >= sevenDaysAgo)
+        const exerciseNames = [...new Set(
+          recentWorkouts.flatMap(w => w.workout_exercises.map(we => we.exercises?.name).filter(Boolean))
+        )]
+
+        // Fetch muscle groups from the library for those names
+        let muscleGroupMap = {}
+        if (exerciseNames.length > 0) {
+          const { data: libData } = await supabase
+            .from('exercises_library')
+            .select('name, muscle_group')
+            .in('name', exerciseNames)
+          ;(libData || []).forEach(e => { muscleGroupMap[e.name] = e.muscle_group })
+        }
+
+        // Sum volume per muscle group
+        const mgVolume = {}
+        recentWorkouts.forEach(w => {
+          w.workout_exercises.forEach(we => {
+            const exName = we.exercises?.name
+            const group = muscleGroupMap[exName] || 'Otro'
+            const vol = calcVolume(we.sets || [])
+            if (vol === 0) return
+            mgVolume[group] = (mgVolume[group] || 0) + vol
+          })
+        })
+
+        const muscleGroupData = Object.entries(mgVolume)
+          .map(([group, volume]) => ({ group, volume: Math.round(volume) }))
+          .sort((a, b) => b.volume - a.volume)
+
         // ── Summary stats ──────────────────────────────────────────────
         const thisMonth = workouts.filter(w => {
           const d = new Date(w.started_at)
@@ -109,6 +145,7 @@ export function useDashboard() {
         setData({
           weeklyData,
           bestLifts,
+          muscleGroupData,
           totalWorkouts: workouts.length,
           thisMonth,
           lastWorkout,
