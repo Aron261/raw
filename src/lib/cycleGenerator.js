@@ -401,8 +401,8 @@ export function generateCyclePlan(params, exerciseHistory = {}) {
     for (const muscleGroup of muscleGroups) {
       const groupSets = setsPerGroup[muscleGroup] ?? 2
 
-      // Pick up to 3 exercises; use 2 if groupSets is too low to split further
-      const maxEx = groupSets >= 4 ? 3 : groupSets >= 2 ? 2 : 1
+      // Max 2 exercises per muscle group — fewer movements, more sets each
+      const maxEx = groupSets >= 2 ? 2 : 1
       const selectedExercises = pickExercises(muscleGroup, maxEx)
 
       // 5. Distribute sets across exercises
