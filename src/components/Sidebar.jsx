@@ -64,6 +64,7 @@ export default function Sidebar() {
         flexDirection: 'column',
         background: 'var(--c-surface)',
         borderRight: '1px solid var(--c-border-subtle)',
+        boxShadow: '2px 0 12px rgba(0,0,0,0.04)',
         overflow: 'hidden',
       }}
     >
@@ -110,7 +111,7 @@ export default function Sidebar() {
               alignItems: 'center',
               gap: '10px',
               padding: '9px 14px',
-              borderRadius: '4px',
+              borderRadius: '10px',
               fontSize: '12px',
               fontWeight: 700,
               textTransform: 'uppercase',
@@ -165,7 +166,7 @@ export default function Sidebar() {
             color: 'var(--c-text-dim)',
             border: '1px solid var(--c-border-subtle)',
             padding: '6px 12px',
-            borderRadius: '3px',
+            borderRadius: '8px',
             transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
             width: '100%',
           }}

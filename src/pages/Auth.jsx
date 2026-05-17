@@ -99,8 +99,8 @@ export default function Auth() {
             width: '100%',
             maxWidth: '340px',
             marginBottom: '32px',
-            border: '1px solid var(--c-border)',
-            borderRadius: '4px',
+            border: '1px solid var(--c-border-subtle)',
+            borderRadius: '16px',
             overflow: 'hidden',
           }}
         >
@@ -155,7 +155,7 @@ export default function Auth() {
             display: 'flex',
             background: 'var(--c-surface)',
             border: '1px solid var(--c-border-subtle)',
-            borderRadius: '4px',
+            borderRadius: '14px',
             padding: '3px',
             marginBottom: '20px',
           }}
@@ -172,7 +172,7 @@ export default function Auth() {
                 fontWeight: 800,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                borderRadius: '2px',
+                borderRadius: '10px',
                 transition: `background 200ms var(--ease-out), color 200ms var(--ease-out)`,
                 background: mode === m ? 'var(--c-surface-2)' : 'transparent',
                 color: mode === m ? 'var(--c-text)' : 'var(--c-text-dim)',
@@ -193,12 +193,12 @@ export default function Auth() {
           <div
             className="fade-in"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid var(--c-border)',
+              background: 'rgba(0,0,0,0.04)',
+              border: '1px solid var(--c-border-subtle)',
               color: 'var(--c-text-secondary)',
               fontSize: '12px',
               padding: '10px 12px',
-              borderRadius: '3px',
+              borderRadius: '10px',
               marginBottom: '14px',
               lineHeight: 1.4,
             }}

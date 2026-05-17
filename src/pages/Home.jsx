@@ -33,7 +33,7 @@ function RoutinePickerModal({ routines, onSelectBlank, onSelectRoutine, onClose 
           background: 'var(--c-surface)',
           border: '1px solid var(--c-border-subtle)',
           borderBottom: 'none',
-          borderRadius: '6px 6px 0 0',
+          borderRadius: '20px 20px 0 0',
           width: '100%', maxWidth: '480px',
           padding: '20px 20px 0',
           paddingBottom: 'max(28px, env(safe-area-inset-bottom))',
@@ -53,7 +53,7 @@ function RoutinePickerModal({ routines, onSelectBlank, onSelectRoutine, onClose 
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', padding: '14px 16px', marginBottom: '10px',
             background: 'var(--c-surface-2)', border: '1px solid var(--c-border)',
-            borderRadius: '4px',
+            borderRadius: '12px',
             transition: `border-color 150ms var(--ease-out)`,
           }}
           onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--c-text-dim)'}
@@ -86,7 +86,7 @@ function RoutinePickerModal({ routines, onSelectBlank, onSelectRoutine, onClose 
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     width: '100%', padding: '12px 16px', marginBottom: '6px',
                     background: 'transparent', border: '1px solid var(--c-border-subtle)',
-                    borderRadius: '4px',
+                    borderRadius: '12px',
                     transition: `background 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
@@ -179,7 +179,7 @@ export default function Home() {
               color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700,
               textTransform: 'uppercase', letterSpacing: '0.08em',
               border: '1px solid var(--c-border-subtle)', padding: '6px 10px',
-              borderRadius: '2px', marginTop: '4px',
+              borderRadius: '8px', marginTop: '4px',
               transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
@@ -197,7 +197,7 @@ export default function Home() {
           style={{
             width: '100%', background: 'var(--c-accent)', color: 'var(--c-text)',
             fontSize: '13px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em',
-            padding: '18px 24px', borderRadius: '3px', marginBottom: '32px',
+            padding: '18px 24px', borderRadius: '14px', marginBottom: '32px',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
             opacity: starting ? 0.75 : 1,
             transition: `transform 160ms var(--ease-out), opacity 160ms var(--ease-out)`,
@@ -220,7 +220,7 @@ export default function Home() {
           {loading && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {[...Array(3)].map((_, i) => (
-                <div key={i} style={{ height: '80px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '4px', opacity: 1 - i * 0.2 }} />
+                <div key={i} style={{ height: '80px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', opacity: 1 - i * 0.2 }} />
               ))}
             </div>
           )}

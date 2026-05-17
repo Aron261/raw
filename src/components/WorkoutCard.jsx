@@ -47,7 +47,7 @@ export default function WorkoutCard({ workout, onDelete }) {
         style={{
           background: 'var(--c-surface)',
           border: '1px solid var(--c-border-subtle)',
-          borderRadius: '4px',
+          borderRadius: '16px',
           padding: '14px 16px',
           paddingRight: onDelete ? '44px' : '16px', // room for delete btn
           display: 'block',
@@ -73,7 +73,7 @@ export default function WorkoutCard({ workout, onDelete }) {
               background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
               color: 'var(--c-accent)', fontSize: '9px', fontWeight: 900,
               letterSpacing: '0.1em', textTransform: 'uppercase',
-              padding: '3px 7px', borderRadius: '2px',
+              padding: '3px 7px', borderRadius: '6px',
             }}>
               <span className="live-dot" style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--c-accent)', display: 'inline-block' }} />
               Live
@@ -82,7 +82,7 @@ export default function WorkoutCard({ workout, onDelete }) {
         </div>
 
         {/* Stats row */}
-        <div style={{ display: 'flex', gap: '20px', borderTop: '1px solid var(--c-surface-2)', paddingTop: '10px' }}>
+        <div style={{ display: 'flex', gap: '20px', borderTop: '1px solid var(--c-border-subtle)', paddingTop: '10px' }}>
           {duration && (
             <div>
               <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '2px' }}>Duración</p>

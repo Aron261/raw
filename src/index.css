@@ -4,28 +4,35 @@
 
 /* ─── Design tokens ─────────────────────────────────────────────────── */
 :root {
-  /* Easing — ease-spring removed: overshoot curve violates no-bounce rule */
+  /* Easing */
   --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
-  /* Colors — single source of truth for all inline styles */
-  --c-bg:             #0A0A0A;
-  --c-surface:        #111111;
-  --c-surface-2:      #1A1A1A;
-  --c-border-subtle:  #1E1E1E;
-  --c-border:         #2A2A2A;
-  --c-text:           #FFFFFF;
-  --c-text-secondary: #CCCCCC;  /* stat values, strong secondary */
-  --c-text-dim:       #555555;  /* section labels, metadata */
-  --c-text-muted:     #888888;  /* empty states, guidance */
-  --c-text-ghost:     #3A3A3A;  /* decorative marks, chevrons — not for readable text */
+  /* Colors — light theme */
+  --c-bg:             oklch(97% 0.006 255);
+  --c-surface:        #FFFFFF;
+  --c-surface-2:      oklch(95.5% 0.005 255);
+  --c-border-subtle:  oklch(91% 0.005 255);
+  --c-border:         oklch(85% 0.006 255);
+  --c-text:           oklch(13% 0.005 255);
+  --c-text-secondary: oklch(28% 0.005 255);
+  --c-text-dim:       oklch(52% 0.005 255);
+  --c-text-muted:     oklch(65% 0.005 255);
+  --c-text-ghost:     oklch(80% 0.004 255);
   --c-accent:         #FF2D2D;
-  --c-accent-dim:     rgba(255, 45, 45, 0.12);
-  --c-accent-border:  rgba(255, 45, 45, 0.25);
+  --c-accent-dim:     rgba(255, 45, 45, 0.08);
+  --c-accent-border:  rgba(255, 45, 45, 0.22);
   /* Glazed surfaces */
-  --c-surface-glass:  rgba(17, 17, 17, 0.92);
-  --c-bg-glass:       rgba(10, 10, 10, 0.95);
+  --c-surface-glass:  rgba(255, 255, 255, 0.92);
+  --c-bg-glass:       rgba(248, 248, 252, 0.96);
+
+  /* Radius scale */
+  --r-xs:  6px;
+  --r-sm:  10px;
+  --r-md:  14px;
+  --r-lg:  18px;
+  --r-xl:  24px;
 }
 
 @layer base {
@@ -35,8 +42,8 @@
   }
 
   html, body {
-    background-color: #0A0A0A;
-    color: #FFFFFF;
+    background-color: oklch(97% 0.006 255);
+    color: oklch(13% 0.005 255);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     letter-spacing: -0.025em;
     overscroll-behavior: none;
@@ -86,7 +93,8 @@
   }
 
   .btn-secondary {
-    @apply bg-surface-2 text-white uppercase tracking-widest font-black text-sm px-6 py-3 rounded-sm border border-border;
+    @apply bg-surface-2 uppercase tracking-widest font-black text-sm px-6 py-3 rounded-sm border border-border;
+    color: var(--c-text);
     transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out);
   }
   .btn-secondary:active {
@@ -105,17 +113,18 @@
 
   /* ─── Inputs ───────────────────────────────────────────────────────── */
   .input-field {
-    @apply bg-surface-2 border border-border text-white placeholder-text-muted px-3 py-2 rounded-sm outline-none w-full;
+    @apply bg-surface-2 border border-border placeholder-text-muted px-3 py-2 rounded-sm outline-none w-full;
+    color: var(--c-text);
     transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
   }
   .input-field:focus {
-    border-color: rgba(255,255,255,0.4);
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
+    border-color: oklch(55% 0.006 255);
+    box-shadow: 0 0 0 3px oklch(85% 0.006 255);
   }
 
   /* ─── Cards ────────────────────────────────────────────────────────── */
   .card {
-    @apply bg-surface border border-border rounded-sm p-4;
+    @apply bg-surface border border-border-subtle rounded-sm p-4;
   }
 
   /* ─── Pressable (generic tappable element) ─────────────────────────── */
@@ -228,7 +237,7 @@
 .spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255,255,255,0.15);
+  border: 2px solid rgba(0, 0, 0, 0.1);
   border-top-color: var(--c-text);
   border-radius: 50%;
   animation: spin-fast 500ms linear infinite;
@@ -238,10 +247,10 @@
 /* ─── Hover guards (touch devices) ─────────────────────────────────── */
 @media (hover: hover) and (pointer: fine) {
   .card-hover:hover {
-    border-color: rgba(255,255,255,0.15);
+    border-color: oklch(75% 0.007 255);
   }
   .btn-secondary:hover {
-    border-color: rgba(255,255,255,0.2);
+    border-color: oklch(70% 0.007 255);
   }
 }
 

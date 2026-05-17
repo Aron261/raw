@@ -12,10 +12,11 @@ function ChartTooltip({ active, payload, label, unit = '' }) {
   if (!active || !payload?.length) return null
   return (
     <div style={{
-      background: 'var(--c-surface-2)',
-      border: '1px solid var(--c-border)',
+      background: 'var(--c-surface)',
+      border: '1px solid var(--c-border-subtle)',
       padding: '8px 12px',
-      borderRadius: '3px',
+      borderRadius: '10px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
     }}>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px' }}>
         {label}
@@ -33,8 +34,9 @@ function StatCard({ label, value, sub }) {
     <div style={{
       background: 'var(--c-surface)',
       border: '1px solid var(--c-border-subtle)',
-      borderRadius: '4px',
+      borderRadius: '16px',
       padding: '20px 24px',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
     }}>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
         {label}
@@ -65,9 +67,9 @@ function Skeleton({ height = 48, style = {} }) {
   return (
     <div style={{
       height,
-      background: 'var(--c-surface)',
+      background: 'var(--c-surface-2)',
       border: '1px solid var(--c-border-subtle)',
-      borderRadius: '4px',
+      borderRadius: '12px',
       ...style,
     }} />
   )
@@ -129,36 +131,37 @@ export default function Dashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '36px' }}>
 
           {/* Workout frequency */}
-          <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '4px', padding: '24px' }}>
+          <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
             <SectionLabel>Frecuencia semanal</SectionLabel>
             {loading ? (
               <Skeleton height={180} style={{ border: 'none' }} />
             ) : (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={data?.weeklyData} barSize={16} margin={{ top: 0, right: 0, left: -28, bottom: 0 }}>
-                  <CartesianGrid stroke="#2A2A2A" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fill: '#555555', fontSize: 9 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#555555', fontSize: 9 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip content={<ChartTooltip unit="entrenos" />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                  <Bar dataKey="count" fill="#FF2D2D" radius={[2, 2, 0, 0]} />
+                  {/* hex values required — SVG fill/stroke don't accept CSS vars */}
+                  <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip content={<ChartTooltip unit="entrenos" />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
+                  <Bar dataKey="count" fill="#FF2D2D" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
 
           {/* Volume trend */}
-          <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '4px', padding: '24px' }}>
+          <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
             <SectionLabel>Volumen semanal (lb)</SectionLabel>
             {loading ? (
               <Skeleton height={180} style={{ border: 'none' }} />
             ) : (
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={data?.weeklyData} barSize={16} margin={{ top: 0, right: 0, left: -10, bottom: 0 }}>
-                  <CartesianGrid stroke="#2A2A2A" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fill: '#555555', fontSize: 9 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#555555', fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
-                  <Tooltip content={<ChartTooltip unit="lb" />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                  <Bar dataKey="volume" fill="#FF2D2D" radius={[2, 2, 0, 0]} opacity={0.75} />
+                  <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+                  <Tooltip content={<ChartTooltip unit="lb" />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
+                  <Bar dataKey="volume" fill="#FF2D2D" radius={[6, 6, 0, 0]} opacity={0.8} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -166,7 +169,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── Best lifts ── */}
-        <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '4px', padding: '24px' }}>
+        <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
           <SectionLabel>Mejores marcas (1RM estimado)</SectionLabel>
 
           {loading ? (

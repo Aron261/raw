@@ -105,7 +105,7 @@ function AddExerciseModal({ userId, onAdd, onClose }) {
           background: 'var(--c-surface)',
           border: '1px solid var(--c-border-subtle)',
           borderBottom: 'none',
-          borderRadius: '6px 6px 0 0',
+          borderRadius: '20px 20px 0 0',
           width: '100%',
           maxWidth: '480px',
           padding: '20px 20px 0',

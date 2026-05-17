@@ -90,9 +90,10 @@ function ExerciseSearch({ onAdd, userId }) {
           top: 'calc(100% + 4px)',
           left: 0,
           right: 0,
-          background: 'var(--c-surface-2)',
-          border: '1px solid var(--c-border)',
-          borderRadius: '4px',
+          background: 'var(--c-surface)',
+          border: '1px solid var(--c-border-subtle)',
+          borderRadius: '12px',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
           overflow: 'hidden',
           zIndex: 20,
           maxHeight: '200px',
@@ -219,7 +220,7 @@ function RoutineExerciseRow({ re, routineId, isFirst, isLast, onUpdate, onRemove
         />
         <button
           onClick={() => onUpdate(re.id, { unit: re.unit === 'lb' ? 'kg' : 'lb' })}
-          style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-border)', padding: '3px 6px', borderRadius: '2px', flexShrink: 0, transition: `color 120ms` }}
+          style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-border)', padding: '3px 6px', borderRadius: '6px', flexShrink: 0, transition: `color 120ms` }}
           onMouseEnter={e => e.currentTarget.style.color = 'var(--c-text)'}
           onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-dim)'}
         >
@@ -349,7 +350,7 @@ export default function Routines() {
             {loading && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '0 8px' }}>
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} style={{ height: '48px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '4px', opacity: 1 - i * 0.25 }} />
+                  <div key={i} style={{ height: '48px', background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', opacity: 1 - i * 0.25 }} />
                 ))}
               </div>
             )}
@@ -374,7 +375,7 @@ export default function Routines() {
                   width: '100%',
                   textAlign: 'left',
                   padding: '11px 14px',
-                  borderRadius: '4px',
+                  borderRadius: '10px',
                   background: r.id === selectedId ? 'var(--c-surface-2)' : 'transparent',
                   border: `1px solid ${r.id === selectedId ? 'var(--c-border)' : 'transparent'}`,
                   transition: `background 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
@@ -483,7 +484,7 @@ export default function Routines() {
                     color: 'var(--c-text-dim)',
                     border: '1px solid var(--c-border-subtle)',
                     padding: '8px 16px',
-                    borderRadius: '3px',
+                    borderRadius: '10px',
                     transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
                   }}
                   onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-accent)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}

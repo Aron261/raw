@@ -35,6 +35,6 @@ export const ERROR_STYLE = {
   color: 'var(--c-accent)',
   fontSize: '12px',
   padding: '10px 12px',
-  borderRadius: '3px',
+  borderRadius: '10px',
   lineHeight: 1.4,
 }
