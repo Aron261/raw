@@ -26,6 +26,16 @@ function ProgressIcon() {
   )
 }
 
+function CycleIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+      <path d="M2 17l10 5 10-5" />
+      <path d="M2 12l10 5 10-5" />
+    </svg>
+  )
+}
+
 function ProfileIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -38,6 +48,7 @@ function ProfileIcon() {
 const navItems = [
   { to: '/',        label: 'Home',     Icon: HomeIcon,     exact: true },
   { to: '/history', label: 'Historial', Icon: HistoryIcon },
+  { to: '/cycle',   label: 'Ciclo',    Icon: CycleIcon },
   { to: '/progress',label: 'Progreso',  Icon: ProgressIcon },
   { to: '/profile', label: 'Perfil',    Icon: ProfileIcon },
 ]
@@ -54,57 +65,66 @@ export default function BottomNav() {
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      <div className="flex items-center justify-around max-w-lg mx-auto" style={{ height: '56px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-around',
+          maxWidth: '480px',
+          margin: '0 auto',
+          height: '60px',
+          padding: '0 8px',
+        }}
+      >
         {navItems.map(({ to, label, Icon, exact }) => (
           <NavLink
             key={to}
             to={to}
             end={exact}
-            className="flex flex-col items-center justify-center flex-1 h-full gap-1 relative"
-            style={{ transition: `transform 160ms var(--ease-out)` }}
+            style={{ flex: 1, display: 'flex', justifyContent: 'center' }}
           >
             {({ isActive }) => (
-              <>
-                <span
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '6px 0',
+                }}
+              >
+                {/* Circle icon button */}
+                <div
                   style={{
-                    color: isActive ? 'var(--c-accent)' : 'var(--c-text-dim)',
-                    transition: `color 200ms var(--ease-out)`,
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
                     display: 'flex',
-                    flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '3px',
+                    justifyContent: 'center',
+                    background: isActive ? 'var(--c-accent-dim)' : 'transparent',
+                    border: isActive ? '1px solid var(--c-accent-border)' : '1px solid transparent',
+                    color: isActive ? 'var(--c-accent)' : 'var(--c-text-ghost)',
+                    transition: 'all 200ms var(--ease-out)',
                   }}
                 >
                   <Icon />
-                  <span
-                    style={{
-                      fontSize: '9px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.1em',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {label}
-                  </span>
+                </div>
+                {/* Label */}
+                <span
+                  style={{
+                    fontSize: '9px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    lineHeight: 1,
+                    color: isActive ? 'var(--c-accent)' : 'var(--c-text-ghost)',
+                    transition: 'color 200ms var(--ease-out)',
+                  }}
+                >
+                  {label}
                 </span>
-
-                {/* Active indicator dot */}
-                {isActive && (
-                  <span
-                    style={{
-                      position: 'absolute',
-                      bottom: '4px',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: '3px',
-                      height: '3px',
-                      borderRadius: '50%',
-                      background: 'var(--c-accent)',
-                    }}
-                  />
-                )}
-              </>
+              </div>
             )}
           </NavLink>
         ))}
