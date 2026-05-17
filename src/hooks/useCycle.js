@@ -331,6 +331,31 @@ export function useCycle() {
   }
 
   // ---------------------------------------------------------------------------
+  // deleteCycle — permanently deletes a cycle and all its data (cascade)
+  // ---------------------------------------------------------------------------
+  const deleteCycle = useCallback(async (cycleId) => {
+    setError(null)
+    setLoading(true)
+    try {
+      const { error: deleteErr } = await supabase
+        .from('training_cycles')
+        .delete()
+        .eq('id', cycleId)
+
+      if (deleteErr) throw deleteErr
+
+      setActiveCycle(null)
+      setCycleData([])
+    } catch (err) {
+      console.error('Error deleting cycle:', err)
+      setError(err.message)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // ---------------------------------------------------------------------------
   // refetch — convenience wrapper to reload everything
   // ---------------------------------------------------------------------------
   const refetch = useCallback(async () => {
@@ -347,6 +372,7 @@ export function useCycle() {
     error,
     createCycle,
     closeCycle,
+    deleteCycle,
     updateCycleExercise,
     refetch,
   }

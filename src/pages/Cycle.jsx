@@ -815,9 +815,10 @@ function PlanPreview({ plan, wizardData, onCreate, generating }) {
 
 // ─── Active cycle view ───────────────────────────────────────────────────────
 
-function ActiveCycleView({ activeCycle, cycleData, currentWeek, onClose }) {
+function ActiveCycleView({ activeCycle, cycleData, currentWeek, onClose, onDelete }) {
   const [expandedDayId, setExpandedDayId] = useState(null)
   const [closingConfirm, setClosingConfirm] = useState(false)
+  const [deletingConfirm, setDeletingConfirm] = useState(false)
 
   const days = cycleData?.days ?? []
 
@@ -1069,38 +1070,57 @@ function ActiveCycleView({ activeCycle, cycleData, currentWeek, onClose }) {
         })}
       </div>
 
-      {/* ── Close cycle footer ── */}
-      {!closingConfirm ? (
-        <button
-          type="button"
-          onClick={() => setClosingConfirm(true)}
-          style={{
-            width: '100%',
-            padding: '14px',
-            borderRadius: 'var(--r-sm)',
-            fontSize: '11px',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            border: '1px solid var(--c-border)',
-            background: 'transparent',
-            color: 'var(--c-text-muted)',
-            cursor: 'pointer',
-            transition: 'all 150ms var(--ease-out)',
-            minHeight: '44px',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.borderColor = 'var(--c-accent)'
-            e.currentTarget.style.color = 'var(--c-accent)'
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.borderColor = 'var(--c-border)'
-            e.currentTarget.style.color = 'var(--c-text-muted)'
-          }}
-        >
-          Cerrar ciclo
-        </button>
-      ) : (
+      {/* ── Footer actions ── */}
+      {!closingConfirm && !deletingConfirm ? (
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            type="button"
+            onClick={() => setClosingConfirm(true)}
+            style={{
+              flex: 1,
+              padding: '14px',
+              borderRadius: 'var(--r-sm)',
+              fontSize: '11px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              border: '1px solid var(--c-border)',
+              background: 'transparent',
+              color: 'var(--c-text-muted)',
+              cursor: 'pointer',
+              transition: 'all 150ms var(--ease-out)',
+              minHeight: '44px',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.color = 'var(--c-accent)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.color = 'var(--c-text-muted)' }}
+          >
+            Cerrar ciclo
+          </button>
+          <button
+            type="button"
+            onClick={() => setDeletingConfirm(true)}
+            style={{
+              padding: '14px 16px',
+              borderRadius: 'var(--r-sm)',
+              fontSize: '11px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              border: '1px solid var(--c-border)',
+              background: 'transparent',
+              color: 'var(--c-text-ghost)',
+              cursor: 'pointer',
+              transition: 'all 150ms var(--ease-out)',
+              minHeight: '44px',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-accent)'; e.currentTarget.style.color = 'var(--c-accent)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.color = 'var(--c-text-ghost)' }}
+            title="Eliminar ciclo permanentemente"
+          >
+            🗑
+          </button>
+        </div>
+      ) : closingConfirm ? (
         <div
           className="fade-in"
           style={{
@@ -1113,53 +1133,55 @@ function ActiveCycleView({ activeCycle, cycleData, currentWeek, onClose }) {
             gap: '12px',
           }}
         >
-          <p
-            style={{
-              fontSize: '13px',
-              fontWeight: 700,
-              color: 'var(--c-accent)',
-              letterSpacing: '-0.02em',
-            }}
-          >
+          <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-accent)', letterSpacing: '-0.02em' }}>
             ¿Seguro que quieres cerrar este ciclo?
           </p>
-          <p
-            style={{
-              fontSize: '11px',
-              color: 'var(--c-text-muted)',
-              lineHeight: 1.5,
-            }}
-          >
+          <p style={{ fontSize: '11px', color: 'var(--c-text-muted)', lineHeight: 1.5 }}>
             Se guardará en el historial y podrás crear uno nuevo.
+          </p>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="button" className="btn-primary" onClick={() => onClose(activeCycle.id)} style={{ flex: 1, padding: '12px', fontSize: '11px' }}>
+              Sí, cerrar ciclo
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => setClosingConfirm(false)} style={{ flex: 1, padding: '12px', fontSize: '11px' }}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      ) : deletingConfirm ? (
+        <div
+          className="fade-in"
+          style={{
+            background: 'var(--c-accent-dim)',
+            border: '1px solid var(--c-accent-border)',
+            borderRadius: 'var(--r-md)',
+            padding: '18px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-accent)', letterSpacing: '-0.02em' }}>
+            ¿Eliminar este ciclo?
+          </p>
+          <p style={{ fontSize: '11px', color: 'var(--c-text-muted)', lineHeight: 1.5 }}>
+            Se borrarán todos los datos permanentemente. Esta acción no se puede deshacer.
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               type="button"
               className="btn-primary"
-              onClick={() => onClose(activeCycle.id)}
-              style={{
-                flex: 1,
-                padding: '12px',
-                fontSize: '11px',
-              }}
+              onClick={() => onDelete(activeCycle.id)}
+              style={{ flex: 1, padding: '12px', fontSize: '11px' }}
             >
-              Sí, cerrar ciclo
+              Sí, eliminar
             </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => setClosingConfirm(false)}
-              style={{
-                flex: 1,
-                padding: '12px',
-                fontSize: '11px',
-              }}
-            >
+            <button type="button" className="btn-secondary" onClick={() => setDeletingConfirm(false)} style={{ flex: 1, padding: '12px', fontSize: '11px' }}>
               Cancelar
             </button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
@@ -1308,6 +1330,7 @@ export default function Cycle() {
     error,
     createCycle,
     closeCycle,
+    deleteCycle,
     refetch,
   } = useCycle()
 
@@ -1448,6 +1471,15 @@ export default function Cycle() {
     }
   }
 
+  // Delete the active cycle permanently
+  const handleDeleteCycle = async (cycleId) => {
+    try {
+      await deleteCycle(cycleId)
+    } catch (err) {
+      console.error('Error deleting cycle:', err)
+    }
+  }
+
   // Close the active cycle
   const handleCloseCycle = async (cycleId) => {
     // Compute rough volumeByGroup from cycleData
@@ -1522,6 +1554,7 @@ export default function Cycle() {
             cycleData={cycleData}
             currentWeek={currentWeek}
             onClose={handleCloseCycle}
+            onDelete={handleDeleteCycle}
           />
         ) : (
           <>
