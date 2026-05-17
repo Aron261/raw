@@ -188,16 +188,12 @@ export function useCycle() {
 
         if (dayPlan.exercises && dayPlan.exercises.length > 0) {
           const exerciseRows = dayPlan.exercises.map(ex => ({
-            cycle_id:          cycleId,
             cycle_day_id:      dayRow.id,
             exercise_name:     ex.exerciseName,
             sets:              ex.sets,
             reps_min:          ex.repsMin,
             reps_max:          ex.repsMax,
             intensity_percent: ex.intensityPercent,
-            suggested_weight:  ex.suggestedWeight ?? null,
-            unit:              ex.unit ?? null,
-            has_history:       ex.hasHistory ?? false,
             week_override:     null,
           }))
 
