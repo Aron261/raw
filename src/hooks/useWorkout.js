@@ -167,7 +167,38 @@ export function useWorkouts() {
     return newWorkout
   }
 
-  return { workouts, loading, error, fetchWorkouts, createWorkout, createWorkoutFromRoutine, updateWorkout, deleteWorkout, duplicateWorkout }
+  // Create a new workout pre-loaded with exercises from a cycle day
+  const createWorkoutFromCycleDay = async (cycleDay) => {
+    const { data: workoutData, error: workoutErr } = await supabase
+      .from('workouts')
+      .insert({ user_id: user.id, name: cycleDay.day_name, started_at: new Date().toISOString() })
+      .select()
+      .single()
+    if (workoutErr) throw workoutErr
+
+    const exercises = cycleDay.exercises || []
+    for (let i = 0; i < exercises.length; i++) {
+      const ex = exercises[i]
+      if (!ex.exercise_name) continue
+
+      const { data: exRow, error: exErr } = await supabase
+        .from('exercises')
+        .upsert({ user_id: user.id, name: ex.exercise_name }, { onConflict: 'user_id,name' })
+        .select()
+        .single()
+      if (exErr) throw exErr
+
+      const { error: weErr } = await supabase
+        .from('workout_exercises')
+        .insert({ workout_id: workoutData.id, exercise_id: exRow.id, sort_order: i, unit: 'lb' })
+      if (weErr) throw weErr
+    }
+
+    await fetchWorkouts()
+    return workoutData
+  }
+
+  return { workouts, loading, error, fetchWorkouts, createWorkout, createWorkoutFromRoutine, updateWorkout, deleteWorkout, duplicateWorkout, createWorkoutFromCycleDay }
 }
 
 // Hook to manage a single active workout
