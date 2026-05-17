@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import SetRow from './SetRow'
+import PRBadge from './PRBadge'
 import { calc1RM, useExerciseAllTimeBest } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
 import { pressProps } from '../lib/ui'
@@ -12,6 +13,7 @@ export default function ExerciseRow({
   onUpdateUnit,
   onRemoveExercise,
   onSwapExercise,
+  onUpdateNotes,
   readOnly = false,
 }) {
   const { user } = useAuth()
@@ -19,6 +21,9 @@ export default function ExerciseRow({
   const [newReps, setNewReps] = useState('10')
   const [newWeight, setNewWeight] = useState('135')
   const [adding, setAdding] = useState(false)
+  const [showNotes, setShowNotes] = useState(false)
+  const [notesValue, setNotesValue] = useState(workoutExercise.notes || '')
+  const notesRef = useRef(null)
 
   const exercise = workoutExercise.exercises
   const sets = workoutExercise.sets || []
@@ -30,6 +35,19 @@ export default function ExerciseRow({
     const rm = calc1RM(set.weight, set.reps)
     return rm > best ? rm : best
   }, 0), [sets])
+
+  // PR detection — show banner when this session beats the all-time best
+  const isNewPR = !readOnly && sets.length > 0 && allTimeBestWeight > 0 && sessionBest1RM > allTimeBestWeight
+  const prevPR = useRef(false)
+  const [showPRBanner, setShowPRBanner] = useState(false)
+
+  useEffect(() => {
+    if (isNewPR && !prevPR.current) {
+      setShowPRBanner(true)
+      try { navigator.vibrate?.([100, 50, 100, 50, 200]) } catch {}
+    }
+    prevPR.current = isNewPR
+  }, [isNewPR])
 
   useEffect(() => {
     if (sets.length > 0) {
@@ -52,13 +70,37 @@ export default function ExerciseRow({
   }
 
   return (
+    <div style={{ position: 'relative' }}>
+      {/* PR celebration banner */}
+      {showPRBanner && (
+        <div
+          className="pr-badge-enter"
+          style={{
+            position: 'absolute', top: '-10px', left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10,
+            background: 'var(--c-accent)',
+            color: '#fff',
+            fontSize: '10px', fontWeight: 900,
+            textTransform: 'uppercase', letterSpacing: '0.12em',
+            padding: '4px 12px', borderRadius: '999px',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 2px 12px rgba(255,45,45,0.35)',
+            cursor: 'pointer',
+          }}
+          onClick={() => setShowPRBanner(false)}
+        >
+          🏆 Nuevo récord personal
+        </div>
+      )}
     <div
       style={{
         background: 'var(--c-surface)',
-        border: '1px solid var(--c-border-subtle)',
-        borderRadius: '4px',
+        border: `1px solid ${isNewPR ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
+        borderRadius: '16px',
         marginBottom: '10px',
         overflow: 'hidden',
+        transition: 'border-color 400ms var(--ease-out)',
       }}
     >
       {/* Exercise header */}
@@ -105,6 +147,9 @@ export default function ExerciseRow({
             </span>
           )}
 
+          {/* PR badge inline */}
+          {isNewPR && <PRBadge small />}
+
           {/* Chevron */}
           <span
             className={`chevron ${expanded ? 'open' : ''}`}
@@ -133,6 +178,27 @@ export default function ExerciseRow({
             >
               {unit}
             </button>
+
+            {/* Notes toggle */}
+            {onUpdateNotes && (
+              <button
+                onClick={() => {
+                  setShowNotes(n => !n)
+                  setTimeout(() => notesRef.current?.focus(), 80)
+                }}
+                aria-label="Nota"
+                title="Agregar nota"
+                style={{
+                  color: notesValue ? 'var(--c-accent)' : 'var(--c-text-ghost)',
+                  fontSize: '13px',
+                  lineHeight: 1,
+                  padding: '4px',
+                  transition: `color 150ms var(--ease-out)`,
+                }}
+              >
+                📝
+              </button>
+            )}
 
             {/* Swap exercise — only this day, routine untouched */}
             {onSwapExercise && (
@@ -264,6 +330,49 @@ export default function ExerciseRow({
           )}
         </div>
       </div>
+
+      {/* Notes area — expands inline below sets */}
+      {(showNotes || notesValue) && (
+        <div style={{ padding: '0 14px 12px', borderTop: showNotes ? '1px solid var(--c-border-subtle)' : 'none' }}>
+          {showNotes ? (
+            <textarea
+              ref={notesRef}
+              value={notesValue}
+              onChange={e => setNotesValue(e.target.value)}
+              onBlur={() => {
+                onUpdateNotes?.(workoutExercise.id, notesValue.trim())
+                if (!notesValue.trim()) setShowNotes(false)
+              }}
+              placeholder="Nota sobre este ejercicio..."
+              rows={2}
+              style={{
+                width: '100%',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                resize: 'none',
+                color: 'var(--c-text)',
+                fontSize: '12px',
+                lineHeight: 1.5,
+                marginTop: '10px',
+                fontFamily: 'inherit',
+              }}
+            />
+          ) : notesValue ? (
+            <p
+              onClick={() => setShowNotes(true)}
+              style={{
+                color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5,
+                marginTop: '8px', cursor: 'text',
+                fontStyle: 'italic',
+              }}
+            >
+              {notesValue}
+            </p>
+          ) : null}
+        </div>
+      )}
+    </div>
     </div>
   )
 }

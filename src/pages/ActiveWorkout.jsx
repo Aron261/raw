@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import ExerciseRow from '../components/ExerciseRow'
@@ -8,7 +8,116 @@ import { useAuth } from '../hooks/useAuth'
 import { hoverColor, ERROR_STYLE } from '../lib/ui'
 import { useWorkouts } from '../hooks/useWorkout'
 
-/* ── Timer ──────────────────────────────────────────────────────────── */
+/* ── Rest Timer ─────────────────────────────────────────────────────── */
+const REST_PRESETS = [60, 90, 120, 180] // seconds
+
+function RestTimer({ onDone, onDismiss }) {
+  const [duration, setDuration] = useState(90)
+  const [remaining, setRemaining] = useState(90)
+  const [running, setRunning] = useState(true)
+
+  // Reset remaining when duration changes
+  useEffect(() => { setRemaining(duration); setRunning(true) }, [duration])
+
+  useEffect(() => {
+    if (!running) return
+    if (remaining <= 0) {
+      // Vibrate on finish (mobile)
+      try { navigator.vibrate?.([200, 100, 200]) } catch {}
+      setRunning(false)
+      onDone?.()
+      return
+    }
+    const id = setInterval(() => setRemaining(r => r - 1), 1000)
+    return () => clearInterval(id)
+  }, [running, remaining, onDone])
+
+  const pct = Math.max(0, remaining / duration)
+  const pad = n => String(n).padStart(2, '0')
+  const mins = Math.floor(remaining / 60)
+  const secs = remaining % 60
+  const done = remaining <= 0
+
+  return (
+    <div
+      className="fade-in"
+      style={{
+        position: 'fixed',
+        bottom: 'max(100px, calc(env(safe-area-inset-bottom) + 100px))',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 40,
+        background: 'var(--c-surface)',
+        border: '1px solid var(--c-border-subtle)',
+        borderRadius: '999px',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '10px 16px 10px 20px',
+        minWidth: '220px',
+      }}
+    >
+      {/* Circular progress ring */}
+      <svg width="32" height="32" style={{ flexShrink: 0, transform: 'rotate(-90deg)' }}>
+        <circle cx="16" cy="16" r="13" fill="none" stroke="var(--c-border-subtle)" strokeWidth="2.5" />
+        <circle
+          cx="16" cy="16" r="13" fill="none"
+          stroke={done ? 'oklch(55% 0.15 145)' : 'var(--c-accent)'}
+          strokeWidth="2.5"
+          strokeDasharray={`${2 * Math.PI * 13}`}
+          strokeDashoffset={`${2 * Math.PI * 13 * (1 - pct)}`}
+          strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 1s linear, stroke 300ms' }}
+        />
+      </svg>
+
+      {/* Time display */}
+      <span style={{
+        fontFamily: 'ui-monospace, monospace',
+        fontSize: '18px', fontWeight: 800,
+        color: done ? 'oklch(55% 0.15 145)' : 'var(--c-text)',
+        letterSpacing: '-0.02em',
+        fontVariantNumeric: 'tabular-nums',
+        minWidth: '48px',
+      }}>
+        {done ? '✓' : `${pad(mins)}:${pad(secs)}`}
+      </span>
+
+      {/* Preset buttons */}
+      <div style={{ display: 'flex', gap: '4px' }}>
+        {REST_PRESETS.map(s => (
+          <button
+            key={s}
+            onClick={() => setDuration(s)}
+            style={{
+              fontSize: '9px', fontWeight: 800,
+              padding: '3px 6px', borderRadius: '999px',
+              background: duration === s ? 'var(--c-surface-2)' : 'transparent',
+              border: `1px solid ${duration === s ? 'var(--c-border)' : 'transparent'}`,
+              color: duration === s ? 'var(--c-text)' : 'var(--c-text-ghost)',
+              transition: 'all 150ms',
+            }}
+          >
+            {s < 60 ? `${s}s` : `${s / 60}m`}
+          </button>
+        ))}
+      </div>
+
+      {/* Dismiss */}
+      <button
+        onClick={onDismiss}
+        style={{ color: 'var(--c-text-ghost)', fontSize: '14px', padding: '4px', lineHeight: 1, transition: 'color 120ms' }}
+        onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text-dim)' }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
+      >
+        ✕
+      </button>
+    </div>
+  )
+}
+
+/* ── Workout elapsed timer ───────────────────────────────────────────── */
 function WorkoutTimer({ startedAt }) {
   const [elapsed, setElapsed] = useState(0)
 
@@ -222,16 +331,29 @@ export default function ActiveWorkout() {
   const {
     workout, workoutExercises, loading, error,
     updateWorkoutName, finishWorkout,
-    addExercise, replaceExercise, updateUnit, addSet, updateSet, deleteSet, removeExercise,
+    addExercise, replaceExercise, updateUnit, updateExerciseNotes, addSet, updateSet, deleteSet, removeExercise,
   } = useActiveWorkout(id)
 
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
   const [showAdd, setShowAdd] = useState(false)
-  const [swappingId, setSwappingId] = useState(null) // workoutExerciseId being swapped
+  const [swappingId, setSwappingId] = useState(null)
   const [finishing, setFinishing] = useState(false)
   const [finishError, setFinishError] = useState(null)
   const nameRef = useRef(null)
+
+  // Rest timer
+  const [restEnabled, setRestEnabled] = useState(() => {
+    try { return localStorage.getItem('raw_rest_timer') !== 'off' } catch { return true }
+  })
+  const [restActive, setRestActive] = useState(false)
+
+  const toggleRest = () => {
+    const next = !restEnabled
+    setRestEnabled(next)
+    try { localStorage.setItem('raw_rest_timer', next ? 'on' : 'off') } catch {}
+    if (!next) setRestActive(false)
+  }
 
   const isFinished = !!workout?.ended_at
 
@@ -265,6 +387,12 @@ export default function ActiveWorkout() {
   const handleAddExercise = async (name) => {
     try { await addExercise(name) } catch (err) { console.error(err) }
   }
+
+  // Wrap addSet to trigger rest timer automatically
+  const handleAddSet = useCallback(async (weId, reps, weight) => {
+    await addSet(weId, reps, weight)
+    if (restEnabled) setRestActive(true)
+  }, [addSet, restEnabled])
 
   const handleSwapExercise = async (name) => {
     if (!swappingId) return
@@ -320,12 +448,28 @@ export default function ActiveWorkout() {
             ← Back
           </button>
 
-          {!isFinished && workout.started_at && <WorkoutTimer startedAt={workout.started_at} />}
-          {isFinished && (
-            <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Finished
-            </span>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {!isFinished && workout.started_at && <WorkoutTimer startedAt={workout.started_at} />}
+            {isFinished && (
+              <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                Finished
+              </span>
+            )}
+            {/* Rest timer toggle */}
+            {!isFinished && (
+              <button
+                onClick={toggleRest}
+                title={restEnabled ? 'Desactivar descanso' : 'Activar descanso'}
+                style={{
+                  fontSize: '16px', lineHeight: 1, padding: '4px',
+                  opacity: restEnabled ? 1 : 0.35,
+                  transition: 'opacity 200ms',
+                }}
+              >
+                ⏱
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Workout name */}
@@ -388,12 +532,13 @@ export default function ActiveWorkout() {
             <div key={we.id} className="stagger-item" style={{ animationDelay: `${i * 40}ms` }}>
               <ExerciseRow
                 workoutExercise={we}
-                onAddSet={addSet}
+                onAddSet={handleAddSet}
                 onDeleteSet={deleteSet}
                 onUpdateSet={updateSet}
                 onUpdateUnit={updateUnit}
                 onRemoveExercise={removeExercise}
                 onSwapExercise={!isFinished ? (weId) => setSwappingId(weId) : undefined}
+                onUpdateNotes={!isFinished ? updateExerciseNotes : undefined}
                 readOnly={isFinished}
               />
             </div>
@@ -464,6 +609,14 @@ export default function ActiveWorkout() {
           </div>
         )}
       </div>
+
+      {/* Rest timer overlay */}
+      {restActive && (
+        <RestTimer
+          onDone={() => {}}
+          onDismiss={() => setRestActive(false)}
+        />
+      )}
 
       {showAdd && (
         <AddExerciseModal

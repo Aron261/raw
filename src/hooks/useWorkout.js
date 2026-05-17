@@ -289,6 +289,18 @@ export function useActiveWorkout(workoutId) {
     await fetchWorkout()
   }
 
+  const updateExerciseNotes = async (workoutExerciseId, notes) => {
+    const { error: err } = await supabase
+      .from('workout_exercises')
+      .update({ notes })
+      .eq('id', workoutExerciseId)
+    if (err) throw err
+    // Optimistic update — no full refetch needed
+    setWorkoutExercises(prev =>
+      prev.map(we => we.id === workoutExerciseId ? { ...we, notes } : we)
+    )
+  }
+
   const removeExercise = async (workoutExerciseId) => {
     const { error: err } = await supabase
       .from('workout_exercises')
@@ -336,6 +348,7 @@ export function useActiveWorkout(workoutId) {
     addExercise,
     replaceExercise,
     updateUnit,
+    updateExerciseNotes,
     addSet,
     updateSet,
     deleteSet,
