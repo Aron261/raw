@@ -58,14 +58,22 @@ function AddExerciseModal({ userId, onAdd, onClose }) {
     if (!query.trim()) { setResults([]); return }
     const t = setTimeout(async () => {
       setSearching(true)
-      const { data } = await supabase
-        .from('exercises')
-        .select('id, name')
-        .eq('user_id', userId)
-        .ilike('name', `%${query.trim()}%`)
-        .order('name')
-        .limit(10)
-      setResults(data || [])
+      const q = query.trim()
+
+      // Buscar en paralelo: ejercicios propios del usuario + librería global
+      const [{ data: own }, { data: lib }] = await Promise.all([
+        supabase.from('exercises').select('id, name').eq('user_id', userId).ilike('name', `%${q}%`).order('name').limit(10),
+        supabase.from('exercises_library').select('id, name').ilike('name', `%${q}%`).order('name').limit(10),
+      ])
+
+      // Fusionar: primero los propios, luego la librería sin repetir nombres
+      const seen = new Set((own || []).map(e => e.name.toLowerCase()))
+      const merged = [
+        ...(own || []),
+        ...(lib || []).filter(e => !seen.has(e.name.toLowerCase())),
+      ].slice(0, 12)
+
+      setResults(merged)
       setSearching(false)
     }, 220)
     return () => clearTimeout(t)
