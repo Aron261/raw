@@ -1,0 +1,262 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design tokens ─────────────────────────────────────────────────── */
+:root {
+  /* Easing — ease-spring removed: overshoot curve violates no-bounce rule */
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Colors — single source of truth for all inline styles */
+  --c-bg:             #0A0A0A;
+  --c-surface:        #111111;
+  --c-surface-2:      #1A1A1A;
+  --c-border-subtle:  #1E1E1E;
+  --c-border:         #2A2A2A;
+  --c-text:           #FFFFFF;
+  --c-text-secondary: #CCCCCC;  /* stat values, strong secondary */
+  --c-text-dim:       #555555;  /* section labels, metadata */
+  --c-text-muted:     #888888;  /* empty states, guidance */
+  --c-text-ghost:     #3A3A3A;  /* decorative marks, chevrons — not for readable text */
+  --c-accent:         #FF2D2D;
+  --c-accent-dim:     rgba(255, 45, 45, 0.12);
+  --c-accent-border:  rgba(255, 45, 45, 0.25);
+  /* Glazed surfaces */
+  --c-surface-glass:  rgba(17, 17, 17, 0.92);
+  --c-bg-glass:       rgba(10, 10, 10, 0.95);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    background-color: #0A0A0A;
+    color: #FFFFFF;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.025em;
+    overscroll-behavior: none;
+  }
+
+  body {
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+  }
+
+  #root {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 2px; }
+}
+
+@layer components {
+
+  /* ─── Buttons ──────────────────────────────────────────────────────── */
+  .btn-primary {
+    @apply bg-accent-red text-white uppercase tracking-widest font-black text-sm px-6 py-3 rounded-sm;
+    transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .btn-secondary {
+    @apply bg-surface-2 text-white uppercase tracking-widest font-black text-sm px-6 py-3 rounded-sm border border-border;
+    transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  }
+  .btn-secondary:active {
+    transform: scale(0.97);
+    border-color: var(--c-border);
+  }
+
+  .btn-ghost {
+    @apply text-text-muted uppercase tracking-widest font-bold text-xs px-4 py-2 rounded-sm;
+    transition: transform 160ms var(--ease-out), color 160ms var(--ease-out);
+  }
+  .btn-ghost:active {
+    transform: scale(0.96);
+    color: var(--c-text);
+  }
+
+  /* ─── Inputs ───────────────────────────────────────────────────────── */
+  .input-field {
+    @apply bg-surface-2 border border-border text-white placeholder-text-muted px-3 py-2 rounded-sm outline-none w-full;
+    transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+  }
+  .input-field:focus {
+    border-color: rgba(255,255,255,0.4);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
+  }
+
+  /* ─── Cards ────────────────────────────────────────────────────────── */
+  .card {
+    @apply bg-surface border border-border rounded-sm p-4;
+  }
+
+  /* ─── Pressable (generic tappable element) ─────────────────────────── */
+  .pressable {
+    transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
+  }
+  .pressable:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+  }
+}
+
+/* ─── Stagger: list items fade + slide up ──────────────────────────── */
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* animation-delay is set via inline style at the use site for dynamic lists */
+.stagger-item {
+  opacity: 0;
+  animation: stagger-in 280ms var(--ease-out) forwards;
+}
+
+/* ─── Fade in (general entry) ──────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fade-in 300ms var(--ease-out) both;
+}
+
+/* ─── Modal backdrop ────────────────────────────────────────────────── */
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.modal-backdrop {
+  animation: backdrop-in 200ms var(--ease-out) both;
+}
+
+/* ─── Modal sheet slide up ──────────────────────────────────────────── */
+@keyframes sheet-up {
+  from {
+    opacity: 0.6;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.modal-sheet {
+  animation: sheet-up 320ms var(--ease-drawer) both;
+}
+
+/* ─── Exercise row expand/collapse ─────────────────────────────────── */
+.exercise-sets-wrapper {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 220ms var(--ease-out), opacity 200ms var(--ease-out);
+}
+.exercise-sets-wrapper.collapsed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.exercise-sets-inner {
+  overflow: hidden;
+}
+
+/* ─── Chevron rotate ───────────────────────────────────────────────── */
+.chevron {
+  transition: transform 220ms var(--ease-out);
+  display: inline-block;
+}
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+/* ─── PR badge pulse ────────────────────────────────────────────────── */
+@keyframes pr-pop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pr-badge-enter {
+  animation: pr-pop 350ms var(--ease-out) both;
+}
+
+/* ─── LIVE badge pulse ──────────────────────────────────────────────── */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.live-dot {
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+/* ─── Spinner ───────────────────────────────────────────────────────── */
+@keyframes spin-fast {
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-top-color: var(--c-text);
+  border-radius: 50%;
+  animation: spin-fast 500ms linear infinite;
+  display: inline-block;
+}
+
+/* ─── Hover guards (touch devices) ─────────────────────────────────── */
+@media (hover: hover) and (pointer: fine) {
+  .card-hover:hover {
+    border-color: rgba(255,255,255,0.15);
+  }
+  .btn-secondary:hover {
+    border-color: rgba(255,255,255,0.2);
+  }
+}
+
+/* ─── Reduced motion ────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .stagger-item,
+  .fade-in,
+  .modal-sheet,
+  .modal-backdrop,
+  .pr-badge-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .exercise-sets-wrapper {
+    transition: none;
+  }
+}

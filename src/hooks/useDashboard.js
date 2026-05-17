@@ -1,0 +1,127 @@
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
+import { useAuth } from './useAuth'
+import { calc1RM, calcVolume } from './useWorkout'
+
+// Returns the ISO Monday for any given date
+function getWeekKey(date) {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+  const monday = new Date(d)
+  monday.setDate(diff)
+  return monday.toISOString().slice(0, 10)
+}
+
+// Generate the last N week keys (Monday dates), oldest first
+function getLastNWeeks(n = 8) {
+  const weeks = []
+  const today = new Date()
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i * 7)
+    weeks.push(getWeekKey(d))
+  }
+  return [...new Set(weeks)]
+}
+
+function weekLabel(isoDate) {
+  return new Date(isoDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+export function useDashboard() {
+  const { user } = useAuth()
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!user) return
+
+    const fetch = async () => {
+      setLoading(true)
+      try {
+        const { data: workouts, error } = await supabase
+          .from('workouts')
+          .select(`
+            id, name, started_at, ended_at,
+            workout_exercises (
+              unit,
+              exercises ( id, name ),
+              sets ( weight, reps )
+            )
+          `)
+          .eq('user_id', user.id)
+          .not('ended_at', 'is', null)
+          .order('started_at', { ascending: false })
+
+        if (error) throw error
+        if (!workouts) { setLoading(false); return }
+
+        // ── Weekly data ────────────────────────────────────────────────
+        const weekKeys = getLastNWeeks(8)
+        const cutoff = new Date(weekKeys[0])
+        const weekMap = Object.fromEntries(
+          weekKeys.map(k => [k, { week: k, label: weekLabel(k), count: 0, volume: 0 }])
+        )
+
+        workouts
+          .filter(w => new Date(w.started_at) >= cutoff)
+          .forEach(w => {
+            const key = getWeekKey(w.started_at)
+            if (!weekMap[key]) return
+            weekMap[key].count += 1
+            const allSets = w.workout_exercises.flatMap(we => we.sets || [])
+            weekMap[key].volume += calcVolume(allSets)
+          })
+
+        const weeklyData = weekKeys.map(k => ({
+          ...weekMap[k],
+          volume: Math.round(weekMap[k].volume),
+        }))
+
+        // ── Best lifts (all time, top 6 by 1RM) ───────────────────────
+        const exerciseMap = {}
+        workouts.forEach(w => {
+          w.workout_exercises.forEach(we => {
+            const name = we.exercises?.name
+            if (!name) return
+            we.sets?.forEach(set => {
+              const rm = calc1RM(set.weight, set.reps)
+              if (!exerciseMap[name] || rm > exerciseMap[name].best1RM) {
+                exerciseMap[name] = { name, best1RM: rm, unit: we.unit }
+              }
+            })
+          })
+        })
+        const bestLifts = Object.values(exerciseMap)
+          .sort((a, b) => b.best1RM - a.best1RM)
+          .slice(0, 6)
+
+        // ── Summary stats ──────────────────────────────────────────────
+        const thisMonth = workouts.filter(w => {
+          const d = new Date(w.started_at)
+          const now = new Date()
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+        }).length
+
+        const lastWorkout = workouts[0] || null
+
+        setData({
+          weeklyData,
+          bestLifts,
+          totalWorkouts: workouts.length,
+          thisMonth,
+          lastWorkout,
+        })
+      } catch (err) {
+        console.error('Dashboard fetch error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetch()
+  }, [user])
+
+  return { data, loading }
+}
