@@ -11,6 +11,7 @@ export default function ExerciseRow({
   onUpdateSet,
   onUpdateUnit,
   onRemoveExercise,
+  onSwapExercise,
   readOnly = false,
 }) {
   const { user } = useAuth()
@@ -113,7 +114,7 @@ export default function ExerciseRow({
           </span>
         </button>
 
-        {/* Unit toggle + remove */}
+        {/* Unit toggle + swap + remove */}
         {!readOnly ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
             <button
@@ -126,12 +127,33 @@ export default function ExerciseRow({
                 letterSpacing: '0.06em',
                 border: '1px solid var(--c-border)',
                 padding: '3px 7px',
-                borderRadius: '2px',
+                borderRadius: '6px',
                 transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
               }}
             >
               {unit}
             </button>
+
+            {/* Swap exercise — only this day, routine untouched */}
+            {onSwapExercise && (
+              <button
+                onClick={() => onSwapExercise(workoutExercise.id)}
+                aria-label="Cambiar ejercicio"
+                title="Cambiar ejercicio (solo hoy)"
+                style={{
+                  color: 'var(--c-text-ghost)',
+                  fontSize: '12px',
+                  lineHeight: 1,
+                  padding: '4px',
+                  transition: `color 150ms var(--ease-out)`,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text-dim)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
+              >
+                ✎
+              </button>
+            )}
+
             <button
               onClick={() => onRemoveExercise(workoutExercise.id)}
               aria-label="Remove exercise"
@@ -149,7 +171,7 @@ export default function ExerciseRow({
             </button>
           </div>
         ) : (
-          <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', border: '1px solid var(--c-border)', padding: '3px 7px', borderRadius: '2px' }}>
+          <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', border: '1px solid var(--c-border)', padding: '3px 7px', borderRadius: '6px' }}>
             {unit}
           </span>
         )}

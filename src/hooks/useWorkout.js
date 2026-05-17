@@ -298,6 +298,33 @@ export function useActiveWorkout(workoutId) {
     await fetchWorkout()
   }
 
+  // Swap the exercise in a workout_exercise row without touching the routine
+  const replaceExercise = async (workoutExerciseId, newExerciseName) => {
+    const name = newExerciseName.trim()
+
+    // Upsert the new exercise for this user
+    const { data: ex, error: exErr } = await supabase
+      .from('exercises')
+      .upsert({ user_id: user.id, name }, { onConflict: 'user_id,name' })
+      .select()
+      .single()
+    if (exErr) throw exErr
+
+    // Also register in global library
+    await supabase
+      .from('exercises_library')
+      .upsert({ name, muscle_group: 'Personalizado' }, { onConflict: 'name' })
+
+    // Point this workout_exercise to the new exercise — routine is untouched
+    const { error: weErr } = await supabase
+      .from('workout_exercises')
+      .update({ exercise_id: ex.id })
+      .eq('id', workoutExerciseId)
+    if (weErr) throw weErr
+
+    await fetchWorkout()
+  }
+
   return {
     workout,
     workoutExercises,
@@ -307,6 +334,7 @@ export function useActiveWorkout(workoutId) {
     updateWorkoutName,
     finishWorkout,
     addExercise,
+    replaceExercise,
     updateUnit,
     addSet,
     updateSet,

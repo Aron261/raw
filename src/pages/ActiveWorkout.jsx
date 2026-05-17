@@ -41,8 +41,8 @@ function WorkoutTimer({ startedAt }) {
   )
 }
 
-/* ── Add Exercise Modal ─────────────────────────────────────────────── */
-function AddExerciseModal({ userId, onAdd, onClose }) {
+/* ── Add / Swap Exercise Modal ──────────────────────────────────────── */
+function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subtitle = null }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -115,9 +115,9 @@ function AddExerciseModal({ userId, onAdd, onClose }) {
         {/* Handle */}
         <div style={{ width: '32px', height: '3px', background: 'var(--c-border)', borderRadius: '2px', margin: '0 auto 18px' }} />
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: subtitle ? '6px' : '14px' }}>
           <h3 style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Add Exercise
+            {title}
           </h3>
           <button
             onClick={onClose}
@@ -128,6 +128,12 @@ function AddExerciseModal({ userId, onAdd, onClose }) {
             ✕
           </button>
         </div>
+
+        {subtitle && (
+          <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginBottom: '14px', lineHeight: 1.5 }}>
+            {subtitle}
+          </p>
+        )}
 
         <input
           ref={inputRef}
@@ -216,12 +222,13 @@ export default function ActiveWorkout() {
   const {
     workout, workoutExercises, loading, error,
     updateWorkoutName, finishWorkout,
-    addExercise, updateUnit, addSet, updateSet, deleteSet, removeExercise,
+    addExercise, replaceExercise, updateUnit, addSet, updateSet, deleteSet, removeExercise,
   } = useActiveWorkout(id)
 
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
   const [showAdd, setShowAdd] = useState(false)
+  const [swappingId, setSwappingId] = useState(null) // workoutExerciseId being swapped
   const [finishing, setFinishing] = useState(false)
   const [finishError, setFinishError] = useState(null)
   const nameRef = useRef(null)
@@ -257,6 +264,12 @@ export default function ActiveWorkout() {
 
   const handleAddExercise = async (name) => {
     try { await addExercise(name) } catch (err) { console.error(err) }
+  }
+
+  const handleSwapExercise = async (name) => {
+    if (!swappingId) return
+    try { await replaceExercise(swappingId, name) } catch (err) { console.error(err) }
+    setSwappingId(null)
   }
 
   // Prefer explicit home navigation over navigate(-1) — safer when arriving via direct URL
@@ -380,6 +393,7 @@ export default function ActiveWorkout() {
                 onUpdateSet={updateSet}
                 onUpdateUnit={updateUnit}
                 onRemoveExercise={removeExercise}
+                onSwapExercise={!isFinished ? (weId) => setSwappingId(weId) : undefined}
                 readOnly={isFinished}
               />
             </div>
@@ -456,6 +470,16 @@ export default function ActiveWorkout() {
           userId={user?.id}
           onAdd={handleAddExercise}
           onClose={() => setShowAdd(false)}
+        />
+      )}
+
+      {swappingId && (
+        <AddExerciseModal
+          userId={user?.id}
+          title="Cambiar ejercicio"
+          subtitle="Solo cambia en este entreno, tu rutina no se modifica."
+          onAdd={handleSwapExercise}
+          onClose={() => setSwappingId(null)}
         />
       )}
     </Layout>
