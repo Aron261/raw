@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -7,99 +8,138 @@ import PRBadge from '../components/PRBadge'
 import { useExercisePR, calc1RM } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
 
-// Custom tooltip for the recharts chart
+// Custom tooltip — light theme
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-surface border border-border px-3 py-2 rounded-sm text-xs">
-      <p className="text-text-muted uppercase tracking-widest mb-1">{label}</p>
-      <p className="text-white font-bold">{payload[0].value} 1RM</p>
+    <div style={{
+      background: 'var(--c-surface)',
+      border: '1px solid var(--c-border-subtle)',
+      padding: '8px 12px',
+      borderRadius: '10px',
+      fontSize: '11px',
+    }}>
+      <p style={{ color: 'var(--c-text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>{label}</p>
+      <p style={{ color: 'var(--c-text)', fontWeight: 700 }}>{payload[0].value} 1RM</p>
     </div>
   )
 }
+
+// Rep ranges to highlight in the PR table
+const REP_RANGES = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20]
 
 export default function ExerciseDetail() {
   const { name } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  // Decode the exercise name from the URL
   const exerciseName = decodeURIComponent(name)
-
   const { prSets, allTimePR, loading } = useExercisePR(exerciseName, user?.id)
 
-  // Build chart data: date label + best 1RM
+  // Chart: date + best 1RM per session
   const chartData = prSets.map(session => ({
-    date: new Date(session.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    date: new Date(session.date).toLocaleDateString('es', { month: 'short', day: 'numeric' }),
     '1RM': session.best1RM,
-    fullDate: session.date
   }))
 
-  // Find the all-time best set across all sessions
   const allTimeBest1RM = allTimePR?.best1RM || 0
+
+  // PR by rep range: for each rep count, best weight logged ever
+  const prByReps = useMemo(() => {
+    // Flatten all sets from all sessions
+    const allSets = prSets.flatMap(session =>
+      (session.sets || []).map(s => ({ ...s, unit: session.unit, date: session.date }))
+    )
+
+    // Best weight per rep count
+    const bestByRep = {}
+    for (const set of allSets) {
+      if (!set.reps || !set.weight) continue
+      const existing = bestByRep[set.reps]
+      if (!existing || set.weight > existing.weight) {
+        bestByRep[set.reps] = set
+      }
+    }
+
+    // Keep only rep ranges we care about (that have data), sorted asc
+    return REP_RANGES
+      .filter(r => bestByRep[r])
+      .map(r => ({ reps: r, ...bestByRep[r] }))
+  }, [prSets])
 
   return (
     <Layout>
-      <div className="px-4 max-w-lg mx-auto w-full">
+      <div style={{ padding: '0 16px', maxWidth: '480px', margin: '0 auto', width: '100%' }}>
+
         {/* Header */}
-        <div className="flex items-center gap-3 pt-8 pb-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '40px', paddingBottom: '8px' }}>
           <button
             onClick={() => navigate(-1)}
-            className="text-text-muted text-xs uppercase tracking-widest active:opacity-60 shrink-0"
+            style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}
           >
             ←
           </button>
-          <h1 className="text-white text-xl font-black uppercase tracking-tighter flex-1 truncate">
+          <h1 style={{ color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {exerciseName}
           </h1>
         </div>
 
         {/* All-time PR callout */}
         {allTimePR && (
-          <div className="flex items-center gap-3 bg-accent-red/10 border border-accent-red/30 px-4 py-3 rounded-sm mb-6 mt-4">
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '12px',
+            background: 'rgba(255,45,45,0.06)', border: '1px solid rgba(255,45,45,0.2)',
+            padding: '12px 16px', borderRadius: '14px', margin: '16px 0 24px',
+          }}>
             <PRBadge />
             <div>
-              <span className="text-text-muted text-xs uppercase tracking-widest block">All-Time Best 1RM</span>
-              <span className="text-white font-black text-xl">
+              <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>
+                Mejor 1RM estimado
+              </span>
+              <span style={{ color: 'var(--c-text)', fontWeight: 900, fontSize: '22px' }}>
                 {allTimePR.best1RM}
-                <span className="text-text-muted text-sm font-normal ml-1">{allTimePR.unit}</span>
+                <span style={{ color: 'var(--c-text-dim)', fontWeight: 400, fontSize: '13px', marginLeft: '4px' }}>{allTimePR.unit}</span>
               </span>
             </div>
           </div>
         )}
 
         {loading && (
-          <div className="flex items-center justify-center py-16">
-            <span className="text-text-muted text-xs uppercase tracking-widest animate-pulse">Loading...</span>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '64px 0' }}>
+            <span style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }} className="animate-pulse">
+              Cargando...
+            </span>
           </div>
         )}
 
         {!loading && prSets.length === 0 && (
-          <div className="text-center py-12 border border-dashed border-border rounded-sm">
-            <p className="text-text-muted text-sm uppercase tracking-widest">No data yet.</p>
-            <p className="text-text-muted text-xs mt-2">Log this exercise to see your progression.</p>
+          <div style={{ textAlign: 'center', padding: '48px 0', border: '1px dashed var(--c-border)', borderRadius: '14px' }}>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sin datos aún</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px' }}>Registra este ejercicio para ver tu progreso.</p>
           </div>
         )}
 
         {!loading && prSets.length > 0 && (
           <>
-            {/* Progression Chart */}
-            <div className="mb-8">
-              <h2 className="text-text-muted text-xs uppercase tracking-widest mb-4">1RM Progression</h2>
-              <div className="h-48 w-full">
+            {/* Progression chart */}
+            <div style={{ marginBottom: '32px' }}>
+              <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
+                Progresión 1RM
+              </p>
+              <div style={{ height: '180px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  {/* Chart props use resolved hex values — CSS vars don't work in SVG attributes */}
+                  {/* Hex values — CSS vars no funcionan en atributos SVG */}
                   <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                    <CartesianGrid stroke="#2A2A2A" strokeDasharray="3 3" />
+                    <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" />
                     <XAxis
                       dataKey="date"
-                      tick={{ fill: '#888888', fontSize: 10 }}
-                      axisLine={{ stroke: '#2A2A2A' }}
+                      tick={{ fill: '#9E9EA8', fontSize: 10 }}
+                      axisLine={{ stroke: '#E8E8EE' }}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fill: '#888888', fontSize: 10 }}
-                      axisLine={{ stroke: '#2A2A2A' }}
+                      tick={{ fill: '#9E9EA8', fontSize: 10 }}
+                      axisLine={{ stroke: '#E8E8EE' }}
                       tickLine={false}
                     />
                     <Tooltip content={<CustomTooltip />} />
@@ -116,42 +156,105 @@ export default function ExerciseDetail() {
               </div>
             </div>
 
-            {/* History by session */}
-            <div>
-              <h2 className="text-text-muted text-xs uppercase tracking-widest mb-4">History</h2>
-              <div className="space-y-4 pb-8">
-                {[...prSets].reverse().map((session, idx) => {
-                  const sessionDate = new Date(session.date).toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
+            {/* PR by rep range */}
+            {prByReps.length > 0 && (
+              <div style={{ marginBottom: '32px' }}>
+                <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+                  Mejor peso por reps
+                </p>
+                <div style={{
+                  background: 'var(--c-surface)',
+                  border: '1px solid var(--c-border-subtle)',
+                  borderRadius: '14px',
+                  overflow: 'hidden',
+                }}>
+                  {prByReps.map((entry, i) => {
+                    const dateStr = new Date(entry.date).toLocaleDateString('es', { month: 'short', day: 'numeric' })
+                    const isFirst = i === 0
+                    return (
+                      <div
+                        key={entry.reps}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '12px 16px',
+                          borderTop: isFirst ? 'none' : '1px solid var(--c-border-subtle)',
+                        }}
+                      >
+                        {/* Rep badge */}
+                        <div style={{
+                          width: '36px', height: '36px',
+                          background: 'var(--c-surface-2)',
+                          borderRadius: '10px',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0, marginRight: '12px',
+                        }}>
+                          <span style={{ color: 'var(--c-text)', fontWeight: 900, fontSize: '13px' }}>{entry.reps}</span>
+                        </div>
+
+                        {/* Label */}
+                        <div style={{ flex: 1 }}>
+                          <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            {entry.reps === 1 ? '1 rep' : `${entry.reps} reps`}
+                          </span>
+                        </div>
+
+                        {/* Weight + date */}
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ color: 'var(--c-text)', fontWeight: 800, fontSize: '15px' }}>
+                            {entry.weight}
+                            <span style={{ color: 'var(--c-text-dim)', fontWeight: 400, fontSize: '11px', marginLeft: '3px' }}>{entry.unit}</span>
+                          </span>
+                          <span style={{ display: 'block', color: 'var(--c-text-muted)', fontSize: '10px', marginTop: '1px' }}>{dateStr}</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Session history */}
+            <div style={{ paddingBottom: '32px' }}>
+              <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+                Historial
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[...prSets].reverse().map(session => {
+                  const sessionDate = new Date(session.date).toLocaleDateString('es', {
+                    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
                   })
                   const isAllTimePR = session.best1RM === allTimeBest1RM
 
                   return (
-                    <div key={session.workoutId} className="card">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-text-muted text-xs uppercase tracking-widest">{sessionDate}</span>
+                    <div key={session.workoutId} style={{
+                      background: 'var(--c-surface)',
+                      border: `1px solid ${isAllTimePR ? 'rgba(255,45,45,0.25)' : 'var(--c-border-subtle)'}`,
+                      borderRadius: '14px',
+                      padding: '14px 16px',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                        <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                          {sessionDate}
+                        </span>
                         {isAllTimePR && <PRBadge />}
                       </div>
 
-                      {/* Sets in this session */}
-                      <div className="space-y-1">
+                      {/* Sets */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         {[...session.sets]
                           .sort((a, b) => a.set_number - b.set_number)
                           .map(set => {
                             const set1RM = calc1RM(set.weight, set.reps)
                             const isSetPR = isAllTimePR && set1RM === session.best1RM
-
                             return (
-                              <div key={set.id} className="flex items-center gap-3 text-sm">
-                                <span className="text-text-muted w-6 text-xs">{set.set_number}</span>
-                                <span className="text-white font-bold">
+                              <div key={set.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px' }}>
+                                <span style={{ color: 'var(--c-text-muted)', width: '20px', fontSize: '11px' }}>{set.set_number}</span>
+                                <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>
                                   {set.reps} × {set.weight}
-                                  <span className="text-text-muted font-normal ml-1 text-xs">{session.unit}</span>
+                                  <span style={{ color: 'var(--c-text-dim)', fontWeight: 400, fontSize: '11px', marginLeft: '3px' }}>{session.unit}</span>
                                 </span>
-                                <span className="text-text-muted text-xs ml-auto">~{set1RM} 1RM</span>
+                                <span style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginLeft: 'auto' }}>~{set1RM} 1RM</span>
                                 {isSetPR && <PRBadge />}
                               </div>
                             )
@@ -159,9 +262,9 @@ export default function ExerciseDetail() {
                       </div>
 
                       {/* Session best */}
-                      <div className="mt-3 pt-3 border-t border-border">
-                        <span className="text-text-muted text-xs">
-                          Best: <span className="text-white font-bold">{session.best1RM} 1RM</span>
+                      <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--c-border-subtle)' }}>
+                        <span style={{ color: 'var(--c-text-dim)', fontSize: '11px' }}>
+                          Mejor: <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>{session.best1RM} 1RM</span>
                         </span>
                       </div>
                     </div>
