@@ -503,3 +503,48 @@ export function useExerciseAllTimeBest(exerciseId, userId) {
 
   return { allTimeBestWeight }
 }
+
+// Hook to get sets from the last time this exercise was done (excluding current workout)
+export function usePreviousSets(exerciseId, currentWorkoutId, userId) {
+  const [previousSets, setPreviousSets] = useState([])
+  const [previousUnit, setPreviousUnit] = useState(null)
+
+  useEffect(() => {
+    if (!exerciseId || !currentWorkoutId || !userId) return
+
+    const fetch = async () => {
+      try {
+        // Find most recent workout with this exercise that isn't the current one
+        const { data, error } = await supabase
+          .from('workouts')
+          .select(`
+            id,
+            workout_exercises!inner (
+              id, unit,
+              sets ( id, set_number, reps, weight )
+            )
+          `)
+          .eq('user_id', userId)
+          .eq('workout_exercises.exercise_id', exerciseId)
+          .neq('id', currentWorkoutId)
+          .order('started_at', { ascending: false })
+          .limit(1)
+
+        if (error) throw error
+
+        const we = data?.[0]?.workout_exercises?.[0]
+        if (we?.sets?.length) {
+          const sorted = [...we.sets].sort((a, b) => a.set_number - b.set_number)
+          setPreviousSets(sorted)
+          setPreviousUnit(we.unit)
+        }
+      } catch (err) {
+        console.error('Error fetching previous sets:', err)
+      }
+    }
+
+    fetch()
+  }, [exerciseId, currentWorkoutId, userId])
+
+  return { previousSets, previousUnit }
+}

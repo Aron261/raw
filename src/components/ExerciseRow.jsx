@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import SetRow from './SetRow'
 import PRBadge from './PRBadge'
-import { calc1RM, useExerciseAllTimeBest } from '../hooks/useWorkout'
+import { calc1RM, useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
 import { pressProps } from '../lib/ui'
 
 export default function ExerciseRow({
   workoutExercise,
+  workoutId,
   onAddSet,
   onDeleteSet,
   onUpdateSet,
@@ -30,6 +31,7 @@ export default function ExerciseRow({
   const unit = workoutExercise.unit
 
   const { allTimeBestWeight } = useExerciseAllTimeBest(exercise?.id, user?.id)
+  const { previousSets, previousUnit } = usePreviousSets(exercise?.id, workoutId, user?.id)
 
   const sessionBest1RM = useMemo(() => sets.reduce((best, set) => {
     const rm = calc1RM(set.weight, set.reps)
@@ -49,13 +51,18 @@ export default function ExerciseRow({
     prevPR.current = isNewPR
   }, [isNewPR])
 
+  // Pre-fill inputs: current session last set takes priority, else previous session last set
   useEffect(() => {
     if (sets.length > 0) {
       const last = sets[sets.length - 1]
       setNewReps(String(last.reps))
       setNewWeight(String(last.weight))
+    } else if (previousSets.length > 0) {
+      const last = previousSets[previousSets.length - 1]
+      setNewReps(String(last.reps))
+      setNewWeight(String(last.weight))
     }
-  }, [sets])
+  }, [sets, previousSets])
 
   const handleAddSet = async () => {
     if (!newReps || !newWeight) return
@@ -265,6 +272,37 @@ export default function ExerciseRow({
               />
             ))}
           </div>
+
+          {/* Previous session ghost reference */}
+          {!readOnly && previousSets.length > 0 && (
+            <div style={{
+              padding: '8px 14px 6px',
+              borderTop: sets.length > 0 ? 'none' : '1px solid var(--c-border-subtle)',
+            }}>
+              <p style={{
+                fontSize: '9px', fontWeight: 800, textTransform: 'uppercase',
+                letterSpacing: '0.1em', color: 'var(--c-text-ghost)',
+                marginBottom: '4px',
+              }}>
+                Anterior
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {previousSets.map(set => (
+                  <div key={set.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ width: '16px', color: 'var(--c-text-ghost)', fontSize: '10px' }}>
+                      {set.set_number}
+                    </span>
+                    <span style={{ color: 'var(--c-text-ghost)', fontSize: '12px', fontWeight: 600 }}>
+                      {set.reps} × {set.weight}
+                      <span style={{ fontSize: '10px', fontWeight: 400, marginLeft: '3px' }}>
+                        {previousUnit || unit}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Add set row */}
           {!readOnly && (

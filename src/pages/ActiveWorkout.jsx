@@ -532,6 +532,7 @@ export default function ActiveWorkout() {
             <div key={we.id} className="stagger-item" style={{ animationDelay: `${i * 40}ms` }}>
               <ExerciseRow
                 workoutExercise={we}
+                workoutId={id}
                 onAddSet={handleAddSet}
                 onDeleteSet={deleteSet}
                 onUpdateSet={updateSet}
