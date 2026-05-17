@@ -143,22 +143,26 @@ export function useCycle() {
       const endDate   = new Date(startDate)
       endDate.setDate(endDate.getDate() + wizardData.durationWeeks * 7)
 
+      // Derive split_type label from daysPerWeek
+      const splitType = wizardData.daysPerWeek <= 3 ? 'Full Body'
+        : wizardData.daysPerWeek === 4 ? 'Upper/Lower'
+        : wizardData.daysPerWeek === 5 ? (wizardData.splitChoice === 'ppl_pure' ? 'PPL Puro' : 'PPL+UL')
+        : 'PPL'
+
       const { data: cycleRow, error: insertCycleErr } = await supabase
         .from('training_cycles')
         .insert({
-          user_id:           user.id,
-          name:              wizardData.name,
-          goal:              wizardData.goal,
-          level:             wizardData.level,
-          days_per_week:     wizardData.daysPerWeek,
+          user_id:            user.id,
+          name:               wizardData.name,
+          goal:               wizardData.goal,
+          level:              wizardData.level,
+          days_per_week:      wizardData.daysPerWeek,
           daily_time_minutes: wizardData.dailyTimeMinutes,
-          duration_weeks:    wizardData.durationWeeks,
-          split_choice:      wizardData.splitChoice ?? null,
-          prioritized_groups: wizardData.prioritizedGroups ?? [],
-          mode:              wizardData.mode,
-          status:            'active',
-          start_date:        startDate.toISOString().split('T')[0],
-          end_date:          endDate.toISOString().split('T')[0],
+          duration_weeks:     wizardData.durationWeeks,
+          split_type:         splitType,
+          status:             'active',
+          start_date:         startDate.toISOString().split('T')[0],
+          end_date:           endDate.toISOString().split('T')[0],
         })
         .select()
         .single()

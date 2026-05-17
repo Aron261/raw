@@ -232,12 +232,32 @@ export function getSplitDays(daysPerWeek, splitChoice = null, prioritizedGroups 
     }
 
     // ---- UPPER / LOWER (4 days) ---------------------------------------------
+    // Upper A: Pecho primary → más sets a Pecho que a Espalda
+    // Upper B: Espalda primary → más sets a Espalda que a Pecho
+    // Lower A: Cuádriceps primary
+    // Lower B: Isquios/Glúteo primary
     case 4: {
       return [
-        { dayName: 'Upper', muscleGroups: [...DAY_TEMPLATES['Upper']] },
-        { dayName: 'Lower', muscleGroups: [...DAY_TEMPLATES['Lower']] },
-        { dayName: 'Upper', muscleGroups: [...DAY_TEMPLATES['Upper']] },
-        { dayName: 'Lower', muscleGroups: [...DAY_TEMPLATES['Lower']] },
+        {
+          dayName: 'Upper A',
+          muscleGroups: ['Pecho', 'Espalda', 'Hombro', 'Bíceps', 'Tríceps'],
+          primaryGroups: ['Pecho', 'Hombro', 'Tríceps'],
+        },
+        {
+          dayName: 'Lower A',
+          muscleGroups: ['Cuádriceps', 'Isquios/Glúteo', 'Core'],
+          primaryGroups: ['Cuádriceps'],
+        },
+        {
+          dayName: 'Upper B',
+          muscleGroups: ['Espalda', 'Pecho', 'Hombro', 'Bíceps', 'Tríceps'],
+          primaryGroups: ['Espalda', 'Bíceps'],
+        },
+        {
+          dayName: 'Lower B',
+          muscleGroups: ['Isquios/Glúteo', 'Cuádriceps', 'Core'],
+          primaryGroups: ['Isquios/Glúteo'],
+        },
       ]
     }
 
@@ -359,17 +379,20 @@ export function generateCyclePlan(params, exerciseHistory = {}) {
 
   // 2. Build day plans
   const plan = splitDays.map((dayTemplate, index) => {
-    const { dayName, muscleGroups } = dayTemplate
+    const { dayName, muscleGroups, primaryGroups: dayPrimaryGroups = [] } = dayTemplate
 
     // Total sets available for this session
     const totalSetsAvailable = SETS_PER_DAY[dailyTimeMinutes]?.[level] ?? 12
+
+    // Merge day-level primary groups with user's global prioritized groups
+    const effectivePriority = [...new Set([...dayPrimaryGroups, ...prioritizedGroups])]
 
     // 3. Distribute sets across muscle groups
     const setsPerGroup = distributeSetsAcrossGroups(
       muscleGroups,
       totalSetsAvailable,
       level,
-      prioritizedGroups
+      effectivePriority
     )
 
     // 4-6. Build exercise list for each muscle group
