@@ -4,14 +4,14 @@ import { useAuth } from '../hooks/useAuth'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { ERROR_STYLE, pressProps } from '../lib/ui'
 
-// SVG del disco de pesas — versión gris/plata sobre fondo blanco
-function WeightDisc({ size = 160 }) {
+// SVG disco de pesas — look oscuro/metálico, fiel al referente
+function WeightDisc({ size = 172 }) {
   const cx = 100, cy = 100
 
-  // 6 tornillos alrededor del centro
-  const bolts = [0, 60, 120, 180, 240, 300].map(deg => {
-    const rad = (deg * Math.PI) / 180
-    return { x: cx + 42 * Math.cos(rad), y: cy + 42 * Math.sin(rad) }
+  // 8 tornillos distribuidos uniformemente
+  const bolts = Array.from({ length: 8 }, (_, i) => {
+    const rad = (i * 45 * Math.PI) / 180
+    return { x: cx + 60 * Math.cos(rad), y: cy + 60 * Math.sin(rad) }
   })
 
   return (
@@ -19,53 +19,100 @@ function WeightDisc({ size = 160 }) {
       width={size}
       height={size}
       viewBox="0 0 200 200"
-      fill="none"
       xmlns="http://www.w3.org/2000/svg"
       style={{ display: 'block' }}
     >
-      {/* Sombra suave */}
-      <circle cx="100" cy="104" r="90" fill="rgba(0,0,0,0.06)" />
+      <defs>
+        {/* Gradiente radial para simular metal */}
+        <radialGradient id="plateGrad" cx="38%" cy="32%" r="65%">
+          <stop offset="0%" stopColor="#4A4A4A" />
+          <stop offset="60%" stopColor="#1C1C1C" />
+          <stop offset="100%" stopColor="#0E0E0E" />
+        </radialGradient>
 
-      {/* Borde exterior */}
-      <circle cx={cx} cy={cy} r="94" fill="#EAEAEA" stroke="#D4D4D4" strokeWidth="2" />
+        {/* Borde exterior plateado */}
+        <radialGradient id="rimGrad" cx="40%" cy="30%" r="65%">
+          <stop offset="0%" stopColor="#D0D0D0" />
+          <stop offset="50%" stopColor="#A0A0A0" />
+          <stop offset="100%" stopColor="#787878" />
+        </radialGradient>
 
-      {/* Cuerpo del disco */}
-      <circle cx={cx} cy={cy} r="86" fill="#F0F0F0" />
+        {/* Sombra drop */}
+        <filter id="discShadow" x="-15%" y="-10%" width="130%" height="130%">
+          <feDropShadow dx="0" dy="5" stdDeviation="10" floodColor="#000000" floodOpacity="0.22" />
+        </filter>
 
-      {/* Surco exterior */}
-      <circle cx={cx} cy={cy} r="78" fill="none" stroke="#D8D8D8" strokeWidth="3" />
+        {/* Hub interior */}
+        <radialGradient id="hubGrad" cx="35%" cy="30%" r="70%">
+          <stop offset="0%" stopColor="#383838" />
+          <stop offset="100%" stopColor="#111111" />
+        </radialGradient>
+      </defs>
 
-      {/* Área interior */}
-      <circle cx={cx} cy={cy} r="72" fill="#E8E8E8" />
+      {/* ── Sombra base ── */}
+      <ellipse cx="102" cy="106" rx="88" ry="86" fill="rgba(0,0,0,0.18)" />
 
-      {/* Surco interior */}
-      <circle cx={cx} cy={cy} r="62" fill="none" stroke="#D0D0D0" strokeWidth="2" />
+      {/* ── Aro exterior plateado ── */}
+      <circle cx={cx} cy={cy} r="95" fill="url(#rimGrad)" filter="url(#discShadow)" />
 
-      {/* Plano central */}
-      <circle cx={cx} cy={cy} r="56" fill="#EFEFEF" />
+      {/* ── Paso a oscuro ── */}
+      <circle cx={cx} cy={cy} r="91" fill="#1A1A1A" />
 
-      {/* Hub central */}
-      <circle cx={cx} cy={cy} r="22" fill="#DCDCDC" stroke="#C8C8C8" strokeWidth="1.5" />
+      {/* ── Cuerpo del disco ── */}
+      <circle cx={cx} cy={cy} r="88" fill="url(#plateGrad)" />
 
-      {/* Agujero central */}
-      <circle cx={cx} cy={cy} r="10" fill="#C4C4C4" stroke="#B8B8B8" strokeWidth="1" />
+      {/* ── Surco exterior (iluminado arriba) ── */}
+      <circle cx={cx} cy={cy} r="82" fill="none" stroke="#404040" strokeWidth="3" />
+      <circle cx={cx} cy={cy} r="82" fill="none" stroke="#555555" strokeWidth="1"
+        strokeDasharray="252" strokeDashoffset="126" />
 
-      {/* Tornillos */}
+      {/* ── Plano intermedio ── */}
+      <circle cx={cx} cy={cy} r="79" fill="#252525" />
+
+      {/* ── Surco intermedio ── */}
+      <circle cx={cx} cy={cy} r="74" fill="none" stroke="#404040" strokeWidth="2.5" />
+      <circle cx={cx} cy={cy} r="74" fill="none" stroke="#5A5A5A" strokeWidth="1"
+        strokeDasharray="220" strokeDashoffset="110" />
+
+      {/* ── Zona central oscura ── */}
+      <circle cx={cx} cy={cy} r="71" fill="#1E1E1E" />
+
+      {/* ── 8 tornillos ── */}
       {bolts.map((b, i) => (
-        <circle key={i} cx={b.x} cy={b.y} r="4.5" fill="#DADADА" stroke="#C8C8C8" strokeWidth="1" />
+        <g key={i}>
+          <circle cx={b.x} cy={b.y} r="5.5" fill="#141414" stroke="#4A4A4A" strokeWidth="1" />
+          {/* ranura del tornillo */}
+          <line
+            x1={b.x - 2.5 * Math.cos((i * 45 + 45) * Math.PI / 180)}
+            y1={b.y - 2.5 * Math.sin((i * 45 + 45) * Math.PI / 180)}
+            x2={b.x + 2.5 * Math.cos((i * 45 + 45) * Math.PI / 180)}
+            y2={b.y + 2.5 * Math.sin((i * 45 + 45) * Math.PI / 180)}
+            stroke="#555555" strokeWidth="1" strokeLinecap="round"
+          />
+        </g>
       ))}
 
-      {/* Texto RAW centrado */}
+      {/* ── Surco interior ── */}
+      <circle cx={cx} cy={cy} r="44" fill="none" stroke="#333333" strokeWidth="2" />
+
+      {/* ── Hub central ── */}
+      <circle cx={cx} cy={cy} r="41" fill="url(#hubGrad)" />
+      <circle cx={cx} cy={cy} r="38" fill="none" stroke="#404040" strokeWidth="1" />
+
+      {/* ── Agujero central ── */}
+      <circle cx={cx} cy={cy} r="16" fill="#0A0A0A" stroke="#2A2A2A" strokeWidth="1.5" />
+
+      {/* ── Texto RAW ── */}
       <text
-        x="100"
-        y="107"
+        x="100" y="109"
         textAnchor="middle"
         dominantBaseline="middle"
-        fill="#1A1A1A"
-        fontSize="26"
+        fill="#FFFFFF"
+        fontSize="22"
         fontWeight="900"
-        fontFamily="Impact, Arial Black, sans-serif"
-        letterSpacing="3"
+        fontFamily="Impact, 'Arial Black', sans-serif"
+        letterSpacing="4"
+        style={{ textShadow: 'none' }}
       >
         RAW
       </text>
@@ -133,34 +180,11 @@ export default function Auth() {
       }}
     >
       {/* ── Logo + Branding ── */}
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        {/* Disco */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-          <WeightDisc size={148} />
+      <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+        {/* Disco principal */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+          <WeightDisc size={180} />
         </div>
-
-        {/* Nombre */}
-        <h1
-          style={{
-            fontSize: 'clamp(52px, 16vw, 80px)',
-            fontWeight: 900,
-            textTransform: 'uppercase',
-            letterSpacing: '-0.05em',
-            lineHeight: 0.9,
-            color: 'var(--c-text)',
-            userSelect: 'none',
-          }}
-        >
-          RAW
-        </h1>
-
-        {/* Línea roja divisora */}
-        <div style={{
-          width: '48px', height: '2px',
-          background: 'var(--c-accent)',
-          margin: '10px auto 8px',
-          borderRadius: '1px',
-        }} />
 
         {/* Tagline */}
         <p style={{
@@ -168,7 +192,8 @@ export default function Auth() {
           fontSize: '9px',
           fontWeight: 700,
           textTransform: 'uppercase',
-          letterSpacing: '0.28em',
+          letterSpacing: '0.32em',
+          marginBottom: '0',
         }}>
           We Do Gym
         </p>
