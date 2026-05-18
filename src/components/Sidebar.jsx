@@ -56,12 +56,11 @@ function CycleIcon() {
 }
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard',  Icon: DashboardIcon },
-  { to: '/history',   label: 'Historial',  Icon: HistoryIcon },
-  { to: '/cycle',     label: 'Ciclo',      Icon: CycleIcon },
-  { to: '/progress',  label: 'Progreso',   Icon: ProgressIcon },
-  { to: '/routines',  label: 'Mis Rutinas', Icon: RoutinesIcon },
-  { to: '/profile',   label: 'Perfil',     Icon: ProfileIcon },
+  { to: '/',          label: 'Inicio',    Icon: DashboardIcon, exact: true },
+  { to: '/history',   label: 'Entrenos',  Icon: HistoryIcon },
+  { to: '/programa',  label: 'Programa',  Icon: RoutinesIcon },
+  { to: '/progress',  label: 'Progreso',  Icon: ProgressIcon },
+  { to: '/profile',   label: 'Perfil',    Icon: ProfileIcon },
 ]
 
 export default function Sidebar() {

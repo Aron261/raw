@@ -10,6 +10,7 @@ import Progress from './pages/Progress'
 import Routines from './pages/Routines'
 import Profile from './pages/Profile'
 import Cycle from './pages/Cycle'
+import Programa from './pages/Programa'
 
 // Protected layout wrapper that checks auth
 function RequireAuth({ children, auth }) {
@@ -28,6 +29,10 @@ function RequireAuth({ children, auth }) {
   return children
 }
 
+function R({ auth, element }) {
+  return <RequireAuth auth={auth}>{element}</RequireAuth>
+}
+
 // App root with auth provider
 function AppWithAuth() {
   const auth = useAuthProvider()
@@ -36,7 +41,7 @@ function AppWithAuth() {
     <AuthContext.Provider value={auth}>
       <BrowserRouter>
         <Routes>
-          {/* Public route */}
+          {/* Public */}
           <Route
             path="/login"
             element={
@@ -52,24 +57,20 @@ function AppWithAuth() {
             }
           />
 
-          {/* Protected routes */}
-          <Route path="/" element={<RequireAuth auth={auth}><Home /></RequireAuth>} />
+          {/* Protected */}
+          <Route path="/"           element={<R auth={auth} element={<Home />} />} />
+          <Route path="/history"    element={<R auth={auth} element={<History />} />} />
+          <Route path="/programa"   element={<R auth={auth} element={<Programa />} />} />
+          <Route path="/profile"    element={<R auth={auth} element={<Profile />} />} />
 
-          <Route path="/dashboard" element={<RequireAuth auth={auth}><Dashboard /></RequireAuth>} />
+          {/* Still accessible but no longer in main nav */}
+          <Route path="/cycle"      element={<R auth={auth} element={<Cycle />} />} />
+          <Route path="/routines"   element={<R auth={auth} element={<Routines />} />} />
+          <Route path="/progress"   element={<R auth={auth} element={<Progress />} />} />
+          <Route path="/dashboard"  element={<R auth={auth} element={<Dashboard />} />} />
 
-          <Route path="/routines" element={<RequireAuth auth={auth}><Routines /></RequireAuth>} />
-
-          <Route path="/workout/:id" element={<RequireAuth auth={auth}><ActiveWorkout /></RequireAuth>} />
-
-          <Route path="/exercise/:name" element={<RequireAuth auth={auth}><ExerciseDetail /></RequireAuth>} />
-
-          <Route path="/history" element={<RequireAuth auth={auth}><History /></RequireAuth>} />
-
-          <Route path="/progress" element={<RequireAuth auth={auth}><Progress /></RequireAuth>} />
-
-          <Route path="/profile" element={<RequireAuth auth={auth}><Profile /></RequireAuth>} />
-
-          <Route path="/cycle" element={<RequireAuth auth={auth}><Cycle /></RequireAuth>} />
+          <Route path="/workout/:id"    element={<R auth={auth} element={<ActiveWorkout />} />} />
+          <Route path="/exercise/:name" element={<R auth={auth} element={<ExerciseDetail />} />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
