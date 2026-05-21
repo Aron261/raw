@@ -7,21 +7,24 @@ export function useBodyWeight() {
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
+  const [error, setError] = useState(null)
 
   const fetchLogs = useCallback(async () => {
     if (!user?.id) return
     setLoading(true)
+    setError(null)
     try {
-      const { data, error } = await supabase
+      const { data, error: fetchErr } = await supabase
         .from('body_weight_logs')
         .select('*')
         .eq('user_id', user.id)
         .order('logged_at', { ascending: true })
 
-      if (error) throw error
+      if (fetchErr) throw fetchErr
       setLogs(data || [])
     } catch (err) {
       console.error('Error fetching weight logs:', err)
+      setError(err.message || 'Error inesperado')
     } finally {
       setLoading(false)
     }
@@ -35,19 +38,21 @@ export function useBodyWeight() {
   const addLog = useCallback(async (weight, unit = 'kg', note = null) => {
     if (!user?.id || !weight) return null
     setAdding(true)
+    setError(null)
     try {
-      const { data, error } = await supabase
+      const { data, error: insertErr } = await supabase
         .from('body_weight_logs')
         .insert({ user_id: user.id, weight: parseFloat(weight), unit, note })
         .select()
         .single()
 
-      if (error) throw error
+      if (insertErr) throw insertErr
       // Optimistic: append and re-sort
       setLogs(prev => [...prev, data].sort((a, b) => new Date(a.logged_at) - new Date(b.logged_at)))
       return data
     } catch (err) {
       console.error('Error adding weight log:', err)
+      setError(err.message || 'Error inesperado')
       return null
     } finally {
       setAdding(false)
@@ -56,16 +61,18 @@ export function useBodyWeight() {
 
   // Delete an entry
   const deleteLog = useCallback(async (id) => {
+    setError(null)
     try {
-      const { error } = await supabase
+      const { error: deleteErr } = await supabase
         .from('body_weight_logs')
         .delete()
         .eq('id', id)
 
-      if (error) throw error
+      if (deleteErr) throw deleteErr
       setLogs(prev => prev.filter(l => l.id !== id))
     } catch (err) {
       console.error('Error deleting weight log:', err)
+      setError(err.message || 'Error inesperado')
     }
   }, [])
 
@@ -80,5 +87,5 @@ export function useBodyWeight() {
     id: log.id,
   }))
 
-  return { logs, chartData, latestLog, loading, adding, addLog, deleteLog, refetch: fetchLogs }
+  return { logs, chartData, latestLog, loading, adding, error, addLog, deleteLog, refetch: fetchLogs }
 }

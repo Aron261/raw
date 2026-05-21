@@ -67,25 +67,39 @@ export function useWorkouts() {
   }, [fetchWorkouts])
 
   const createWorkout = async () => {
-    const { data, error: insertError } = await supabase
-      .from('workouts')
-      .insert({ user_id: user.id, name: 'Workout', started_at: new Date().toISOString() })
-      .select()
-      .single()
+    setError(null)
+    try {
+      const { data, error: insertError } = await supabase
+        .from('workouts')
+        .insert({ user_id: user.id, name: 'Workout', started_at: new Date().toISOString() })
+        .select()
+        .single()
 
-    if (insertError) throw insertError
-    await fetchWorkouts()
-    return data
+      if (insertError) throw insertError
+      await fetchWorkouts()
+      return data
+    } catch (err) {
+      console.error('Error creating workout:', err)
+      setError(err.message || 'Error inesperado')
+      throw err
+    }
   }
 
   const updateWorkout = async (id, updates) => {
-    const { error: updateError } = await supabase
-      .from('workouts')
-      .update(updates)
-      .eq('id', id)
+    setError(null)
+    try {
+      const { error: updateError } = await supabase
+        .from('workouts')
+        .update(updates)
+        .eq('id', id)
 
-    if (updateError) throw updateError
-    await fetchWorkouts()
+      if (updateError) throw updateError
+      await fetchWorkouts()
+    } catch (err) {
+      console.error('Error updating workout:', err)
+      setError(err.message || 'Error inesperado')
+      throw err
+    }
   }
 
   // Create a workout pre-populated with a routine's exercises
@@ -128,9 +142,16 @@ export function useWorkouts() {
   }
 
   const deleteWorkout = async (id) => {
-    const { error: err } = await supabase.from('workouts').delete().eq('id', id)
-    if (err) throw err
-    await fetchWorkouts()
+    setError(null)
+    try {
+      const { error: err } = await supabase.from('workouts').delete().eq('id', id)
+      if (err) throw err
+      await fetchWorkouts()
+    } catch (err) {
+      console.error('Error deleting workout:', err)
+      setError(err.message || 'Error inesperado')
+      throw err
+    }
   }
 
   // Create a new blank workout copying the same exercises (no sets) from a past workout

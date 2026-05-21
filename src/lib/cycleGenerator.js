@@ -1,7 +1,7 @@
 /**
  * cycleGenerator.js
  * Pure JavaScript module — no React, no Supabase.
- * Generates a complete training cycle plan for the RAW app.
+ * Generates a complete training rutina plan for the RAW app.
  */
 
 // =============================================================================
@@ -485,14 +485,14 @@ export function getCurrentWeek(startDate, durationWeeks) {
 }
 
 /**
- * Analyses past cycle memory records and returns the top 3 muscle groups
- * that received the least volume across previous cycles.
+ * Analyses past rutina memory records and returns the top 3 muscle groups
+ * that received the least volume across previous rutinas.
  *
- * This is used to suggest which groups to prioritise in the next cycle,
+ * This is used to suggest which groups to prioritise in the next rutina,
  * promoting balanced long-term development.
  *
  * `cycleMemory` records contain a `volume_by_group` JSONB field shaped as:
- * { [muscleGroup: string]: number }  — total sets accumulated in that cycle.
+ * { [muscleGroup: string]: number }  — total sets accumulated in that rutina.
  *
  * @param {Array<{ volume_by_group: Object.<string, number>, prioritized_groups: string[] }>} cycleMemory
  *   Array of past cycle_memory rows retrieved from Supabase.
@@ -525,4 +525,16 @@ export function getRecommendedPriority(cycleMemory) {
 
   // Return top 3 least trained groups
   return sorted.slice(0, 3)
+}
+
+/**
+ * Alias de generateCyclePlan para uso en el contexto de rutinas recomendadas.
+ * Acepta los mismos parámetros y retorna el mismo plan semanal.
+ *
+ * @param {Object} params - Ver generateCyclePlan
+ * @param {Object} exerciseHistory - Historial de ejercicios del usuario
+ * @returns {Array} Plan de rutina generado
+ */
+export function generateRecommendedRoutine(params, exerciseHistory = {}) {
+  return generateCyclePlan(params, exerciseHistory)
 }

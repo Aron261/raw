@@ -33,12 +33,14 @@ export function useDashboard() {
   const { user } = useAuth()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!user) return
 
     const fetch = async () => {
       setLoading(true)
+      setError(null)
       try {
         const { data: workouts, error } = await supabase
           .from('workouts')
@@ -152,6 +154,7 @@ export function useDashboard() {
         })
       } catch (err) {
         console.error('Dashboard fetch error:', err)
+        setError(err.message || 'Error inesperado')
       } finally {
         setLoading(false)
       }
@@ -160,5 +163,5 @@ export function useDashboard() {
     fetch()
   }, [user])
 
-  return { data, loading }
+  return { data, loading, error }
 }

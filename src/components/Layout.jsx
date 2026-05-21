@@ -5,15 +5,13 @@ import Sidebar from './Sidebar'
 import WorkoutPickerModal from './WorkoutPickerModal'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useRoutines } from '../hooks/useRoutines'
-import { useCycle } from '../hooks/useCycle'
 
 // WorkoutStarter: lógica del picker global — vive en Layout para que el
 // botón + del nav funcione desde cualquier pantalla.
 function WorkoutStarter({ children }) {
   const navigate = useNavigate()
   const { createWorkout, createWorkoutFromRoutine, createWorkoutFromCycleDay } = useWorkouts()
-  const { routines } = useRoutines()
-  const { activeCycle, cycleData } = useCycle()
+  const { routines, activeRoutine } = useRoutines()
 
   const [showPicker, setShowPicker] = useState(false)
   const [starting, setStarting] = useState(false)
@@ -33,14 +31,24 @@ function WorkoutStarter({ children }) {
     }
   }
 
+  // Adaptar la rutina activa al formato que espera WorkoutPickerModal (cycleDay)
+  const activeRoutineDays = activeRoutine
+    ? (activeRoutine.routine_days || []).map(day => ({
+        id: day.id,
+        day_name: day.day_name,
+        exercises: (day.routine_day_exercises || []).map(ex => ({ exercise_name: ex.exercise_name })),
+        muscle_groups: day.focus ? [day.focus] : [],
+      }))
+    : []
+
   return (
     <>
       {children(openPicker, starting)}
       {showPicker && (
         <WorkoutPickerModal
           routines={routines}
-          activeCycle={activeCycle}
-          cycleData={cycleData}
+          activeCycle={activeRoutine ? { name: activeRoutine.name } : null}
+          cycleData={activeRoutineDays.length > 0 ? { days: activeRoutineDays } : null}
           onSelectBlank={() => run(createWorkout)}
           onSelectRoutine={r => run(() => createWorkoutFromRoutine(r))}
           onSelectCycleDay={day => run(() => createWorkoutFromCycleDay(day))}

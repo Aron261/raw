@@ -133,7 +133,7 @@ export default function BottomNav({ onStartWorkout }) {
         <TabItem to="/"         label="Inicio"   Icon={HomeIcon}    exact />
         <TabItem to="/history"  label="Entrenos" Icon={HistoryIcon} />
         <StartButton onPress={onStartWorkout} />
-        <TabItem to="/programa" label="Programa" Icon={ProgramaIcon} />
+        <TabItem to="/rutinas" label="Rutinas" Icon={ProgramaIcon} />
         <TabItem to="/profile"  label="Perfil"   Icon={ProfileIcon} />
       </div>
     </nav>

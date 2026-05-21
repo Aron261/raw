@@ -18,23 +18,26 @@ export function useProfile() {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
   const [saveError, setSaveError] = useState(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
   const fetchProfile = useCallback(async () => {
     if (!user) return
     setLoading(true)
+    setError(null)
     try {
-      const { data, error } = await supabase
+      const { data, error: fetchErr } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .maybeSingle()
 
-      if (error) throw error
+      if (fetchErr) throw fetchErr
       setProfile(data || {})
     } catch (err) {
       console.error('Error fetching profile:', err)
+      setError(err.message || 'Error inesperado')
       setProfile({})
     } finally {
       setLoading(false)
@@ -66,5 +69,5 @@ export function useProfile() {
 
   const age = profile?.birth_date ? calcAge(profile.birth_date) : null
 
-  return { profile, loading, saving, saveError, saveSuccess, saveProfile, age }
+  return { profile, loading, saving, error, saveError, saveSuccess, saveProfile, age }
 }

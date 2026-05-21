@@ -58,8 +58,7 @@ function CycleIcon() {
 const navItems = [
   { to: '/',          label: 'Inicio',    Icon: DashboardIcon, exact: true },
   { to: '/history',   label: 'Entrenos',  Icon: HistoryIcon },
-  { to: '/programa',  label: 'Programa',  Icon: RoutinesIcon },
-  { to: '/progress',  label: 'Progreso',  Icon: ProgressIcon },
+  { to: '/rutinas',   label: 'Rutinas',   Icon: RoutinesIcon },
   { to: '/profile',   label: 'Perfil',    Icon: ProfileIcon },
 ]
 

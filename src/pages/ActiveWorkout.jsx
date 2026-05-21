@@ -151,10 +151,11 @@ function WorkoutTimer({ startedAt }) {
 }
 
 /* ── Add / Swap Exercise Modal ──────────────────────────────────────── */
-function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subtitle = null }) {
+function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subtitle = null, closeOnSelect = false }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
+  const [added, setAdded] = useState([])
   const inputRef = useRef(null)
 
   // Focus after the sheet animation completes (320ms) instead of a fixed timeout
@@ -188,8 +189,20 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subt
     return () => clearTimeout(t)
   }, [query, userId])
 
-  const select = (name) => { onAdd(name); onClose() }
-  const create = () => { if (query.trim()) { onAdd(query.trim()); onClose() } }
+  const select = (name) => {
+    onAdd(name)
+    if (closeOnSelect) { onClose(); return }
+    setAdded(prev => [...prev, name])
+    setQuery('')
+  }
+  const create = () => {
+    if (!query.trim()) return
+    const name = query.trim()
+    onAdd(name)
+    if (closeOnSelect) { onClose(); return }
+    setAdded(prev => [...prev, name])
+    setQuery('')
+  }
   const exactMatch = results.some(r => r.name.toLowerCase() === query.trim().toLowerCase())
 
   return (
@@ -316,6 +329,216 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subt
             </p>
           )}
         </div>
+
+        {/* Lista de ejercicios ya agregados en esta sesión */}
+        {!closeOnSelect && added.length > 0 && (
+          <div style={{
+            background: 'var(--c-surface-2)',
+            border: '1px solid var(--c-border-subtle)',
+            borderRadius: '6px',
+            padding: '10px 12px',
+            marginBottom: '8px',
+          }}>
+            {added.map((name, i) => (
+              <div key={i} style={{
+                color: 'oklch(55% 0.15 145)',
+                fontSize: '11px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                lineHeight: 1.6,
+              }}>
+                ✓ {name}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Botón Listo */}
+        {!closeOnSelect && (
+          <button
+            onClick={onClose}
+            className="btn-primary"
+            style={{ width: '100%', padding: '14px', fontSize: '11px', marginBottom: '8px' }}
+          >
+            {added.length === 0
+              ? 'Listo'
+              : `Listo (${added.length} agregado${added.length !== 1 ? 's' : ''})`
+            }
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ── Finish Confirm Modal ───────────────────────────────────────────── */
+function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) {
+  // Calcular duración desde started_at hasta ahora
+  const durationLabel = () => {
+    if (!workout?.started_at) return '—'
+    const diffSecs = Math.floor((Date.now() - new Date(workout.started_at).getTime()) / 1000)
+    const h = Math.floor(diffSecs / 3600)
+    const m = Math.floor((diffSecs % 3600) / 60)
+    if (h > 0) return `${h}h ${m}m`
+    return `${m}m`
+  }
+
+  const totalSets = workoutExercises.reduce((acc, we) => acc + (we.sets?.length || 0), 0)
+
+  const stats = [
+    { label: 'Duración', value: durationLabel() },
+    { label: 'Ejercicios', value: workoutExercises.length },
+    { label: 'Series totales', value: totalSets },
+  ]
+
+  return (
+    <div
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.75)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+      }}
+      onClick={e => { if (e.target === e.currentTarget) onCancel() }}
+    >
+      <div
+        className="modal-sheet"
+        style={{
+          background: 'var(--c-surface)',
+          border: '1px solid var(--c-border-subtle)',
+          borderBottom: 'none',
+          borderRadius: '20px 20px 0 0',
+          width: '100%',
+          maxWidth: '480px',
+          padding: '20px',
+          paddingBottom: 'max(28px, env(safe-area-inset-bottom))',
+        }}
+      >
+        {/* Handle */}
+        <div style={{ width: '32px', height: '3px', background: 'var(--c-border)', borderRadius: '2px', margin: '0 auto 18px' }} />
+
+        {/* Header */}
+        <h3 style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 0 }}>
+          Finalizar entreno
+        </h3>
+
+        {/* Resumen */}
+        <div style={{
+          background: 'var(--c-surface-2)',
+          borderRadius: '6px',
+          padding: '12px 14px',
+          marginBottom: '16px',
+          marginTop: '14px',
+        }}>
+          {stats.map(s => (
+            <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', lineHeight: 2 }}>
+              <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                {s.label}
+              </span>
+              <span style={{ color: 'var(--c-text)', fontWeight: 800, fontSize: '13px' }}>
+                {s.value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Advertencia */}
+        <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', textAlign: 'center', marginBottom: '16px' }}>
+          Esta acción no se puede deshacer.
+        </p>
+
+        {/* Botones */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <button onClick={onConfirm} className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
+            Sí, finalizar
+          </button>
+          <button onClick={onCancel} className="btn-secondary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Edit Confirm Modal ─────────────────────────────────────────────── */
+function EditConfirmModal({ step, onFirstConfirm, onSecondConfirm, onCancel }) {
+  return (
+    <div
+      className="modal-backdrop"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.75)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+      }}
+      onClick={e => { if (e.target === e.currentTarget) onCancel() }}
+    >
+      <div
+        className="modal-sheet"
+        style={{
+          background: 'var(--c-surface)',
+          border: '1px solid var(--c-border-subtle)',
+          borderBottom: 'none',
+          borderRadius: '20px 20px 0 0',
+          width: '100%',
+          maxWidth: '480px',
+          padding: '20px',
+          paddingBottom: 'max(28px, env(safe-area-inset-bottom))',
+        }}
+      >
+        {/* Handle */}
+        <div style={{ width: '32px', height: '3px', background: 'var(--c-border)', borderRadius: '2px', margin: '0 auto 18px' }} />
+
+        {step === 1 ? (
+          <>
+            <h3 style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
+              Editar entreno finalizado
+            </h3>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
+              Vas a editar un entreno que ya fue registrado. Esto modifica tu historial.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button onClick={onFirstConfirm} className="btn-secondary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
+                Entiendo, continuar
+              </button>
+              <button
+                onClick={onCancel}
+                style={{ width: '100%', padding: '14px', fontSize: '11px', color: 'var(--c-text-dim)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h3 style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
+              Confirmar edición
+            </h3>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
+              ¿Estás seguro? Los cambios se guardan inmediatamente.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button onClick={onSecondConfirm} className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
+                Sí, editar
+              </button>
+              <button onClick={onCancel} className="btn-secondary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
+                Cancelar
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
@@ -340,6 +563,10 @@ export default function ActiveWorkout() {
   const [swappingId, setSwappingId] = useState(null)
   const [finishing, setFinishing] = useState(false)
   const [finishError, setFinishError] = useState(null)
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [showEditConfirm, setShowEditConfirm] = useState(false)
+  const [editConfirmStep, setEditConfirmStep] = useState(1)
   const nameRef = useRef(null)
 
   // Rest timer
@@ -373,6 +600,7 @@ export default function ActiveWorkout() {
   }
 
   const handleFinish = async () => {
+    setShowFinishConfirm(false)
     setFinishError(null)
     setFinishing(true)
     try {
@@ -487,7 +715,7 @@ export default function ActiveWorkout() {
             />
           ) : (
             <button
-              onClick={() => !isFinished && setEditingName(true)}
+              onClick={() => (!isFinished || isEditing) && setEditingName(true)}
               style={{
                 textAlign: 'left',
                 width: '100%',
@@ -499,7 +727,7 @@ export default function ActiveWorkout() {
               <span style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
                 {workout.name}
               </span>
-              {!isFinished && (
+              {(!isFinished || isEditing) && (
                 <span style={{ color: 'var(--c-text-ghost)', fontSize: '12px', marginTop: '2px' }}>✎</span>
               )}
             </button>
@@ -538,16 +766,16 @@ export default function ActiveWorkout() {
                 onUpdateSet={updateSet}
                 onUpdateUnit={updateUnit}
                 onRemoveExercise={removeExercise}
-                onSwapExercise={!isFinished ? (weId) => setSwappingId(weId) : undefined}
-                onUpdateNotes={!isFinished ? updateExerciseNotes : undefined}
-                readOnly={isFinished}
+                onSwapExercise={(!isFinished || isEditing) ? (weId) => setSwappingId(weId) : undefined}
+                onUpdateNotes={(!isFinished || isEditing) ? updateExerciseNotes : undefined}
+                readOnly={isFinished && !isEditing}
               />
             </div>
           ))}
         </div>
 
         {/* Bottom actions */}
-        {!isFinished && (
+        {(!isFinished || isEditing) && (
           <div
             style={{
               position: 'sticky',
@@ -571,17 +799,27 @@ export default function ActiveWorkout() {
             >
               + Add Exercise
             </button>
-            <button
-              onClick={handleFinish}
-              disabled={finishing}
-              className="btn-primary"
-              style={{ width: '100%', padding: '14px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-            >
-              {finishing
-                ? <><span className="spinner" style={{ borderTopColor: 'var(--c-text)', borderColor: 'rgba(255,255,255,0.2)' }} /><span>Finishing...</span></>
-                : 'Finish Workout'
-              }
-            </button>
+            {isEditing ? (
+              <button
+                onClick={() => setIsEditing(false)}
+                className="btn-primary"
+                style={{ width: '100%', padding: '14px', fontSize: '11px' }}
+              >
+                Guardar y cerrar edición
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowFinishConfirm(true)}
+                disabled={finishing}
+                className="btn-primary"
+                style={{ width: '100%', padding: '14px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                {finishing
+                  ? <><span className="spinner" style={{ borderTopColor: 'var(--c-text)', borderColor: 'rgba(255,255,255,0.2)' }} /><span>Finishing...</span></>
+                  : 'Finish Workout'
+                }
+              </button>
+            )}
           </div>
         )}
 
@@ -590,6 +828,41 @@ export default function ActiveWorkout() {
             <button onClick={handleBack} className="btn-secondary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
               ← Back to Home
             </button>
+
+            {!isEditing ? (
+              <button
+                onClick={() => { setEditConfirmStep(1); setShowEditConfirm(true) }}
+                style={{
+                  width: '100%', padding: '14px', fontSize: '10px', fontWeight: 700,
+                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                  color: 'var(--c-text-dim)', border: '1px solid var(--c-border-subtle)',
+                  borderRadius: '2px', transition: 'color 150ms, border-color 150ms',
+                  background: 'transparent', cursor: 'pointer',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'oklch(70% 0.15 260)'; e.currentTarget.style.borderColor = 'oklch(70% 0.15 260)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+              >
+                Editar entreno
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="btn-primary"
+                  style={{ width: '100%', padding: '14px', fontSize: '11px' }}
+                >
+                  Guardar cambios
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="btn-secondary"
+                  style={{ width: '100%', padding: '14px', fontSize: '11px' }}
+                >
+                  Cancelar edición
+                </button>
+              </>
+            )}
+
             <button
               onClick={async () => {
                 if (!window.confirm(`¿Eliminar "${workout.name}"? Esta acción no se puede deshacer.`)) return
@@ -624,6 +897,7 @@ export default function ActiveWorkout() {
           userId={user?.id}
           onAdd={handleAddExercise}
           onClose={() => setShowAdd(false)}
+          closeOnSelect={false}
         />
       )}
 
@@ -634,6 +908,25 @@ export default function ActiveWorkout() {
           subtitle="Solo cambia en este entreno, tu rutina no se modifica."
           onAdd={handleSwapExercise}
           onClose={() => setSwappingId(null)}
+          closeOnSelect={true}
+        />
+      )}
+
+      {showFinishConfirm && (
+        <FinishConfirmModal
+          workout={workout}
+          workoutExercises={workoutExercises}
+          onConfirm={handleFinish}
+          onCancel={() => setShowFinishConfirm(false)}
+        />
+      )}
+
+      {showEditConfirm && (
+        <EditConfirmModal
+          step={editConfirmStep}
+          onFirstConfirm={() => setEditConfirmStep(2)}
+          onSecondConfirm={() => { setIsEditing(true); setShowEditConfirm(false); setEditConfirmStep(1) }}
+          onCancel={() => { setShowEditConfirm(false); setEditConfirmStep(1) }}
         />
       )}
     </Layout>
