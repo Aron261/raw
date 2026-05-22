@@ -253,7 +253,7 @@ export default function Home() {
   const { workouts, loading, error } = useWorkouts()
   const { goals, createGoal, deleteGoal } = useGoals()
 
-  const firstName = profile?.full_name?.split(' ')[0] || ''
+  const firstName = profile?.name?.split(' ')[0] || ''
   const [showGoalModal, setShowGoalModal] = useState(false)
 
   // ── Stats + PR + starLift ─────────────────────────────────────────
