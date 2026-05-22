@@ -43,14 +43,14 @@ function RestTimer({ onDone, onDismiss }) {
       className="fade-in"
       style={{
         position: 'fixed',
-        bottom: 'max(100px, calc(env(safe-area-inset-bottom) + 100px))',
+        top: 'max(16px, env(safe-area-inset-top))',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 40,
         background: 'var(--c-surface)',
         border: '1px solid var(--c-border-subtle)',
         borderRadius: '999px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.16)',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',

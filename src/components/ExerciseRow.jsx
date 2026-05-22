@@ -18,7 +18,17 @@ export default function ExerciseRow({
   readOnly = false,
 }) {
   const { user } = useAuth()
-  const [expanded, setExpanded] = useState(true)
+  const storageKey = `raw_ex_expanded_${workoutExercise.id}`
+  const [expanded, setExpanded] = useState(() => {
+    try {
+      const saved = localStorage.getItem(storageKey)
+      return saved === null ? true : saved === 'true'
+    } catch {
+      return true
+    }
+  })
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef(null)
   const [newReps, setNewReps] = useState('10')
   const [newWeight, setNewWeight] = useState('135')
   const [adding, setAdding] = useState(false)
@@ -42,6 +52,21 @@ export default function ExerciseRow({
   const isNewPR = !readOnly && sets.length > 0 && allTimeBestWeight > 0 && sessionBest1RM > allTimeBestWeight
   const prevPR = useRef(false)
   const [showPRBanner, setShowPRBanner] = useState(false)
+
+  useEffect(() => {
+    if (!showMenu) return
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    document.addEventListener('touchstart', handler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('touchstart', handler)
+    }
+  }, [showMenu])
 
   useEffect(() => {
     if (isNewPR && !prevPR.current) {
@@ -121,7 +146,11 @@ export default function ExerciseRow({
       >
         {/* Name + meta — tappable to expand */}
         <button
-          onClick={() => setExpanded(e => !e)}
+          onClick={() => setExpanded(e => {
+            const next = !e
+            try { localStorage.setItem(storageKey, String(next)) } catch {}
+            return next
+          })}
           aria-label="Toggle sets"
           style={{
             flex: 1,
@@ -166,87 +195,123 @@ export default function ExerciseRow({
           </span>
         </button>
 
-        {/* Unit toggle + swap + remove */}
-        {!readOnly ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+        {/* Unit badge (siempre visible, read-only y en modo edición) */}
+        <span style={{
+          color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700,
+          textTransform: 'uppercase', letterSpacing: '0.06em',
+          border: '1px solid var(--c-border)', padding: '3px 7px', borderRadius: '6px',
+          flexShrink: 0,
+        }}>
+          {unit}
+        </span>
+
+        {/* Menú 3 puntos — solo en modo edición */}
+        {!readOnly && (
+          <div ref={menuRef} style={{ position: 'relative', flexShrink: 0 }}>
             <button
-              onClick={() => onUpdateUnit(workoutExercise.id, unit === 'lb' ? 'kg' : 'lb')}
+              onClick={() => setShowMenu(m => !m)}
+              aria-label="Opciones"
               style={{
-                color: 'var(--c-text-dim)',
-                fontSize: '10px',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                border: '1px solid var(--c-border)',
-                padding: '3px 7px',
-                borderRadius: '6px',
-                transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
-              }}
-            >
-              {unit}
-            </button>
-
-            {/* Notes toggle */}
-            {onUpdateNotes && (
-              <button
-                onClick={() => {
-                  setShowNotes(n => !n)
-                  setTimeout(() => notesRef.current?.focus(), 80)
-                }}
-                aria-label="Nota"
-                title="Agregar nota"
-                style={{
-                  color: notesValue ? 'var(--c-accent)' : 'var(--c-text-ghost)',
-                  fontSize: '13px',
-                  lineHeight: 1,
-                  padding: '4px',
-                  transition: `color 150ms var(--ease-out)`,
-                }}
-              >
-                📝
-              </button>
-            )}
-
-            {/* Swap exercise — only this day, routine untouched */}
-            {onSwapExercise && (
-              <button
-                onClick={() => onSwapExercise(workoutExercise.id)}
-                aria-label="Cambiar ejercicio"
-                title="Cambiar ejercicio (solo hoy)"
-                style={{
-                  color: 'var(--c-text-ghost)',
-                  fontSize: '12px',
-                  lineHeight: 1,
-                  padding: '4px',
-                  transition: `color 150ms var(--ease-out)`,
-                }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text-dim)' }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
-              >
-                ✎
-              </button>
-            )}
-
-            <button
-              onClick={() => onRemoveExercise(workoutExercise.id)}
-              aria-label="Remove exercise"
-              style={{
-                color: 'var(--c-text-ghost)',
-                fontSize: '13px',
+                color: showMenu ? 'var(--c-text)' : 'var(--c-text-ghost)',
+                fontSize: '18px',
                 lineHeight: 1,
-                padding: '4px',
-                transition: `color 150ms var(--ease-out)`,
+                padding: '4px 6px',
+                borderRadius: '6px',
+                background: showMenu ? 'var(--c-surface-2)' : 'transparent',
+                transition: 'color 120ms, background 120ms',
+                letterSpacing: '0.05em',
               }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-accent)' }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
             >
-              ✕
+              ···
             </button>
+
+            {showMenu && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  right: 0,
+                  zIndex: 30,
+                  background: 'var(--c-surface)',
+                  border: '1px solid var(--c-border)',
+                  borderRadius: '10px',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                  minWidth: '168px',
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Cambiar unidad */}
+                <button
+                  onClick={() => { onUpdateUnit(workoutExercise.id, unit === 'lb' ? 'kg' : 'lb'); setShowMenu(false) }}
+                  style={{
+                    display: 'block', width: '100%', textAlign: 'left',
+                    padding: '11px 14px', fontSize: '12px', fontWeight: 700,
+                    color: 'var(--c-text)', transition: 'background 100ms',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--c-surface-2)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  Cambiar a {unit === 'lb' ? 'kg' : 'lb'}
+                </button>
+
+                {/* Nota */}
+                {onUpdateNotes && (
+                  <button
+                    onClick={() => {
+                      setShowNotes(n => !n)
+                      setTimeout(() => notesRef.current?.focus(), 80)
+                      setShowMenu(false)
+                    }}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'left',
+                      padding: '11px 14px', fontSize: '12px', fontWeight: 700,
+                      color: notesValue ? 'var(--c-accent)' : 'var(--c-text)',
+                      borderTop: '1px solid var(--c-border-subtle)',
+                      transition: 'background 100ms',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--c-surface-2)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    {notesValue ? 'Ver nota' : 'Agregar nota'}
+                  </button>
+                )}
+
+                {/* Cambiar ejercicio */}
+                {onSwapExercise && (
+                  <button
+                    onClick={() => { onSwapExercise(workoutExercise.id); setShowMenu(false) }}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'left',
+                      padding: '11px 14px', fontSize: '12px', fontWeight: 700,
+                      color: 'var(--c-text)',
+                      borderTop: '1px solid var(--c-border-subtle)',
+                      transition: 'background 100ms',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--c-surface-2)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    Cambiar ejercicio
+                  </button>
+                )}
+
+                {/* Eliminar */}
+                <button
+                  onClick={() => { onRemoveExercise(workoutExercise.id); setShowMenu(false) }}
+                  style={{
+                    display: 'block', width: '100%', textAlign: 'left',
+                    padding: '11px 14px', fontSize: '12px', fontWeight: 700,
+                    color: 'var(--c-accent)',
+                    borderTop: '1px solid var(--c-border-subtle)',
+                    transition: 'background 100ms',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--c-surface-2)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  Eliminar ejercicio
+                </button>
+              </div>
+            )}
           </div>
-        ) : (
-          <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', border: '1px solid var(--c-border)', padding: '3px 7px', borderRadius: '6px' }}>
-            {unit}
-          </span>
         )}
       </div>
 

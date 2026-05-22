@@ -5,6 +5,7 @@ import {
 import Layout from '../components/Layout'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
+import { useProfile } from '../hooks/useProfile'
 import { useGoals } from '../hooks/useGoals'
 import { ERROR_STYLE } from '../lib/ui'
 
@@ -23,6 +24,13 @@ const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 const dateStr = new Date().toLocaleDateString('es-CO', {
   weekday: 'long', month: 'long', day: 'numeric',
 }).toUpperCase()
+
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Buenos días'
+  if (h < 19) return 'Buenas tardes'
+  return 'Buenas noches'
+}
 
 // ── Stat card ──────────────────────────────────────────────────────────
 function StatCard({ label, value, sub }) {
@@ -230,11 +238,22 @@ function GoalModal({ onClose, onSave }) {
   )
 }
 
+// ── Day highlight type (rotates daily) ────────────────────────────────
+function getDayHighlightType() {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), 0, 0)
+  const dayOfYear = Math.floor((now - start) / (1000 * 60 * 60 * 24))
+  return dayOfYear % 4
+}
+
 // ── Main ───────────────────────────────────────────────────────────────
 export default function Home() {
   const { signOut } = useAuth()
+  const { profile } = useProfile()
   const { workouts, loading, error } = useWorkouts()
   const { goals, createGoal, deleteGoal } = useGoals()
+
+  const firstName = profile?.full_name?.split(' ')[0] || ''
   const [showGoalModal, setShowGoalModal] = useState(false)
 
   // ── Stats + PR + starLift ─────────────────────────────────────────
@@ -388,6 +407,91 @@ export default function Home() {
     return { ...goal, current: 0, pct: 0 }
   })
 
+  // ── Highlight rotativo del día ────────────────────────────────────────
+  const highlightType = getDayHighlightType()
+
+  const todayHighlight = useMemo(() => {
+    if (!workouts.length) return null
+    const _calc1RM = (w, r) => (!w || !r || r <= 0) ? 0 : Math.round(w * (1 + r / 30))
+    const finished = workouts.filter(w => w.ended_at)
+    if (!finished.length) return null
+
+    const getBestRMMap = (list) => {
+      const map = {}
+      list.forEach(w => {
+        ;(w.workout_exercises || []).forEach(we => {
+          const name = we.exercises?.name
+          if (!name) return
+          ;(we.sets || []).forEach(s => {
+            const rm = _calc1RM(s.weight, s.reps)
+            if (!map[name] || rm > map[name].rm) map[name] = { rm, unit: we.unit }
+          })
+        })
+      })
+      return map
+    }
+
+    const fallback0 = () => {
+      const best = Object.entries(getBestRMMap(finished))
+        .map(([name, d]) => ({ name, ...d }))
+        .sort((a, b) => b.rm - a.rm)[0]
+      if (!best) return null
+      return { label: 'LIFT HISTÓRICO', title: best.name, value: `${best.rm} ${best.unit}`, sub: '1RM estimado' }
+    }
+
+    if (highlightType === 0) return fallback0()
+
+    if (highlightType === 1) {
+      const now = new Date()
+      const thisMonth = finished.filter(w => {
+        const d = new Date(w.started_at)
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+      })
+      if (!thisMonth.length) return fallback0()
+      const freq = {}
+      thisMonth.forEach(w => {
+        const names = new Set((w.workout_exercises || []).map(we => we.exercises?.name).filter(Boolean))
+        names.forEach(n => { freq[n] = (freq[n] || 0) + 1 })
+      })
+      const top = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]
+      if (!top) return fallback0()
+      return { label: 'MÁS ENTRENADO ESTE MES', title: top[0], value: `${top[1]} ${top[1] === 1 ? 'vez' : 'veces'}`, sub: 'este mes' }
+    }
+
+    if (highlightType === 2) {
+      const withVol = finished.map(w => {
+        const vol = (w.workout_exercises || []).reduce((s, we) =>
+          s + (we.sets || []).reduce((s2, set) => s2 + (set.weight || 0) * (set.reps || 0), 0), 0)
+        return { ...w, vol: Math.round(vol) }
+      }).filter(w => w.vol > 0).sort((a, b) => b.vol - a.vol)
+      const best = withVol[0]
+      if (!best) return fallback0()
+      const date = new Date(best.started_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
+      const fmt = best.vol >= 10000 ? `${(best.vol / 1000).toFixed(1)}k kg` : `${best.vol.toLocaleString()} kg`
+      return { label: 'MEJOR SESIÓN', title: best.name, value: fmt, sub: `volumen total · ${date}` }
+    }
+
+    if (highlightType === 3) {
+      const now = new Date()
+      const c30 = new Date(now); c30.setDate(c30.getDate() - 30)
+      const c60 = new Date(now); c60.setDate(c60.getDate() - 60)
+      const recent = finished.filter(w => new Date(w.started_at) >= c30)
+      const prev = finished.filter(w => { const d = new Date(w.started_at); return d >= c60 && d < c30 })
+      const recentMap = getBestRMMap(recent)
+      const prevMap = getBestRMMap(prev)
+      let topGain = null
+      Object.entries(recentMap).forEach(([name, { rm }]) => {
+        if (!prevMap[name] || prevMap[name].rm === 0) return
+        const gain = ((rm - prevMap[name].rm) / prevMap[name].rm) * 100
+        if (gain > 0 && (!topGain || gain > topGain.gain)) topGain = { name, gain: Math.round(gain) }
+      })
+      if (!topGain) return fallback0()
+      return { label: 'MÁS MEJORADO', title: topGain.name, value: `↑ ${topGain.gain}%`, sub: 'en los últimos 30 días' }
+    }
+
+    return fallback0()
+  }, [workouts, highlightType])
+
   // Copy motivacional según progreso
   const getMotivation = (pct) => {
     if (pct >= 100) return 'Meta cumplida. Seteá una nueva.'
@@ -418,11 +522,14 @@ export default function Home() {
         <div className="fade-in" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', paddingTop: '40px', paddingBottom: '24px' }}>
           <div>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>
-              {dateStr}
+              {getGreeting()}
             </p>
             <h1 style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', lineHeight: 1 }}>
-              Resumen
+              {firstName || 'Resumen'}
             </h1>
+            <p style={{ color: 'var(--c-text-ghost)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '4px' }}>
+              {dateStr}
+            </p>
           </div>
           <button
             onClick={signOut}
@@ -547,52 +654,33 @@ export default function Home() {
               )}
             </div>
 
-            {/* ── Lift estrella ── */}
-            <div
-              className="fade-in"
-              style={{
-                background: 'var(--c-surface)',
-                border: '1px solid var(--c-border-subtle)',
-                borderRadius: '16px',
-                padding: '16px',
-                marginBottom: '16px',
-                animationDelay: '120ms',
-              }}
-            >
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
-                Lift estrella
-              </p>
-
-              {stats.starLift ? (
-                <>
-                  <p style={{
-                    color: 'var(--c-text)',
-                    fontSize: '18px',
-                    fontWeight: 900,
-                    textTransform: 'uppercase',
-                    letterSpacing: '-0.02em',
-                    marginBottom: '6px',
-                  }}>
-                    {stats.starLift.exercise}
-                  </p>
-                  <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 700, marginBottom: '2px' }}>
-                    1RM estimado
-                  </p>
-                  <p style={{ lineHeight: 1, marginTop: '2px' }}>
-                    <span style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.04em' }}>
-                      {stats.starLift.rm}
-                    </span>
-                    <span style={{ color: 'var(--c-text-dim)', fontSize: '14px', fontWeight: 700, marginLeft: '3px' }}>
-                      {stats.starLift.unit === 'lb' ? 'lb' : 'kg'}
-                    </span>
-                  </p>
-                </>
-              ) : (
-                <p style={{ color: 'var(--c-text-muted)', fontSize: '13px' }}>
-                  Sin datos de levantamientos aun.
+            {/* ── Highlight rotativo del día ── */}
+            {todayHighlight && (
+              <div
+                className="fade-in"
+                style={{
+                  marginBottom: '16px',
+                  background: 'var(--c-surface)',
+                  border: '1px solid var(--c-border-subtle)',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  animationDelay: '90ms',
+                }}
+              >
+                <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+                  {todayHighlight.label}
                 </p>
-              )}
-            </div>
+                <p style={{ color: 'var(--c-text)', fontSize: '18px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '6px' }}>
+                  {todayHighlight.title}
+                </p>
+                <span style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, display: 'block' }}>
+                  {todayHighlight.value}
+                </span>
+                <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 600, marginTop: '4px' }}>
+                  {todayHighlight.sub}
+                </p>
+              </div>
+            )}
 
             {/* ── Metas ── */}
             <div className="fade-in" style={{ marginBottom: '28px', animationDelay: '100ms' }}>
