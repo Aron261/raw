@@ -130,6 +130,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
   const [label, setLabel] = useState('')
   const [exerciseName, setExerciseName] = useState('')
   const [targetValue, setTargetValue] = useState('')
+  const [targetReps, setTargetReps] = useState('')   // vacío = usar 1RM; número = peso real × N reps
   const [unit, setUnit] = useState('kg')
   const [saving, setSaving] = useState(false)
 
@@ -142,6 +143,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
         label: label.trim(),
         exercise_name: type === 'exercise_weight' ? exerciseName || null : null,
         target_value: parseFloat(targetValue),
+        target_reps: type === 'exercise_weight' && targetReps ? parseInt(targetReps, 10) : null,
         unit: type === 'days_trained' ? 'días' : unit,
         is_monthly: type === 'days_trained',
       })
@@ -243,7 +245,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
         <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
           {type === 'days_trained' ? 'Días objetivo (este mes)' : 'Peso objetivo'}
         </p>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: type === 'exercise_weight' ? '12px' : '20px' }}>
           <input
             className="input-field"
             type="number"
@@ -273,6 +275,23 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
             </div>
           )}
         </div>
+
+        {/* Reps objetivo — solo para metas de peso. Vacío = comparar con 1RM estimado */}
+        {type === 'exercise_weight' && (
+          <>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
+              Reps objetivo <span style={{ color: 'var(--c-text-muted)', fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>(opcional — vacío = comparar 1RM)</span>
+            </p>
+            <input
+              className="input-field"
+              type="number"
+              placeholder="Ej: 5"
+              value={targetReps}
+              onChange={e => setTargetReps(e.target.value)}
+              style={{ marginBottom: '20px' }}
+            />
+          </>
+        )}
 
         <button
           onClick={handleSave}
@@ -462,18 +481,28 @@ export default function Home() {
       return { ...goal, current, pct }
     }
     if (goal.type === 'exercise_weight') {
-      const calc1RM = (w, r) => (!w || !r) ? 0 : Math.round(w * (1 + r / 30))
+      const hasRepsTarget = goal.target_reps && goal.target_reps > 0
       let best = 0
+
       workouts.filter(w => w.ended_at).forEach(w => {
         ;(w.workout_exercises || []).forEach(we => {
           if (we.exercises?.name?.toLowerCase() === goal.exercise_name?.toLowerCase()) {
             ;(we.sets || []).forEach(s => {
-              const rm = calc1RM(s.weight, s.reps)
-              if (rm > best) best = rm
+              if (hasRepsTarget) {
+                // Modo reps: mejor peso real donde reps >= objetivo
+                if ((s.reps || 0) >= goal.target_reps && (s.weight || 0) > best) {
+                  best = s.weight
+                }
+              } else {
+                // Modo 1RM estimado (Epley)
+                const rm = (!s.weight || !s.reps) ? 0 : Math.round(s.weight * (1 + s.reps / 30))
+                if (rm > best) best = rm
+              }
             })
           }
         })
       })
+
       const pct = Math.min(100, Math.round((best / goal.target_value) * 100))
       return { ...goal, current: best, pct }
     }
@@ -874,7 +903,9 @@ export default function Home() {
                             <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 600 }}>
                               {goal.type === 'days_trained'
                                 ? `${goal.current} / ${goal.target_value} días este mes`
-                                : `${goal.current} / ${goal.target_value} ${goal.unit} (1RM est.)`
+                                : goal.target_reps
+                                  ? `${goal.current} / ${goal.target_value} ${goal.unit} × ${goal.target_reps} reps`
+                                  : `${goal.current} / ${goal.target_value} ${goal.unit} (1RM est.)`
                               }
                             </span>
                             <span style={{ fontSize: '10px', fontWeight: 800, color: goal.pct >= 100 ? 'oklch(55% 0.15 145)' : 'var(--c-text-dim)' }}>
