@@ -74,7 +74,8 @@ function ChartTooltip({ active, payload, label }) {
 }
 
 // ── GoalModal ─────────────────────────────────────────────────────────
-function GoalModal({ onClose, onSave }) {
+// `exercises`: lista de nombres de ejercicios del usuario para el select
+function GoalModal({ onClose, onSave, exercises = [] }) {
   const [type, setType] = useState('exercise_weight')
   const [label, setLabel] = useState('')
   const [exerciseName, setExerciseName] = useState('')
@@ -89,7 +90,7 @@ function GoalModal({ onClose, onSave }) {
       await onSave({
         type,
         label: label.trim(),
-        exercise_name: type === 'exercise_weight' ? exerciseName.trim() : null,
+        exercise_name: type === 'exercise_weight' ? exerciseName || null : null,
         target_value: parseFloat(targetValue),
         unit: type === 'days_trained' ? 'días' : unit,
         is_monthly: type === 'days_trained',
@@ -119,7 +120,10 @@ function GoalModal({ onClose, onSave }) {
           borderBottom: 'none',
           borderRadius: '20px 20px 0 0',
           width: '100%', maxWidth: '480px',
-          padding: '20px 20px 0',
+          // maxHeight + overflow para que el botón nunca quede oculto con el teclado abierto
+          maxHeight: '90dvh',
+          overflowY: 'auto',
+          padding: '20px 20px',
           paddingBottom: 'max(28px, env(safe-area-inset-bottom))',
         }}
       >
@@ -171,19 +175,23 @@ function GoalModal({ onClose, onSave }) {
           style={{ marginBottom: '12px' }}
         />
 
-        {/* Ejercicio (solo para exercise_weight) */}
+        {/* Ejercicio (solo para exercise_weight) — select con ejercicios del usuario */}
         {type === 'exercise_weight' && (
           <>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
               Ejercicio
             </p>
-            <input
+            <select
               className="input-field"
-              placeholder="Ej: Sentadilla, Peso muerto..."
               value={exerciseName}
               onChange={e => setExerciseName(e.target.value)}
               style={{ marginBottom: '12px' }}
-            />
+            >
+              <option value="">— Selecciona un ejercicio —</option>
+              {exercises.map(name => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
           </>
         )}
 
@@ -256,6 +264,17 @@ export default function Home() {
   const firstName = profile?.name?.split(' ')[0] || ''
   const [showGoalModal, setShowGoalModal] = useState(false)
 
+  // Ejercicios únicos del usuario (para el select del GoalModal)
+  const userExercises = useMemo(() => {
+    const names = new Set()
+    workouts.forEach(w =>
+      (w.workout_exercises || []).forEach(we => {
+        if (we.exercises?.name) names.add(we.exercises.name)
+      })
+    )
+    return [...names].sort()
+  }, [workouts])
+
   // ── Stats + PR + starLift ─────────────────────────────────────────
   const stats = useMemo(() => {
     const empty = { count: 0, weekVolume: 0, chartData: [], thisMonth: 0, weekPR: null, starLift: null }
@@ -276,12 +295,13 @@ export default function Home() {
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
     }).length
 
-    // Volume this week
+    // Volume this week — normalizado a kg (1 lb = 0.453592 kg)
     let weekVolume = 0
     for (const w of thisWeekWorkouts) {
       for (const we of w.workout_exercises || []) {
+        const factor = we.unit === 'lb' ? 0.453592 : 1
         for (const s of we.sets || []) {
-          weekVolume += (s.weight || 0) * (s.reps || 0)
+          weekVolume += (s.weight || 0) * (s.reps || 0) * factor
         }
       }
     }
@@ -301,8 +321,10 @@ export default function Home() {
         return d.getTime() === date.getTime()
       })
       const vol = dayWorkouts.reduce((sum, w) =>
-        sum + (w.workout_exercises || []).reduce((s2, we) =>
-          s2 + (we.sets || []).reduce((s3, s) => s3 + (s.weight || 0) * (s.reps || 0), 0), 0), 0)
+        sum + (w.workout_exercises || []).reduce((s2, we) => {
+          const factor = we.unit === 'lb' ? 0.453592 : 1
+          return s2 + (we.sets || []).reduce((s3, s) => s3 + (s.weight || 0) * (s.reps || 0) * factor, 0)
+        }, 0), 0)
       return { day, vol, future: false }
     })
 
@@ -845,6 +867,7 @@ export default function Home() {
         <GoalModal
           onClose={() => setShowGoalModal(false)}
           onSave={async (data) => { await createGoal(data); setShowGoalModal(false) }}
+          exercises={userExercises}
         />
       )}
     </Layout>

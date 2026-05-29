@@ -9,7 +9,10 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate }) {
   const [duplicating, setDuplicating] = useState(false)
 
   const { totalVolume, exerciseCount, dateStr, duration, isActive, unit } = useMemo(() => {
-    const allSets = workout.workout_exercises?.flatMap(we => we.sets || []) || []
+    // Enriquecemos cada set con su unidad para que calcVolume pueda normalizar a kg
+    const allSets = workout.workout_exercises?.flatMap(
+      we => (we.sets || []).map(s => ({ ...s, unit: we.unit || 'kg' }))
+    ) || []
     const totalVolume = calcVolume(allSets)
     const exerciseCount = workout.workout_exercises?.length || 0
 
@@ -23,7 +26,8 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate }) {
       : null
 
     const isActive = !workout.ended_at
-    const unit = workout.workout_exercises?.[0]?.unit ?? 'lb'
+    // El volumen siempre se muestra en kg (normalizado)
+    const unit = 'kg'
 
     return { totalVolume, exerciseCount, dateStr, duration, isActive, unit }
   }, [workout])

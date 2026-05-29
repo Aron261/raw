@@ -72,7 +72,9 @@ export function useDashboard() {
             const key = getWeekKey(w.started_at)
             if (!weekMap[key]) return
             weekMap[key].count += 1
-            const allSets = w.workout_exercises.flatMap(we => we.sets || [])
+            const allSets = w.workout_exercises.flatMap(we =>
+              (we.sets || []).map(s => ({ ...s, unit: we.unit || 'kg' }))
+            )
             weekMap[key].volume += calcVolume(allSets)
           })
 
@@ -125,7 +127,7 @@ export function useDashboard() {
           w.workout_exercises.forEach(we => {
             const exName = we.exercises?.name
             const group = muscleGroupMap[exName] || 'Otro'
-            const vol = calcVolume(we.sets || [])
+            const vol = calcVolume((we.sets || []).map(s => ({ ...s, unit: we.unit || 'kg' })))
             if (vol === 0) return
             mgVolume[group] = (mgVolume[group] || 0) + vol
           })

@@ -8,9 +8,13 @@ export const calc1RM = (weight, reps) => {
   return Math.round(weight * (1 + reps / 30) * 10) / 10
 }
 
-// Calculate total volume for a list of sets
+// Calculate total volume for a list of sets, normalizado a kg.
+// Si el set tiene unit='lb', convierte antes de sumar.
 export const calcVolume = (sets) => {
-  return sets.reduce((total, set) => total + set.weight * set.reps, 0)
+  return sets.reduce((total, set) => {
+    const weightKg = (set.unit === 'lb') ? (set.weight || 0) * 0.453592 : (set.weight || 0)
+    return total + weightKg * (set.reps || 0)
+  }, 0)
 }
 
 // Format duration between two timestamps
