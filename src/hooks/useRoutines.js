@@ -153,19 +153,24 @@ export function useRoutines() {
     }
   }
 
-  // Marcar una rutina como activa (desactiva las demás primero).
+  // Marcar una rutina como activa (desactiva la actual primero).
   // Llamar con id = null para solo desactivar sin activar ninguna.
+  // Siempre filtra por pk (id) + user_id — nunca bulk update por user_id solo
+  // para evitar comportamiento ambiguo en Supabase v2 con columnas uuid.
   const setActiveRoutine = async (id) => {
+    if (!user?.id) return
     setError(null)
     try {
-      // 1. Desactivar todas las rutinas del usuario (filtrado explícito por user_id,
-      //    no solo RLS, para mayor seguridad y claridad de intención)
-      const { error: deactivateErr } = await supabase
-        .from('routines')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('user_id', user.id)
+      // 1. Desactivar la rutina actualmente activa (si existe), por su id específico
+      if (activeRoutine?.id) {
+        const { error: deactivateErr } = await supabase
+          .from('routines')
+          .update({ is_active: false, updated_at: new Date().toISOString() })
+          .eq('id', activeRoutine.id)
+          .eq('user_id', user.id)
 
-      if (deactivateErr) throw deactivateErr
+        if (deactivateErr) throw deactivateErr
+      }
 
       // 2. Activar la seleccionada (se omite si id es null)
       if (id) {
