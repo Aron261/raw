@@ -22,9 +22,13 @@ function getMondayOfWeek(date = new Date()) {
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
-const dateStr = new Date().toLocaleDateString('es-CO', {
-  weekday: 'long', month: 'long', day: 'numeric',
-}).toUpperCase()
+// Sentence case: "lunes, 2 de junio" → "Lunes, 2 de junio"
+const dateStr = (() => {
+  const s = new Date().toLocaleDateString('es-CO', {
+    weekday: 'long', month: 'long', day: 'numeric',
+  })
+  return s.charAt(0).toUpperCase() + s.slice(1)
+})()
 
 function getGreeting() {
   const h = new Date().getHours()
@@ -33,30 +37,24 @@ function getGreeting() {
   return 'Buenas noches'
 }
 
-// ── StatCard ──────────────────────────────────────────────────────────────
-function StatCard({ label, value, sub }) {
-  return (
-    <div style={{
-      flex: 1,
-      background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)',
-      borderRadius: '16px',
-      padding: '16px 12px',
-      minWidth: 0,
-    }}>
-      <p style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
-        {label}
-      </p>
-      <p style={{ color: 'var(--c-text)', fontSize: '26px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1 }}>
-        {value}
-      </p>
-      {sub && (
-        <p style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 600, marginTop: '5px' }}>
-          {sub}
-        </p>
-      )}
-    </div>
-  )
+// Frase contextual del header: "Tu semana va en 3 entrenos y 14.8k kg de volumen."
+function getContextSentence(count, weekVolume) {
+  if (!count) return null
+  const fmtVol = weekVolume >= 10000
+    ? `${(weekVolume / 1000).toFixed(1)}k`
+    : weekVolume.toLocaleString()
+  const entrenos = count === 1 ? 'entreno' : 'entrenos'
+  if (weekVolume > 0) {
+    return `Tu semana va en ${count} ${entrenos} y ${fmtVol} kg de volumen.`
+  }
+  return `Llevas ${count} ${entrenos} esta semana.`
+}
+
+// ── Format volume ─────────────────────────────────────────────────────────
+function formatVolume(v) {
+  if (!v) return '—'
+  if (v >= 10000) return `${(v / 1000).toFixed(1)}k`
+  return v.toLocaleString()
 }
 
 // ── ChartTooltip ──────────────────────────────────────────────────────────
@@ -76,50 +74,66 @@ function ChartTooltip({ active, payload, label }) {
 }
 
 // ── WeeklyChart ───────────────────────────────────────────────────────────
-// Extraído como componente para reutilizar en ambos breakpoints sin duplicar JSX.
-function WeeklyChart({ chartData, height = 150 }) {
+function WeeklyChart({ chartData, height = 150, title, subtitle }) {
   return (
     <div style={{
       background: 'var(--c-surface)',
       border: '1px solid var(--c-border-subtle)',
       borderRadius: '16px',
-      padding: '20px 8px 12px',
+      paddingBottom: '12px',
+      overflow: 'hidden',
     }}>
-      {chartData.every(d => d.vol === 0) ? (
-        <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--c-text-muted)', fontSize: '11px' }}>
-          Sin entrenos registrados esta semana
+      {/* Header interno del chart */}
+      {title && (
+        <div style={{ padding: '20px 20px 0' }}>
+          <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 700, marginBottom: '2px' }}>
+            {title}
+          </p>
+          {subtitle && (
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500 }}>
+              {subtitle}
+            </p>
+          )}
         </div>
-      ) : (
-        <ResponsiveContainer width="100%" height={height}>
-          <BarChart data={chartData} barSize={22} margin={{ top: 0, right: 8, bottom: 0, left: -20 }}>
-            <XAxis
-              dataKey="day"
-              tick={{ fill: 'var(--c-text-dim)', fontSize: 10, fontWeight: 700 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis hide />
-            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'transparent' }} />
-            <Bar dataKey="vol" radius={[5, 5, 0, 0]}>
-              {chartData.map((entry, i) => {
-                const isToday = i === ((new Date().getDay() + 6) % 7)
-                return (
-                  <Cell
-                    key={i}
-                    fill={
-                      entry.future
-                        ? 'var(--c-border-subtle)'
-                        : entry.vol > 0
-                          ? (isToday ? 'var(--c-accent)' : 'var(--c-border)')
-                          : 'var(--c-border-subtle)'
-                    }
-                  />
-                )
-              })}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
       )}
+
+      <div style={{ paddingTop: title ? '16px' : '20px', paddingLeft: '8px', paddingRight: '8px' }}>
+        {chartData.every(d => d.vol === 0) ? (
+          <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--c-text-muted)', fontSize: '11px' }}>
+            Sin entrenos registrados esta semana
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={height}>
+            <BarChart data={chartData} barSize={22} margin={{ top: 0, right: 8, bottom: 0, left: -20 }}>
+              <XAxis
+                dataKey="day"
+                tick={{ fill: 'var(--c-text-dim)', fontSize: 10, fontWeight: 700 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis hide />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'transparent' }} />
+              <Bar dataKey="vol" radius={[5, 5, 0, 0]}>
+                {chartData.map((entry, i) => {
+                  const isToday = i === ((new Date().getDay() + 6) % 7)
+                  return (
+                    <Cell
+                      key={i}
+                      fill={
+                        entry.future
+                          ? 'var(--c-border-subtle)'
+                          : entry.vol > 0
+                            ? (isToday ? 'var(--c-accent)' : 'var(--c-border)')
+                            : 'var(--c-border-subtle)'
+                      }
+                    />
+                  )
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
     </div>
   )
 }
@@ -130,7 +144,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
   const [label, setLabel] = useState('')
   const [exerciseName, setExerciseName] = useState('')
   const [targetValue, setTargetValue] = useState('')
-  const [targetReps, setTargetReps] = useState('')   // vacío = usar 1RM; número = peso real × N reps
+  const [targetReps, setTargetReps] = useState('')
   const [unit, setUnit] = useState('kg')
   const [saving, setSaving] = useState(false)
 
@@ -181,7 +195,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
         <div style={{ width: '32px', height: '3px', background: 'var(--c-border)', borderRadius: '2px', margin: '0 auto 18px' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h3 style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <h3 style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 700 }}>
             Nueva meta
           </h3>
           <button onClick={onClose} style={{ color: 'var(--c-text-dim)', fontSize: '16px', lineHeight: 1, padding: '4px' }}>✕</button>
@@ -276,11 +290,14 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
           )}
         </div>
 
-        {/* Reps objetivo — solo para metas de peso. Vacío = comparar con 1RM estimado */}
+        {/* Reps objetivo — solo para metas de peso */}
         {type === 'exercise_weight' && (
           <>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
-              Reps objetivo <span style={{ color: 'var(--c-text-muted)', fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>(opcional — vacío = comparar 1RM)</span>
+              Reps objetivo{' '}
+              <span style={{ color: 'var(--c-text-muted)', fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>
+                (opcional — vacío = comparar 1RM)
+              </span>
             </p>
             <input
               className="input-field"
@@ -452,7 +469,7 @@ export default function Home() {
       }
     })
 
-    // Mejor 1RM de todos los tiempos (starLift — calculado pero disponible para futuros usos)
+    // Mejor 1RM de todos los tiempos (starLift)
     const allBest = {}
     workouts.filter(w => w.ended_at).forEach(w => {
       ;(w.workout_exercises || []).forEach(we => {
@@ -538,7 +555,12 @@ export default function Home() {
         .map(([name, d]) => ({ name, ...d }))
         .sort((a, b) => b.rm - a.rm)[0]
       if (!best) return null
-      return { label: 'LIFT HISTÓRICO', title: best.name, value: `${best.rm} ${best.unit}`, sub: '1RM estimado' }
+      return {
+        label: 'Lift histórico',
+        title: best.name,
+        value: `${best.rm} ${best.unit}`,
+        sub: 'Tu mejor 1RM estimado de todos los tiempos.',
+      }
     }
 
     if (highlightType === 0) return fallback0()
@@ -557,7 +579,13 @@ export default function Home() {
       })
       const top = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]
       if (!top) return fallback0()
-      return { label: 'MÁS ENTRENADO ESTE MES', title: top[0], value: `${top[1]} ${top[1] === 1 ? 'vez' : 'veces'}`, sub: 'este mes' }
+      const n = top[1]
+      return {
+        label: 'Ejercicio más frecuente',
+        title: top[0],
+        value: `${n} ${n === 1 ? 'vez' : 'veces'}`,
+        sub: `Lo entrenaste ${n} ${n === 1 ? 'vez' : 'veces'} este mes.`,
+      }
     }
 
     if (highlightType === 2) {
@@ -570,7 +598,12 @@ export default function Home() {
       if (!best) return fallback0()
       const date = new Date(best.started_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
       const fmt = best.vol >= 10000 ? `${(best.vol / 1000).toFixed(1)}k kg` : `${best.vol.toLocaleString()} kg`
-      return { label: 'MEJOR SESIÓN', title: best.name, value: fmt, sub: `volumen total · ${date}` }
+      return {
+        label: 'Mejor sesión',
+        title: best.name,
+        value: fmt,
+        sub: `Volumen total el ${date}.`,
+      }
     }
 
     if (highlightType === 3) {
@@ -588,7 +621,12 @@ export default function Home() {
         if (gain > 0 && (!topGain || gain > topGain.gain)) topGain = { name, gain: Math.round(gain) }
       })
       if (!topGain) return fallback0()
-      return { label: 'MÁS MEJORADO', title: topGain.name, value: `↑ ${topGain.gain}%`, sub: 'en los últimos 30 días' }
+      return {
+        label: 'Mayor progreso',
+        title: topGain.name,
+        value: `+${topGain.gain}%`,
+        sub: `Mejoraste un ${topGain.gain}% en los últimos 30 días.`,
+      }
     }
 
     return fallback0()
@@ -609,46 +647,39 @@ export default function Home() {
     return 'var(--c-text-muted)'
   }
 
-  const formatVolume = (v) => {
-    if (!v) return '—'
-    if (v >= 10000) return `${(v / 1000).toFixed(1)}k`
-    return v.toLocaleString()
-  }
-
   // ─────────────────────────────────────────────────────────────────────
   return (
     <Layout>
-      {/*
-        Wrapper:
-        - Móvil: columna única, máx 480px centrado, padding lateral estándar
-        - Desktop: sin max-width, padding generoso, aprovecha todo el ancho del main
-      */}
       <div className="w-full px-4 pt-10 pb-10 max-w-[480px] mx-auto md:max-w-none md:px-8 md:py-8">
 
         {/* ── Header ── */}
         <div className="fade-in flex items-start justify-between mb-6 md:mb-8">
           <div>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>
-              {getGreeting()}
-            </p>
-            <h1 style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', lineHeight: 1 }}>
-              {firstName || 'Resumen'}
+            {/* Saludo + nombre en una línea, sin uppercase */}
+            <h1 style={{ color: 'var(--c-text)', fontSize: '26px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '4px' }}>
+              {getGreeting()}{firstName ? `, ${firstName}` : ''}
             </h1>
-            <p style={{ color: 'var(--c-text-ghost)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '4px' }}>
+            {/* Fecha en sentence case */}
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 500, marginBottom: '6px' }}>
               {dateStr}
             </p>
+            {/* Frase contextual: solo aparece cuando hay datos cargados */}
+            {!loading && !error && stats.count > 0 && (
+              <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 500, lineHeight: 1.4 }}>
+                {getContextSentence(stats.count, stats.weekVolume)}
+              </p>
+            )}
           </div>
           <button
             onClick={signOut}
             style={{
-              color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.08em',
+              color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500,
               border: '1px solid var(--c-border-subtle)', padding: '6px 10px',
-              borderRadius: '8px', marginTop: '4px',
+              borderRadius: '8px', marginTop: '4px', flexShrink: 0,
               transition: 'color 150ms, border-color 150ms',
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-muted)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
           >
             Salir
           </button>
@@ -684,10 +715,9 @@ export default function Home() {
                 border: activeWorkout ? '2px solid var(--c-accent)' : '2px solid transparent',
                 borderRadius: '14px',
                 padding: '16px',
-                fontSize: '12px',
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
+                fontSize: '13px',
+                fontWeight: 700,
+                letterSpacing: '-0.01em',
                 transition: 'opacity 150ms',
                 opacity: startingWorkout ? 0.6 : 1,
               }}
@@ -705,11 +735,11 @@ export default function Home() {
         {/* ── Empty state ── */}
         {!loading && !error && workouts.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '15px', fontWeight: 600, marginBottom: '6px' }}>
               Sin entrenos aún
             </p>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '6px' }}>
-              Usá el botón + para empezar.
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '13px' }}>
+              Usá el botón + para registrar tu primer entreno.
             </p>
           </div>
         )}
@@ -719,23 +749,57 @@ export default function Home() {
           <>
             {/*
               Grid responsivo:
-              - Móvil (sin grid): DOM order → Stats → [PR + Highlight + Metas] → Chart
-              - Desktop (grid 2 cols): placement explícito →
-                  Col 1 row 1: Stats
+              - Móvil: DOM order → Resumen → [PR + Highlight + Metas] → Chart
+              - Desktop: 2 cols con placement explícito:
+                  Col 1 row 1: Resumen semanal
                   Col 2 rows 1–2: PR + Highlight + Metas
-                  Col 1 row 2: Chart
+                  Col 1 row 2: Gráfico
             */}
             <div className="md:grid md:grid-cols-[1fr_360px] md:gap-x-6 md:items-start">
 
-              {/* ── Stats — col 1, row 1 ── */}
+              {/* ── Resumen semanal — col 1, row 1 ── */}
               <div
                 className="fade-in mb-4 md:mb-4 md:col-start-1 md:row-start-1"
                 style={{ animationDelay: '40ms' }}
               >
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <StatCard label="Este mes"     value={stats.thisMonth}              sub="días entrenados" />
-                  <StatCard label="Esta semana"  value={stats.count}                  sub={stats.count === 1 ? 'entreno' : 'entrenos'} />
-                  <StatCard label="Volumen"       value={formatVolume(stats.weekVolume)} sub="esta semana" />
+                <div style={{
+                  background: 'var(--c-surface)',
+                  border: '1px solid var(--c-border-subtle)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                }}>
+                  <p style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
+                    Esta semana
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    {/* Entrenos */}
+                    <div>
+                      <p style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '4px' }}>
+                        {stats.count}
+                      </p>
+                      <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, lineHeight: 1.3 }}>
+                        {stats.count === 1 ? 'entreno' : 'entrenos'}
+                      </p>
+                    </div>
+                    {/* Volumen */}
+                    <div>
+                      <p style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '4px' }}>
+                        {formatVolume(stats.weekVolume)}
+                      </p>
+                      <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, lineHeight: 1.3 }}>
+                        kg de volumen
+                      </p>
+                    </div>
+                    {/* Este mes */}
+                    <div>
+                      <p style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '4px' }}>
+                        {stats.thisMonth}
+                      </p>
+                      <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, lineHeight: 1.3 }}>
+                        días este mes
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -745,7 +809,7 @@ export default function Home() {
                 style={{ animationDelay: '60ms', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}
               >
 
-                {/* PR de la semana */}
+                {/* ── PR de la semana ── */}
                 <div style={{
                   background: 'var(--c-surface)',
                   border: '1px solid var(--c-border-subtle)',
@@ -754,7 +818,7 @@ export default function Home() {
                   padding: '20px',
                 }}>
                   <p style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
-                    PR esta semana
+                    Mejor marca esta semana
                   </p>
 
                   {stats.weekPR ? (
@@ -771,32 +835,37 @@ export default function Home() {
                       }}>
                         Nuevo récord
                       </span>
-                      <p style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '8px' }}>
+                      {/* Nombre del ejercicio en sentence case, sin uppercase */}
+                      <p style={{ color: 'var(--c-text)', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: '8px' }}>
                         {stats.weekPR.exercise}
                       </p>
-                      <p style={{ color: 'var(--c-text-dim)', fontSize: '14px', fontWeight: 700, marginBottom: '4px' }}>
+                      <p style={{ color: 'var(--c-text-dim)', fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>
                         {stats.weekPR.weight} × {stats.weekPR.reps} reps
                       </p>
-                      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 600 }}>
+                      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, marginBottom: '10px' }}>
                         1RM estimado:{' '}
-                        <span style={{ color: 'var(--c-text)', fontWeight: 800 }}>
+                        <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>
                           {stats.weekPR.rm} {stats.weekPR.unit === 'lb' ? 'lb' : 'kg'}
                         </span>
+                      </p>
+                      {/* Microcopy */}
+                      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, borderTop: '1px solid var(--c-border-subtle)', paddingTop: '10px', lineHeight: 1.5 }}>
+                        Superaste tu mejor registro en este ejercicio.
                       </p>
                     </>
                   ) : (
                     <>
-                      <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>
-                        Sin récord esta semana
+                      <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 600, marginBottom: '6px' }}>
+                        Sin récords nuevos esta semana.
                       </p>
-                      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px' }}>
-                        Seguís acumulando volumen.
+                      <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 500, lineHeight: 1.5 }}>
+                        Seguís acumulando trabajo. Eso también cuenta.
                       </p>
                     </>
                   )}
                 </div>
 
-                {/* Highlight del día */}
+                {/* ── Highlight del día ── */}
                 {todayHighlight && (
                   <div style={{
                     background: 'var(--c-surface)',
@@ -804,22 +873,26 @@ export default function Home() {
                     borderRadius: '16px',
                     padding: '20px',
                   }}>
+                    {/* Label: pequeño y sentence case */}
                     <p style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
                       {todayHighlight.label}
                     </p>
-                    <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: '4px' }}>
+                    {/* Nombre del ejercicio/sesión: normal case, tamaño medio */}
+                    <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 600, marginBottom: '4px', lineHeight: 1.3 }}>
                       {todayHighlight.title}
                     </p>
-                    <p style={{ color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '6px' }}>
+                    {/* Valor principal: grande y bold */}
+                    <p style={{ color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '8px' }}>
                       {todayHighlight.value}
                     </p>
-                    <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 600 }}>
+                    {/* Sub como frase completa y natural */}
+                    <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, lineHeight: 1.5 }}>
                       {todayHighlight.sub}
                     </p>
                   </div>
                 )}
 
-                {/* Metas */}
+                {/* ── Metas ── */}
                 <div style={{
                   background: 'var(--c-surface)',
                   border: '1px solid var(--c-border-subtle)',
@@ -846,50 +919,61 @@ export default function Home() {
                   </div>
 
                   {goals.length === 0 ? (
-                    <button
-                      onClick={() => setShowGoalModal(true)}
-                      style={{
-                        width: '100%',
-                        background: 'var(--c-surface-2)',
-                        border: '1px dashed var(--c-border)',
-                        borderRadius: '12px', padding: '16px',
-                        textAlign: 'center',
-                        transition: 'border-color 150ms',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--c-accent)'}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--c-border)'}
-                    >
-                      <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
-                        Sin metas activas
+                    /* Empty state humanizado */
+                    <div style={{
+                      background: 'var(--c-surface-2)',
+                      borderRadius: '12px',
+                      padding: '18px 16px',
+                    }}>
+                      <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
+                        Todavía no tienes metas activas.
                       </p>
-                      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px' }}>
-                        Tocá para agregar tu primera meta
+                      <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 400, lineHeight: 1.5, marginBottom: '14px' }}>
+                        Define una meta de fuerza o frecuencia para medir tu progreso real.
                       </p>
-                    </button>
+                      <button
+                        onClick={() => setShowGoalModal(true)}
+                        style={{
+                          background: 'transparent',
+                          color: 'var(--c-accent)',
+                          border: '1px solid rgba(255,45,45,0.25)',
+                          borderRadius: '8px',
+                          padding: '8px 14px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          transition: 'background 150ms, border-color 150ms',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,45,45,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,45,45,0.4)' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,45,45,0.25)' }}
+                      >
+                        Crear meta
+                      </button>
+                    </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {goalProgress.map(goal => (
                         <div key={goal.id}>
                           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '2px' }}>
+                              {/* Goal label: sentence case, sin uppercase */}
+                              <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>
                                 {goal.label}
                               </p>
-                              <p style={{ color: getMotivationColor(goal.pct), fontSize: '10px', fontWeight: 600 }}>
+                              <p style={{ color: getMotivationColor(goal.pct), fontSize: '11px', fontWeight: 500 }}>
                                 {getMotivation(goal.pct)}
                               </p>
                             </div>
                             <button
                               onClick={() => deleteGoal(goal.id)}
-                              style={{ color: 'var(--c-text-ghost)', fontSize: '12px', padding: '2px 4px', marginLeft: '8px', flexShrink: 0, transition: 'color 120ms' }}
+                              style={{ color: 'var(--c-text-muted)', fontSize: '12px', padding: '2px 4px', marginLeft: '8px', flexShrink: 0, transition: 'color 120ms' }}
                               onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-                              onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
                               title="Eliminar meta"
                             >
                               ✕
                             </button>
                           </div>
-                          {/* Barra de progreso — 8px para mayor peso visual */}
+                          {/* Barra de progreso */}
                           <div style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', marginBottom: '6px', overflow: 'hidden' }}>
                             <div style={{
                               height: '100%',
@@ -900,7 +984,7 @@ export default function Home() {
                             }} />
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 600 }}>
+                            <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500 }}>
                               {goal.type === 'days_trained'
                                 ? `${goal.current} / ${goal.target_value} días este mes`
                                 : goal.target_reps
@@ -908,7 +992,7 @@ export default function Home() {
                                   : `${goal.current} / ${goal.target_value} ${goal.unit} (1RM est.)`
                               }
                             </span>
-                            <span style={{ fontSize: '10px', fontWeight: 800, color: goal.pct >= 100 ? 'oklch(55% 0.15 145)' : 'var(--c-text-dim)' }}>
+                            <span style={{ fontSize: '10px', fontWeight: 700, color: goal.pct >= 100 ? 'oklch(55% 0.15 145)' : 'var(--c-text-dim)' }}>
                               {goal.pct}%
                             </span>
                           </div>
@@ -926,10 +1010,12 @@ export default function Home() {
                 className="fade-in md:col-start-1 md:row-start-2 mb-4 md:mb-0"
                 style={{ animationDelay: '100ms' }}
               >
-                <p style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
-                  Progreso — esta semana
-                </p>
-                <WeeklyChart chartData={stats.chartData} height={160} />
+                <WeeklyChart
+                  chartData={stats.chartData}
+                  height={160}
+                  title="Volumen semanal"
+                  subtitle={stats.weekVolume > 0 ? `Total esta semana: ${formatVolume(stats.weekVolume)} kg` : undefined}
+                />
               </div>
 
             </div>
