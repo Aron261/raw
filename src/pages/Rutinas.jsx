@@ -33,9 +33,9 @@ function ActiveRoutineCard({ routine, onDeactivate }) {
       </div>
 
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
-        {routine.type && (
+        {routine.source && (
           <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            {routine.type === 'recommended' ? 'Recomendada' : 'Personalizada'}
+            {routine.source === 'recommended' ? 'Recomendada' : routine.source === 'from_workout' ? 'Desde entreno' : 'Personalizada'}
           </span>
         )}
         {routine.goal && (
@@ -129,7 +129,7 @@ function RoutineCard({ routine, onActivate, onDelete }) {
 
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
         <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>
-          {routine.type === 'recommended' ? 'Recomendada' : 'Personalizada'}
+          {routine.source === 'recommended' ? 'Recomendada' : routine.source === 'from_workout' ? 'Desde entreno' : 'Personalizada'}
         </span>
         {routine.goal && <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {routine.goal}</span>}
         {routine.days_per_week && <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {routine.days_per_week} días/sem</span>}
@@ -167,7 +167,8 @@ function CreateCustomModal({ onClose, onCreate }) {
     try {
       await onCreate({
         name: name.trim(),
-        type: 'custom',
+        type: 'cycle',
+        source: 'manual',
         days: days.filter(d => d.day_name.trim()).map((d, i) => ({ ...d, day_order: i })),
       })
       onClose()
@@ -337,7 +338,8 @@ function RecommendedModal({ onClose, onCreate }) {
 
       await onCreate({
         name: `${goal} — ${level} (${daysPerWeek}d)`,
-        type: 'recommended',
+        type: 'cycle',
+        source: 'recommended',
         goal,
         level,
         days_per_week: daysPerWeek,

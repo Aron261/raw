@@ -18,7 +18,8 @@ export function useRoutines() {
       const { data, error: err } = await supabase
         .from('routines')
         .select(`
-          id, name, type, goal, level, days_per_week, is_active, created_at, updated_at,
+          id, user_id, name, description, type, source, goal, level,
+          days_per_week, is_active, sort_order, created_at, updated_at,
           routine_days (
             id, day_name, day_order, focus,
             routine_day_exercises (
@@ -58,12 +59,12 @@ export function useRoutines() {
     if (!user) throw new Error('Usuario no autenticado')
     setError(null)
     try {
-      const { name, type = 'custom', goal, level, days_per_week, days = [] } = data
+      const { name, type = 'cycle', source = 'manual', goal, level, days_per_week, days = [] } = data
 
       // 1. Insertar la rutina principal
       const { data: routineRow, error: routineErr } = await supabase
         .from('routines')
-        .insert({ user_id: user.id, name, type, goal, level, days_per_week })
+        .insert({ user_id: user.id, name, type, source, goal, level, days_per_week })
         .select()
         .single()
 
@@ -152,11 +153,13 @@ export function useRoutines() {
     }
   }
 
-  // Marcar una rutina como activa (desactiva las demás)
+  // Marcar una rutina como activa (desactiva las demás primero).
+  // Llamar con id = null para solo desactivar sin activar ninguna.
   const setActiveRoutine = async (id) => {
     setError(null)
     try {
-      // Desactivar todas las rutinas del usuario
+      // 1. Desactivar todas las rutinas del usuario (filtrado explícito por user_id,
+      //    no solo RLS, para mayor seguridad y claridad de intención)
       const { error: deactivateErr } = await supabase
         .from('routines')
         .update({ is_active: false, updated_at: new Date().toISOString() })
@@ -164,14 +167,17 @@ export function useRoutines() {
 
       if (deactivateErr) throw deactivateErr
 
-      // Activar la seleccionada
-      const { error: activateErr } = await supabase
-        .from('routines')
-        .update({ is_active: true, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .eq('user_id', user.id)
+      // 2. Activar la seleccionada (se omite si id es null)
+      if (id) {
+        const { error: activateErr } = await supabase
+          .from('routines')
+          .update({ is_active: true, updated_at: new Date().toISOString() })
+          .eq('id', id)
+          .eq('user_id', user.id)
 
-      if (activateErr) throw activateErr
+        if (activateErr) throw activateErr
+      }
+
       await fetchRoutines()
     } catch (err) {
       console.error('Error setting active routine:', err)
