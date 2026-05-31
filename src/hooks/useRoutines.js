@@ -155,10 +155,19 @@ export function useRoutines() {
 
   // Marcar una rutina como activa (desactiva la actual primero).
   // Llamar con id = null para solo desactivar sin activar ninguna.
+  // Solo los ciclos (type = 'cycle') pueden marcarse como activos.
   // Siempre filtra por pk (id) + user_id — nunca bulk update por user_id solo
   // para evitar comportamiento ambiguo en Supabase v2 con columnas uuid.
   const setActiveRoutine = async (id) => {
     if (!user?.id) return
+
+    // Validar que solo los ciclos pueden activarse
+    if (id) {
+      const target = routines.find(r => r.id === id)
+      if (!target) throw new Error('Rutina no encontrada.')
+      if (target.type !== 'cycle') throw new Error('Solo los ciclos pueden marcarse como activos.')
+    }
+
     setError(null)
     try {
       // 1. Desactivar la rutina actualmente activa (si existe), por su id específico

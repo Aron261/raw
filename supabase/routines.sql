@@ -1,7 +1,16 @@
--- Rutinas: plan semanal completo de entrenamiento
+-- Rutinas: ciclos de entrenamiento y plantillas de un día
 --
--- type:   formato de la rutina  → 'cycle' | 'single_day'
--- source: origen de la rutina   → 'manual' | 'recommended' | 'from_workout'
+-- type:   formato de la rutina  → 'cycle' (varios días, puede ser activo)
+--                                  'single_day' (un día, NO puede ser activo)
+--
+-- source: origen de la rutina   → 'manual'        (creada a mano por el usuario)
+--                                  'recommended'   (generada por el algoritmo de RAW)
+--                                  'from_workout'  (convertida desde un entreno registrado)
+--
+-- Reglas de producto:
+--   - Solo los ciclos (type = 'cycle') pueden tener is_active = true.
+--   - Las rutinas de un día (type = 'single_day') siempre tienen is_active = false.
+--   - Solo un ciclo puede estar activo por usuario a la vez.
 
 create table if not exists routines (
   id            uuid primary key default gen_random_uuid(),

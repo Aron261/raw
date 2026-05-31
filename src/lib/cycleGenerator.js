@@ -538,3 +538,103 @@ export function getRecommendedPriority(cycleMemory) {
 export function generateRecommendedRoutine(params, exerciseHistory = {}) {
   return generateCyclePlan(params, exerciseHistory)
 }
+
+// =============================================================================
+// RUTINA DE UN DÍA
+// =============================================================================
+
+/**
+ * Mapa de enfoque → grupos musculares para rutinas de un día.
+ * Usado en el wizard de "Generar rutina de un día".
+ * @type {Object.<string, string[]>}
+ */
+export const FOCUS_TO_MUSCLES = {
+  'Pecho':      ['Pecho', 'Tríceps'],
+  'Espalda':    ['Espalda', 'Bíceps'],
+  'Pierna':     ['Cuádriceps', 'Isquios/Glúteo'],
+  'Hombro':     ['Hombro', 'Tríceps'],
+  'Brazos':     ['Bíceps', 'Tríceps'],
+  'Upper':      ['Pecho', 'Espalda', 'Hombro', 'Bíceps', 'Tríceps'],
+  'Lower':      ['Cuádriceps', 'Isquios/Glúteo', 'Core'],
+  'Full Body':  ['Pecho', 'Espalda', 'Hombro', 'Cuádriceps', 'Isquios/Glúteo', 'Bíceps', 'Tríceps', 'Core'],
+  'Push':       ['Pecho', 'Hombro', 'Tríceps'],
+  'Pull':       ['Espalda', 'Bíceps'],
+  'Core':       ['Core'],
+  'Funcional':  ['Core', 'Cuádriceps', 'Isquios/Glúteo'],
+}
+
+/**
+ * Mapea tiempos de sesión (min) al bucket más cercano de SETS_PER_DAY.
+ * 30 → 45, 75 → 60 (valores intermedios no disponibles en la tabla).
+ * @param {number} minutes
+ * @returns {number}
+ */
+function resolveTimeBucket(minutes) {
+  if (minutes <= 45) return 45
+  if (minutes <= 60) return 60
+  return 90
+}
+
+/**
+ * Genera el plan de ejercicios para una rutina de un solo día.
+ * Reutiliza los mismos algoritmos de distribución de series que generateCyclePlan.
+ *
+ * @param {Object} params
+ * @param {string} params.focus          - Enfoque del entreno (clave de FOCUS_TO_MUSCLES)
+ * @param {number} [params.dailyTimeMinutes=60] - Duración en minutos (30/45/60/75/90)
+ * @param {string} [params.goal='Hipertrofia']  - Objetivo (clave de GOAL_PARAMS)
+ * @param {string} [params.level='Intermedio']  - Nivel del usuario
+ * @param {Object} [exerciseHistory={}]  - Historial de 1RM por ejercicio
+ * @returns {{ dayName: string, muscleGroups: string[], exercises: Object[] }}
+ */
+export function generateSingleDayRoutine(
+  { focus, dailyTimeMinutes = 60, goal = 'Hipertrofia', level = 'Intermedio' },
+  exerciseHistory = {}
+) {
+  const muscleGroups = FOCUS_TO_MUSCLES[focus] ?? ['Pecho', 'Espalda']
+  const goalP        = GOAL_PARAMS[goal] ?? GOAL_PARAMS['Hipertrofia']
+  const timeBucket   = resolveTimeBucket(dailyTimeMinutes)
+  const totalSets    = SETS_PER_DAY[timeBucket]?.[level] ?? SETS_PER_DAY[60]?.Intermedio ?? 13
+  const intensityMid = Math.round((goalP.intensityMin + goalP.intensityMax) / 2)
+
+  // Distribuir series entre grupos musculares
+  const setsPerGroup = distributeSetsAcrossGroups(muscleGroups, totalSets, level)
+
+  const exercises = []
+
+  for (const muscleGroup of muscleGroups) {
+    const groupSets         = setsPerGroup[muscleGroup] ?? 2
+    const maxEx             = groupSets >= 2 ? 2 : 1
+    const selectedExercises = pickExercises(muscleGroup, maxEx)
+    const setsMap           = distributeSetsAcrossExercises(selectedExercises, groupSets)
+
+    for (const exerciseName of selectedExercises) {
+      const sets = setsMap[exerciseName] ?? 1
+
+      // Peso sugerido desde historial de 1RM (si existe)
+      let suggestedWeight = null
+      let unit = null
+      const historyEntry = exerciseHistory[exerciseName]
+      if (historyEntry && typeof historyEntry.best1RM === 'number') {
+        unit = historyEntry.unit ?? 'kg'
+        suggestedWeight = roundToNearest2_5(historyEntry.best1RM * (goalP.intensityMin / 100))
+      }
+
+      exercises.push({
+        exerciseName,
+        sets,
+        repsMin: goalP.repsMin,
+        repsMax: goalP.repsMax,
+        intensityPercent: intensityMid,
+        suggestedWeight,
+        unit,
+      })
+    }
+  }
+
+  return {
+    dayName:      focus,
+    muscleGroups: [...muscleGroups],
+    exercises,
+  }
+}
