@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { useRoutines } from '../hooks/useRoutines'
+import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { generateRecommendedRoutine, generateSingleDayRoutine, FOCUS_TO_MUSCLES } from '../lib/cycleGenerator'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 
@@ -154,10 +156,11 @@ function CycleCard({ routine, onActivate, onDelete }) {
 }
 
 // ── Card: rutina de un día ─────────────────────────────────────────────────
-function SingleDayCard({ routine, onDelete }) {
+function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const day = (routine.routine_days || [])[0]
-  const exCount = day ? (day.routine_day_exercises || []).length : 0
+  const exCount = day ? (day.routine_day_exercises || []).filter(e => e.exercise_name?.trim()).length : 0
+  const canStart = day && hasExercises && !starting
 
   return (
     <div style={{
@@ -172,6 +175,28 @@ function SingleDayCard({ routine, onDelete }) {
           {routine.name}
         </p>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {/* Botón Empezar — siempre visible si hay day, disabled si no hay ejercicios */}
+          {day && (
+            <button
+              onClick={canStart ? onStart : undefined}
+              disabled={!canStart}
+              title={!hasExercises ? 'Este entreno no tiene ejercicios todavía' : undefined}
+              style={{
+                color: canStart ? 'var(--c-accent)' : 'var(--c-text-ghost)',
+                fontSize: '9px', fontWeight: 800,
+                textTransform: 'uppercase', letterSpacing: '0.08em',
+                border: `1px solid ${canStart ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
+                padding: '4px 10px', borderRadius: '8px',
+                cursor: canStart ? 'pointer' : 'default',
+                transition: 'background 150ms var(--ease-out)',
+                opacity: starting ? 0.6 : 1,
+              }}
+              onMouseEnter={e => { if (canStart) e.currentTarget.style.background = 'var(--c-accent-dim)' }}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              {starting ? 'Creando...' : !hasExercises ? 'Sin ejercicios' : 'Empezar'}
+            </button>
+          )}
           {confirmDelete ? (
             <button
               onClick={onDelete}
@@ -193,8 +218,10 @@ function SingleDayCard({ routine, onDelete }) {
       </div>
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
         <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>{sourceLabel(routine.source)}</span>
-        {exCount > 0 && (
+        {exCount > 0 ? (
           <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {exCount} ejercicios</span>
+        ) : (
+          <span style={{ color: 'var(--c-text-ghost)', fontSize: '10px' }}>· Sin ejercicios</span>
         )}
       </div>
     </div>
@@ -812,6 +839,7 @@ function RecommendedSingleDayModal({ onClose, onCreate }) {
 
 // ── Página principal ───────────────────────────────────────────────────────
 export default function Rutinas() {
+  const navigate = useNavigate()
   const {
     routines,
     activeRoutine,
@@ -821,10 +849,13 @@ export default function Rutinas() {
     deleteRoutine,
     setActiveRoutine,
   } = useRoutines()
+  const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
 
   // Estado de modales: null = cerrado, 'type' | 'cycle' | 'single' | 'rec-cycle' | 'rec-single'
   const [modal, setModal]           = useState(null)
   const [actionError, setActionError] = useState(null)
+  // id de la rutina single_day que está iniciándose (para deshabilitar el botón)
+  const [startingId, setStartingId] = useState(null)
 
   // Clasificar rutinas por tipo
   const activeCycle    = activeRoutine?.type === 'cycle' ? activeRoutine : null
@@ -845,6 +876,31 @@ export default function Rutinas() {
   const handleDelete = async (id) => {
     setActionError(null)
     try { await deleteRoutine(id) } catch (e) { setActionError(e.message) }
+  }
+
+  // Iniciar entreno desde una rutina de un día
+  const handleStartSingleDay = async (routine) => {
+    if (startingId) return  // guard doble click
+    const day = (routine.routine_days || [])[0]
+    if (!day) return
+    // Validar que tenga al menos un ejercicio con nombre válido
+    const hasExercises = (day.routine_day_exercises || []).some(e => e.exercise_name?.trim())
+    if (!hasExercises) return
+    setStartingId(routine.id)
+    setActionError(null)
+    try {
+      const workout = await startWorkoutFromRoutineDay({
+        routineId: routine.id,
+        routineDayId: day.id,
+        routineName: routine.name,
+        day,
+      })
+      navigate(`/workout/${workout.id}`)
+    } catch (e) {
+      setActionError(e.message)
+    } finally {
+      setStartingId(null)
+    }
   }
 
   return (
@@ -924,13 +980,20 @@ export default function Rutinas() {
                 <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
                   Rutinas de un día
                 </p>
-                {singleDayItems.map(r => (
-                  <SingleDayCard
-                    key={r.id}
-                    routine={r}
-                    onDelete={() => handleDelete(r.id)}
-                  />
-                ))}
+                {singleDayItems.map(r => {
+                  const firstDay = (r.routine_days || [])[0]
+                  const hasExercises = (firstDay?.routine_day_exercises || []).some(e => e.exercise_name?.trim())
+                  return (
+                    <SingleDayCard
+                      key={r.id}
+                      routine={r}
+                      hasExercises={hasExercises}
+                      onDelete={() => handleDelete(r.id)}
+                      onStart={() => handleStartSingleDay(r)}
+                      starting={startingId === r.id}
+                    />
+                  )
+                })}
               </section>
             )}
 

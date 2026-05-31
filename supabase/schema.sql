@@ -7,7 +7,10 @@ create table workouts (
   notes text,
   started_at timestamptz not null default now(),
   ended_at timestamptz,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  routine_id     uuid references public.routines(id),
+  routine_day_id uuid references public.routine_days(id),
+  source         text default 'manual'
 );
 
 create table exercises (

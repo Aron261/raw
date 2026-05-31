@@ -45,7 +45,7 @@ export function useWorkouts() {
       const { data, error: fetchError } = await supabase
         .from('workouts')
         .select(`
-          id, name, started_at, ended_at, notes,
+          id, name, started_at, ended_at, notes, routine_id, routine_day_id,
           workout_exercises (
             id,
             exercise_id,

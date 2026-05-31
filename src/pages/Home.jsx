@@ -8,6 +8,8 @@ import { useWorkouts } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { useGoals } from '../hooks/useGoals'
+import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
+import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { ERROR_STYLE } from '../lib/ui'
 
 // ── Date helpers ─────────────────────────────────────────────────────────
@@ -326,6 +328,68 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
   )
 }
 
+// ── EntrenaHoyCard ────────────────────────────────────────────────────────
+// Muestra el próximo día del ciclo activo con CTA para empezar.
+function EntrenaHoyCard({ day, routineName, onStart, starting }) {
+  const validExercises = (day?.routine_day_exercises || []).filter(e => e.exercise_name?.trim())
+  const exCount = validExercises.length
+  const hasExercises = exCount > 0
+
+  return (
+    <div style={{
+      background: 'var(--c-surface)',
+      border: '1px solid var(--c-accent-border)',
+      borderRadius: '14px',
+      padding: '16px',
+      marginBottom: '16px',
+    }}>
+      {/* Label */}
+      <p style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
+        Entreno de hoy
+      </p>
+
+      {/* Nombre del día */}
+      <p style={{ color: 'var(--c-text)', fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '4px' }}>
+        {day.day_name}
+      </p>
+
+      {/* Ciclo activo — siempre visible */}
+      <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 500, marginBottom: '2px' }}>
+        Ciclo activo: {routineName}
+      </p>
+
+      {/* Detalle: ejercicios + focus */}
+      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginBottom: '14px' }}>
+        {hasExercises
+          ? `${exCount} ${exCount === 1 ? 'ejercicio' : 'ejercicios'}${day.focus ? ' · ' + day.focus : ''}`
+          : 'Sin ejercicios todavía'
+        }
+      </p>
+
+      <button
+        onClick={hasExercises && !starting ? onStart : undefined}
+        disabled={!hasExercises || starting}
+        style={{
+          width: '100%',
+          background: hasExercises ? 'var(--c-accent)' : 'var(--c-surface-2)',
+          color: hasExercises ? '#fff' : 'var(--c-text-muted)',
+          border: hasExercises ? 'none' : '1px solid var(--c-border-subtle)',
+          borderRadius: '10px',
+          padding: '12px',
+          fontSize: '12px',
+          fontWeight: 700,
+          letterSpacing: '-0.01em',
+          cursor: hasExercises && !starting ? 'pointer' : 'default',
+          transition: 'opacity 150ms',
+          opacity: starting ? 0.6 : 1,
+        }}
+      >
+        {starting ? 'Creando entreno...' : hasExercises ? 'Empezar entreno' : 'Sin ejercicios todavía'}
+      </button>
+    </div>
+  )
+}
+
 // ── Highlight rotativo (cambia cada día entre 4 tipos) ────────────────────
 function getDayHighlightType() {
   const now = new Date()
@@ -345,12 +409,30 @@ export default function Home() {
   const firstName = profile?.name?.split(' ')[0] || ''
   const [showGoalModal, setShowGoalModal] = useState(false)
   const [startingWorkout, setStartingWorkout] = useState(false)
+  const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
+
+  const { activeRoutine } = useRoutines()
+  const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
 
   // Entreno en curso: sin ended_at
   const activeWorkout = useMemo(() => workouts.find(w => !w.ended_at) || null, [workouts])
 
-  // CTA: continuar si hay entreno activo, crear uno nuevo si no
+  // Ciclo activo válido: debe ser type=cycle e is_active=true
+  const activeCycle = (activeRoutine?.type === 'cycle' && activeRoutine?.is_active === true)
+    ? activeRoutine : null
+
+  // Siguiente día del ciclo activo
+  const nextDay = useMemo(
+    () => activeCycle ? getNextRoutineDay(activeCycle, workouts) : null,
+    [activeCycle, workouts]
+  )
+
+  // Mostrar tarjeta de ciclo: sin entreno en curso + ciclo válido + día disponible
+  const showCycleCard = !activeWorkout && activeCycle && nextDay
+
+  // CTA libre — guard contra doble click
   const handleStartWorkout = async () => {
+    if (startingWorkout) return
     if (activeWorkout) {
       navigate(`/workout/${activeWorkout.id}`)
       return
@@ -363,6 +445,28 @@ export default function Home() {
       console.error('Error al iniciar entreno:', err)
     } finally {
       setStartingWorkout(false)
+    }
+  }
+
+  // CTA desde ciclo activo — guard contra doble click + validar ejercicios
+  const handleStartRoutineWorkout = async () => {
+    if (startingRoutineWorkout) return
+    if (!activeCycle || !nextDay) return
+    const hasExercises = (nextDay.routine_day_exercises || []).some(e => e.exercise_name?.trim())
+    if (!hasExercises) return
+    setStartingRoutineWorkout(true)
+    try {
+      const workout = await startWorkoutFromRoutineDay({
+        routineId: activeCycle.id,
+        routineDayId: nextDay.id,
+        routineName: activeCycle.name,
+        day: nextDay,
+      })
+      navigate(`/workout/${workout.id}`)
+    } catch (err) {
+      console.error('Error al iniciar entreno de rutina:', err)
+    } finally {
+      setStartingRoutineWorkout(false)
     }
   }
 
@@ -702,33 +806,84 @@ export default function Home() {
 
         {error && <div style={ERROR_STYLE}>Error al cargar entrenos.</div>}
 
-        {/* ── CTA principal — solo en móvil ── */}
+        {/* ── CTA principal ── */}
         {!loading && !error && (
-          <div className="md:hidden mb-5">
-            <button
-              onClick={handleStartWorkout}
-              disabled={startingWorkout}
-              style={{
-                width: '100%',
-                background: activeWorkout ? 'var(--c-surface)' : 'var(--c-accent)',
-                color: activeWorkout ? 'var(--c-accent)' : '#fff',
-                border: activeWorkout ? '2px solid var(--c-accent)' : '2px solid transparent',
-                borderRadius: '14px',
-                padding: '16px',
-                fontSize: '13px',
-                fontWeight: 700,
-                letterSpacing: '-0.01em',
-                transition: 'opacity 150ms',
-                opacity: startingWorkout ? 0.6 : 1,
-              }}
-            >
-              {startingWorkout
-                ? 'Iniciando...'
-                : activeWorkout
-                  ? 'Continuar entreno'
-                  : 'Empezar entreno'
-              }
-            </button>
+          <div style={{ marginBottom: '20px' }}>
+            {/* Si hay ciclo activo: tarjeta con el día sugerido */}
+            {showCycleCard && (
+              <EntrenaHoyCard
+                day={nextDay}
+                routineName={activeCycle.name}
+                onStart={handleStartRoutineWorkout}
+                starting={startingRoutineWorkout}
+              />
+            )}
+
+            {/* Botón de acción principal */}
+            {activeWorkout ? (
+              /* Continuar entreno en curso */
+              <button
+                onClick={handleStartWorkout}
+                disabled={startingWorkout}
+                style={{
+                  width: '100%',
+                  background: 'var(--c-surface)',
+                  color: 'var(--c-accent)',
+                  border: '2px solid var(--c-accent)',
+                  borderRadius: '14px',
+                  padding: '16px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  letterSpacing: '-0.01em',
+                  transition: 'opacity 150ms',
+                  opacity: startingWorkout ? 0.6 : 1,
+                }}
+              >
+                Continuar entreno
+              </button>
+            ) : !showCycleCard ? (
+              /* Sin ciclo activo: empezar entreno libre */
+              <button
+                onClick={handleStartWorkout}
+                disabled={startingWorkout}
+                style={{
+                  width: '100%',
+                  background: 'var(--c-accent)',
+                  color: '#fff',
+                  border: '2px solid transparent',
+                  borderRadius: '14px',
+                  padding: '16px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  letterSpacing: '-0.01em',
+                  transition: 'opacity 150ms',
+                  opacity: startingWorkout ? 0.6 : 1,
+                }}
+              >
+                {startingWorkout ? 'Creando entreno...' : 'Empezar entreno'}
+              </button>
+            ) : (
+              /* Con ciclo activo: opción secundaria para entreno libre */
+              <button
+                onClick={handleStartWorkout}
+                disabled={startingWorkout}
+                style={{
+                  width: '100%',
+                  background: 'transparent',
+                  color: 'var(--c-text-dim)',
+                  border: '1px solid var(--c-border-subtle)',
+                  borderRadius: '12px',
+                  padding: '11px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  letterSpacing: '-0.01em',
+                  transition: 'opacity 150ms',
+                  opacity: startingWorkout ? 0.6 : 1,
+                }}
+              >
+                {startingWorkout ? 'Creando entreno...' : 'Empezar entreno libre'}
+              </button>
+            )}
           </div>
         )}
 
@@ -739,7 +894,7 @@ export default function Home() {
               Sin entrenos aún
             </p>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '13px' }}>
-              Usá el botón + para registrar tu primer entreno.
+              Usá el botón de arriba para registrar tu primer entreno.
             </p>
           </div>
         )}
