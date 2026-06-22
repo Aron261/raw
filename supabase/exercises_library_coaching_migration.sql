@@ -35,6 +35,8 @@ alter table exercises_library
 create or replace function set_updated_at()
 returns trigger
 language plpgsql
+security invoker
+set search_path = ''   -- endurecimiento: search_path fijo (linter 0011)
 as $$
 begin
   new.updated_at = now();

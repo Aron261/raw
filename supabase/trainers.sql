@@ -69,10 +69,14 @@ create index if not exists idx_trainer_invites_trainer on trainer_invites(traine
 -- SECURITY DEFINER para saltar RLS sobre trainer_clients y evitar recursión
 -- cuando se usa dentro de otras políticas.
 
+-- SECURITY INVOKER: refleja el RLS del propio usuario. Las políticas de
+-- trainer_clients ya permiten al entrenador ver sus vínculos, así que la
+-- comprobación funciona sin recursión ni fuga, y sin exponer una función
+-- SECURITY DEFINER en la API (linter 0028/0029).
 create or replace function public.is_active_trainer_of(target uuid)
 returns boolean
 language sql
-security definer
+security invoker
 set search_path = public
 stable
 as $$
@@ -164,6 +168,12 @@ begin
   return v_invite.trainer_id;
 end;
 $$;
+
+-- redeem_invite es SECURITY DEFINER (lee trainer_invites y crea el vínculo en
+-- nombre del cliente). Solo usuarios autenticados deben poder llamarla.
+revoke execute on function public.redeem_invite(text) from public;
+revoke execute on function public.redeem_invite(text) from anon;
+grant  execute on function public.redeem_invite(text) to authenticated;
 
 
 -- ── 8. RLS añadida para acceso del entrenador a datos del cliente ──────────

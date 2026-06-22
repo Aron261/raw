@@ -66,7 +66,11 @@ create policy "Users manage own sets" on sets for all using (
 );
 
 -- View for external agent: exposes workout data
-create view public_workout_summary as
+-- security_invoker = true → la vista respeta el RLS del usuario que consulta
+-- (cada usuario solo ve sus propios entrenos; anon no ve nada). service_role
+-- omite RLS por diseño para acceso de backend. (linter 0010)
+create view public_workout_summary
+with (security_invoker = true) as
 select
   w.id as workout_id,
   w.user_id,
@@ -83,3 +87,6 @@ from workouts w
 join workout_exercises we on we.workout_id = w.id
 join exercises e on e.id = we.exercise_id
 join sets s on s.workout_exercise_id = we.id;
+
+-- El rol anónimo no necesita acceso a la vista.
+revoke all on public_workout_summary from anon;
