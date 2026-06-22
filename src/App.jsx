@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthContext, useAuthProvider } from './hooks/useAuth'
+import { useBetaGate } from './hooks/useBetaGate'
+import BetaGate from './pages/BetaGate'
 import Auth from './pages/Auth'
 import Home from './pages/Home'
 import ActiveWorkout from './pages/ActiveWorkout'
@@ -10,19 +12,26 @@ import Rutinas from './pages/Rutinas'
 import Coach from './pages/Coach'
 import ClientDetail from './pages/ClientDetail'
 
-// Protected layout wrapper that checks auth
-function RequireAuth({ children, auth }) {
-  if (auth.loading) {
-    return (
-      <div className="min-h-dvh bg-background flex items-center justify-center">
-        <span className="text-text-muted text-xs uppercase tracking-widest animate-pulse">RAW</span>
-      </div>
-    )
-  }
+// Loading splash reutilizable
+function Splash() {
+  return (
+    <div className="min-h-dvh bg-background flex items-center justify-center">
+      <span className="text-text-muted text-xs uppercase tracking-widest animate-pulse">RAW</span>
+    </div>
+  )
+}
 
-  if (!auth.user) {
-    return <Navigate to="/login" replace />
-  }
+// Protected layout wrapper: exige sesión Y aprobación de beta.
+function RequireAuth({ children, auth }) {
+  const beta = useBetaGate()
+
+  if (auth.loading) return <Splash />
+  if (!auth.user) return <Navigate to="/login" replace />
+
+  // Verificando aprobación de beta
+  if (beta.loading) return <Splash />
+  // Autenticado pero sin canjear el código → pantalla de acceso beta
+  if (!beta.approved) return <BetaGate />
 
   return children
 }
