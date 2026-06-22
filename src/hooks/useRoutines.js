@@ -35,16 +35,24 @@ export function getNextRoutineDay(activeCycle, workoutsHistory) {
   return days[(lastIdx + 1) % days.length]
 }
 
-export function useRoutines() {
+// useRoutines(targetUserId?) — sin argumento opera sobre el usuario actual.
+// Si se pasa targetUserId (un cliente), un entrenador lee y gestiona las rutinas
+// de ese cliente; las que cree quedan marcadas con assigned_by = entrenador.
+export function useRoutines(targetUserId = null) {
   const { user } = useAuth()
   const [routines, setRoutines] = useState([])
   const [activeRoutine, setActiveRoutineState] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Dueño de las rutinas (cliente si es un entrenador operando, si no el propio usuario)
+  const ownerId = targetUserId || user?.id
+  // Si se opera sobre otro usuario, marcar quién asignó la rutina
+  const assignedBy = targetUserId ? (user?.id ?? null) : null
+
   // Trae todas las rutinas del usuario con sus días y ejercicios
   const fetchRoutines = useCallback(async () => {
-    if (!user) return
+    if (!ownerId) return
     setLoading(true)
     setError(null)
     try {
@@ -52,7 +60,7 @@ export function useRoutines() {
         .from('routines')
         .select(`
           id, user_id, name, description, type, source, goal, level,
-          days_per_week, is_active, sort_order, created_at, updated_at,
+          days_per_week, is_active, sort_order, assigned_by, created_at, updated_at,
           routine_days (
             id, day_name, day_order, focus,
             routine_day_exercises (
@@ -60,7 +68,7 @@ export function useRoutines() {
             )
           )
         `)
-        .eq('user_id', user.id)
+        .eq('user_id', ownerId)
         .order('created_at', { ascending: false })
 
       if (err) throw err
@@ -82,14 +90,14 @@ export function useRoutines() {
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [ownerId])
 
   useEffect(() => { fetchRoutines() }, [fetchRoutines])
 
   // Crear rutina completa con días y ejercicios en cascada
   // data: { name, type, goal?, level?, days_per_week?, days?: [{ day_name, day_order, focus?, exercises?: [...] }] }
   const createRoutine = async (data) => {
-    if (!user) throw new Error('Usuario no autenticado')
+    if (!ownerId) throw new Error('Usuario no autenticado')
     setError(null)
     try {
       const { name, type = 'cycle', source = 'manual', goal, level, days_per_week, days = [] } = data
@@ -97,7 +105,7 @@ export function useRoutines() {
       // 1. Insertar la rutina principal
       const { data: routineRow, error: routineErr } = await supabase
         .from('routines')
-        .insert({ user_id: user.id, name, type, source, goal, level, days_per_week })
+        .insert({ user_id: ownerId, assigned_by: assignedBy, name, type, source, goal, level, days_per_week })
         .select()
         .single()
 
@@ -156,7 +164,7 @@ export function useRoutines() {
         .from('routines')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
-        .eq('user_id', user.id)
+        .eq('user_id', ownerId)
 
       if (err) throw err
       await fetchRoutines()
@@ -175,7 +183,7 @@ export function useRoutines() {
         .from('routines')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id)
+        .eq('user_id', ownerId)
 
       if (err) throw err
       await fetchRoutines()
@@ -192,7 +200,7 @@ export function useRoutines() {
   // Siempre filtra por pk (id) + user_id — nunca bulk update por user_id solo
   // para evitar comportamiento ambiguo en Supabase v2 con columnas uuid.
   const setActiveRoutine = async (id) => {
-    if (!user?.id) return
+    if (!ownerId) return
 
     // Validar que solo los ciclos pueden activarse
     if (id) {
@@ -209,7 +217,7 @@ export function useRoutines() {
           .from('routines')
           .update({ is_active: false, updated_at: new Date().toISOString() })
           .eq('id', activeRoutine.id)
-          .eq('user_id', user.id)
+          .eq('user_id', ownerId)
 
         if (deactivateErr) throw deactivateErr
       }
@@ -220,7 +228,7 @@ export function useRoutines() {
           .from('routines')
           .update({ is_active: true, updated_at: new Date().toISOString() })
           .eq('id', id)
-          .eq('user_id', user.id)
+          .eq('user_id', ownerId)
 
         if (activateErr) throw activateErr
       }

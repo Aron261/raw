@@ -46,7 +46,21 @@ function RoutineMeta({ routine, style = {} }) {
       <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>
         · {(routine.routine_days || []).length} {(routine.routine_days || []).length === 1 ? 'día' : 'días'}
       </span>
+      {routine.assigned_by && <AssignedBadge />}
     </div>
+  )
+}
+
+// Badge para rutinas asignadas por un entrenador
+function AssignedBadge() {
+  return (
+    <span style={{
+      background: 'var(--c-accent-dim)', color: 'var(--c-accent)',
+      fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
+      padding: '2px 7px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
+    }}>
+      Entrenador
+    </span>
   )
 }
 
@@ -216,13 +230,14 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises }) {
           )}
         </div>
       </div>
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
         <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>{sourceLabel(routine.source)}</span>
         {exCount > 0 ? (
           <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {exCount} ejercicios</span>
         ) : (
           <span style={{ color: 'var(--c-text-ghost)', fontSize: '10px' }}>· Sin ejercicios</span>
         )}
+        {routine.assigned_by && <AssignedBadge />}
       </div>
     </div>
   )

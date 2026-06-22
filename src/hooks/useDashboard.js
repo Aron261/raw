@@ -29,14 +29,17 @@ function weekLabel(isoDate) {
   return new Date(isoDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function useDashboard() {
+// useDashboard(targetUserId?) — sin argumento, dashboard del usuario actual.
+// Con targetUserId, un entrenador lee (solo lectura) el progreso de ese cliente.
+export function useDashboard(targetUserId = null) {
   const { user } = useAuth()
+  const ownerId = targetUserId || user?.id
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!user) return
+    if (!ownerId) return
 
     const fetch = async () => {
       setLoading(true)
@@ -52,7 +55,7 @@ export function useDashboard() {
               sets ( weight, reps )
             )
           `)
-          .eq('user_id', user.id)
+          .eq('user_id', ownerId)
           .not('ended_at', 'is', null)
           .order('started_at', { ascending: false })
 
@@ -163,7 +166,7 @@ export function useDashboard() {
     }
 
     fetch()
-  }, [user])
+  }, [ownerId])
 
   return { data, loading, error }
 }

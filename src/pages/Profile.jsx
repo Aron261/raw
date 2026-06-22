@@ -6,6 +6,9 @@ import Layout from '../components/Layout'
 import { useProfile } from '../hooks/useProfile'
 import { useAuth } from '../hooks/useAuth'
 import { useBodyWeight } from '../hooks/useBodyWeight'
+import { useTrainer } from '../hooks/useTrainer'
+import { useInvites } from '../hooks/useInvites'
+import { ERROR_STYLE } from '../lib/ui'
 
 // ── Shared label style ──────────────────────────────────────────────────
 const LABEL = {
@@ -287,6 +290,134 @@ function BodyWeightSection() {
   )
 }
 
+// ── Trainer / coach section ─────────────────────────────────────────────
+function TrainerSection() {
+  const { isTrainer, toggleTrainer, error: trainerError } = useTrainer()
+  const { trainers, redeemCode, removeTrainer, redeeming, error: inviteError } = useInvites()
+  const [code, setCode]       = useState('')
+  const [redeemMsg, setRedeemMsg] = useState(null)
+  const [localError, setLocalError] = useState(null)
+  const [toggling, setToggling]   = useState(false)
+
+  const handleToggle = async () => {
+    setToggling(true)
+    setLocalError(null)
+    try { await toggleTrainer(!isTrainer) } catch (e) { setLocalError(e.message) } finally { setToggling(false) }
+  }
+
+  const handleRedeem = async () => {
+    setRedeemMsg(null)
+    setLocalError(null)
+    try {
+      await redeemCode(code)
+      setCode('')
+      setRedeemMsg('✓ Entrenador vinculado')
+      setTimeout(() => setRedeemMsg(null), 2500)
+    } catch (e) {
+      setLocalError(e.message)
+    }
+  }
+
+  return (
+    <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+      <p style={SECTION_TITLE}>Entrenador</p>
+
+      {(localError || trainerError || inviteError) && (
+        <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError || trainerError || inviteError}</div>
+      )}
+
+      {/* Toggle: soy entrenador */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+        <div style={{ flex: 1, paddingRight: '12px' }}>
+          <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700 }}>Soy entrenador</p>
+          <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '2px', lineHeight: 1.4 }}>
+            Activa el panel «Coach» para invitar clientes y asignarles rutinas y metas.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleToggle}
+          disabled={toggling}
+          role="switch"
+          aria-checked={isTrainer}
+          style={{
+            width: '46px', height: '28px', borderRadius: '999px', flexShrink: 0,
+            background: isTrainer ? 'var(--c-accent)' : 'var(--c-border)',
+            transition: 'background 200ms var(--ease-out)', position: 'relative',
+            opacity: toggling ? 0.6 : 1,
+          }}
+        >
+          <span style={{
+            position: 'absolute', top: '3px', left: isTrainer ? '21px' : '3px',
+            width: '22px', height: '22px', borderRadius: '50%', background: '#fff',
+            transition: 'left 200ms var(--ease-out)', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+          }} />
+        </button>
+      </div>
+
+      {/* Vincular entrenador por código */}
+      <div>
+        <label style={LABEL}>Vincular un entrenador (código)</label>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input
+            type="text"
+            value={code}
+            onChange={e => setCode(e.target.value.toUpperCase())}
+            onKeyDown={e => e.key === 'Enter' && handleRedeem()}
+            placeholder="Ej: A1B2C3D4"
+            className="input-field"
+            style={{ flex: 1, letterSpacing: '0.08em', fontWeight: 700 }}
+          />
+          <button
+            type="button"
+            onClick={handleRedeem}
+            disabled={redeeming || !code.trim()}
+            style={{
+              padding: '0 18px', background: 'var(--c-accent)', color: '#fff',
+              fontSize: '12px', fontWeight: 800, borderRadius: '10px', flexShrink: 0,
+              opacity: redeeming || !code.trim() ? 0.5 : 1,
+            }}
+          >
+            {redeeming ? '...' : 'Vincular'}
+          </button>
+        </div>
+        {redeemMsg && (
+          <p style={{ color: 'oklch(55% 0.15 145)', fontSize: '11px', fontWeight: 700, marginTop: '8px' }}>{redeemMsg}</p>
+        )}
+      </div>
+
+      {/* Mis entrenadores */}
+      {trainers.length > 0 && (
+        <div style={{ marginTop: '20px' }}>
+          <label style={LABEL}>Mis entrenadores</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {trainers.map(t => (
+              <div key={t.linkId} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '10px 12px', background: 'var(--c-surface-2)',
+                border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+              }}>
+                <span style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>
+                  {t.profile?.name || 'Entrenador'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeTrainer(t.linkId)}
+                  style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-dim)'}
+                >
+                  Quitar
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
 // ── Main page ──────────────────────────────────────────────────────────
 export default function Profile() {
   const { user } = useAuth()
@@ -484,6 +615,9 @@ export default function Profile() {
 
           {/* ── Peso corporal ── */}
           <BodyWeightSection />
+
+          {/* ── Entrenador ── */}
+          <TrainerSection />
 
           {/* ── Save ── */}
           {saveError && (

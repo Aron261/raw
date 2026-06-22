@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useProfile } from '../hooks/useProfile'
 
 function DashboardIcon() {
   return (
@@ -45,6 +46,17 @@ function ProfileIcon() {
   )
 }
 
+function CoachIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
 function CycleIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -55,16 +67,18 @@ function CycleIcon() {
   )
 }
 
-const navItems = [
-  { to: '/',          label: 'Inicio',    Icon: DashboardIcon, exact: true },
-  { to: '/history',   label: 'Entrenos',  Icon: HistoryIcon },
-  { to: '/rutinas',   label: 'Rutinas',   Icon: RoutinesIcon },
-  { to: '/profile',   label: 'Perfil',    Icon: ProfileIcon },
-]
-
 export default function Sidebar() {
   const { user, signOut } = useAuth()
+  const { profile } = useProfile()
   const navigate = useNavigate()
+
+  const navItems = [
+    { to: '/',          label: 'Inicio',    Icon: DashboardIcon, exact: true },
+    { to: '/history',   label: 'Entrenos',  Icon: HistoryIcon },
+    { to: '/rutinas',   label: 'Rutinas',   Icon: RoutinesIcon },
+    ...(profile?.is_trainer ? [{ to: '/coach', label: 'Coach', Icon: CoachIcon }] : []),
+    { to: '/profile',   label: 'Perfil',    Icon: ProfileIcon },
+  ]
 
   const handleSignOut = async () => {
     await signOut()

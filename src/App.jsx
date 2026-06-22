@@ -7,6 +7,8 @@ import ExerciseDetail from './pages/ExerciseDetail'
 import History from './pages/History'
 import Profile from './pages/Profile'
 import Rutinas from './pages/Rutinas'
+import Coach from './pages/Coach'
+import ClientDetail from './pages/ClientDetail'
 
 // Protected layout wrapper that checks auth
 function RequireAuth({ children, auth }) {
@@ -58,6 +60,9 @@ function AppWithAuth() {
           <Route path="/history"    element={<R auth={auth} element={<History />} />} />
           <Route path="/rutinas"    element={<R auth={auth} element={<Rutinas />} />} />
           <Route path="/profile"    element={<R auth={auth} element={<Profile />} />} />
+
+          <Route path="/coach"             element={<R auth={auth} element={<Coach />} />} />
+          <Route path="/coach/cliente/:id" element={<R auth={auth} element={<ClientDetail />} />} />
 
           <Route path="/workout/:id"    element={<R auth={auth} element={<ActiveWorkout />} />} />
           <Route path="/exercise/:name" element={<R auth={auth} element={<ExerciseDetail />} />} />

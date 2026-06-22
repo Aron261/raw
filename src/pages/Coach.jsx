@@ -1,0 +1,316 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import Layout from '../components/Layout'
+import { useTrainer } from '../hooks/useTrainer'
+import { pressProps, ERROR_STYLE } from '../lib/ui'
+
+const SECTION_LABEL = {
+  color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
+  textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px',
+}
+
+// ── Modal: generar / mostrar código de invitación ─────────────────────────
+function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
+  const [code, setCode]     = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [localError, setLocalError] = useState(null)
+  const [copied, setCopied] = useState(false)
+
+  const handleCreate = async () => {
+    setSaving(true)
+    setLocalError(null)
+    try {
+      const newCode = await onCreate()
+      setCode(newCode)
+    } catch (e) {
+      setLocalError(e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const copy = async (value) => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch { /* clipboard no disponible */ }
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 100,
+      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+    }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div style={{
+        background: 'var(--c-bg)', borderRadius: '20px 20px 0 0',
+        width: '100%', maxWidth: '480px', padding: '24px 20px 40px',
+        maxHeight: '85dvh', overflowY: 'auto',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
+            Invitar cliente
+          </h2>
+          <button onClick={onClose} style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1 }}>✕</button>
+        </div>
+
+        {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
+
+        <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginBottom: '16px', lineHeight: 1.5 }}>
+          Genera un código y compártelo con tu cliente. Él lo ingresa en su perfil
+          (sección «Entrenador») para vincularse contigo.
+        </p>
+
+        {code ? (
+          <div style={{
+            padding: '20px', background: 'var(--c-surface)', borderRadius: '14px',
+            border: '1px solid var(--c-accent-border)', textAlign: 'center', marginBottom: '16px',
+          }}>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
+              Código generado
+            </p>
+            <p style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '0.1em', marginBottom: '14px' }}>
+              {code}
+            </p>
+            <button
+              onClick={() => copy(code)}
+              className="btn-secondary"
+              style={{ width: '100%', padding: '11px', fontSize: '11px' }}
+              {...pressProps(0.98)}
+            >
+              {copied ? '✓ Copiado' : 'Copiar código'}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleCreate}
+            disabled={saving}
+            className="btn-primary"
+            style={{ width: '100%', padding: '13px', fontSize: '12px', fontWeight: 800, marginBottom: '16px' }}
+            {...pressProps(0.98)}
+          >
+            {saving ? 'Generando...' : 'Generar código'}
+          </button>
+        )}
+
+        {activeInvites.length > 0 && (
+          <div>
+            <p style={SECTION_LABEL}>Códigos activos ({activeInvites.length})</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {activeInvites.map(inv => (
+                <div key={inv.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 12px', background: 'var(--c-surface)',
+                  border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+                }}>
+                  <span style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '0.08em' }}>
+                    {inv.code}
+                  </span>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <button
+                      onClick={() => copy(inv.code)}
+                      style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                    >
+                      Copiar
+                    </button>
+                    <button
+                      onClick={() => onDelete(inv.id)}
+                      aria-label="Eliminar código"
+                      style={{ color: 'var(--c-text-ghost)', fontSize: '13px', lineHeight: 1, padding: '2px 4px' }}
+                      onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Card de cliente ────────────────────────────────────────────────────────
+function ClientCard({ client, onOpen, onRevoke }) {
+  const [confirm, setConfirm] = useState(false)
+  const name = client.profile?.name || 'Cliente'
+  const initial = name.charAt(0).toUpperCase()
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '12px',
+      padding: '14px 16px', background: 'var(--c-surface)',
+      border: '1px solid var(--c-border-subtle)', borderRadius: '14px', marginBottom: '6px',
+    }}>
+      <button
+        onClick={onOpen}
+        style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, textAlign: 'left' }}
+        {...pressProps(0.99)}
+      >
+        <div style={{
+          width: '40px', height: '40px', borderRadius: '50%', flexShrink: 0,
+          background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ color: 'var(--c-accent)', fontSize: '15px', fontWeight: 900 }}>{initial}</span>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {name}
+          </p>
+          <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
+            {client.profile?.level && (
+              <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>{client.profile.level}</span>
+            )}
+            {client.profile?.goal && (
+              <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {client.profile.goal}</span>
+            )}
+          </div>
+        </div>
+      </button>
+
+      {confirm ? (
+        <button
+          onClick={() => onRevoke(client.linkId)}
+          style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}
+        >
+          Confirmar
+        </button>
+      ) : (
+        <button
+          onClick={() => setConfirm(true)}
+          onMouseLeave={() => setConfirm(false)}
+          aria-label="Revocar cliente"
+          style={{ color: 'var(--c-text-ghost)', fontSize: '13px', lineHeight: 1, padding: '4px 6px', flexShrink: 0, transition: 'color 150ms var(--ease-out)' }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+        >
+          ✕
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ── Página principal ───────────────────────────────────────────────────────
+export default function Coach() {
+  const navigate = useNavigate()
+  const {
+    isTrainer, clients, activeInvites, loading, error,
+    createInvite, deleteInvite, revokeClient,
+  } = useTrainer()
+
+  const [showInvite, setShowInvite] = useState(false)
+  const [actionError, setActionError] = useState(null)
+
+  const handleRevoke = async (linkId) => {
+    setActionError(null)
+    try { await revokeClient(linkId) } catch (e) { setActionError(e.message) }
+  }
+
+  const activeClients = clients.filter(c => c.status === 'active')
+
+  return (
+    <Layout>
+      <div style={{ padding: '0 16px', maxWidth: '480px', margin: '0 auto', width: '100%' }}>
+
+        {/* Header */}
+        <div className="fade-in" style={{ paddingTop: '40px', paddingBottom: '28px' }}>
+          <h1 style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', lineHeight: 1 }}>
+            Mis Clientes
+          </h1>
+          <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
+            Panel de entrenador
+          </p>
+        </div>
+
+        {/* Aviso si el rol no está activo */}
+        {!loading && !isTrainer && (
+          <div className="fade-in" style={{
+            padding: '16px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+            borderRadius: '14px', marginBottom: '20px',
+          }}>
+            <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
+              Activa el modo entrenador
+            </p>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5 }}>
+              Ve a tu <button onClick={() => navigate('/profile')} style={{ color: 'var(--c-accent)', fontWeight: 700 }}>perfil</button> y
+              activa «Soy entrenador» para empezar a invitar clientes.
+            </p>
+          </div>
+        )}
+
+        {/* Botón invitar */}
+        <div className="fade-in" style={{ marginBottom: '28px', animationDelay: '20ms' }}>
+          <button
+            onClick={() => setShowInvite(true)}
+            className="btn-primary"
+            style={{ width: '100%', padding: '13px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+            {...pressProps(0.97)}
+          >
+            + Invitar cliente
+          </button>
+        </div>
+
+        {(error || actionError) && (
+          <div style={{ ...ERROR_STYLE, marginBottom: '16px' }}>{error || actionError}</div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} style={{ height: '70px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px', opacity: 1 - i * 0.25 }} />
+            ))}
+          </div>
+        )}
+
+        {/* Lista de clientes */}
+        {!loading && (
+          <>
+            {activeClients.length > 0 ? (
+              <section className="fade-in" style={{ animationDelay: '40ms' }}>
+                <p style={SECTION_LABEL}>Clientes ({activeClients.length})</p>
+                {activeClients.map(c => (
+                  <ClientCard
+                    key={c.linkId}
+                    client={c}
+                    onOpen={() => navigate(`/coach/cliente/${c.clientId}`)}
+                    onRevoke={handleRevoke}
+                  />
+                ))}
+              </section>
+            ) : (
+              <div className="fade-in" style={{
+                textAlign: 'center', padding: '48px 20px',
+                background: 'var(--c-surface)', border: '2px dashed var(--c-border)',
+                borderRadius: '16px', animationDelay: '40ms',
+              }}>
+                <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Sin clientes todavía
+                </p>
+                <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '8px' }}>
+                  Genera un código de invitación y compártelo para empezar.
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {showInvite && (
+        <InviteModal
+          onClose={() => setShowInvite(false)}
+          onCreate={createInvite}
+          onDelete={deleteInvite}
+          activeInvites={activeInvites}
+        />
+      )}
+    </Layout>
+  )
+}
