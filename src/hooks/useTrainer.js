@@ -93,10 +93,10 @@ export function useTrainer() {
     if (!user) return
     setError(null)
     try {
+      // upsert (no update) para crear la fila de perfil si el usuario aún no la tiene
       const { error: err } = await supabase
         .from('profiles')
-        .update({ is_trainer: value, updated_at: new Date().toISOString() })
-        .eq('id', user.id)
+        .upsert({ id: user.id, is_trainer: value, updated_at: new Date().toISOString() })
       if (err) throw err
       setIsTrainer(value)
     } catch (err) {
