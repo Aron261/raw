@@ -184,6 +184,19 @@ create policy "Trainers read client profiles"
   on profiles for select
   using (public.is_active_trainer_of(id));
 
+-- Perfil del entrenador — el cliente puede leer el nombre de su(s)
+-- entrenador(es) activo(s) (espejo de la política anterior).
+create policy "Clients read their trainer profiles"
+  on profiles for select
+  using (
+    exists (
+      select 1 from trainer_clients tc
+      where tc.client_id  = auth.uid()
+        and tc.trainer_id = profiles.id
+        and tc.status     = 'active'
+    )
+  );
+
 -- Rutinas del cliente — CRUD completo (asignar / editar / activar / borrar)
 create policy "Trainers manage client routines"
   on routines for all
