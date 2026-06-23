@@ -10,6 +10,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useGoals } from '../hooks/useGoals'
 import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
+import { useInvites } from '../hooks/useInvites'
 import { ERROR_STYLE } from '../lib/ui'
 
 // ── Date helpers ─────────────────────────────────────────────────────────
@@ -330,7 +331,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
 
 // ── EntrenaHoyCard ────────────────────────────────────────────────────────
 // Muestra el próximo día del ciclo activo con CTA para empezar.
-function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach }) {
+function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachName }) {
   const validExercises = (day?.routine_day_exercises || []).filter(e => e.exercise_name?.trim())
   const exCount = validExercises.length
   const hasExercises = exCount > 0
@@ -346,7 +347,7 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach }) {
       {/* Label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
         <p style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-          {fromCoach ? 'Recomendado por tu entrenador' : 'Entreno de hoy'}
+          {fromCoach ? `Recomendado por ${coachName || 'tu entrenador'}` : 'Entreno de hoy'}
         </p>
         {fromCoach && (
           <span style={{
@@ -425,6 +426,13 @@ export default function Home() {
 
   const { activeRoutine, routines } = useRoutines()
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
+  const { trainers } = useInvites()
+
+  // Mapa id_entrenador → nombre, para mostrar quién asignó cada rutina.
+  const trainerNameById = Object.fromEntries(
+    (trainers || []).map(t => [t.trainerId, t.profile?.name])
+  )
+  const coachName = (assignedBy) => trainerNameById[assignedBy] || 'tu entrenador'
 
   // Rutinas de un día asignadas por el entrenador (con ejercicios), para
   // mostrarlas y poder empezarlas directamente desde Inicio.
@@ -857,6 +865,7 @@ export default function Home() {
                 onStart={handleStartRoutineWorkout}
                 starting={startingRoutineWorkout}
                 fromCoach={!!activeCycle.assigned_by}
+                coachName={coachName(activeCycle.assigned_by)}
               />
             )}
 
@@ -933,7 +942,9 @@ export default function Home() {
           <section className="fade-in" style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
               <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                De tu entrenador
+                {[...new Set(coachSingleDays.map(r => r.assigned_by))].length === 1
+                  ? `De ${coachName(coachSingleDays[0].assigned_by)}`
+                  : 'De tu entrenador'}
               </p>
               <span style={{
                 background: 'var(--c-accent-dim)', color: 'var(--c-accent)',
