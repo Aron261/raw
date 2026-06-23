@@ -2,7 +2,23 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { useTrainer } from '../hooks/useTrainer'
+import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
+
+// Badge rojo con la cantidad de mensajes sin leer
+function UnreadBadge({ count }) {
+  if (!count) return null
+  return (
+    <span style={{
+      minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px',
+      background: 'var(--c-accent)', color: '#fff',
+      fontSize: '10px', fontWeight: 800, lineHeight: '18px', textAlign: 'center',
+      display: 'inline-block', flexShrink: 0,
+    }}>
+      {count > 9 ? '9+' : count}
+    </span>
+  )
+}
 
 const SECTION_LABEL = {
   color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
@@ -137,7 +153,7 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
 }
 
 // ── Card de cliente ────────────────────────────────────────────────────────
-function ClientCard({ client, onOpen, onRevoke }) {
+function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
   const [confirm, setConfirm] = useState(false)
   const name = client.profile?.name || 'Cliente'
   const initial = name.charAt(0).toUpperCase()
@@ -175,24 +191,36 @@ function ClientCard({ client, onOpen, onRevoke }) {
         </div>
       </button>
 
-      {confirm ? (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+        <UnreadBadge count={unread} />
         <button
-          onClick={() => onRevoke(client.linkId)}
-          style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}
+          onClick={() => onChat(client.clientId)}
+          aria-label="Chat"
+          style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '5px 10px', borderRadius: '8px' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          Confirmar
+          Chat
         </button>
-      ) : (
-        <button
-          onClick={() => setConfirm(true)}
-          onMouseLeave={() => setConfirm(false)}
-          aria-label="Revocar cliente"
-          style={{ color: 'var(--c-text-ghost)', fontSize: '13px', lineHeight: 1, padding: '4px 6px', flexShrink: 0, transition: 'color 150ms var(--ease-out)' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-        >
-          ✕
-        </button>
-      )}
+        {confirm ? (
+          <button
+            onClick={() => onRevoke(client.linkId)}
+            style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+          >
+            Confirmar
+          </button>
+        ) : (
+          <button
+            onClick={() => setConfirm(true)}
+            onMouseLeave={() => setConfirm(false)}
+            aria-label="Revocar cliente"
+            style={{ color: 'var(--c-text-ghost)', fontSize: '13px', lineHeight: 1, padding: '4px 6px', transition: 'color 150ms var(--ease-out)' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+          >
+            ✕
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -204,6 +232,7 @@ export default function Coach() {
     isTrainer, clients, activeInvites, loading, error,
     createInvite, deleteInvite, revokeClient,
   } = useTrainer()
+  const { counts } = useUnreadCounts()
 
   const [showInvite, setShowInvite] = useState(false)
   const [actionError, setActionError] = useState(null)
@@ -280,7 +309,9 @@ export default function Coach() {
                   <ClientCard
                     key={c.linkId}
                     client={c}
+                    unread={counts[c.clientId] || 0}
                     onOpen={() => navigate(`/coach/cliente/${c.clientId}`)}
+                    onChat={(id) => navigate(`/chat/${id}`)}
                     onRevoke={handleRevoke}
                   />
                 ))}

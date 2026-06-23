@@ -9,6 +9,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useBodyWeight } from '../hooks/useBodyWeight'
 import { useTrainer } from '../hooks/useTrainer'
 import { useInvites } from '../hooks/useInvites'
+import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { ERROR_STYLE } from '../lib/ui'
 
 // ── Shared label style ──────────────────────────────────────────────────
@@ -296,6 +297,7 @@ function TrainerSection() {
   const navigate = useNavigate()
   const { isTrainer, toggleTrainer, error: trainerError } = useTrainer()
   const { trainers, redeemCode, removeTrainer, redeeming, error: inviteError } = useInvites()
+  const { counts } = useUnreadCounts()
   const [code, setCode]       = useState('')
   const [redeemMsg, setRedeemMsg] = useState(null)
   const [localError, setLocalError] = useState(null)
@@ -403,6 +405,15 @@ function TrainerSection() {
                   {t.profile?.name || 'Entrenador'}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {counts[t.trainerId] > 0 && (
+                    <span style={{
+                      minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px',
+                      background: 'var(--c-accent)', color: '#fff',
+                      fontSize: '10px', fontWeight: 800, lineHeight: '18px', textAlign: 'center',
+                    }}>
+                      {counts[t.trainerId] > 9 ? '9+' : counts[t.trainerId]}
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => navigate(`/chat/${t.trainerId}`)}

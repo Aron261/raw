@@ -55,6 +55,15 @@ export function useChat(otherUserId) {
         .order('created_at', { ascending: true })
       if (msgErr) throw msgErr
       setMessages(msgs || [])
+
+      // Marcar como leídos los mensajes entrantes (no enviados por mí)
+      await supabase
+        .from('messages')
+        .update({ read_at: new Date().toISOString() })
+        .eq('trainer_id', convo.trainer_id)
+        .eq('client_id', convo.client_id)
+        .neq('sender_id', user.id)
+        .is('read_at', null)
     } catch (err) {
       console.error('Error loading chat:', err)
       setError(err.message || 'Error inesperado')
