@@ -20,7 +20,7 @@ export default function History() {
       <div className="px-4 max-w-lg mx-auto w-full">
         {/* Header */}
         <div className="pt-8 pb-6">
-          <h1 className="text-white text-3xl font-black uppercase tracking-tighter">History</h1>
+          <h1 className="text-white text-3xl font-black uppercase tracking-tighter">Historial de entrenos</h1>
           <p className="text-text-muted text-xs uppercase tracking-widest mt-1">
             {workouts.length} {workouts.length === 1 ? 'workout' : 'workouts'} logged
           </p>

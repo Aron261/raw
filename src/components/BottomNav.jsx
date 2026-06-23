@@ -109,7 +109,7 @@ export default function BottomNav() {
         height: '60px', padding: '0 4px',
       }}>
         <TabItem to="/"        label="Inicio"   Icon={HomeIcon}    exact />
-        <TabItem to="/history" label="Entrenos" Icon={HistoryIcon} />
+        <TabItem to="/history" label="Historial" Icon={HistoryIcon} />
         <TabItem to="/rutinas" label="Rutinas"  Icon={ProgramaIcon} />
         {isTrainer && <TabItem to="/coach" label="Coach" Icon={CoachIcon} />}
         <TabItem to="/profile" label="Perfil"   Icon={ProfileIcon} />

@@ -74,7 +74,7 @@ export default function Sidebar() {
 
   const navItems = [
     { to: '/',          label: 'Inicio',    Icon: DashboardIcon, exact: true },
-    { to: '/history',   label: 'Entrenos',  Icon: HistoryIcon },
+    { to: '/history',   label: 'Historial', Icon: HistoryIcon },
     { to: '/rutinas',   label: 'Rutinas',   Icon: RoutinesIcon },
     ...(profile?.is_trainer ? [{ to: '/coach', label: 'Coach', Icon: CoachIcon }] : []),
     { to: '/profile',   label: 'Perfil',    Icon: ProfileIcon },
