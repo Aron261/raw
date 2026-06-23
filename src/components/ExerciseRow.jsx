@@ -195,15 +195,39 @@ export default function ExerciseRow({
           </span>
         </button>
 
-        {/* Unit badge (siempre visible, read-only y en modo edición) */}
-        <span style={{
-          color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700,
-          textTransform: 'uppercase', letterSpacing: '0.06em',
-          border: '1px solid var(--c-border)', padding: '3px 7px', borderRadius: '6px',
-          flexShrink: 0,
-        }}>
-          {unit}
-        </span>
+        {/* Unidad — toggle directo (clic en lb/kg). Solo lectura: badge fijo. */}
+        {readOnly ? (
+          <span style={{
+            color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+            border: '1px solid var(--c-border)', padding: '3px 7px', borderRadius: '6px',
+            flexShrink: 0,
+          }}>
+            {unit}
+          </span>
+        ) : (
+          <div style={{
+            display: 'flex', flexShrink: 0,
+            border: '1px solid var(--c-border)', borderRadius: '6px', overflow: 'hidden',
+          }}>
+            {['lb', 'kg'].map(u => (
+              <button
+                key={u}
+                onClick={() => { if (unit !== u) onUpdateUnit(workoutExercise.id, u) }}
+                aria-pressed={unit === u}
+                style={{
+                  padding: '3px 8px', fontSize: '10px', fontWeight: 700,
+                  textTransform: 'uppercase', letterSpacing: '0.04em',
+                  background: unit === u ? 'var(--c-accent)' : 'transparent',
+                  color: unit === u ? '#fff' : 'var(--c-text-dim)',
+                  transition: 'background 120ms, color 120ms',
+                }}
+              >
+                {u}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Menú 3 puntos — solo en modo edición */}
         {!readOnly && (
@@ -240,20 +264,6 @@ export default function ExerciseRow({
                   overflow: 'hidden',
                 }}
               >
-                {/* Cambiar unidad */}
-                <button
-                  onClick={() => { onUpdateUnit(workoutExercise.id, unit === 'lb' ? 'kg' : 'lb'); setShowMenu(false) }}
-                  style={{
-                    display: 'block', width: '100%', textAlign: 'left',
-                    padding: '11px 14px', fontSize: '12px', fontWeight: 700,
-                    color: 'var(--c-text)', transition: 'background 100ms',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--c-surface-2)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  Cambiar a {unit === 'lb' ? 'kg' : 'lb'}
-                </button>
-
                 {/* Nota */}
                 {onUpdateNotes && (
                   <button
@@ -266,7 +276,6 @@ export default function ExerciseRow({
                       display: 'block', width: '100%', textAlign: 'left',
                       padding: '11px 14px', fontSize: '12px', fontWeight: 700,
                       color: notesValue ? 'var(--c-accent)' : 'var(--c-text)',
-                      borderTop: '1px solid var(--c-border-subtle)',
                       transition: 'background 100ms',
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--c-surface-2)'}
