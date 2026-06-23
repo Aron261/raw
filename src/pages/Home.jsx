@@ -421,9 +421,38 @@ export default function Home() {
   const [showGoalModal, setShowGoalModal] = useState(false)
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
+  const [startingCoachId, setStartingCoachId] = useState(null)
 
-  const { activeRoutine } = useRoutines()
+  const { activeRoutine, routines } = useRoutines()
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
+
+  // Rutinas de un día asignadas por el entrenador (con ejercicios), para
+  // mostrarlas y poder empezarlas directamente desde Inicio.
+  const coachSingleDays = (routines || []).filter(r =>
+    r.type === 'single_day' && r.assigned_by &&
+    (r.routine_days?.[0]?.routine_day_exercises || []).some(e => e.exercise_name?.trim())
+  )
+
+  // Empezar una rutina de un día asignada por el coach
+  const handleStartCoachDay = async (routine) => {
+    if (startingCoachId) return
+    const day = (routine.routine_days || [])[0]
+    if (!day) return
+    setStartingCoachId(routine.id)
+    try {
+      const workout = await startWorkoutFromRoutineDay({
+        routineId: routine.id,
+        routineDayId: day.id,
+        routineName: routine.name,
+        day,
+      })
+      navigate(`/workout/${workout.id}`)
+    } catch (err) {
+      console.error('Error al iniciar entreno del coach:', err)
+    } finally {
+      setStartingCoachId(null)
+    }
+  }
 
   // Entreno en curso: sin ended_at
   const activeWorkout = useMemo(() => workouts.find(w => !w.ended_at) || null, [workouts])
@@ -897,6 +926,62 @@ export default function Home() {
               </button>
             )}
           </div>
+        )}
+
+        {/* ── Rutinas de un día asignadas por el entrenador ── */}
+        {!loading && !error && coachSingleDays.length > 0 && (
+          <section className="fade-in" style={{ marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                De tu entrenador
+              </p>
+              <span style={{
+                background: 'var(--c-accent-dim)', color: 'var(--c-accent)',
+                fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
+                padding: '2px 7px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
+              }}>
+                Coach
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {coachSingleDays.map(routine => {
+                const day = (routine.routine_days || [])[0]
+                const exCount = (day?.routine_day_exercises || []).filter(e => e.exercise_name?.trim()).length
+                const starting = startingCoachId === routine.id
+                return (
+                  <div key={routine.id} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                    background: 'var(--c-surface)', border: '1px solid var(--c-accent-border)',
+                    borderRadius: '14px', padding: '14px 16px',
+                  }}>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {routine.name}
+                      </p>
+                      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '2px' }}>
+                        {exCount} {exCount === 1 ? 'ejercicio' : 'ejercicios'}
+                        {day?.focus ? ` · ${day.focus}` : ''}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleStartCoachDay(routine)}
+                      disabled={starting}
+                      style={{
+                        flexShrink: 0,
+                        background: 'var(--c-accent)', color: '#fff',
+                        border: 'none', borderRadius: '10px', padding: '10px 16px',
+                        fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em',
+                        opacity: starting ? 0.6 : 1, transition: 'opacity 150ms',
+                      }}
+                    >
+                      {starting ? 'Creando...' : 'Empezar'}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
         )}
 
         {/* ── Empty state ── */}
