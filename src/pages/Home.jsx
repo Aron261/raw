@@ -330,7 +330,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
 
 // ── EntrenaHoyCard ────────────────────────────────────────────────────────
 // Muestra el próximo día del ciclo activo con CTA para empezar.
-function EntrenaHoyCard({ day, routineName, onStart, starting }) {
+function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach }) {
   const validExercises = (day?.routine_day_exercises || []).filter(e => e.exercise_name?.trim())
   const exCount = validExercises.length
   const hasExercises = exCount > 0
@@ -344,9 +344,20 @@ function EntrenaHoyCard({ day, routineName, onStart, starting }) {
       marginBottom: '16px',
     }}>
       {/* Label */}
-      <p style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
-        Entreno de hoy
-      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
+        <p style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          {fromCoach ? 'Recomendado por tu entrenador' : 'Entreno de hoy'}
+        </p>
+        {fromCoach && (
+          <span style={{
+            background: 'var(--c-accent-dim)', color: 'var(--c-accent)',
+            fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
+            padding: '2px 7px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
+          }}>
+            Coach
+          </span>
+        )}
+      </div>
 
       {/* Nombre del día */}
       <p style={{ color: 'var(--c-text)', fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '4px' }}>
@@ -816,6 +827,7 @@ export default function Home() {
                 routineName={activeCycle.name}
                 onStart={handleStartRoutineWorkout}
                 starting={startingRoutineWorkout}
+                fromCoach={!!activeCycle.assigned_by}
               />
             )}
 
