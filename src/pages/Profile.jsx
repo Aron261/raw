@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
@@ -292,6 +293,7 @@ function BodyWeightSection() {
 
 // ── Trainer / coach section ─────────────────────────────────────────────
 function TrainerSection() {
+  const navigate = useNavigate()
   const { isTrainer, toggleTrainer, error: trainerError } = useTrainer()
   const { trainers, redeemCode, removeTrainer, redeeming, error: inviteError } = useInvites()
   const [code, setCode]       = useState('')
@@ -400,15 +402,24 @@ function TrainerSection() {
                 <span style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>
                   {t.profile?.name || 'Entrenador'}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => removeTrainer(t.linkId)}
-                  style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-dim)'}
-                >
-                  Quitar
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/chat/${t.trainerId}`)}
+                    style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                  >
+                    Chat
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeTrainer(t.linkId)}
+                    style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-dim)'}
+                  >
+                    Quitar
+                  </button>
+                </div>
               </div>
             ))}
           </div>

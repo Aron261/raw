@@ -11,6 +11,7 @@ import Profile from './pages/Profile'
 import Rutinas from './pages/Rutinas'
 import Coach from './pages/Coach'
 import ClientDetail from './pages/ClientDetail'
+import Chat from './pages/Chat'
 
 // Loading splash reutilizable
 function Splash() {
@@ -72,6 +73,7 @@ function AppWithAuth() {
 
           <Route path="/coach"             element={<R auth={auth} element={<Coach />} />} />
           <Route path="/coach/cliente/:id" element={<R auth={auth} element={<ClientDetail />} />} />
+          <Route path="/chat/:otherId"     element={<R auth={auth} element={<Chat />} />} />
 
           <Route path="/workout/:id"    element={<R auth={auth} element={<ActiveWorkout />} />} />
           <Route path="/exercise/:name" element={<R auth={auth} element={<ExerciseDetail />} />} />

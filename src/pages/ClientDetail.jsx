@@ -439,7 +439,7 @@ export default function ClientDetail() {
           }}>
             <span style={{ color: 'var(--c-accent)', fontSize: '20px', fontWeight: 900 }}>{name.charAt(0).toUpperCase()}</span>
           </div>
-          <div style={{ minWidth: 0 }}>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <h1 style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1 }}>
               {profLoading ? '...' : name}
             </h1>
@@ -447,6 +447,19 @@ export default function ClientDetail() {
               {[age ? `${age} años` : null, profile?.level, profile?.goal].filter(Boolean).join(' · ') || 'Sin datos de perfil'}
             </p>
           </div>
+          <button
+            onClick={() => navigate(`/chat/${clientId}`)}
+            style={{
+              flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'var(--c-accent-dim)', color: 'var(--c-accent)',
+              border: '1px solid var(--c-accent-border)', borderRadius: '10px',
+              padding: '8px 12px', fontSize: '11px', fontWeight: 800,
+              textTransform: 'uppercase', letterSpacing: '0.04em',
+            }}
+            {...pressProps(0.97)}
+          >
+            Mensaje
+          </button>
         </div>
 
         {actionError && <div style={{ ...ERROR_STYLE, marginBottom: '16px' }}>{actionError}</div>}
