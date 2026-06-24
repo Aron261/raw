@@ -10,7 +10,7 @@ import { useGoals } from '../hooks/useGoals'
 import { useDashboard } from '../hooks/useDashboard'
 import { useTheme } from '../hooks/useTheme'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
-import { Sheet } from '../components/ui'
+import { Sheet, Button } from '../components/ui'
 
 // Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
 const CHART = {
@@ -255,26 +255,23 @@ function BuildRoutineModal({ clientName, initialType, onClose, onCreate }) {
 
       {/* agregar día (solo ciclo) */}
       {isCycle && (
-        <button
-          onClick={addDay}
-          className="btn-secondary"
-          style={{ width: '100%', padding: '11px', fontSize: '11px', marginBottom: '16px' }}
-          {...pressProps(0.98)}
-        >
+        <Button variant="secondary" full onClick={addDay} style={{ marginBottom: '16px' }}>
           + Agregar día
-        </button>
+        </Button>
       )}
 
       {/* guardar */}
-      <button
-        onClick={handleSave}
+      <Button
+        variant="primary"
+        full
+        size="lg"
+        loading={saving}
         disabled={saving}
-        className="btn-primary"
-        style={{ width: '100%', padding: '14px', fontSize: '12px', fontWeight: 800, marginTop: isCycle ? 0 : '8px' }}
-        {...pressProps(0.98)}
+        onClick={handleSave}
+        style={{ marginTop: isCycle ? 0 : '8px' }}
       >
         {saving ? 'Guardando...' : 'Asignar rutina'}
-      </button>
+      </Button>
     </Sheet>
   )
 }
@@ -372,9 +369,9 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
         </div>
       </div>
 
-      <button onClick={handleCreate} disabled={saving} className="btn-primary" style={{ width: '100%', padding: '13px', fontSize: '12px', fontWeight: 800 }} {...pressProps(0.98)}>
+      <Button variant="primary" full size="lg" loading={saving} disabled={saving} onClick={handleCreate}>
         {saving ? 'Asignando...' : 'Asignar meta'}
-      </button>
+      </Button>
     </Sheet>
   )
 }

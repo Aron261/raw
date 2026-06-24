@@ -5,7 +5,7 @@ import { useRoutines } from '../hooks/useRoutines'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { generateRecommendedRoutine, generateSingleDayRoutine, FOCUS_TO_MUSCLES } from '../lib/cycleGenerator'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
-import { Sheet } from '../components/ui'
+import { Sheet, Button } from '../components/ui'
 
 // ── Constantes ────────────────────────────────────────────────────────────
 const GOALS_CYCLE      = ['Hipertrofia', 'Fuerza', 'Fuerza-Hipertrofia', 'Recomposición']
@@ -399,15 +399,16 @@ function CreateCycleModal({ onClose, onCreate }) {
           ))}
         </div>
 
-        <button
-          onClick={handleCreate}
+        <Button
+          variant="primary"
+          full
+          size="lg"
+          loading={saving}
           disabled={saving}
-          className="btn-primary"
-          style={{ width: '100%', padding: '13px', fontSize: '12px', fontWeight: 800 }}
-          {...pressProps(0.98)}
+          onClick={handleCreate}
         >
           {saving ? 'Guardando...' : 'Crear ciclo'}
-        </button>
+        </Button>
     </Sheet>
   )
 }
@@ -476,15 +477,16 @@ function CreateSingleDayModal({ onClose, onCreate }) {
           />
         </div>
 
-        <button
-          onClick={handleCreate}
+        <Button
+          variant="primary"
+          full
+          size="lg"
+          loading={saving}
           disabled={saving}
-          className="btn-primary"
-          style={{ width: '100%', padding: '13px', fontSize: '12px', fontWeight: 800 }}
-          {...pressProps(0.98)}
+          onClick={handleCreate}
         >
           {saving ? 'Guardando...' : 'Crear rutina'}
-        </button>
+        </Button>
     </Sheet>
   )
 }
@@ -602,15 +604,17 @@ function RecommendedCycleModal({ onClose, onCreate }) {
             <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', marginBottom: '16px' }}>
               El algoritmo generará un plan semanal completo con ejercicios, series y repeticiones.
             </p>
-            <button
-              onClick={handleGenerate}
+            <Button
+              variant="primary"
+              full
+              size="lg"
+              loading={saving}
               disabled={saving}
-              className="btn-primary"
-              style={{ width: '100%', padding: '13px', fontSize: '12px', fontWeight: 800, marginBottom: '10px' }}
-              {...pressProps(0.98)}
+              onClick={handleGenerate}
+              style={{ marginBottom: '10px' }}
             >
               {saving ? 'Generando...' : 'Generar y guardar ciclo'}
-            </button>
+            </Button>
             <button
               onClick={() => setStep(2)}
               style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', width: '100%', display: 'block' }}
@@ -732,15 +736,17 @@ function RecommendedSingleDayModal({ onClose, onCreate }) {
             <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', marginBottom: '16px' }}>
               RAW generará los ejercicios, series y repeticiones adaptados a tu selección.
             </p>
-            <button
-              onClick={handleGenerate}
+            <Button
+              variant="primary"
+              full
+              size="lg"
+              loading={saving}
               disabled={saving}
-              className="btn-primary"
-              style={{ width: '100%', padding: '13px', fontSize: '12px', fontWeight: 800, marginBottom: '10px' }}
-              {...pressProps(0.98)}
+              onClick={handleGenerate}
+              style={{ marginBottom: '10px' }}
             >
               {saving ? 'Generando...' : 'Generar rutina'}
-            </button>
+            </Button>
             <button
               onClick={() => setStep(2)}
               style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', width: '100%', display: 'block' }}
@@ -835,14 +841,14 @@ export default function Rutinas() {
 
         {/* Botón principal */}
         <div className="fade-in" style={{ marginBottom: '28px', animationDelay: '20ms' }}>
-          <button
+          <Button
+            variant="primary"
+            full
             onClick={() => setModal('type')}
-            className="btn-primary"
-            style={{ width: '100%', padding: '13px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}
-            {...pressProps(0.97)}
+            style={{ textTransform: 'uppercase', letterSpacing: '0.04em' }}
           >
             + Nueva rutina
-          </button>
+          </Button>
         </div>
 
         {/* Errores */}
