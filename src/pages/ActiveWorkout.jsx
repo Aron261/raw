@@ -207,56 +207,7 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio',
   const exactMatch = results.some(r => r.name.toLowerCase() === query.trim().toLowerCase())
 
   return (
-    <div
-      className="modal-backdrop"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'var(--c-scrim)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-      }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div
-        className="modal-sheet"
-        style={{
-          background: 'var(--c-surface)',
-          border: '1px solid var(--c-border-subtle)',
-          borderBottom: 'none',
-          borderRadius: '20px 20px 0 0',
-          width: '100%',
-          maxWidth: '480px',
-          padding: '20px 20px 0',
-          paddingBottom: 'max(28px, env(safe-area-inset-bottom))',
-        }}
-      >
-        {/* Handle */}
-        <div style={{ width: '32px', height: '3px', background: 'var(--c-border)', borderRadius: '2px', margin: '0 auto 18px' }} />
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: subtitle ? '6px' : '14px' }}>
-          <h3 style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            {title}
-          </h3>
-          <button
-            onClick={onClose}
-            aria-label="Cerrar"
-            style={{ color: 'var(--c-text-dim)', fontSize: '16px', lineHeight: 1, padding: '4px', transition: `color 120ms var(--ease-out)` }}
-            {...hoverColor('var(--c-text)', 'var(--c-text-dim)')}
-          >
-            ✕
-          </button>
-        </div>
-
-        {subtitle && (
-          <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginBottom: '14px', lineHeight: 1.5 }}>
-            {subtitle}
-          </p>
-        )}
+    <Sheet title={title} subtitle={subtitle} onClose={onClose}>
 
         <input
           ref={inputRef}
@@ -367,8 +318,7 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio',
             }
           </button>
         )}
-      </div>
-    </div>
+    </Sheet>
   )
 }
 

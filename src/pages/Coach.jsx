@@ -4,6 +4,7 @@ import Layout from '../components/Layout'
 import { useTrainer } from '../hooks/useTrainer'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
+import { Sheet } from '../components/ui'
 
 // Badge rojo con la cantidad de mensajes sin leer
 function UnreadBadge({ count }) {
@@ -55,24 +56,7 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
   }
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'var(--c-scrim)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{
-        background: 'var(--c-bg)', borderRadius: '20px 20px 0 0',
-        width: '100%', maxWidth: '480px', padding: '24px 20px 40px',
-        maxHeight: '85dvh', overflowY: 'auto',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
-            Invitar cliente
-          </h2>
-          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1 }}>✕</button>
-        </div>
+    <Sheet title="Invitar cliente" onClose={onClose} maxHeight="85dvh">
 
         {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
@@ -148,8 +132,7 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </Sheet>
   )
 }
 
