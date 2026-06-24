@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { hoverColor, ERROR_STYLE } from '../lib/ui'
 import { useWorkouts } from '../hooks/useWorkout'
+import { Sheet, Button } from '../components/ui'
 
 /* ── Rest Timer ─────────────────────────────────────────────────────── */
 const REST_PRESETS = [60, 90, 120, 180] // seconds
@@ -392,155 +393,58 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
   ]
 
   return (
-    <div
-      className="modal-backdrop"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'var(--c-scrim)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-      }}
-      onClick={e => { if (e.target === e.currentTarget) onCancel() }}
-    >
-      <div
-        className="modal-sheet"
-        style={{
-          background: 'var(--c-surface)',
-          border: '1px solid var(--c-border-subtle)',
-          borderBottom: 'none',
-          borderRadius: '20px 20px 0 0',
-          width: '100%',
-          maxWidth: '480px',
-          padding: '20px',
-          paddingBottom: 'max(28px, env(safe-area-inset-bottom))',
-        }}
-      >
-        {/* Handle */}
-        <div style={{ width: '32px', height: '3px', background: 'var(--c-border)', borderRadius: '2px', margin: '0 auto 18px' }} />
-
-        {/* Header */}
-        <h3 style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 0 }}>
-          Finalizar entreno
-        </h3>
-
-        {/* Resumen */}
-        <div style={{
-          background: 'var(--c-surface-2)',
-          borderRadius: '6px',
-          padding: '12px 14px',
-          marginBottom: '16px',
-          marginTop: '14px',
-        }}>
-          {stats.map(s => (
-            <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', lineHeight: 2 }}>
-              <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                {s.label}
-              </span>
-              <span style={{ color: 'var(--c-text)', fontWeight: 800, fontSize: '13px' }}>
-                {s.value}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Advertencia */}
-        <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', textAlign: 'center', marginBottom: '16px' }}>
-          Esta acción no se puede deshacer.
-        </p>
-
-        {/* Botones */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <button onClick={onConfirm} className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
-            Sí, finalizar
-          </button>
-          <button onClick={onCancel} className="btn-secondary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
-            Cancelar
-          </button>
-        </div>
+    <Sheet title="Finalizar entreno" onClose={onCancel}>
+      <div style={{ background: 'var(--c-surface-2)', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
+        {stats.map(s => (
+          <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', lineHeight: 2 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {s.label}
+            </span>
+            <span style={{ color: 'var(--c-text)', fontWeight: 800, fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}>
+              {s.value}
+            </span>
+          </div>
+        ))}
       </div>
-    </div>
+
+      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', textAlign: 'center', marginBottom: '16px' }}>
+        Esta acción no se puede deshacer.
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <Button variant="primary" full size="lg" onClick={onConfirm}>Sí, finalizar</Button>
+        <Button variant="secondary" full size="lg" onClick={onCancel}>Cancelar</Button>
+      </div>
+    </Sheet>
   )
 }
 
 /* ── Edit Confirm Modal ─────────────────────────────────────────────── */
 function EditConfirmModal({ step, onFirstConfirm, onSecondConfirm, onCancel }) {
   return (
-    <div
-      className="modal-backdrop"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'var(--c-scrim)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        zIndex: 50,
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-      }}
-      onClick={e => { if (e.target === e.currentTarget) onCancel() }}
-    >
-      <div
-        className="modal-sheet"
-        style={{
-          background: 'var(--c-surface)',
-          border: '1px solid var(--c-border-subtle)',
-          borderBottom: 'none',
-          borderRadius: '20px 20px 0 0',
-          width: '100%',
-          maxWidth: '480px',
-          padding: '20px',
-          paddingBottom: 'max(28px, env(safe-area-inset-bottom))',
-        }}
-      >
-        {/* Handle */}
-        <div style={{ width: '32px', height: '3px', background: 'var(--c-border)', borderRadius: '2px', margin: '0 auto 18px' }} />
-
-        {step === 1 ? (
-          <>
-            <h3 style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
-              Editar entreno finalizado
-            </h3>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
-              Vas a editar un entreno que ya fue registrado. Esto modifica tu historial.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button onClick={onFirstConfirm} className="btn-secondary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
-                Entiendo, continuar
-              </button>
-              <button
-                onClick={onCancel}
-                style={{ width: '100%', padding: '14px', fontSize: '11px', color: 'var(--c-text-dim)', background: 'transparent', border: 'none', cursor: 'pointer' }}
-              >
-                Cancelar
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <h3 style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '12px' }}>
-              Confirmar edición
-            </h3>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
-              ¿Estás seguro? Los cambios se guardan inmediatamente.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button onClick={onSecondConfirm} className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
-                Sí, editar
-              </button>
-              <button onClick={onCancel} className="btn-secondary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
-                Cancelar
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+    <Sheet title={step === 1 ? 'Editar entreno finalizado' : 'Confirmar edición'} onClose={onCancel}>
+      {step === 1 ? (
+        <>
+          <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
+            Vas a editar un entreno que ya fue registrado. Esto modifica tu historial.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <Button variant="secondary" full size="lg" onClick={onFirstConfirm}>Entiendo, continuar</Button>
+            <Button variant="ghost" full size="lg" onClick={onCancel}>Cancelar</Button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
+            ¿Estás seguro? Los cambios se guardan inmediatamente.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <Button variant="primary" full size="lg" onClick={onSecondConfirm}>Sí, editar</Button>
+            <Button variant="secondary" full size="lg" onClick={onCancel}>Cancelar</Button>
+          </div>
+        </>
+      )}
+    </Sheet>
   )
 }
 

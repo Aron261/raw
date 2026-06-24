@@ -13,6 +13,7 @@ import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { useInvites } from '../hooks/useInvites'
 import { useTheme } from '../hooks/useTheme'
 import { ERROR_STYLE } from '../lib/ui'
+import { Sheet, Field, Button } from '../components/ui'
 
 // Chart colors must be literal hex — CSS vars don't resolve in recharts SVG attrs.
 const CHART_COLORS = {
@@ -177,44 +178,9 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0,
-        background: 'var(--c-scrim)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        zIndex: 50,
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div
-        className="modal-sheet"
-        style={{
-          background: 'var(--c-surface)',
-          border: '1px solid var(--c-border-subtle)',
-          borderBottom: 'none',
-          borderRadius: '20px 20px 0 0',
-          width: '100%', maxWidth: '480px',
-          maxHeight: '90dvh',
-          overflowY: 'auto',
-          padding: '20px 20px',
-          paddingBottom: 'max(28px, env(safe-area-inset-bottom))',
-        }}
-      >
-        <div style={{ width: '32px', height: '3px', background: 'var(--c-border)', borderRadius: '2px', margin: '0 auto 18px' }} />
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h3 style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 700 }}>
-            Nueva meta
-          </h3>
-          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-dim)', fontSize: '16px', lineHeight: 1, padding: '4px' }}>✕</button>
-        </div>
-
-        <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
-          Tipo de meta
-        </p>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+    <Sheet title="Nueva meta" onClose={onClose}>
+      <Field label="Tipo de meta">
+        <div style={{ display: 'flex', gap: '8px' }}>
           {[
             { value: 'exercise_weight', label: 'Peso en ejercicio' },
             { value: 'days_trained', label: 'Días entrenados' },
@@ -235,41 +201,34 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
             </button>
           ))}
         </div>
+      </Field>
 
-        <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
-          Nombre de la meta
-        </p>
+      <Field label="Nombre de la meta">
         <input
           className="input-field"
           placeholder={type === 'exercise_weight' ? 'Ej: Sentadilla 100kg' : 'Ej: Constancia este mes'}
           value={label}
           onChange={e => setLabel(e.target.value)}
-          style={{ marginBottom: '12px' }}
         />
+      </Field>
 
-        {type === 'exercise_weight' && (
-          <>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
-              Ejercicio
-            </p>
-            <select
-              className="input-field"
-              value={exerciseName}
-              onChange={e => setExerciseName(e.target.value)}
-              style={{ marginBottom: '12px' }}
-            >
-              <option value="">— Selecciona un ejercicio —</option>
-              {exercises.map(name => (
-                <option key={name} value={name}>{name}</option>
-              ))}
-            </select>
-          </>
-        )}
+      {type === 'exercise_weight' && (
+        <Field label="Ejercicio">
+          <select
+            className="input-field"
+            value={exerciseName}
+            onChange={e => setExerciseName(e.target.value)}
+          >
+            <option value="">— Selecciona un ejercicio —</option>
+            {exercises.map(name => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        </Field>
+      )}
 
-        <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
-          {type === 'days_trained' ? 'Días objetivo (este mes)' : 'Peso objetivo'}
-        </p>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: type === 'exercise_weight' ? '12px' : '20px' }}>
+      <Field label={type === 'days_trained' ? 'Días objetivo (este mes)' : 'Peso objetivo'}>
+        <div style={{ display: 'flex', gap: '8px' }}>
           <input
             className="input-field"
             type="number"
@@ -299,40 +258,32 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
             </div>
           )}
         </div>
+      </Field>
 
-        {/* Reps objetivo — solo para metas de peso */}
-        {type === 'exercise_weight' && (
-          <>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
-              Reps objetivo{' '}
-              <span style={{ color: 'var(--c-text-muted)', fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>
-                (opcional — vacío = comparar 1RM)
-              </span>
-            </p>
-            <input
-              className="input-field"
-              type="number"
-              placeholder="Ej: 5"
-              value={targetReps}
-              onChange={e => setTargetReps(e.target.value)}
-              style={{ marginBottom: '20px' }}
-            />
-          </>
-        )}
+      {type === 'exercise_weight' && (
+        <Field label="Reps objetivo" hint="Opcional — vacío = comparar 1RM">
+          <input
+            className="input-field"
+            type="number"
+            placeholder="Ej: 5"
+            value={targetReps}
+            onChange={e => setTargetReps(e.target.value)}
+          />
+        </Field>
+      )}
 
-        <button
-          onClick={handleSave}
-          disabled={saving || !label.trim() || !targetValue}
-          className="btn-primary"
-          style={{ width: '100%', padding: '14px', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-        >
-          {saving
-            ? <><span className="spinner" style={{ borderTopColor: 'var(--c-on-action)', borderColor: 'rgba(255,255,255,0.2)' }} /><span>Guardando...</span></>
-            : 'Guardar meta'
-          }
-        </button>
-      </div>
-    </div>
+      <Button
+        variant="primary"
+        full
+        size="lg"
+        loading={saving}
+        disabled={saving || !label.trim() || !targetValue}
+        onClick={handleSave}
+        style={{ marginTop: '8px' }}
+      >
+        {saving ? 'Guardando...' : 'Guardar meta'}
+      </Button>
+    </Sheet>
   )
 }
 

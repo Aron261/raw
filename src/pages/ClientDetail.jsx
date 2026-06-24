@@ -10,6 +10,7 @@ import { useGoals } from '../hooks/useGoals'
 import { useDashboard } from '../hooks/useDashboard'
 import { useTheme } from '../hooks/useTheme'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
+import { Sheet } from '../components/ui'
 
 // Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
 const CHART = {
@@ -42,33 +43,6 @@ function Stat({ label, value }) {
   )
 }
 
-// ── Modal genérico (bottom sheet) ───────────────────────────────────────────
-function Sheet({ title, subtitle, onClose, children }) {
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'var(--c-scrim)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{
-        background: 'var(--c-bg)', borderRadius: '20px 20px 0 0',
-        width: '100%', maxWidth: '480px', padding: '24px 20px 40px',
-        maxHeight: '90dvh', overflowY: 'auto',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '18px' }}>
-          <div>
-            <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>{title}</h2>
-            {subtitle && <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '4px' }}>{subtitle}</p>}
-          </div>
-          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>✕</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  )
-}
 
 // ── Constructor manual de rutinas ───────────────────────────────────────────
 // El entrenador arma cada rutina a mano: días, ejercicios, series, reps,
