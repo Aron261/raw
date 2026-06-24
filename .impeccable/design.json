@@ -7,6 +7,7 @@
       "action": { "role": "primary", "displayName": "Action Pink", "canonical": "#FF2E7E", "darkValue": "#FF3D86", "tonalRamp": ["#3E0A22", "#6E1239", "#9E1A50", "#C8185A", "#FF2E7E", "#FF6FA5", "#FFA8C8", "#FFD9E6"] },
       "data": { "role": "secondary", "displayName": "Data Blue", "canonical": "#2438FF", "darkValue": "#6E7BFF", "tonalRamp": ["#0A1147", "#121E7E", "#1A2BB5", "#2438FF", "#5E6BFF", "#8E98FF", "#BCC2FF", "#E4E7FF"] },
       "record": { "role": "tertiary", "displayName": "Record Lime", "canonical": "#C0EE2E", "darkValue": "#C6FB50", "tonalRamp": ["#2C3A06", "#445A09", "#5E7D0D", "#7CA313", "#9DCB1E", "#C0EE2E", "#D6F66E", "#EBFBB0"] },
+      "success": { "role": "semantic", "displayName": "Success Green", "canonical": "oklch(48% 0.16 150)", "darkValue": "oklch(72% 0.17 150)", "purpose": "Functional done/complete state only — never a brand voice." },
       "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#15140F", "darkValue": "#EFEDE4", "tonalRamp": ["#15140F", "#3A3833", "#5A584F", "#646359", "#9A988E", "#D5D2C7", "#EAE7DE", "#F4F2EB"] },
       "bg": { "role": "neutral", "displayName": "Field", "canonical": "#EAE7DE", "darkValue": "#0E0F0C", "tonalRamp": ["#0E0F0C", "#161712", "#1F201A", "#26271F", "#D5D2C7", "#DFDCD2", "#EAE7DE", "#F4F2EB"] }
     },
@@ -106,7 +107,7 @@
       "Thumb-first with a glass bottom-nav spine."
     ],
     "rules": [
-      { "name": "The Three Voices Rule", "body": "Color speaks exactly three words — pink act, blue data, lime record. A color outside its role is removed.", "section": "colors" },
+      { "name": "The Three Voices Rule", "body": "Brand color speaks exactly three words — pink act, blue data, lime record. A color outside its role is removed. Success-green is the one deliberate exception: a functional done/complete state, never a brand voice.", "section": "colors" },
       { "name": "The Ink-on-Pink Rule", "body": "Text on an Action-Pink fill is always ink, never white — white fails AA on this pink (3.7:1), ink clears it (5.2:1).", "section": "colors" },
       { "name": "The Legibility Floor Rule", "body": "Must-read text never renders lighter than Ink-Muted (>=4.9:1 in either mode). Ink-Ghost is decoration only.", "section": "colors" },
       { "name": "The Number-As-Hero Rule", "body": "The most important figure is the largest, heaviest, darkest element. Shrink chrome, never the number.", "section": "typography" },

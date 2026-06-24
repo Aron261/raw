@@ -436,7 +436,7 @@ function TrainerSection() {
           </button>
         </div>
         {redeemMsg && (
-          <p style={{ color: 'oklch(55% 0.15 145)', fontSize: '11px', fontWeight: 700, marginTop: '8px' }}>{redeemMsg}</p>
+          <p style={{ color: 'var(--c-success)', fontSize: '11px', fontWeight: 700, marginTop: '8px' }}>{redeemMsg}</p>
         )}
       </div>
 
@@ -711,7 +711,7 @@ export default function Profile() {
             style={{
               padding: '16px', fontSize: '12px',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              background: saveSuccess ? 'oklch(55% 0.15 145)' : 'var(--c-accent)',
+              background: saveSuccess ? 'var(--c-success)' : 'var(--c-accent)',
               transition: 'background 300ms var(--ease-out)',
             }}
           >
