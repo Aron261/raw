@@ -408,7 +408,7 @@ export default function ExerciseRow({
                 onKeyDown={e => { if (e.key === 'Enter') handleAddSet() }}
                 className="input-field"
                 style={{ width: '62px', textAlign: 'center', fontSize: '13px', fontWeight: 700, padding: '6px 4px' }}
-                placeholder="Weight"
+                placeholder="Peso"
                 min="0"
                 step="2.5"
               />
