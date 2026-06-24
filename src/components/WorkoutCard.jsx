@@ -17,7 +17,7 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate }) {
     const exerciseCount = workout.workout_exercises?.length || 0
 
     const date = new Date(workout.started_at)
-    const dateStr = date.toLocaleDateString('en-US', {
+    const dateStr = date.toLocaleDateString('es-CO', {
       weekday: 'short', month: 'short', day: 'numeric',
     })
 
@@ -76,7 +76,7 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate }) {
         {/* Top row */}
         <div className="flex items-start justify-between mb-3">
           <div>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '3px' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '3px' }}>
               {dateStr}
             </p>
             <h3 style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
@@ -102,19 +102,19 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate }) {
         <div style={{ display: 'flex', gap: '20px', borderTop: '1px solid var(--c-border-subtle)', paddingTop: '10px' }}>
           {duration && (
             <div>
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '2px' }}>Duración</p>
-              <p style={{ color: 'var(--c-text-secondary)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>{duration}</p>
+              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>Duración</p>
+              <p style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{duration}</p>
             </div>
           )}
           <div>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '2px' }}>Volumen</p>
-            <p style={{ color: 'var(--c-text-secondary)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>Volumen</p>
+            <p style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>
               {totalVolume > 0 ? `${totalVolume.toLocaleString()} ${unit}` : '—'}
             </p>
           </div>
           <div>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '2px' }}>Ejercicios</p>
-            <p style={{ color: 'var(--c-text-secondary)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>{exerciseCount}</p>
+            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>Ejercicios</p>
+            <p style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{exerciseCount}</p>
           </div>
         </div>
       </button>

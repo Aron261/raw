@@ -87,7 +87,7 @@ export default function SetRow({ set, unit, allTimeBest1RM, onDelete, onUpdate, 
           onBlur={handleBlur}
           className="input-field"
           style={{ width: '56px', textAlign: 'center', fontSize: '14px', fontWeight: 700, padding: '5px 4px' }}
-          placeholder="Weight"
+          placeholder="Peso"
           min="0"
           step="2.5"
         />

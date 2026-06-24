@@ -10,6 +10,54 @@ import { useBodyWeight } from '../hooks/useBodyWeight'
 import { useTrainer } from '../hooks/useTrainer'
 import { useInvites } from '../hooks/useInvites'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
+import { useTheme } from '../hooks/useTheme'
+
+// Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
+const PROFILE_CHART = {
+  light: { line: '#2438FF', grid: '#D5D2C7', axis: '#67696c' },
+  dark:  { line: '#6E7BFF', grid: '#26271F', axis: '#A2A096' },
+}
+
+// ── Theme selector (Auto / Claro / Oscuro) ───────────────────────────────
+function ThemeSection() {
+  const { preference, setPreference } = useTheme()
+  const opts = [
+    { value: 'auto',  label: 'Auto',   icon: '◐' },
+    { value: 'light', label: 'Claro',  icon: '☀' },
+    { value: 'dark',  label: 'Oscuro', icon: '☾' },
+  ]
+  return (
+    <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px' }}>
+      <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+        Apariencia
+      </p>
+      <div role="group" aria-label="Tema" style={{ display: 'flex', gap: '8px' }}>
+        {opts.map(o => {
+          const active = preference === o.value
+          return (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => setPreference(o.value)}
+              aria-pressed={active}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                padding: '12px 8px', borderRadius: '12px',
+                background: active ? 'var(--c-action-dim)' : 'var(--c-surface-2)',
+                border: `1px solid ${active ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
+                color: active ? 'var(--c-action-text)' : 'var(--c-text-dim)',
+                fontSize: '11px', fontWeight: 700, transition: 'all 150ms var(--ease-out)',
+              }}
+            >
+              <span aria-hidden="true" style={{ fontSize: '18px', lineHeight: 1 }}>{o.icon}</span>
+              {o.label}
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
 import { ERROR_STYLE } from '../lib/ui'
 
 // ── Shared label style ──────────────────────────────────────────────────
@@ -80,7 +128,7 @@ function NumberWithUnit({ value, unit, onValueChange, onUnitChange, units, place
               fontSize: '11px',
               fontWeight: 700,
               background: unit === u ? 'var(--c-accent)' : 'transparent',
-              color: unit === u ? '#fff' : 'var(--c-text-dim)',
+              color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
               transition: 'all 150ms var(--ease-out)',
               height: '100%',
             }}
@@ -110,7 +158,7 @@ function DaysPicker({ value, onChange }) {
               fontSize: '13px', fontWeight: 800,
               border: `1px solid ${selected ? 'var(--c-accent)' : 'var(--c-border)'}`,
               background: selected ? 'var(--c-accent)' : 'var(--c-surface-2)',
-              color: selected ? '#fff' : 'var(--c-text-dim)',
+              color: selected ? 'var(--c-on-action)' : 'var(--c-text-dim)',
               transition: 'all 150ms var(--ease-out)',
               cursor: 'pointer',
               flexShrink: 0,
@@ -145,6 +193,8 @@ function WeightTooltip({ active, payload, label }) {
 
 // ── Body weight section ─────────────────────────────────────────────────
 function BodyWeightSection() {
+  const { resolved } = useTheme()
+  const cc = PROFILE_CHART[resolved] || PROFILE_CHART.light
   const { logs, chartData, latestLog, loading, adding, addLog, deleteLog } = useBodyWeight()
   const [inputWeight, setInputWeight] = useState('')
   const [inputUnit, setInputUnit] = useState(latestLog?.unit ?? 'kg')
@@ -188,7 +238,7 @@ function BodyWeightSection() {
                 padding: '0 14px',
                 fontSize: '11px', fontWeight: 700,
                 background: inputUnit === u ? 'var(--c-accent)' : 'transparent',
-                color: inputUnit === u ? '#fff' : 'var(--c-text-dim)',
+                color: inputUnit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
                 transition: 'all 150ms var(--ease-out)',
                 height: '100%',
               }}
@@ -204,7 +254,7 @@ function BodyWeightSection() {
           style={{
             padding: '0 16px',
             background: 'var(--c-accent)',
-            color: '#fff',
+            color: 'var(--c-on-action)',
             fontSize: '12px', fontWeight: 800,
             borderRadius: '10px',
             opacity: adding || !inputWeight ? 0.5 : 1,
@@ -227,17 +277,17 @@ function BodyWeightSection() {
         <div style={{ height: '140px', width: '100%', marginBottom: '20px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-              <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
+              <CartesianGrid stroke={cc.grid} strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
               <Tooltip content={<WeightTooltip />} />
               <Line
                 type="monotone"
                 dataKey="peso"
-                stroke="#FF2D2D"
+                stroke={cc.line}
                 strokeWidth={2}
-                dot={{ fill: '#FF2D2D', r: 3, strokeWidth: 0 }}
-                activeDot={{ fill: '#FF2D2D', r: 5, strokeWidth: 0 }}
+                dot={{ fill: cc.line, r: 3, strokeWidth: 0 }}
+                activeDot={{ fill: cc.line, r: 5, strokeWidth: 0 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -377,7 +427,7 @@ function TrainerSection() {
             onClick={handleRedeem}
             disabled={redeeming || !code.trim()}
             style={{
-              padding: '0 18px', background: 'var(--c-accent)', color: '#fff',
+              padding: '0 18px', background: 'var(--c-accent)', color: 'var(--c-on-action)',
               fontSize: '12px', fontWeight: 800, borderRadius: '10px', flexShrink: 0,
               opacity: redeeming || !code.trim() ? 0.5 : 1,
             }}
@@ -408,7 +458,7 @@ function TrainerSection() {
                   {counts[t.trainerId] > 0 && (
                     <span style={{
                       minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px',
-                      background: 'var(--c-accent)', color: '#fff',
+                      background: 'var(--c-accent)', color: 'var(--c-on-action)',
                       fontSize: '10px', fontWeight: 800, lineHeight: '18px', textAlign: 'center',
                     }}>
                       {counts[t.trainerId] > 9 ? '9+' : counts[t.trainerId]}
@@ -513,12 +563,12 @@ export default function Profile() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             marginBottom: '16px',
           }}>
-            <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--c-accent)', letterSpacing: '-0.03em' }}>
+            <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--c-action-text)', letterSpacing: '-0.03em' }}>
               {form.name ? form.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
             </span>
           </div>
 
-          <h1 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--c-text)', lineHeight: 1 }}>
+          <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1.02 }}>
             {form.name || 'Tu perfil'}
           </h1>
           {age !== null && (
@@ -641,6 +691,9 @@ export default function Profile() {
           {/* ── Entrenador ── */}
           <TrainerSection />
 
+          {/* ── Apariencia (tema) ── */}
+          <ThemeSection />
+
           {/* ── Save ── */}
           {saveError && (
             <div className="fade-in" style={{
@@ -663,7 +716,7 @@ export default function Profile() {
             }}
           >
             {saving
-              ? <><span className="spinner" style={{ borderTopColor: '#fff', borderColor: 'rgba(255,255,255,0.3)' }} /><span>Guardando...</span></>
+              ? <><span className="spinner" style={{ borderTopColor: 'var(--c-on-action)', borderColor: 'rgba(255,255,255,0.3)' }} /><span>Guardando...</span></>
               : saveSuccess
                 ? '✓ Guardado'
                 : 'Guardar perfil'

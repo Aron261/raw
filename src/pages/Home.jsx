@@ -11,7 +11,14 @@ import { useGoals } from '../hooks/useGoals'
 import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { useInvites } from '../hooks/useInvites'
+import { useTheme } from '../hooks/useTheme'
 import { ERROR_STYLE } from '../lib/ui'
+
+// Chart colors must be literal hex — CSS vars don't resolve in recharts SVG attrs.
+const CHART_COLORS = {
+  light: { axis: '#5A584F', bar: '#2438FF', today: '#FF2E7E', empty: '#D5D2C7' },
+  dark:  { axis: '#A2A096', bar: '#6E7BFF', today: '#FF3D86', empty: '#26271F' },
+}
 
 // ── Date helpers ─────────────────────────────────────────────────────────
 function getMondayOfWeek(date = new Date()) {
@@ -77,7 +84,7 @@ function ChartTooltip({ active, payload, label }) {
 }
 
 // ── WeeklyChart ───────────────────────────────────────────────────────────
-function WeeklyChart({ chartData, height = 150, title, subtitle }) {
+function WeeklyChart({ chartData, height = 150, title, subtitle, colors }) {
   return (
     <div style={{
       background: 'var(--c-surface)',
@@ -110,7 +117,7 @@ function WeeklyChart({ chartData, height = 150, title, subtitle }) {
             <BarChart data={chartData} barSize={22} margin={{ top: 0, right: 8, bottom: 0, left: -20 }}>
               <XAxis
                 dataKey="day"
-                tick={{ fill: 'var(--c-text-dim)', fontSize: 10, fontWeight: 700 }}
+                tick={{ fill: colors.axis, fontSize: 10, fontWeight: 700 }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -124,10 +131,10 @@ function WeeklyChart({ chartData, height = 150, title, subtitle }) {
                       key={i}
                       fill={
                         entry.future
-                          ? 'var(--c-border-subtle)'
+                          ? colors.empty
                           : entry.vol > 0
-                            ? (isToday ? 'var(--c-accent)' : 'var(--c-border)')
-                            : 'var(--c-border-subtle)'
+                            ? (isToday ? colors.today : colors.bar)
+                            : colors.empty
                       }
                     />
                   )
@@ -173,7 +180,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
     <div
       style={{
         position: 'fixed', inset: 0,
-        background: 'rgba(0,0,0,0.75)',
+        background: 'var(--c-scrim)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 50,
@@ -201,7 +208,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
           <h3 style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 700 }}>
             Nueva meta
           </h3>
-          <button onClick={onClose} style={{ color: 'var(--c-text-dim)', fontSize: '16px', lineHeight: 1, padding: '4px' }}>✕</button>
+          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-dim)', fontSize: '16px', lineHeight: 1, padding: '4px' }}>✕</button>
         </div>
 
         <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
@@ -219,7 +226,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
                 flex: 1, padding: '10px 8px', borderRadius: '8px',
                 fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
                 background: type === opt.value ? 'var(--c-accent)' : 'var(--c-surface-2)',
-                color: type === opt.value ? '#fff' : 'var(--c-text-dim)',
+                color: type === opt.value ? 'var(--c-on-action)' : 'var(--c-text-dim)',
                 border: `1px solid ${type === opt.value ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
                 transition: 'all 150ms',
               }}
@@ -320,7 +327,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
           style={{ width: '100%', padding: '14px', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         >
           {saving
-            ? <><span className="spinner" style={{ borderTopColor: '#fff', borderColor: 'rgba(255,255,255,0.2)' }} /><span>Guardando...</span></>
+            ? <><span className="spinner" style={{ borderTopColor: 'var(--c-on-action)', borderColor: 'rgba(255,255,255,0.2)' }} /><span>Guardando...</span></>
             : 'Guardar meta'
           }
         </button>
@@ -338,40 +345,42 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
 
   return (
     <div style={{
-      background: 'var(--c-surface)',
-      border: '1px solid var(--c-accent-border)',
-      borderRadius: '14px',
-      padding: '16px',
+      background: hasExercises ? 'var(--c-action)' : 'var(--c-surface)',
+      border: hasExercises ? 'none' : '1px solid var(--c-border-subtle)',
+      color: hasExercises ? 'var(--c-on-action)' : 'var(--c-text)',
+      borderRadius: '16px',
+      padding: '18px',
       marginBottom: '16px',
     }}>
       {/* Label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
-        <p style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: hasExercises ? 0.85 : 1, color: hasExercises ? 'var(--c-on-action)' : 'var(--c-action-text)' }}>
           {fromCoach ? `Recomendado por ${coachName || 'tu entrenador'}` : 'Entreno de hoy'}
         </p>
         {fromCoach && (
           <span style={{
-            background: 'var(--c-accent-dim)', color: 'var(--c-accent)',
-            fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
-            padding: '2px 7px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
+            background: hasExercises ? 'var(--c-on-action)' : 'var(--c-action-dim)',
+            color: hasExercises ? 'var(--c-action)' : 'var(--c-action-text)',
+            fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+            padding: '2px 7px', borderRadius: '6px',
           }}>
             Coach
           </span>
         )}
       </div>
 
-      {/* Nombre del día */}
-      <p style={{ color: 'var(--c-text)', fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: '4px' }}>
+      {/* Nombre del día — display */}
+      <p className="font-display" style={{ fontSize: '26px', lineHeight: 0.98, marginBottom: '6px', color: hasExercises ? 'var(--c-on-action)' : 'var(--c-text)' }}>
         {day.day_name}
       </p>
 
       {/* Ciclo activo — siempre visible */}
-      <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 500, marginBottom: '2px' }}>
+      <p style={{ fontSize: '11px', fontWeight: 500, marginBottom: '2px', opacity: hasExercises ? 0.85 : 1, color: hasExercises ? 'var(--c-on-action)' : 'var(--c-text-dim)' }}>
         Ciclo activo: {routineName}
       </p>
 
       {/* Detalle: ejercicios + focus */}
-      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginBottom: '14px' }}>
+      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', marginBottom: '14px', opacity: hasExercises ? 0.75 : 1, color: hasExercises ? 'var(--c-on-action)' : 'var(--c-text-muted)' }}>
         {hasExercises
           ? `${exCount} ${exCount === 1 ? 'ejercicio' : 'ejercicios'}${day.focus ? ' · ' + day.focus : ''}`
           : 'Sin ejercicios todavía'
@@ -383,14 +392,12 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
         disabled={!hasExercises || starting}
         style={{
           width: '100%',
-          background: hasExercises ? 'var(--c-accent)' : 'var(--c-surface-2)',
-          color: hasExercises ? '#fff' : 'var(--c-text-muted)',
+          background: hasExercises ? 'var(--c-on-action)' : 'var(--c-surface-2)',
+          color: hasExercises ? 'var(--c-action)' : 'var(--c-text-muted)',
           border: hasExercises ? 'none' : '1px solid var(--c-border-subtle)',
           borderRadius: '10px',
-          padding: '12px',
-          fontSize: '12px',
-          fontWeight: 700,
-          letterSpacing: '-0.01em',
+          padding: '13px',
+          fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 800, letterSpacing: '0.02em', textTransform: 'uppercase',
           cursor: hasExercises && !starting ? 'pointer' : 'default',
           transition: 'opacity 150ms',
           opacity: starting ? 0.6 : 1,
@@ -415,7 +422,7 @@ export default function Home() {
   const navigate = useNavigate()
   const { signOut } = useAuth()
   const { profile } = useProfile()
-  const { workouts, loading, error, createWorkout } = useWorkouts()
+  const { workouts, loading, error, createWorkout, fetchWorkouts } = useWorkouts()
   const { goals, createGoal, deleteGoal } = useGoals()
 
   const firstName = profile?.name?.split(' ')[0] || ''
@@ -427,6 +434,9 @@ export default function Home() {
   const { activeRoutine, routines } = useRoutines()
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
   const { trainers } = useInvites()
+  const { resolved, preference, cycle } = useTheme()
+  const chartColors = CHART_COLORS[resolved] || CHART_COLORS.light
+  const themeIcon = preference === 'auto' ? '◐' : preference === 'light' ? '☀' : '☾'
 
   // Mapa id_entrenador → nombre, para mostrar quién asignó cada rutina.
   const trainerNameById = Object.fromEntries(
@@ -807,14 +817,14 @@ export default function Home() {
         {/* ── Header ── */}
         <div className="fade-in flex items-start justify-between mb-6 md:mb-8">
           <div>
-            {/* Saludo + nombre en una línea, sin uppercase */}
-            <h1 style={{ color: 'var(--c-text)', fontSize: '26px', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '4px' }}>
-              {getGreeting()}{firstName ? `, ${firstName}` : ''}
-            </h1>
-            {/* Fecha en sentence case */}
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 500, marginBottom: '6px' }}>
+            {/* Fecha — eyebrow mono en azul (dato) */}
+            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-data)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
               {dateStr}
             </p>
+            {/* Saludo + nombre — Archivo 900, sentence case para legibilidad */}
+            <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02, marginBottom: '6px' }}>
+              {getGreeting()}{firstName ? `, ${firstName}` : ''}
+            </h1>
             {/* Frase contextual: solo aparece cuando hay datos cargados */}
             {!loading && !error && stats.count > 0 && (
               <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 500, lineHeight: 1.4 }}>
@@ -822,19 +832,36 @@ export default function Home() {
               </p>
             )}
           </div>
-          <button
-            onClick={signOut}
-            style={{
-              color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500,
-              border: '1px solid var(--c-border-subtle)', padding: '6px 10px',
-              borderRadius: '8px', marginTop: '4px', flexShrink: 0,
-              transition: 'color 150ms, border-color 150ms',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-muted)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
-          >
-            Salir
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, marginTop: '4px' }}>
+            <button
+              type="button"
+              onClick={cycle}
+              aria-label={`Tema: ${preference}. Cambiar.`}
+              title="Cambiar tema"
+              style={{
+                width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '15px', lineHeight: 1,
+                color: 'var(--c-text-dim)', background: 'var(--c-surface-2)',
+                border: '1px solid var(--c-border-subtle)', borderRadius: '8px',
+                transition: 'color 150ms, border-color 150ms',
+              }}
+            >
+              <span aria-hidden="true">{themeIcon}</span>
+            </button>
+            <button
+              onClick={signOut}
+              style={{
+                color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500,
+                border: '1px solid var(--c-border-subtle)', padding: '6px 10px',
+                borderRadius: '8px',
+                transition: 'color 150ms, border-color 150ms',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-muted)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+            >
+              Salir
+            </button>
+          </div>
         </div>
 
         {/* ── Loading skeleton ── */}
@@ -852,7 +879,22 @@ export default function Home() {
           </div>
         )}
 
-        {error && <div style={ERROR_STYLE}>Error al cargar entrenos.</div>}
+        {error && (
+          <div style={{ ...ERROR_STYLE, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+            <span>No pudimos cargar tus entrenos.</span>
+            <button
+              onClick={fetchWorkouts}
+              style={{
+                flexShrink: 0,
+                color: 'var(--c-accent)', fontSize: '12px', fontWeight: 700,
+                border: '1px solid var(--c-accent-border)', borderRadius: '8px',
+                padding: '6px 12px', background: 'transparent',
+              }}
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
 
         {/* ── CTA principal ── */}
         {!loading && !error && (
@@ -878,13 +920,13 @@ export default function Home() {
                 style={{
                   width: '100%',
                   background: 'var(--c-surface)',
-                  color: 'var(--c-accent)',
-                  border: '2px solid var(--c-accent)',
+                  color: 'var(--c-action-text)',
+                  border: '2px solid var(--c-action)',
                   borderRadius: '14px',
                   padding: '16px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  letterSpacing: '-0.01em',
+                  fontFamily: 'var(--font-sans)', fontSize: '14px',
+                  fontWeight: 800, textTransform: 'uppercase',
+                  letterSpacing: '0.02em',
                   transition: 'opacity 150ms',
                   opacity: startingWorkout ? 0.6 : 1,
                 }}
@@ -899,13 +941,13 @@ export default function Home() {
                 style={{
                   width: '100%',
                   background: 'var(--c-accent)',
-                  color: '#fff',
+                  color: 'var(--c-on-action)',
                   border: '2px solid transparent',
                   borderRadius: '14px',
                   padding: '16px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  letterSpacing: '-0.01em',
+                  fontFamily: 'var(--font-sans)', fontSize: '14px',
+                  fontWeight: 800, textTransform: 'uppercase',
+                  letterSpacing: '0.02em',
                   transition: 'opacity 150ms',
                   opacity: startingWorkout ? 0.6 : 1,
                 }}
@@ -980,7 +1022,7 @@ export default function Home() {
                       disabled={starting}
                       style={{
                         flexShrink: 0,
-                        background: 'var(--c-accent)', color: '#fff',
+                        background: 'var(--c-accent)', color: 'var(--c-on-action)',
                         border: 'none', borderRadius: '10px', padding: '10px 16px',
                         fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em',
                         opacity: starting ? 0.6 : 1, transition: 'opacity 150ms',
@@ -1031,34 +1073,34 @@ export default function Home() {
                   borderRadius: '16px',
                   padding: '20px',
                 }}>
-                  <p style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
+                  <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px' }}>
                     Esta semana
                   </p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                     {/* Entrenos */}
                     <div>
-                      <p style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '4px' }}>
+                      <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-display)', fontSize: '38px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '6px' }}>
                         {stats.count}
                       </p>
-                      <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, lineHeight: 1.3 }}>
+                      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
                         {stats.count === 1 ? 'entreno' : 'entrenos'}
                       </p>
                     </div>
                     {/* Volumen */}
                     <div>
-                      <p style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '4px' }}>
+                      <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-display)', fontSize: '38px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '6px' }}>
                         {formatVolume(stats.weekVolume)}
                       </p>
-                      <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, lineHeight: 1.3 }}>
+                      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
                         kg de volumen
                       </p>
                     </div>
                     {/* Este mes */}
                     <div>
-                      <p style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '4px' }}>
+                      <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-display)', fontSize: '38px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '6px' }}>
                         {stats.thisMonth}
                       </p>
-                      <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, lineHeight: 1.3 }}>
+                      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
                         días este mes
                       </p>
                     </div>
@@ -1076,30 +1118,31 @@ export default function Home() {
                 <div style={{
                   background: 'var(--c-surface)',
                   border: '1px solid var(--c-border-subtle)',
-                  borderTop: stats.weekPR ? '3px solid var(--c-accent)' : '1px solid var(--c-border-subtle)',
+                  borderTop: stats.weekPR ? '3px solid var(--c-record)' : '1px solid var(--c-border-subtle)',
                   borderRadius: '16px',
                   padding: '20px',
                 }}>
-                  <p style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+                  <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
                     Mejor marca esta semana
                   </p>
 
                   {stats.weekPR ? (
                     <>
                       <span style={{
-                        display: 'inline-block',
-                        background: 'rgba(255,45,45,0.08)',
-                        color: 'var(--c-accent)',
-                        borderRadius: '999px',
-                        padding: '3px 10px',
-                        fontSize: '8px', fontWeight: 800,
+                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                        background: 'var(--c-record)',
+                        color: 'var(--c-record-ink)',
+                        borderRadius: '6px',
+                        padding: '4px 9px',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '9px', fontWeight: 700,
                         textTransform: 'uppercase', letterSpacing: '0.1em',
                         marginBottom: '10px',
                       }}>
-                        Nuevo récord
+                        ▲ Nuevo récord
                       </span>
                       {/* Nombre del ejercicio en sentence case, sin uppercase */}
-                      <p style={{ color: 'var(--c-text)', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: '8px' }}>
+                      <p className="font-display" style={{ color: 'var(--c-text)', fontSize: '24px', lineHeight: 1, marginBottom: '8px' }}>
                         {stats.weekPR.exercise}
                       </p>
                       <p style={{ color: 'var(--c-text-dim)', fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>
@@ -1137,7 +1180,7 @@ export default function Home() {
                     padding: '20px',
                   }}>
                     {/* Label: pequeño y sentence case */}
-                    <p style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+                    <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
                       {todayHighlight.label}
                     </p>
                     {/* Nombre del ejercicio/sesión: normal case, tamaño medio */}
@@ -1145,7 +1188,7 @@ export default function Home() {
                       {todayHighlight.title}
                     </p>
                     {/* Valor principal: grande y bold */}
-                    <p style={{ color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '8px' }}>
+                    <p className="font-display" style={{ color: 'var(--c-text)', fontSize: '40px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '8px' }}>
                       {todayHighlight.value}
                     </p>
                     {/* Sub como frase completa y natural */}
@@ -1163,7 +1206,7 @@ export default function Home() {
                   padding: '20px',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                    <p style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                    <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                       Mis metas
                     </p>
                     <button
@@ -1175,6 +1218,7 @@ export default function Home() {
                       }}
                       onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
                       onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                      aria-label="Agregar meta"
                       title="Agregar meta"
                     >
                       +
@@ -1199,15 +1243,15 @@ export default function Home() {
                         style={{
                           background: 'transparent',
                           color: 'var(--c-accent)',
-                          border: '1px solid rgba(255,45,45,0.25)',
+                          border: '1px solid var(--c-action-border)',
                           borderRadius: '8px',
                           padding: '8px 14px',
                           fontSize: '11px',
                           fontWeight: 700,
                           transition: 'background 150ms, border-color 150ms',
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,45,45,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,45,45,0.4)' }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,45,45,0.25)' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-action-dim)'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
                       >
                         Crear meta
                       </button>
@@ -1231,19 +1275,29 @@ export default function Home() {
                               style={{ color: 'var(--c-text-muted)', fontSize: '12px', padding: '2px 4px', marginLeft: '8px', flexShrink: 0, transition: 'color 120ms' }}
                               onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
                               onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
+                              aria-label="Eliminar meta"
                               title="Eliminar meta"
                             >
                               ✕
                             </button>
                           </div>
                           {/* Barra de progreso */}
-                          <div style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', marginBottom: '6px', overflow: 'hidden' }}>
+                          <div
+                            style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', marginBottom: '6px', overflow: 'hidden' }}
+                            role="progressbar"
+                            aria-valuenow={goal.pct}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-label={goal.label}
+                          >
                             <div style={{
                               height: '100%',
-                              width: `${goal.pct}%`,
-                              background: goal.pct >= 100 ? 'oklch(55% 0.15 145)' : 'var(--c-accent)',
+                              width: '100%',
+                              transformOrigin: 'left center',
+                              transform: `scaleX(${goal.pct / 100})`,
+                              background: goal.pct >= 100 ? 'var(--c-record)' : 'var(--c-action)',
                               borderRadius: '999px',
-                              transition: 'width 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+                              transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
                             }} />
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1278,6 +1332,7 @@ export default function Home() {
                   height={160}
                   title="Volumen semanal"
                   subtitle={stats.weekVolume > 0 ? `Total esta semana: ${formatVolume(stats.weekVolume)} kg` : undefined}
+                  colors={chartColors}
                 />
               </div>
 

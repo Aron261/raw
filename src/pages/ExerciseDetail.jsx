@@ -7,6 +7,13 @@ import Layout from '../components/Layout'
 import PRBadge from '../components/PRBadge'
 import { useExercisePR, calc1RM } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
+import { useTheme } from '../hooks/useTheme'
+
+// Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
+const CHART = {
+  light: { line: '#2438FF', grid: '#D5D2C7', axis: '#5A584F' },
+  dark:  { line: '#6E7BFF', grid: '#26271F', axis: '#A2A096' },
+}
 
 // Custom tooltip — light theme
 function CustomTooltip({ active, payload, label }) {
@@ -32,6 +39,9 @@ export default function ExerciseDetail() {
   const { name } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+
+  const { resolved } = useTheme()
+  const cc = CHART[resolved] || CHART.light
 
   const exerciseName = decodeURIComponent(name)
   const { prSets, allTimePR, loading } = useExercisePR(exerciseName, user?.id)
@@ -88,12 +98,12 @@ export default function ExerciseDetail() {
         {allTimePR && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: '12px',
-            background: 'rgba(255,45,45,0.06)', border: '1px solid rgba(255,45,45,0.2)',
+            background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
             padding: '12px 16px', borderRadius: '14px', margin: '16px 0 24px',
           }}>
             <PRBadge />
             <div>
-              <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>
+              <span style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>
                 Mejor 1RM estimado
               </span>
               <span style={{ color: 'var(--c-text)', fontWeight: 900, fontSize: '22px' }}>
@@ -123,33 +133,33 @@ export default function ExerciseDetail() {
           <>
             {/* Progression chart */}
             <div style={{ marginBottom: '32px' }}>
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
+              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
                 Progresión 1RM
               </p>
               <div style={{ height: '180px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  {/* Hex values — CSS vars no funcionan en atributos SVG */}
+                  {/* Hex values — CSS vars no funcionan en atributos SVG; ver CHART */}
                   <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                    <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" />
+                    <CartesianGrid stroke={cc.grid} strokeDasharray="3 3" />
                     <XAxis
                       dataKey="date"
-                      tick={{ fill: '#9E9EA8', fontSize: 10 }}
-                      axisLine={{ stroke: '#E8E8EE' }}
+                      tick={{ fill: cc.axis, fontSize: 10 }}
+                      axisLine={{ stroke: cc.grid }}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fill: '#9E9EA8', fontSize: 10 }}
-                      axisLine={{ stroke: '#E8E8EE' }}
+                      tick={{ fill: cc.axis, fontSize: 10 }}
+                      axisLine={{ stroke: cc.grid }}
                       tickLine={false}
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Line
                       type="monotone"
                       dataKey="1RM"
-                      stroke="#FF2D2D"
+                      stroke={cc.line}
                       strokeWidth={2}
-                      dot={{ fill: '#FF2D2D', r: 3, strokeWidth: 0 }}
-                      activeDot={{ fill: '#FF2D2D', r: 5, strokeWidth: 0 }}
+                      dot={{ fill: cc.line, r: 3, strokeWidth: 0 }}
+                      activeDot={{ fill: cc.line, r: 5, strokeWidth: 0 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -159,7 +169,7 @@ export default function ExerciseDetail() {
             {/* PR by rep range */}
             {prByReps.length > 0 && (
               <div style={{ marginBottom: '32px' }}>
-                <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+                <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
                   Mejor peso por reps
                 </p>
                 <div style={{
@@ -216,7 +226,7 @@ export default function ExerciseDetail() {
 
             {/* Session history */}
             <div style={{ paddingBottom: '32px' }}>
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
                 Historial
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -229,7 +239,7 @@ export default function ExerciseDetail() {
                   return (
                     <div key={session.workoutId} style={{
                       background: 'var(--c-surface)',
-                      border: `1px solid ${isAllTimePR ? 'rgba(255,45,45,0.25)' : 'var(--c-border-subtle)'}`,
+                      border: `1px solid ${isAllTimePR ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
                       borderRadius: '14px',
                       padding: '14px 16px',
                     }}>

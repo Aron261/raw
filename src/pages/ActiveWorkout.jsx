@@ -151,7 +151,7 @@ function WorkoutTimer({ startedAt }) {
 }
 
 /* ── Add / Swap Exercise Modal ──────────────────────────────────────── */
-function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subtitle = null, closeOnSelect = false }) {
+function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio', subtitle = null, closeOnSelect = false }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -211,7 +211,7 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subt
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.75)',
+        background: 'var(--c-scrim)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 50,
@@ -243,7 +243,7 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subt
           </h3>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Cerrar"
             style={{ color: 'var(--c-text-dim)', fontSize: '16px', lineHeight: 1, padding: '4px', transition: `color 120ms var(--ease-out)` }}
             {...hoverColor('var(--c-text)', 'var(--c-text-dim)')}
           >
@@ -264,14 +264,14 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subt
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !exactMatch) create() }}
           className="input-field"
-          placeholder="Search or create exercise..."
+          placeholder="Buscar o crear ejercicio..."
           style={{ marginBottom: '12px' }}
         />
 
         <div style={{ maxHeight: '240px', overflowY: 'auto', marginBottom: '8px' }}>
           {searching && (
             <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '8px 0' }}>
-              Searching...
+              Buscando...
             </p>
           )}
 
@@ -319,13 +319,13 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subt
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
             >
-              + Create "{query.trim()}"
+              + Crear "{query.trim()}"
             </button>
           )}
 
           {!searching && !query.trim() && (
             <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '8px 0' }}>
-              Type to search or create a new exercise.
+              Escribe para buscar o crear un ejercicio.
             </p>
           )}
         </div>
@@ -397,7 +397,7 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.75)',
+        background: 'var(--c-scrim)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 50,
@@ -475,7 +475,7 @@ function EditConfirmModal({ step, onFirstConfirm, onSecondConfirm, onCancel }) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.75)',
+        background: 'var(--c-scrim)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 50,
@@ -645,8 +645,8 @@ export default function ActiveWorkout() {
     return (
       <Layout hideNav>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', gap: '16px', padding: '24px' }}>
-          <p style={{ color: 'var(--c-accent)', fontSize: '13px' }}>{error || 'Workout not found.'}</p>
-          <button onClick={handleBack} className="btn-secondary">← Back</button>
+          <p style={{ color: 'var(--c-accent)', fontSize: '13px' }}>{error || 'Entreno no encontrado.'}</p>
+          <button onClick={handleBack} className="btn-secondary">← Atrás</button>
         </div>
       </Layout>
     )
@@ -661,6 +661,7 @@ export default function ActiveWorkout() {
           <button
             onClick={handleBack}
             style={{
+              fontFamily: 'var(--font-mono)',
               color: 'var(--c-text-dim)',
               fontSize: '11px',
               fontWeight: 700,
@@ -673,14 +674,14 @@ export default function ActiveWorkout() {
             }}
             {...hoverColor('var(--c-text)', 'var(--c-text-dim)')}
           >
-            ← Back
+            ← Atrás
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {!isFinished && workout.started_at && <WorkoutTimer startedAt={workout.started_at} />}
             {isFinished && (
-              <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                Finished
+              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Finalizado
               </span>
             )}
             {/* Rest timer toggle */}
@@ -744,11 +745,11 @@ export default function ActiveWorkout() {
         {workoutExercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 0', border: '1px dashed var(--c-border-subtle)', borderRadius: '4px', marginBottom: '16px' }}>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              No exercises yet
+              Sin ejercicios aún
             </p>
             {!isFinished && (
               <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '6px' }}>
-                Tap + Add Exercise below to start.
+                Tap + Agregar ejercicio below to start.
               </p>
             )}
           </div>
@@ -797,7 +798,7 @@ export default function ActiveWorkout() {
               className="btn-secondary"
               style={{ width: '100%', padding: '14px', fontSize: '11px' }}
             >
-              + Add Exercise
+              + Agregar ejercicio
             </button>
             {isEditing ? (
               <button
@@ -815,8 +816,8 @@ export default function ActiveWorkout() {
                 style={{ width: '100%', padding: '14px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
                 {finishing
-                  ? <><span className="spinner" style={{ borderTopColor: 'var(--c-text)', borderColor: 'rgba(255,255,255,0.2)' }} /><span>Finishing...</span></>
-                  : 'Finish Workout'
+                  ? <><span className="spinner" style={{ borderTopColor: 'var(--c-text)', borderColor: 'rgba(255,255,255,0.2)' }} /><span>Finalizando...</span></>
+                  : 'Finalizar entreno'
                 }
               </button>
             )}
@@ -826,7 +827,7 @@ export default function ActiveWorkout() {
         {isFinished && (
           <div style={{ paddingBottom: '32px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <button onClick={handleBack} className="btn-secondary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
-              ← Back to Home
+              ← Volver al inicio
             </button>
 
             {!isEditing ? (

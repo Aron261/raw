@@ -8,9 +8,17 @@ import { useClientDetail } from '../hooks/useClientDetail'
 import { useRoutines } from '../hooks/useRoutines'
 import { useGoals } from '../hooks/useGoals'
 import { useDashboard } from '../hooks/useDashboard'
+import { useTheme } from '../hooks/useTheme'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 
+// Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
+const CHART = {
+  light: { bar: '#2438FF', grid: '#D5D2C7', axis: '#67696c', cursor: 'rgba(36,56,255,0.08)' },
+  dark:  { bar: '#6E7BFF', grid: '#26271F', axis: '#A2A096', cursor: 'rgba(110,123,255,0.14)' },
+}
+
 const SECTION_LABEL = {
+  fontFamily: 'var(--font-mono)',
   color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
   textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px',
 }
@@ -19,6 +27,7 @@ const CARD = {
   borderRadius: '14px', padding: '16px',
 }
 const MINI_LABEL = {
+  fontFamily: 'var(--font-mono)',
   color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
   textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px',
 }
@@ -38,7 +47,7 @@ function Sheet({ title, subtitle, onClose, children }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+      background: 'var(--c-scrim)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
     }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
@@ -53,7 +62,7 @@ function Sheet({ title, subtitle, onClose, children }) {
             <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>{title}</h2>
             {subtitle && <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '4px' }}>{subtitle}</p>}
           </div>
-          <button onClick={onClose} style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>✕</button>
+          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>✕</button>
         </div>
         {children}
       </div>
@@ -376,7 +385,7 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
                 <button key={u} onClick={() => setUnit(u)} style={{
                   padding: '0 14px', fontSize: '11px', fontWeight: 700,
                   background: unit === u ? 'var(--c-accent)' : 'transparent',
-                  color: unit === u ? '#fff' : 'var(--c-text-dim)',
+                  color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
                 }}>{u}</button>
               ))}
             </div>
@@ -405,6 +414,8 @@ export default function ClientDetail() {
   const { routines, loading: routLoading, createRoutine, deleteRoutine, setActiveRoutine } = useRoutines(clientId)
   const { goals, loading: goalsLoading, createGoal, deleteGoal } = useGoals(clientId)
   const { data: dash } = useDashboard(clientId)
+  const { resolved } = useTheme()
+  const cc = CHART[resolved] || CHART.light
 
   const [modal, setModal] = useState(null) // 'cycle' | 'single' | 'goal'
   const [actionError, setActionError] = useState(null)
@@ -437,7 +448,7 @@ export default function ClientDetail() {
             background: 'var(--c-accent-dim)', border: '2px solid var(--c-accent-border)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <span style={{ color: 'var(--c-accent)', fontSize: '20px', fontWeight: 900 }}>{name.charAt(0).toUpperCase()}</span>
+            <span style={{ color: 'var(--c-action-text)', fontSize: '20px', fontWeight: 900 }}>{name.charAt(0).toUpperCase()}</span>
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
             <h1 style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1 }}>
@@ -479,11 +490,11 @@ export default function ClientDetail() {
               <div style={{ height: '120px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dash.weeklyData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-                    <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <Tooltip cursor={{ fill: 'rgba(255,45,45,0.06)' }} />
-                    <Bar dataKey="volume" fill="#FF2D2D" radius={[3, 3, 0, 0]} />
+                    <CartesianGrid stroke={cc.grid} strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <Tooltip cursor={{ fill: cc.cursor }} />
+                    <Bar dataKey="volume" fill={cc.bar} radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

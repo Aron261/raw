@@ -64,7 +64,7 @@ export default function Chat() {
           background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ color: 'var(--c-accent)', fontSize: '14px', fontWeight: 900 }}>
+          <span style={{ color: 'var(--c-action-text)', fontSize: '14px', fontWeight: 900 }}>
             {(otherName || '?').charAt(0).toUpperCase()}
           </span>
         </div>
@@ -101,7 +101,7 @@ export default function Chat() {
                 <div style={{
                   maxWidth: '78%',
                   background: mine ? 'var(--c-accent)' : 'var(--c-surface)',
-                  color: mine ? '#fff' : 'var(--c-text)',
+                  color: mine ? 'var(--c-on-action)' : 'var(--c-text)',
                   border: mine ? 'none' : '1px solid var(--c-border-subtle)',
                   borderRadius: mine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                   padding: '9px 13px',
@@ -138,7 +138,7 @@ export default function Chat() {
           type="submit"
           disabled={sending || !text.trim()}
           style={{
-            flexShrink: 0, background: 'var(--c-accent)', color: '#fff',
+            flexShrink: 0, background: 'var(--c-accent)', color: 'var(--c-on-action)',
             border: 'none', borderRadius: '12px', padding: '10px 16px',
             fontSize: '13px', fontWeight: 800, opacity: sending || !text.trim() ? 0.5 : 1,
           }}

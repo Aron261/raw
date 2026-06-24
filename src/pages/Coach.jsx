@@ -11,7 +11,7 @@ function UnreadBadge({ count }) {
   return (
     <span style={{
       minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px',
-      background: 'var(--c-accent)', color: '#fff',
+      background: 'var(--c-accent)', color: 'var(--c-on-action)',
       fontSize: '10px', fontWeight: 800, lineHeight: '18px', textAlign: 'center',
       display: 'inline-block', flexShrink: 0,
     }}>
@@ -21,6 +21,7 @@ function UnreadBadge({ count }) {
 }
 
 const SECTION_LABEL = {
+  fontFamily: 'var(--font-mono)',
   color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
   textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px',
 }
@@ -56,7 +57,7 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+      background: 'var(--c-scrim)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
     }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
@@ -70,7 +71,7 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
           <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
             Invitar cliente
           </h2>
-          <button onClick={onClose} style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1 }}>✕</button>
         </div>
 
         {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
@@ -174,7 +175,7 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
           background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ color: 'var(--c-accent)', fontSize: '15px', fontWeight: 900 }}>{initial}</span>
+          <span style={{ color: 'var(--c-action-text)', fontSize: '15px', fontWeight: 900 }}>{initial}</span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -250,10 +251,10 @@ export default function Coach() {
 
         {/* Header */}
         <div className="fade-in" style={{ paddingTop: '40px', paddingBottom: '28px' }}>
-          <h1 style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', lineHeight: 1 }}>
-            Mis Clientes
+          <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
+            Clientes
           </h1>
-          <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
             Panel de entrenador
           </p>
         </div>

@@ -5,8 +5,8 @@ export default function PRBadge({ small = false }) {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        background: 'var(--c-accent)',
-        color: 'var(--c-text)',
+        background: 'var(--c-record)',
+        color: 'var(--c-record-ink)',
         fontSize: small ? '8px' : '9px',
         fontWeight: 900,
         letterSpacing: '0.12em',
