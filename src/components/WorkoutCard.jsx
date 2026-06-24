@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { formatDuration, calcVolume } from '../hooks/useWorkout'
 import { pressProps } from '../lib/ui'
 
-export default function WorkoutCard({ workout, onDelete, onDuplicate }) {
+export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = false }) {
   const navigate = useNavigate()
   const [deleting, setDeleting] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
@@ -84,7 +84,7 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate }) {
             </h3>
           </div>
 
-          {isActive && (
+          {isActive ? (
             <span style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
@@ -95,7 +95,15 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate }) {
               <span className="live-dot" style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--c-accent)', display: 'inline-block' }} />
               Live
             </span>
-          )}
+          ) : hasPR ? (
+            <span style={{
+              background: 'var(--c-record)', color: 'var(--c-record-ink)',
+              fontSize: '9px', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase',
+              padding: '3px 7px', borderRadius: '6px',
+            }}>
+              PR
+            </span>
+          ) : null}
         </div>
 
         {/* Stats row */}
@@ -108,8 +116,9 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate }) {
           )}
           <div>
             <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>Volumen</p>
-            <p style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>
-              {totalVolume > 0 ? `${totalVolume.toLocaleString()} ${unit}` : '—'}
+            <p style={{ color: 'var(--c-data)', fontSize: '18px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+              {totalVolume > 0 ? totalVolume.toLocaleString() : '—'}
+              {totalVolume > 0 && <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '3px' }}>{unit}</span>}
             </p>
           </div>
           <div>

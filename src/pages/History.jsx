@@ -1,20 +1,52 @@
+import { useMemo } from 'react'
 import Layout from '../components/Layout'
 import WorkoutCard from '../components/WorkoutCard'
-import { useWorkouts } from '../hooks/useWorkout'
+import { useWorkouts, calc1RM, calcVolume } from '../hooks/useWorkout'
 
+const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : v.toLocaleString())
 
 export default function History() {
   const { workouts, loading, error, fetchWorkouts, deleteWorkout, duplicateWorkout } = useWorkouts()
 
-  // Group workouts by month (Spanish, capitalized)
-  const grouped = workouts.reduce((acc, workout) => {
-    const date = new Date(workout.started_at)
-    const raw = date.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
-    const key = raw.charAt(0).toUpperCase() + raw.slice(1)
-    if (!acc[key]) acc[key] = []
-    acc[key].push(workout)
+  // Workout ids that set an all-time PR — a set whose estimated 1RM beat the
+  // running best for that exercise. Walk oldest → newest so "best so far" is true.
+  const prWorkoutIds = useMemo(() => {
+    const ids = new Set()
+    const best = {}
+    const chrono = [...workouts]
+      .filter(w => w.ended_at)
+      .sort((a, b) => new Date(a.started_at) - new Date(b.started_at))
+    for (const w of chrono) {
+      let isPR = false
+      for (const we of w.workout_exercises || []) {
+        const name = we.exercises?.name
+        if (!name) continue
+        for (const s of we.sets || []) {
+          const rm = calc1RM(s.weight, s.reps)
+          if (rm > 0 && rm > (best[name] || 0)) { best[name] = rm; isPR = true }
+        }
+      }
+      if (isPR) ids.add(w.id)
+    }
+    return ids
+  }, [workouts])
+
+  // Group by month (Spanish, capitalized) + per-month session count and volume.
+  const months = useMemo(() => {
+    const acc = {}
+    for (const w of workouts) {
+      const d = new Date(w.started_at)
+      const raw = d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
+      const key = raw.charAt(0).toUpperCase() + raw.slice(1)
+      if (!acc[key]) acc[key] = { items: [], volume: 0 }
+      acc[key].items.push(w)
+      const sets = (w.workout_exercises || []).flatMap(we =>
+        (we.sets || []).map(s => ({ ...s, unit: we.unit || 'kg' }))
+      )
+      acc[key].volume += calcVolume(sets)
+    }
     return acc
-  }, {})
+  }, [workouts])
 
   return (
     <Layout>
@@ -59,12 +91,24 @@ export default function History() {
         {/* Workouts grouped by month */}
         {!loading && !error && (
           <div className="pb-8">
-            {Object.entries(grouped).map(([month, monthWorkouts]) => (
+            {Object.entries(months).map(([month, { items, volume }]) => (
               <div key={month} className="mb-8">
-                <h2 style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>{month}</h2>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                  <h2 style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{month}</h2>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.04em', color: 'var(--c-text-muted)' }}>
+                    {items.length} {items.length === 1 ? 'entreno' : 'entrenos'}
+                    {volume > 0 && <> · <span style={{ color: 'var(--c-data)', fontWeight: 700 }}>{fmtVol(Math.round(volume))} kg</span></>}
+                  </p>
+                </div>
                 <div className="space-y-3">
-                  {monthWorkouts.map(workout => (
-                    <WorkoutCard key={workout.id} workout={workout} onDelete={deleteWorkout} onDuplicate={duplicateWorkout} />
+                  {items.map(workout => (
+                    <WorkoutCard
+                      key={workout.id}
+                      workout={workout}
+                      onDelete={deleteWorkout}
+                      onDuplicate={duplicateWorkout}
+                      hasPR={prWorkoutIds.has(workout.id)}
+                    />
                   ))}
                 </div>
               </div>
