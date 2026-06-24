@@ -5,6 +5,7 @@ import { useRoutines } from '../hooks/useRoutines'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { generateRecommendedRoutine, generateSingleDayRoutine, FOCUS_TO_MUSCLES } from '../lib/cycleGenerator'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
+import { Sheet } from '../components/ui'
 
 // ── Constantes ────────────────────────────────────────────────────────────
 const GOALS_CYCLE      = ['Hipertrofia', 'Fuerza', 'Fuerza-Hipertrofia', 'Recomposición']
@@ -269,25 +270,7 @@ function TypeSelectionModal({ onClose, onSelectCycle, onSelectSingleDay, onSelec
   ]
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'var(--c-scrim)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{
-        background: 'var(--c-bg)', borderRadius: '20px 20px 0 0',
-        width: '100%', maxWidth: '480px',
-        padding: '24px 20px 40px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
-            Crear nueva rutina
-          </h2>
-          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1 }}>✕</button>
-        </div>
-
+    <Sheet title="Crear nueva rutina" onClose={onClose}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {options.map(opt => (
             <button
@@ -313,8 +296,7 @@ function TypeSelectionModal({ onClose, onSelectCycle, onSelectSingleDay, onSelec
             </button>
           ))}
         </div>
-      </div>
-    </div>
+    </Sheet>
   )
 }
 
