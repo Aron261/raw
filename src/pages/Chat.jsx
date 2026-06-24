@@ -64,7 +64,7 @@ export default function Chat() {
           background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ color: 'var(--c-accent)', fontSize: '14px', fontWeight: 900 }}>
+          <span style={{ color: 'var(--c-action-text)', fontSize: '14px', fontWeight: 900 }}>
             {(otherName || '?').charAt(0).toUpperCase()}
           </span>
         </div>

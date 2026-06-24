@@ -9,13 +9,13 @@ import { useRoutines } from '../hooks/useRoutines'
 import { useGoals } from '../hooks/useGoals'
 import { useDashboard } from '../hooks/useDashboard'
 import { useTheme } from '../hooks/useTheme'
+import { pressProps, ERROR_STYLE } from '../lib/ui'
 
 // Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
 const CHART = {
   light: { bar: '#2438FF', grid: '#D5D2C7', axis: '#67696c', cursor: 'rgba(36,56,255,0.08)' },
   dark:  { bar: '#6E7BFF', grid: '#26271F', axis: '#A2A096', cursor: 'rgba(110,123,255,0.14)' },
 }
-import { pressProps, ERROR_STYLE } from '../lib/ui'
 
 const SECTION_LABEL = {
   fontFamily: 'var(--font-mono)',
@@ -448,7 +448,7 @@ export default function ClientDetail() {
             background: 'var(--c-accent-dim)', border: '2px solid var(--c-accent-border)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <span style={{ color: 'var(--c-accent)', fontSize: '20px', fontWeight: 900 }}>{name.charAt(0).toUpperCase()}</span>
+            <span style={{ color: 'var(--c-action-text)', fontSize: '20px', fontWeight: 900 }}>{name.charAt(0).toUpperCase()}</span>
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
             <h1 style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1 }}>

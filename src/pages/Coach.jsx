@@ -175,7 +175,7 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
           background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ color: 'var(--c-accent)', fontSize: '15px', fontWeight: 900 }}>{initial}</span>
+          <span style={{ color: 'var(--c-action-text)', fontSize: '15px', fontWeight: 900 }}>{initial}</span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

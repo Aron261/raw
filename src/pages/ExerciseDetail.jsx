@@ -103,7 +103,7 @@ export default function ExerciseDetail() {
           }}>
             <PRBadge />
             <div>
-              <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>
+              <span style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>
                 Mejor 1RM estimado
               </span>
               <span style={{ color: 'var(--c-text)', fontWeight: 900, fontSize: '22px' }}>
@@ -133,7 +133,7 @@ export default function ExerciseDetail() {
           <>
             {/* Progression chart */}
             <div style={{ marginBottom: '32px' }}>
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
+              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
                 Progresión 1RM
               </p>
               <div style={{ height: '180px', width: '100%' }}>
@@ -169,7 +169,7 @@ export default function ExerciseDetail() {
             {/* PR by rep range */}
             {prByReps.length > 0 && (
               <div style={{ marginBottom: '32px' }}>
-                <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+                <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
                   Mejor peso por reps
                 </p>
                 <div style={{
@@ -226,7 +226,7 @@ export default function ExerciseDetail() {
 
             {/* Session history */}
             <div style={{ paddingBottom: '32px' }}>
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
                 Historial
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

@@ -563,12 +563,12 @@ export default function Profile() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             marginBottom: '16px',
           }}>
-            <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--c-accent)', letterSpacing: '-0.03em' }}>
+            <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--c-action-text)', letterSpacing: '-0.03em' }}>
               {form.name ? form.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
             </span>
           </div>
 
-          <h1 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--c-text)', lineHeight: 1 }}>
+          <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1.02 }}>
             {form.name || 'Tu perfil'}
           </h1>
           {age !== null && (
