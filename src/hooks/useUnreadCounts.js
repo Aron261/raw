@@ -33,8 +33,11 @@ export function useUnreadCounts() {
   // En vivo: un mensaje entrante incrementa el contador del remitente.
   useEffect(() => {
     if (!user) return
+    // Nombre de canal único por instancia: este hook se monta en varias
+    // pantallas (Perfil, Coach, nav) y Supabase reusa el canal por topic, así
+    // que un nombre fijo provoca `.on()` después de `.subscribe()` → crash.
     const channel = supabase
-      .channel('unread-counts')
+      .channel(`unread-counts:${user.id}:${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const m = payload.new
         if (!m || m.sender_id === user.id) return
