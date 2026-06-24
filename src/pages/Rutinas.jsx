@@ -336,26 +336,7 @@ function CreateCycleModal({ onClose, onCreate }) {
   }
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'var(--c-scrim)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{
-        background: 'var(--c-bg)', borderRadius: '20px 20px 0 0',
-        width: '100%', maxWidth: '480px',
-        padding: '24px 20px 40px',
-        maxHeight: '85dvh', overflowY: 'auto',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
-            Crear ciclo
-          </h2>
-          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1 }}>✕</button>
-        </div>
-
+    <Sheet title="Crear ciclo" onClose={onClose} maxHeight="85dvh">
         {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
         {/* Nombre */}
@@ -427,8 +408,7 @@ function CreateCycleModal({ onClose, onCreate }) {
         >
           {saving ? 'Guardando...' : 'Crear ciclo'}
         </button>
-      </div>
-    </div>
+    </Sheet>
   )
 }
 
@@ -465,25 +445,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
   }
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'var(--c-scrim)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div style={{
-        background: 'var(--c-bg)', borderRadius: '20px 20px 0 0',
-        width: '100%', maxWidth: '480px',
-        padding: '24px 20px 40px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
-            Crear rutina de un día
-          </h2>
-          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1 }}>✕</button>
-        </div>
-
+    <Sheet title="Crear rutina de un día" onClose={onClose}>
         {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
         <div style={{ marginBottom: '16px' }}>
@@ -523,8 +485,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
         >
           {saving ? 'Guardando...' : 'Crear rutina'}
         </button>
-      </div>
-    </div>
+    </Sheet>
   )
 }
 
@@ -588,31 +549,11 @@ function RecommendedCycleModal({ onClose, onCreate }) {
   const currentStep = steps[step]
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'var(--c-scrim)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    <Sheet
+      title="Ciclo recomendado"
+      subtitle={step < 3 ? `Paso ${step + 1} de 3 — ${currentStep?.title}` : undefined}
+      onClose={onClose}
     >
-      <div style={{
-        background: 'var(--c-bg)', borderRadius: '20px 20px 0 0',
-        width: '100%', maxWidth: '480px',
-        padding: '24px 20px 40px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <div>
-            <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
-              Ciclo recomendado
-            </h2>
-            {step < 3 && (
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '4px' }}>
-                Paso {step + 1} de 3 — {currentStep?.title}
-              </p>
-            )}
-          </div>
-          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1 }}>✕</button>
-        </div>
 
         {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
@@ -678,8 +619,7 @@ function RecommendedCycleModal({ onClose, onCreate }) {
             </button>
           </div>
         )}
-      </div>
-    </div>
+    </Sheet>
   )
 }
 
@@ -738,32 +678,12 @@ function RecommendedSingleDayModal({ onClose, onCreate }) {
   const currentStep = steps[step]
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 100,
-      background: 'var(--c-scrim)', backdropFilter: 'blur(4px)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    <Sheet
+      title="Rutina de un día"
+      subtitle={step < 3 ? `Paso ${step + 1} de 3 — ${currentStep?.title}` : undefined}
+      onClose={onClose}
+      maxHeight="85dvh"
     >
-      <div style={{
-        background: 'var(--c-bg)', borderRadius: '20px 20px 0 0',
-        width: '100%', maxWidth: '480px',
-        padding: '24px 20px 40px',
-        maxHeight: '85dvh', overflowY: 'auto',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <div>
-            <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
-              Rutina de un día
-            </h2>
-            {step < 3 && (
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '4px' }}>
-                Paso {step + 1} de 3 — {currentStep?.title}
-              </p>
-            )}
-          </div>
-          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1 }}>✕</button>
-        </div>
 
         {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
@@ -829,8 +749,7 @@ function RecommendedSingleDayModal({ onClose, onCreate }) {
             </button>
           </div>
         )}
-      </div>
-    </div>
+    </Sheet>
   )
 }
 
