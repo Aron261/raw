@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-23T00:00:00.000Z",
+  "title": "Design System: Raw",
+  "extensions": {
+    "colorMeta": {
+      "accent-red": { "role": "primary", "displayName": "Signal Red", "canonical": "#FF2D2D", "tonalRamp": ["oklch(25% 0.16 28)", "oklch(34% 0.20 28)", "oklch(43% 0.23 28)", "oklch(52% 0.25 28)", "oklch(62% 0.24 28)", "oklch(72% 0.18 28)", "oklch(83% 0.10 28)", "oklch(94% 0.04 28)"] },
+      "pr-green": { "role": "secondary", "displayName": "PR Green", "canonical": "oklch(55% 0.15 145)", "tonalRamp": ["oklch(25% 0.08 145)", "oklch(34% 0.10 145)", "oklch(43% 0.13 145)", "oklch(55% 0.15 145)", "oklch(65% 0.14 145)", "oklch(75% 0.11 145)", "oklch(85% 0.07 145)", "oklch(94% 0.03 145)"] },
+      "text-primary": { "role": "neutral", "displayName": "Ink", "canonical": "oklch(13% 0.005 255)", "tonalRamp": ["oklch(13% 0.005 255)", "oklch(28% 0.005 255)", "oklch(40% 0.005 255)", "oklch(52% 0.005 255)", "oklch(65% 0.005 255)", "oklch(80% 0.004 255)", "oklch(91% 0.005 255)", "oklch(97% 0.006 255)"] },
+      "bg": { "role": "neutral", "displayName": "Daylight Field", "canonical": "oklch(97% 0.006 255)", "tonalRamp": ["oklch(93% 0.005 255)", "oklch(95.5% 0.005 255)", "oklch(97% 0.006 255)", "#FFFFFF"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page greeting; one per screen." },
+      "metric": { "displayName": "Metric", "purpose": "Hero numbers — the loudest element on any screen." },
+      "title": { "displayName": "Title", "purpose": "Card subjects (day name, PR exercise)." },
+      "data": { "displayName": "Data", "purpose": "In-card stat values and set inputs; tabular." },
+      "body": { "displayName": "Body", "purpose": "Contextual sentences and microcopy." },
+      "label": { "displayName": "Label", "purpose": "Uppercase section eyebrows — the only tracked uppercase." }
+    },
+    "shadows": [
+      { "name": "tooltip-lift", "value": "0 4px 12px rgba(0,0,0,0.06)", "purpose": "Transient floating data only (chart tooltip)." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Default press/state easing — exponential ease-out, no bounce." },
+      { "name": "ease-drawer", "value": "cubic-bezier(0.32, 0.72, 0, 1)", "purpose": "Modal sheet slide-up." },
+      { "name": "press-scale", "value": "transform: scale(0.97) over 160ms", "purpose": "Tactile feedback on tappable elements." }
+    ],
+    "breakpoints": [
+      { "name": "mobile-frame", "value": "480px" },
+      { "name": "md", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one red CTA — start / save / commit.",
+      "html": "<button class=\"ds-btn-primary\">Empezar entreno</button>",
+      "css": ".ds-btn-primary { background: #FF2D2D; color: #fff; padding: 16px; width: 100%; font-size: 13px; font-weight: 700; letter-spacing: -0.01em; border: 2px solid transparent; border-radius: 14px; transition: transform 160ms cubic-bezier(0.23,1,0.32,1), opacity 160ms; } .ds-btn-primary:active { transform: scale(0.97); opacity: 0.9; } .ds-btn-primary:disabled { opacity: 0.4; pointer-events: none; }"
+    },
+    {
+      "name": "Resume Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Inverted CTA shown when a workout is in progress.",
+      "html": "<button class=\"ds-btn-resume\">Continuar entreno</button>",
+      "css": ".ds-btn-resume { background: #fff; color: #FF2D2D; padding: 16px; width: 100%; font-size: 13px; font-weight: 700; letter-spacing: -0.01em; border: 2px solid #FF2D2D; border-radius: 14px; transition: transform 160ms cubic-bezier(0.23,1,0.32,1); } .ds-btn-resume:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Surface-2 field with a soft focus ring.",
+      "html": "<input class=\"ds-input\" placeholder=\"Ej: Sentadilla 100kg\" />",
+      "css": ".ds-input { background: oklch(95.5% 0.005 255); border: 1px solid oklch(85% 0.006 255); color: oklch(13% 0.005 255); padding: 8px 12px; border-radius: 10px; width: 100%; outline: none; transition: border-color 150ms, box-shadow 150ms; } .ds-input::placeholder { color: oklch(65% 0.005 255); } .ds-input:focus { border-color: oklch(55% 0.006 255); box-shadow: 0 0 0 3px oklch(85% 0.006 255); }"
+    },
+    {
+      "name": "Stat Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Etched content surface — hero metric over a quiet label.",
+      "html": "<div class=\"ds-card\"><p class=\"ds-eyebrow\">Esta semana</p><p class=\"ds-metric\">14.8k</p><p class=\"ds-caption\">kg de volumen</p></div>",
+      "css": ".ds-card { background: #fff; border: 1px solid oklch(91% 0.005 255); border-radius: 16px; padding: 20px; } .ds-eyebrow { color: oklch(52% 0.005 255); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 16px; } .ds-metric { color: oklch(13% 0.005 255); font-size: 28px; font-weight: 900; letter-spacing: -0.04em; line-height: 1; margin: 0 0 4px; } .ds-caption { color: oklch(52% 0.005 255); font-size: 10px; font-weight: 500; margin: 0; }"
+    },
+    {
+      "name": "PR Badge",
+      "kind": "chip",
+      "refersTo": "pr-badge",
+      "description": "Signature record marker — states the fact, then stops.",
+      "html": "<span class=\"ds-pr\">PR</span>",
+      "css": "@keyframes ds-pr-pop { 0% { transform: scale(0.7); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } } .ds-pr { display: inline-flex; align-items: center; background: #FF2D2D; color: #fff; font-size: 9px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 5px; border-radius: 2px; line-height: 1.2; animation: ds-pr-pop 350ms cubic-bezier(0.23,1,0.32,1) both; } @media (prefers-reduced-motion: reduce) { .ds-pr { animation: none; } }"
+    },
+    {
+      "name": "Coach Tag",
+      "kind": "chip",
+      "refersTo": "pr-badge",
+      "description": "Red-dim pill marking trainer-assigned content.",
+      "html": "<span class=\"ds-tag\">Coach</span>",
+      "css": ".ds-tag { background: rgba(255,45,45,0.08); color: #FF2D2D; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 20px; border: 1px solid rgba(255,45,45,0.22); }"
+    },
+    {
+      "name": "Bottom Nav Tab",
+      "kind": "nav",
+      "refersTo": "card",
+      "description": "Thumb-zone tab — circular icon target over a tracked label.",
+      "html": "<a class=\"ds-tab ds-tab--active\"><span class=\"ds-tab__icon\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/><polyline points=\"9 22 9 12 15 12 15 22\"/></svg></span><span class=\"ds-tab__label\">Inicio</span></a>",
+      "css": ".ds-tab { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; text-decoration: none; } .ds-tab__icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: oklch(80% 0.004 255); border: 1px solid transparent; transition: all 200ms cubic-bezier(0.23,1,0.32,1); } .ds-tab__label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: oklch(80% 0.004 255); } .ds-tab--active .ds-tab__icon { background: rgba(255,45,45,0.08); border-color: rgba(255,45,45,0.22); color: #FF2D2D; } .ds-tab--active .ds-tab__label { color: #FF2D2D; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Honest Instrument",
+    "overview": "Raw is a measuring tool, not an app you experience — a stark white field, one decisive red mark, and a number large enough to read at arm's length under bright gym light. Every surface answers one question (did you beat last time?) and gets out of the way. Light by default and committed to it; color rationed to a single red signal that means act, live, or record. It rejects the generic SaaS dashboard, the bloated consumer fitness app, and the corporate-clinical spreadsheet.",
+    "keyCharacteristics": [
+      "Numbers are the content (28-30px / weight 900 / -0.04em).",
+      "One voice of color — red under 10% of any screen, always meaningful.",
+      "Light, stark, daylight-proof; no dark mode.",
+      "System sans only; zero web-font payload.",
+      "Thumb-first with a fixed glass bottom-nav spine.",
+      "Honest, state-bearing motion with full reduced-motion fallbacks."
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "Red is used on ≤10% of any screen and only ever means act, live, or record. If red appears for decoration, delete it.", "section": "colors" },
+      { "name": "The Legibility Floor Rule", "body": "Real, must-read information never renders lighter than Steel (oklch(52%, 5.5:1 on white). Mist and Fog are at-a-glance captions only.", "section": "colors" },
+      { "name": "The Number-As-Hero Rule", "body": "On any screen the single most important figure is the largest, heaviest, darkest element. Shrink competing chrome.", "section": "typography" },
+      { "name": "The Quiet Caption Rule", "body": "Captions are 500-weight and small, never bold-and-loud. Build hierarchy by letting the number shout.", "section": "typography" },
+      { "name": "The Etched-Not-Floated Rule", "body": "Cards earn separation from a 1px border-subtle plus a one-step surface lift, never a drop shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do make the most important number the largest, heaviest, darkest element on the screen.",
+      "Do ration red to act / live / record and keep it under ~10% of any view.",
+      "Do put primary actions in the bottom thumb zone and keep tap targets ≥44px.",
+      "Do separate cards with a 1px border-subtle plus surface lift, not a shadow.",
+      "Do pair every PR/live/record signal with a label or icon, never color alone.",
+      "Do keep all real, readable text at Steel (oklch(52%) or darker.",
+      "Do ship a prefers-reduced-motion fallback for every animation."
+    ],
+    "donts": [
+      "Don't build a generic SaaS dashboard — no gradient hero-metric tiles, pastel charts, or cards-everywhere sameness.",
+      "Don't add consumer-fitness dopamine theatre — no confetti, streak spam, or badges.",
+      "Don't drift corporate-clinical — keep athletic weight and high contrast.",
+      "Don't render must-read text in Fog (oklch(80%, 1.9:1); keep readable text at Mist (oklch(54%) or darker.",
+      "Don't put a colored stripe on the side of a card; the only heavy accent edge is the PR card's 3px top border.",
+      "Don't use a second hue — green is for completed goals only.",
+      "Don't add a drop shadow to a card or a web font to the bundle."
+    ]
+  }
+}

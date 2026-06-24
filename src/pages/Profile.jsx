@@ -228,8 +228,8 @@ function BodyWeightSection() {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
               <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
+              <XAxis dataKey="date" tick={{ fill: '#67696c', fontSize: 9 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#67696c', fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
               <Tooltip content={<WeightTooltip />} />
               <Line
                 type="monotone"

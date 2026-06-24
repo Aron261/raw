@@ -173,7 +173,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
     <div
       style={{
         position: 'fixed', inset: 0,
-        background: 'rgba(0,0,0,0.75)',
+        background: 'var(--c-scrim)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 50,
@@ -201,7 +201,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
           <h3 style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 700 }}>
             Nueva meta
           </h3>
-          <button onClick={onClose} style={{ color: 'var(--c-text-dim)', fontSize: '16px', lineHeight: 1, padding: '4px' }}>✕</button>
+          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-dim)', fontSize: '16px', lineHeight: 1, padding: '4px' }}>✕</button>
         </div>
 
         <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
@@ -415,7 +415,7 @@ export default function Home() {
   const navigate = useNavigate()
   const { signOut } = useAuth()
   const { profile } = useProfile()
-  const { workouts, loading, error, createWorkout } = useWorkouts()
+  const { workouts, loading, error, createWorkout, fetchWorkouts } = useWorkouts()
   const { goals, createGoal, deleteGoal } = useGoals()
 
   const firstName = profile?.name?.split(' ')[0] || ''
@@ -852,7 +852,22 @@ export default function Home() {
           </div>
         )}
 
-        {error && <div style={ERROR_STYLE}>Error al cargar entrenos.</div>}
+        {error && (
+          <div style={{ ...ERROR_STYLE, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+            <span>No pudimos cargar tus entrenos.</span>
+            <button
+              onClick={fetchWorkouts}
+              style={{
+                flexShrink: 0,
+                color: 'var(--c-accent)', fontSize: '12px', fontWeight: 700,
+                border: '1px solid var(--c-accent-border)', borderRadius: '8px',
+                padding: '6px 12px', background: 'transparent',
+              }}
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
 
         {/* ── CTA principal ── */}
         {!loading && !error && (
@@ -882,7 +897,7 @@ export default function Home() {
                   border: '2px solid var(--c-accent)',
                   borderRadius: '14px',
                   padding: '16px',
-                  fontSize: '13px',
+                  fontSize: '14px',
                   fontWeight: 700,
                   letterSpacing: '-0.01em',
                   transition: 'opacity 150ms',
@@ -903,7 +918,7 @@ export default function Home() {
                   border: '2px solid transparent',
                   borderRadius: '14px',
                   padding: '16px',
-                  fontSize: '13px',
+                  fontSize: '14px',
                   fontWeight: 700,
                   letterSpacing: '-0.01em',
                   transition: 'opacity 150ms',
@@ -1175,6 +1190,7 @@ export default function Home() {
                       }}
                       onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
                       onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                      aria-label="Agregar meta"
                       title="Agregar meta"
                     >
                       +
@@ -1231,19 +1247,29 @@ export default function Home() {
                               style={{ color: 'var(--c-text-muted)', fontSize: '12px', padding: '2px 4px', marginLeft: '8px', flexShrink: 0, transition: 'color 120ms' }}
                               onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
                               onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
+                              aria-label="Eliminar meta"
                               title="Eliminar meta"
                             >
                               ✕
                             </button>
                           </div>
                           {/* Barra de progreso */}
-                          <div style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', marginBottom: '6px', overflow: 'hidden' }}>
+                          <div
+                            style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', marginBottom: '6px', overflow: 'hidden' }}
+                            role="progressbar"
+                            aria-valuenow={goal.pct}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-label={goal.label}
+                          >
                             <div style={{
                               height: '100%',
-                              width: `${goal.pct}%`,
+                              width: '100%',
+                              transformOrigin: 'left center',
+                              transform: `scaleX(${goal.pct / 100})`,
                               background: goal.pct >= 100 ? 'oklch(55% 0.15 145)' : 'var(--c-accent)',
                               borderRadius: '999px',
-                              transition: 'width 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+                              transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
                             }} />
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

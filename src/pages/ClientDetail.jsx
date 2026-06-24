@@ -38,7 +38,7 @@ function Sheet({ title, subtitle, onClose, children }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 100,
-      background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+      background: 'var(--c-scrim)', backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
     }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
@@ -53,7 +53,7 @@ function Sheet({ title, subtitle, onClose, children }) {
             <h2 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>{title}</h2>
             {subtitle && <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '4px' }}>{subtitle}</p>}
           </div>
-          <button onClick={onClose} style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>✕</button>
+          <button onClick={onClose} aria-label="Cerrar" style={{ color: 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>✕</button>
         </div>
         {children}
       </div>
@@ -480,8 +480,8 @@ export default function ClientDetail() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dash.weeklyData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
                     <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#9E9EA8', fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="label" tick={{ fill: '#67696c', fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#67696c', fontSize: 9 }} axisLine={false} tickLine={false} />
                     <Tooltip cursor={{ fill: 'rgba(255,45,45,0.06)' }} />
                     <Bar dataKey="volume" fill="#FF2D2D" radius={[3, 3, 0, 0]} />
                   </BarChart>

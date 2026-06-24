@@ -133,12 +133,12 @@ export default function ExerciseDetail() {
                     <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" />
                     <XAxis
                       dataKey="date"
-                      tick={{ fill: '#9E9EA8', fontSize: 10 }}
+                      tick={{ fill: '#67696c', fontSize: 10 }}
                       axisLine={{ stroke: '#E8E8EE' }}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fill: '#9E9EA8', fontSize: 10 }}
+                      tick={{ fill: '#67696c', fontSize: 10 }}
                       axisLine={{ stroke: '#E8E8EE' }}
                       tickLine={false}
                     />

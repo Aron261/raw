@@ -211,7 +211,7 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Add Exercise', subt
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.75)',
+        background: 'var(--c-scrim)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 50,
@@ -397,7 +397,7 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.75)',
+        background: 'var(--c-scrim)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 50,
@@ -475,7 +475,7 @@ function EditConfirmModal({ step, onFirstConfirm, onSecondConfirm, onCancel }) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.75)',
+        background: 'var(--c-scrim)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 50,

@@ -18,14 +18,16 @@
   --c-text:           oklch(13% 0.005 255);
   --c-text-secondary: oklch(28% 0.005 255);
   --c-text-dim:       oklch(52% 0.005 255);
-  --c-text-muted:     oklch(65% 0.005 255);
-  --c-text-ghost:     oklch(80% 0.004 255);
+  --c-text-muted:     oklch(54% 0.005 255); /* AA: 5.06:1 on white, 4.64:1 on bg */
+  --c-text-ghost:     oklch(80% 0.004 255); /* decorative only — never must-read text */
   --c-accent:         #FF2D2D;
   --c-accent-dim:     rgba(255, 45, 45, 0.08);
   --c-accent-border:  rgba(255, 45, 45, 0.22);
   /* Glazed surfaces */
   --c-surface-glass:  rgba(255, 255, 255, 0.92);
   --c-bg-glass:       rgba(248, 248, 252, 0.96);
+  /* Modal backdrop scrim — one value for every overlay */
+  --c-scrim:          rgba(0, 0, 0, 0.75);
 
   /* Radius scale */
   --r-xs:  6px;
@@ -39,6 +41,16 @@
   * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Consistent keyboard focus ring across every interactive element.
+     Mouse/touch users see no ring (:focus-visible); keyboard users always do. */
+  :focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 2px;
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
   }
 
   html, body {

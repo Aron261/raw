@@ -14,7 +14,7 @@ export default {
         border:           'oklch(85% 0.006 255)',
         'border-subtle':  'oklch(91% 0.005 255)',
         'text-primary':   'oklch(13% 0.005 255)',
-        'text-muted':     'oklch(65% 0.005 255)',
+        'text-muted':     'oklch(54% 0.005 255)',
         'text-dim':       'oklch(52% 0.005 255)',
         'accent-red':     '#FF2D2D',
         'accent-red-dim': 'rgba(255,45,45,0.08)',
