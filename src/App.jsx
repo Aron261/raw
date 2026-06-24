@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import ErrorBoundary from './components/ErrorBoundary'
 import { AuthContext, useAuthProvider } from './hooks/useAuth'
 import { useBetaGate } from './hooks/useBetaGate'
 import BetaGate from './pages/BetaGate'
@@ -48,6 +49,7 @@ function AppWithAuth() {
   return (
     <AuthContext.Provider value={auth}>
       <BrowserRouter>
+        <ErrorBoundary>
         <Routes>
           {/* Public */}
           <Route
@@ -81,6 +83,7 @@ function AppWithAuth() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </AuthContext.Provider>
   )
