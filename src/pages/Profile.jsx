@@ -12,6 +12,12 @@ import { useInvites } from '../hooks/useInvites'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { useTheme } from '../hooks/useTheme'
 
+// Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
+const PROFILE_CHART = {
+  light: { line: '#2438FF', grid: '#D5D2C7', axis: '#67696c' },
+  dark:  { line: '#6E7BFF', grid: '#26271F', axis: '#A2A096' },
+}
+
 // ── Theme selector (Auto / Claro / Oscuro) ───────────────────────────────
 function ThemeSection() {
   const { preference, setPreference } = useTheme()
@@ -122,7 +128,7 @@ function NumberWithUnit({ value, unit, onValueChange, onUnitChange, units, place
               fontSize: '11px',
               fontWeight: 700,
               background: unit === u ? 'var(--c-accent)' : 'transparent',
-              color: unit === u ? '#fff' : 'var(--c-text-dim)',
+              color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
               transition: 'all 150ms var(--ease-out)',
               height: '100%',
             }}
@@ -152,7 +158,7 @@ function DaysPicker({ value, onChange }) {
               fontSize: '13px', fontWeight: 800,
               border: `1px solid ${selected ? 'var(--c-accent)' : 'var(--c-border)'}`,
               background: selected ? 'var(--c-accent)' : 'var(--c-surface-2)',
-              color: selected ? '#fff' : 'var(--c-text-dim)',
+              color: selected ? 'var(--c-on-action)' : 'var(--c-text-dim)',
               transition: 'all 150ms var(--ease-out)',
               cursor: 'pointer',
               flexShrink: 0,
@@ -187,6 +193,8 @@ function WeightTooltip({ active, payload, label }) {
 
 // ── Body weight section ─────────────────────────────────────────────────
 function BodyWeightSection() {
+  const { resolved } = useTheme()
+  const cc = PROFILE_CHART[resolved] || PROFILE_CHART.light
   const { logs, chartData, latestLog, loading, adding, addLog, deleteLog } = useBodyWeight()
   const [inputWeight, setInputWeight] = useState('')
   const [inputUnit, setInputUnit] = useState(latestLog?.unit ?? 'kg')
@@ -230,7 +238,7 @@ function BodyWeightSection() {
                 padding: '0 14px',
                 fontSize: '11px', fontWeight: 700,
                 background: inputUnit === u ? 'var(--c-accent)' : 'transparent',
-                color: inputUnit === u ? '#fff' : 'var(--c-text-dim)',
+                color: inputUnit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
                 transition: 'all 150ms var(--ease-out)',
                 height: '100%',
               }}
@@ -246,7 +254,7 @@ function BodyWeightSection() {
           style={{
             padding: '0 16px',
             background: 'var(--c-accent)',
-            color: '#fff',
+            color: 'var(--c-on-action)',
             fontSize: '12px', fontWeight: 800,
             borderRadius: '10px',
             opacity: adding || !inputWeight ? 0.5 : 1,
@@ -269,17 +277,17 @@ function BodyWeightSection() {
         <div style={{ height: '140px', width: '100%', marginBottom: '20px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-              <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fill: '#67696c', fontSize: 9 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#67696c', fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
+              <CartesianGrid stroke={cc.grid} strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
               <Tooltip content={<WeightTooltip />} />
               <Line
                 type="monotone"
                 dataKey="peso"
-                stroke="#FF2D2D"
+                stroke={cc.line}
                 strokeWidth={2}
-                dot={{ fill: '#FF2D2D', r: 3, strokeWidth: 0 }}
-                activeDot={{ fill: '#FF2D2D', r: 5, strokeWidth: 0 }}
+                dot={{ fill: cc.line, r: 3, strokeWidth: 0 }}
+                activeDot={{ fill: cc.line, r: 5, strokeWidth: 0 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -419,7 +427,7 @@ function TrainerSection() {
             onClick={handleRedeem}
             disabled={redeeming || !code.trim()}
             style={{
-              padding: '0 18px', background: 'var(--c-accent)', color: '#fff',
+              padding: '0 18px', background: 'var(--c-accent)', color: 'var(--c-on-action)',
               fontSize: '12px', fontWeight: 800, borderRadius: '10px', flexShrink: 0,
               opacity: redeeming || !code.trim() ? 0.5 : 1,
             }}
@@ -450,7 +458,7 @@ function TrainerSection() {
                   {counts[t.trainerId] > 0 && (
                     <span style={{
                       minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px',
-                      background: 'var(--c-accent)', color: '#fff',
+                      background: 'var(--c-accent)', color: 'var(--c-on-action)',
                       fontSize: '10px', fontWeight: 800, lineHeight: '18px', textAlign: 'center',
                     }}>
                       {counts[t.trainerId] > 9 ? '9+' : counts[t.trainerId]}
@@ -708,7 +716,7 @@ export default function Profile() {
             }}
           >
             {saving
-              ? <><span className="spinner" style={{ borderTopColor: '#fff', borderColor: 'rgba(255,255,255,0.3)' }} /><span>Guardando...</span></>
+              ? <><span className="spinner" style={{ borderTopColor: 'var(--c-on-action)', borderColor: 'rgba(255,255,255,0.3)' }} /><span>Guardando...</span></>
               : saveSuccess
                 ? '✓ Guardado'
                 : 'Guardar perfil'

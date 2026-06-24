@@ -112,12 +112,12 @@ export default function ExerciseRow({
             transform: 'translateX(-50%)',
             zIndex: 10,
             background: 'var(--c-accent)',
-            color: '#fff',
+            color: 'var(--c-on-action)',
             fontSize: '10px', fontWeight: 900,
             textTransform: 'uppercase', letterSpacing: '0.12em',
             padding: '4px 12px', borderRadius: '999px',
             whiteSpace: 'nowrap',
-            boxShadow: '0 2px 12px rgba(255,45,45,0.35)',
+            boxShadow: '0 2px 12px var(--c-action-border)',
             cursor: 'pointer',
           }}
           onClick={() => setShowPRBanner(false)}
@@ -219,7 +219,7 @@ export default function ExerciseRow({
                   padding: '3px 8px', fontSize: '10px', fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: '0.04em',
                   background: unit === u ? 'var(--c-accent)' : 'transparent',
-                  color: unit === u ? '#fff' : 'var(--c-text-dim)',
+                  color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
                   transition: 'background 120ms, color 120ms',
                 }}
               >

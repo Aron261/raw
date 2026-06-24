@@ -8,6 +8,13 @@ import { useClientDetail } from '../hooks/useClientDetail'
 import { useRoutines } from '../hooks/useRoutines'
 import { useGoals } from '../hooks/useGoals'
 import { useDashboard } from '../hooks/useDashboard'
+import { useTheme } from '../hooks/useTheme'
+
+// Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
+const CHART = {
+  light: { bar: '#2438FF', grid: '#D5D2C7', axis: '#67696c', cursor: 'rgba(36,56,255,0.08)' },
+  dark:  { bar: '#6E7BFF', grid: '#26271F', axis: '#A2A096', cursor: 'rgba(110,123,255,0.14)' },
+}
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 
 const SECTION_LABEL = {
@@ -376,7 +383,7 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
                 <button key={u} onClick={() => setUnit(u)} style={{
                   padding: '0 14px', fontSize: '11px', fontWeight: 700,
                   background: unit === u ? 'var(--c-accent)' : 'transparent',
-                  color: unit === u ? '#fff' : 'var(--c-text-dim)',
+                  color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
                 }}>{u}</button>
               ))}
             </div>
@@ -405,6 +412,8 @@ export default function ClientDetail() {
   const { routines, loading: routLoading, createRoutine, deleteRoutine, setActiveRoutine } = useRoutines(clientId)
   const { goals, loading: goalsLoading, createGoal, deleteGoal } = useGoals(clientId)
   const { data: dash } = useDashboard(clientId)
+  const { resolved } = useTheme()
+  const cc = CHART[resolved] || CHART.light
 
   const [modal, setModal] = useState(null) // 'cycle' | 'single' | 'goal'
   const [actionError, setActionError] = useState(null)
@@ -479,11 +488,11 @@ export default function ClientDetail() {
               <div style={{ height: '120px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dash.weeklyData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-                    <CartesianGrid stroke="#E8E8EE" strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fill: '#67696c', fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#67696c', fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <Tooltip cursor={{ fill: 'rgba(255,45,45,0.06)' }} />
-                    <Bar dataKey="volume" fill="#FF2D2D" radius={[3, 3, 0, 0]} />
+                    <CartesianGrid stroke={cc.grid} strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <Tooltip cursor={{ fill: cc.cursor }} />
+                    <Bar dataKey="volume" fill={cc.bar} radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

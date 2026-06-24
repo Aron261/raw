@@ -226,7 +226,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
                 flex: 1, padding: '10px 8px', borderRadius: '8px',
                 fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
                 background: type === opt.value ? 'var(--c-accent)' : 'var(--c-surface-2)',
-                color: type === opt.value ? '#fff' : 'var(--c-text-dim)',
+                color: type === opt.value ? 'var(--c-on-action)' : 'var(--c-text-dim)',
                 border: `1px solid ${type === opt.value ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
                 transition: 'all 150ms',
               }}
@@ -327,7 +327,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
           style={{ width: '100%', padding: '14px', fontSize: '11px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         >
           {saving
-            ? <><span className="spinner" style={{ borderTopColor: '#fff', borderColor: 'rgba(255,255,255,0.2)' }} /><span>Guardando...</span></>
+            ? <><span className="spinner" style={{ borderTopColor: 'var(--c-on-action)', borderColor: 'rgba(255,255,255,0.2)' }} /><span>Guardando...</span></>
             : 'Guardar meta'
           }
         </button>
@@ -1022,7 +1022,7 @@ export default function Home() {
                       disabled={starting}
                       style={{
                         flexShrink: 0,
-                        background: 'var(--c-accent)', color: '#fff',
+                        background: 'var(--c-accent)', color: 'var(--c-on-action)',
                         border: 'none', borderRadius: '10px', padding: '10px 16px',
                         fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em',
                         opacity: starting ? 0.6 : 1, transition: 'opacity 150ms',
@@ -1243,15 +1243,15 @@ export default function Home() {
                         style={{
                           background: 'transparent',
                           color: 'var(--c-accent)',
-                          border: '1px solid rgba(255,45,45,0.25)',
+                          border: '1px solid var(--c-action-border)',
                           borderRadius: '8px',
                           padding: '8px 14px',
                           fontSize: '11px',
                           fontWeight: 700,
                           transition: 'background 150ms, border-color 150ms',
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,45,45,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,45,45,0.4)' }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,45,45,0.25)' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-action-dim)'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
                       >
                         Crear meta
                       </button>

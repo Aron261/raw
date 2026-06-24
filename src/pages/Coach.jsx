@@ -11,7 +11,7 @@ function UnreadBadge({ count }) {
   return (
     <span style={{
       minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px',
-      background: 'var(--c-accent)', color: '#fff',
+      background: 'var(--c-accent)', color: 'var(--c-on-action)',
       fontSize: '10px', fontWeight: 800, lineHeight: '18px', textAlign: 'center',
       display: 'inline-block', flexShrink: 0,
     }}>
