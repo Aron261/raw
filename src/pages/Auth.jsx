@@ -110,7 +110,7 @@ function WeightDisc({ size = 172 }) {
         fill="#FFFFFF"
         fontSize="22"
         fontWeight="900"
-        fontFamily="Impact, 'Arial Black', sans-serif"
+        fontFamily="Anton, 'Arial Narrow', sans-serif"
         letterSpacing="4"
         style={{ textShadow: 'none' }}
       >

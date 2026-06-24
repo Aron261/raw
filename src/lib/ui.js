@@ -28,11 +28,11 @@ export const LABEL_STYLE = {
   color: 'var(--c-text-dim)',
 }
 
-// Error alert style.
+// Error alert style — themed via the action role (Raw has no separate red).
 export const ERROR_STYLE = {
-  background: 'rgba(255,45,45,0.08)',
-  border: '1px solid var(--c-accent-border)',
-  color: 'var(--c-accent)',
+  background: 'var(--c-action-dim)',
+  border: '1px solid var(--c-action-border)',
+  color: 'var(--c-action-text)',
   fontSize: '12px',
   padding: '10px 12px',
   borderRadius: '10px',
