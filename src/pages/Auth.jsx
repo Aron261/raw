@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { ERROR_STYLE, pressProps } from '../lib/ui'
+import { Button } from '../components/ui'
 
 // SVG disco de pesas — look oscuro/metálico, fiel al referente
 function WeightDisc({ size = 172 }) {
@@ -335,22 +336,17 @@ export default function Auth() {
             />
           </div>
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            full
+            size="lg"
+            loading={loading}
             disabled={loading}
-            className="btn-primary"
-            style={{
-              marginTop: '4px', padding: '14px',
-              fontSize: '12px', fontWeight: 800,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            }}
-            {...pressProps(0.97)}
+            style={{ marginTop: '4px' }}
           >
-            {loading
-              ? <><span className="spinner" /><span>Cargando...</span></>
-              : mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'
-            }
-          </button>
+            {loading ? 'Cargando...' : mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+          </Button>
         </form>
       </div>
     </div>

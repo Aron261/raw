@@ -12,6 +12,7 @@ import { useInvites } from '../hooks/useInvites'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { useTheme } from '../hooks/useTheme'
 import { ERROR_STYLE } from '../lib/ui'
+import { Button } from '../components/ui'
 
 // Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
 const PROFILE_CHART = {
@@ -704,24 +705,20 @@ export default function Profile() {
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            full
+            size="lg"
+            loading={saving}
             disabled={saving}
-            className="btn-primary"
             style={{
-              padding: '16px', fontSize: '12px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              background: saveSuccess ? 'var(--c-success)' : 'var(--c-accent)',
+              background: saveSuccess ? 'var(--c-success)' : undefined,
               transition: 'background 300ms var(--ease-out)',
             }}
           >
-            {saving
-              ? <><span className="spinner" style={{ borderTopColor: 'var(--c-on-action)', borderColor: 'rgba(255,255,255,0.3)' }} /><span>Guardando...</span></>
-              : saveSuccess
-                ? '✓ Guardado'
-                : 'Guardar perfil'
-            }
-          </button>
+            {saving ? 'Guardando...' : saveSuccess ? '✓ Guardado' : 'Guardar perfil'}
+          </Button>
         </form>
       </div>
     </Layout>
