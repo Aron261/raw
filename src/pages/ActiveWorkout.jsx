@@ -63,7 +63,7 @@ function RestTimer({ onDone, onDismiss }) {
         <circle cx="16" cy="16" r="13" fill="none" stroke="var(--c-border-subtle)" strokeWidth="2.5" />
         <circle
           cx="16" cy="16" r="13" fill="none"
-          stroke={done ? 'oklch(55% 0.15 145)' : 'var(--c-accent)'}
+          stroke={done ? 'var(--c-success)' : 'var(--c-accent)'}
           strokeWidth="2.5"
           strokeDasharray={`${2 * Math.PI * 13}`}
           strokeDashoffset={`${2 * Math.PI * 13 * (1 - pct)}`}
@@ -76,7 +76,7 @@ function RestTimer({ onDone, onDismiss }) {
       <span style={{
         fontFamily: 'ui-monospace, monospace',
         fontSize: '18px', fontWeight: 800,
-        color: done ? 'oklch(55% 0.15 145)' : 'var(--c-text)',
+        color: done ? 'var(--c-success)' : 'var(--c-text)',
         letterSpacing: '-0.02em',
         fontVariantNumeric: 'tabular-nums',
         minWidth: '48px',
@@ -288,7 +288,7 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '-0.01em',
-                borderRadius: '3px',
+                borderRadius: '6px',
                 transition: `background 120ms var(--ease-out)`,
                 display: 'block',
               }}
@@ -311,7 +311,7 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio',
                 fontWeight: 800,
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
-                borderRadius: '3px',
+                borderRadius: '6px',
                 border: '1px dashed var(--c-border)',
                 marginTop: '8px',
                 transition: `background 120ms var(--ease-out), border-color 120ms var(--ease-out)`,
@@ -341,7 +341,7 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio',
           }}>
             {added.map((name, i) => (
               <div key={i} style={{
-                color: 'oklch(55% 0.15 145)',
+                color: 'var(--c-success)',
                 fontSize: '11px',
                 fontWeight: 700,
                 textTransform: 'uppercase',
@@ -743,7 +743,7 @@ export default function ActiveWorkout() {
 
         {/* Empty state */}
         {workoutExercises.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px 0', border: '1px dashed var(--c-border-subtle)', borderRadius: '4px', marginBottom: '16px' }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', border: '1px dashed var(--c-border-subtle)', borderRadius: '6px', marginBottom: '16px' }}>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Sin ejercicios aún
             </p>

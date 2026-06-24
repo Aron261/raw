@@ -804,7 +804,7 @@ export default function Home() {
   }
 
   const getMotivationColor = (pct) => {
-    if (pct >= 100) return 'oklch(55% 0.15 145)'
+    if (pct >= 100) return 'var(--c-success)'
     if (pct >= 75)  return 'oklch(65% 0.18 60)'
     return 'var(--c-text-muted)'
   }
@@ -1309,7 +1309,7 @@ export default function Home() {
                                   : `${goal.current} / ${goal.target_value} ${goal.unit} (1RM est.)`
                               }
                             </span>
-                            <span style={{ fontSize: '10px', fontWeight: 700, color: goal.pct >= 100 ? 'oklch(55% 0.15 145)' : 'var(--c-text-dim)' }}>
+                            <span style={{ fontSize: '10px', fontWeight: 700, color: goal.pct >= 100 ? 'var(--c-success)' : 'var(--c-text-dim)' }}>
                               {goal.pct}%
                             </span>
                           </div>

@@ -10,6 +10,7 @@ colors:
   data: "#2438FF"
   record: "#C0EE2E"
   record-ink: "#15140F"
+  success: "oklch(48% 0.16 150)"
   bg: "#EAE7DE"
   surface: "#F4F2EB"
   surface-2: "#DFDCD2"
@@ -143,6 +144,9 @@ A committed, role-based palette (a full-palette strategy, not restrained) sittin
 ### Tertiary
 - **Record Lime** (light `#C0EE2E` / dark `#C6FB50`): Reserved exclusively for PRs and records — the rare "earned win" color. Always a fill with ink text (`record-ink`). If lime appears anywhere that isn't a record, it's a bug.
 
+### Semantic
+- **Success Green** (light `oklch(48% 0.16 150)` / dark `oklch(72% 0.17 150)`): A functional state color, *not* a brand voice — used only for "done / complete / saved": the set-done timer ring, finished checkmarks, a goal at 100%, and save confirmations. AA in both modes. It never decorates and never competes with the three voices; it just confirms a state.
+
 ### Neutral
 - **Ink** (light `#15140F` / dark `#EFEDE4`): Primary text and hero numbers.
 - **Ink Secondary** (`#3A3833` / `#C9C7BC`): In-card secondary values.
@@ -153,7 +157,7 @@ A committed, role-based palette (a full-palette strategy, not restrained) sittin
 - **Border / Border-subtle**: hairline structure as translucent ink (light) or paper (dark).
 
 ### Named Rules
-**The Three Voices Rule.** Color speaks exactly three words — pink *act*, blue *data*, lime *record*. A color used outside its role is removed. Their discipline is what makes them read.
+**The Three Voices Rule.** Brand color speaks exactly three words — pink *act*, blue *data*, lime *record*. A color used outside its role is removed; their discipline is what makes them read. (Success-green is the one exception, and a deliberate one: a functional state color for *done/complete*, never a brand voice.)
 
 **The Ink-on-Pink Rule.** Text on an Action-Pink fill is always ink (`on-action`), never white — white on this pink fails AA (3.7:1), ink clears it (5.2:1).
 
