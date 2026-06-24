@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import BottomNav from './BottomNav'
 import Sidebar from './Sidebar'
 import WorkoutPickerModal from './WorkoutPickerModal'
+import { StartFab } from './ui'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useRoutines } from '../hooks/useRoutines'
 
@@ -69,6 +70,7 @@ export default function Layout({ children, hideNav = false }) {
             <main className={`flex-1 flex flex-col ${hideNav ? '' : 'pb-20'}`}>
               {children}
             </main>
+            {!hideNav && <StartFab onClick={openPicker} />}
             {!hideNav && <BottomNav />}
           </div>
 
@@ -78,6 +80,7 @@ export default function Layout({ children, hideNav = false }) {
             <main className="flex-1 overflow-y-auto" style={{ minHeight: '100dvh' }}>
               {children}
             </main>
+            {!hideNav && <StartFab onClick={openPicker} />}
           </div>
         </>
       )}
