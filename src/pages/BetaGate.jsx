@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useBetaGate } from '../hooks/useBetaGate'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
+import { Button } from '../components/ui'
 
 // Pantalla de acceso durante la beta: pide el código compartido.
 // Se muestra a cualquier usuario autenticado que aún no esté aprobado.
@@ -55,15 +56,15 @@ export default function BetaGate() {
               className="input-field"
               style={{ textAlign: 'center', letterSpacing: '0.14em', fontWeight: 700, fontSize: '15px', marginBottom: '14px' }}
             />
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              full
+              size="lg"
               disabled={redeeming || !code.trim()}
-              className="btn-primary"
-              style={{ width: '100%', padding: '14px', fontSize: '12px', opacity: redeeming || !code.trim() ? 0.5 : 1 }}
-              {...pressProps(0.98)}
             >
               {redeeming ? 'Verificando...' : 'Entrar'}
-            </button>
+            </Button>
           </form>
         </div>
 

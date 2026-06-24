@@ -307,16 +307,12 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio',
 
         {/* Botón Listo */}
         {!closeOnSelect && (
-          <button
-            onClick={onClose}
-            className="btn-primary"
-            style={{ width: '100%', padding: '14px', fontSize: '11px', marginBottom: '8px' }}
-          >
+          <Button variant="primary" full size="lg" onClick={onClose} style={{ marginBottom: '8px' }}>
             {added.length === 0
               ? 'Listo'
               : `Listo (${added.length} agregado${added.length !== 1 ? 's' : ''})`
             }
-          </button>
+          </Button>
         )}
     </Sheet>
   )
@@ -500,7 +496,7 @@ export default function ActiveWorkout() {
       <Layout hideNav>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', gap: '16px', padding: '24px' }}>
           <p style={{ color: 'var(--c-accent)', fontSize: '13px' }}>{error || 'Entreno no encontrado.'}</p>
-          <button onClick={handleBack} className="btn-secondary">← Atrás</button>
+          <Button variant="secondary" onClick={handleBack}>← Atrás</Button>
         </div>
       </Layout>
     )
@@ -647,42 +643,33 @@ export default function ActiveWorkout() {
               marginTop: '8px',
             }}
           >
-            <button
-              onClick={() => setShowAdd(true)}
-              className="btn-secondary"
-              style={{ width: '100%', padding: '14px', fontSize: '11px' }}
-            >
+            <Button variant="secondary" full size="lg" onClick={() => setShowAdd(true)}>
               + Agregar ejercicio
-            </button>
+            </Button>
             {isEditing ? (
-              <button
-                onClick={() => setIsEditing(false)}
-                className="btn-primary"
-                style={{ width: '100%', padding: '14px', fontSize: '11px' }}
-              >
+              <Button variant="primary" full size="lg" onClick={() => setIsEditing(false)}>
                 Guardar y cerrar edición
-              </button>
+              </Button>
             ) : (
-              <button
-                onClick={() => setShowFinishConfirm(true)}
+              <Button
+                variant="primary"
+                full
+                size="lg"
+                loading={finishing}
                 disabled={finishing}
-                className="btn-primary"
-                style={{ width: '100%', padding: '14px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                onClick={() => setShowFinishConfirm(true)}
               >
-                {finishing
-                  ? <><span className="spinner" style={{ borderTopColor: 'var(--c-text)', borderColor: 'rgba(255,255,255,0.2)' }} /><span>Finalizando...</span></>
-                  : 'Finalizar entreno'
-                }
-              </button>
+                {finishing ? 'Finalizando...' : 'Finalizar entreno'}
+              </Button>
             )}
           </div>
         )}
 
         {isFinished && (
           <div style={{ paddingBottom: '32px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <button onClick={handleBack} className="btn-secondary" style={{ width: '100%', padding: '14px', fontSize: '11px' }}>
+            <Button variant="secondary" full size="lg" onClick={handleBack}>
               ← Volver al inicio
-            </button>
+            </Button>
 
             {!isEditing ? (
               <button
@@ -701,20 +688,12 @@ export default function ActiveWorkout() {
               </button>
             ) : (
               <>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="btn-primary"
-                  style={{ width: '100%', padding: '14px', fontSize: '11px' }}
-                >
+                <Button variant="primary" full size="lg" onClick={() => setIsEditing(false)}>
                   Guardar cambios
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="btn-secondary"
-                  style={{ width: '100%', padding: '14px', fontSize: '11px' }}
-                >
+                </Button>
+                <Button variant="secondary" full size="lg" onClick={() => setIsEditing(false)}>
                   Cancelar edición
-                </button>
+                </Button>
               </>
             )}
 

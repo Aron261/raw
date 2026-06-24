@@ -4,7 +4,7 @@ import Layout from '../components/Layout'
 import { useTrainer } from '../hooks/useTrainer'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
-import { Sheet } from '../components/ui'
+import { Sheet, Button } from '../components/ui'
 
 // Badge rojo con la cantidad de mensajes sin leer
 function UnreadBadge({ count }) {
@@ -76,25 +76,22 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
             <p style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '0.1em', marginBottom: '14px' }}>
               {code}
             </p>
-            <button
-              onClick={() => copy(code)}
-              className="btn-secondary"
-              style={{ width: '100%', padding: '11px', fontSize: '11px' }}
-              {...pressProps(0.98)}
-            >
+            <Button variant="secondary" full onClick={() => copy(code)}>
               {copied ? '✓ Copiado' : 'Copiar código'}
-            </button>
+            </Button>
           </div>
         ) : (
-          <button
-            onClick={handleCreate}
+          <Button
+            variant="primary"
+            full
+            size="lg"
+            loading={saving}
             disabled={saving}
-            className="btn-primary"
-            style={{ width: '100%', padding: '13px', fontSize: '12px', fontWeight: 800, marginBottom: '16px' }}
-            {...pressProps(0.98)}
+            onClick={handleCreate}
+            style={{ marginBottom: '16px' }}
           >
             {saving ? 'Generando...' : 'Generar código'}
-          </button>
+          </Button>
         )}
 
         {activeInvites.length > 0 && (
@@ -260,14 +257,14 @@ export default function Coach() {
 
         {/* Botón invitar */}
         <div className="fade-in" style={{ marginBottom: '28px', animationDelay: '20ms' }}>
-          <button
+          <Button
+            variant="primary"
+            full
             onClick={() => setShowInvite(true)}
-            className="btn-primary"
-            style={{ width: '100%', padding: '13px', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}
-            {...pressProps(0.97)}
+            style={{ textTransform: 'uppercase', letterSpacing: '0.04em' }}
           >
             + Invitar cliente
-          </button>
+          </Button>
         </div>
 
         {(error || actionError) && (
