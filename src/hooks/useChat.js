@@ -80,7 +80,7 @@ export function useChat(otherUserId) {
     if (!convo) return
 
     const channel = supabase
-      .channel(`chat:${convo.trainer_id}:${convo.client_id}`)
+      .channel(`chat:${convo.trainer_id}:${convo.client_id}:${Math.random().toString(36).slice(2)}`)
       .on(
         'postgres_changes',
         {

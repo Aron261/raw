@@ -11,6 +11,7 @@ import { useTrainer } from '../hooks/useTrainer'
 import { useInvites } from '../hooks/useInvites'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { useTheme } from '../hooks/useTheme'
+import { ERROR_STYLE } from '../lib/ui'
 
 // Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
 const PROFILE_CHART = {
@@ -58,7 +59,6 @@ function ThemeSection() {
     </section>
   )
 }
-import { ERROR_STYLE } from '../lib/ui'
 
 // ── Shared label style ──────────────────────────────────────────────────
 const LABEL = {
