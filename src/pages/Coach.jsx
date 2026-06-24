@@ -21,6 +21,7 @@ function UnreadBadge({ count }) {
 }
 
 const SECTION_LABEL = {
+  fontFamily: 'var(--font-mono)',
   color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
   textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px',
 }
@@ -250,10 +251,10 @@ export default function Coach() {
 
         {/* Header */}
         <div className="fade-in" style={{ paddingTop: '40px', paddingBottom: '28px' }}>
-          <h1 style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', lineHeight: 1 }}>
-            Mis Clientes
+          <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
+            Clientes
           </h1>
-          <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
             Panel de entrenador
           </p>
         </div>

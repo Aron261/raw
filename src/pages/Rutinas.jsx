@@ -378,7 +378,7 @@ function CreateCycleModal({ onClose, onCreate }) {
 
         {/* Nombre */}
         <div style={{ marginBottom: '20px' }}>
-          <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
             Nombre
           </p>
           <input
@@ -394,7 +394,7 @@ function CreateCycleModal({ onClose, onCreate }) {
         {/* Días */}
         <div style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
               Días ({days.length})
             </p>
             <button
@@ -505,7 +505,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
         {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
         <div style={{ marginBottom: '16px' }}>
-          <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
             Nombre
           </p>
           <input
@@ -519,7 +519,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
         </div>
 
         <div style={{ marginBottom: '24px' }}>
-          <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
             Enfoque (opcional)
           </p>
           <input
@@ -660,7 +660,7 @@ function RecommendedCycleModal({ onClose, onCreate }) {
                 onClick={() => setStep(s => s - 1)}
                 style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '8px', textAlign: 'center' }}
               >
-                Atras
+                Atrás
               </button>
             )}
           </div>
@@ -669,7 +669,7 @@ function RecommendedCycleModal({ onClose, onCreate }) {
         {step === 3 && (
           <div>
             <div style={{ padding: '16px', background: 'var(--c-surface)', borderRadius: '14px', marginBottom: '20px' }}>
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>Resumen</p>
+              <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>Resumen</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>Objetivo: {goal}</p>
                 <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>Nivel: {level}</p>
@@ -692,7 +692,7 @@ function RecommendedCycleModal({ onClose, onCreate }) {
               onClick={() => setStep(2)}
               style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', width: '100%', display: 'block' }}
             >
-              Atras
+              Atrás
             </button>
           </div>
         )}
@@ -811,7 +811,7 @@ function RecommendedSingleDayModal({ onClose, onCreate }) {
                 onClick={() => setStep(s => s - 1)}
                 style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '8px', textAlign: 'center' }}
               >
-                Atras
+                Atrás
               </button>
             )}
           </div>
@@ -820,7 +820,7 @@ function RecommendedSingleDayModal({ onClose, onCreate }) {
         {step === 3 && (
           <div>
             <div style={{ padding: '16px', background: 'var(--c-surface)', borderRadius: '14px', marginBottom: '20px' }}>
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>Resumen</p>
+              <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>Resumen</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>Enfoque: {focus}</p>
                 <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>Tiempo: {time} min</p>
@@ -843,7 +843,7 @@ function RecommendedSingleDayModal({ onClose, onCreate }) {
               onClick={() => setStep(2)}
               style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', width: '100%', display: 'block' }}
             >
-              Atras
+              Atrás
             </button>
           </div>
         )}
@@ -924,11 +924,11 @@ export default function Rutinas() {
 
         {/* Header */}
         <div className="fade-in" style={{ paddingTop: '40px', paddingBottom: '28px' }}>
-          <h1 style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.04em', lineHeight: 1 }}>
-            Mis Rutinas
+          <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
+            Rutinas
           </h1>
-          <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
-            Ciclos y plantillas de entrenamiento
+          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
+            Ciclos y plantillas
           </p>
         </div>
 
@@ -965,7 +965,7 @@ export default function Rutinas() {
             {/* ── Ciclo activo ─────────────────────────────────────── */}
             {activeCycle && (
               <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '40ms' }}>
-                <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
+                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
                   Ciclo activo
                 </p>
                 <ActiveCycleCard routine={activeCycle} onDeactivate={handleDeactivate} />
@@ -975,7 +975,7 @@ export default function Rutinas() {
             {/* ── Ciclos guardados ──────────────────────────────────── */}
             {savedCycles.length > 0 && (
               <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '60ms' }}>
-                <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
+                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
                   Ciclos guardados
                 </p>
                 {savedCycles.map(r => (
@@ -992,7 +992,7 @@ export default function Rutinas() {
             {/* ── Rutinas de un día ─────────────────────────────────── */}
             {singleDayItems.length > 0 && (
               <section className="fade-in" style={{ marginBottom: '32px', animationDelay: '80ms' }}>
-                <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
+                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
                   Rutinas de un día
                 </p>
                 {singleDayItems.map(r => {

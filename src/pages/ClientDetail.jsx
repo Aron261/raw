@@ -18,6 +18,7 @@ const CHART = {
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 
 const SECTION_LABEL = {
+  fontFamily: 'var(--font-mono)',
   color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
   textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px',
 }
@@ -26,6 +27,7 @@ const CARD = {
   borderRadius: '14px', padding: '16px',
 }
 const MINI_LABEL = {
+  fontFamily: 'var(--font-mono)',
   color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
   textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px',
 }
