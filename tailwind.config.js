@@ -6,22 +6,32 @@ export default {
   ],
   theme: {
     extend: {
+      // Colors reference the CSS variables in index.css so Tailwind classes and
+      // inline var() styles share ONE source of truth and theme together.
       colors: {
-        background:       'oklch(97% 0.006 255)',
-        surface:          '#FFFFFF',
-        'surface-2':      'oklch(95.5% 0.005 255)',
-        'surface-3':      'oklch(93% 0.005 255)',
-        border:           'oklch(85% 0.006 255)',
-        'border-subtle':  'oklch(91% 0.005 255)',
-        'text-primary':   'oklch(13% 0.005 255)',
-        'text-muted':     'oklch(54% 0.005 255)',
-        'text-dim':       'oklch(52% 0.005 255)',
-        'accent-red':     '#FF2D2D',
-        'accent-red-dim': 'rgba(255,45,45,0.08)',
+        background:       'var(--c-bg)',
+        surface:          'var(--c-surface)',
+        'surface-2':      'var(--c-surface-2)',
+        'surface-3':      'var(--c-surface-3)',
+        border:           'var(--c-border)',
+        'border-subtle':  'var(--c-border-subtle)',
+        'text-primary':   'var(--c-text)',
+        'text-secondary': 'var(--c-text-secondary)',
+        'text-muted':     'var(--c-text-muted)',
+        'text-dim':       'var(--c-text-dim)',
+        'text-ghost':     'var(--c-text-ghost)',
+        action:           'var(--c-action)',
+        'action-dim':     'var(--c-action-dim)',
+        data:             'var(--c-data)',
+        record:           'var(--c-record)',
+        // Legacy aliases — accent maps to the action (pink)
+        'accent-red':     'var(--c-accent)',
+        'accent-red-dim': 'var(--c-accent-dim)',
       },
       fontFamily: {
-        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        mono: ['ui-monospace', 'SFMono-Regular', 'monospace'],
+        sans: ['Archivo', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        display: ['Anton', 'Archivo', 'system-ui', 'sans-serif'],
+        mono: ['Space Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       letterSpacing: {
         tight:  '-0.025em',

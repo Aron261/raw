@@ -10,6 +10,48 @@ import { useBodyWeight } from '../hooks/useBodyWeight'
 import { useTrainer } from '../hooks/useTrainer'
 import { useInvites } from '../hooks/useInvites'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
+import { useTheme } from '../hooks/useTheme'
+
+// ── Theme selector (Auto / Claro / Oscuro) ───────────────────────────────
+function ThemeSection() {
+  const { preference, setPreference } = useTheme()
+  const opts = [
+    { value: 'auto',  label: 'Auto',   icon: '◐' },
+    { value: 'light', label: 'Claro',  icon: '☀' },
+    { value: 'dark',  label: 'Oscuro', icon: '☾' },
+  ]
+  return (
+    <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px' }}>
+      <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+        Apariencia
+      </p>
+      <div role="group" aria-label="Tema" style={{ display: 'flex', gap: '8px' }}>
+        {opts.map(o => {
+          const active = preference === o.value
+          return (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => setPreference(o.value)}
+              aria-pressed={active}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                padding: '12px 8px', borderRadius: '12px',
+                background: active ? 'var(--c-action-dim)' : 'var(--c-surface-2)',
+                border: `1px solid ${active ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
+                color: active ? 'var(--c-action-text)' : 'var(--c-text-dim)',
+                fontSize: '11px', fontWeight: 700, transition: 'all 150ms var(--ease-out)',
+              }}
+            >
+              <span aria-hidden="true" style={{ fontSize: '18px', lineHeight: 1 }}>{o.icon}</span>
+              {o.label}
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
 import { ERROR_STYLE } from '../lib/ui'
 
 // ── Shared label style ──────────────────────────────────────────────────
@@ -640,6 +682,9 @@ export default function Profile() {
 
           {/* ── Entrenador ── */}
           <TrainerSection />
+
+          {/* ── Apariencia (tema) ── */}
+          <ThemeSection />
 
           {/* ── Save ── */}
           {saveError && (
