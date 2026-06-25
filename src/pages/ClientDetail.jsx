@@ -45,10 +45,10 @@ function Stat({ label, value }) {
 
 
 // ── Constructor manual de rutinas ───────────────────────────────────────────
-// El entrenador arma cada rutina a mano: días, ejercicios, series, reps,
-// descanso y notas. Nada autogenerado.
+// El entrenador arma cada rutina a mano: días, ejercicios, series, reps y
+// notas. Nada autogenerado.
 function emptyExercise() {
-  return { exercise_name: '', sets: '', reps: '', rest_seconds: '', notes: '' }
+  return { exercise_name: '', sets: '', reps: '', notes: '' }
 }
 function emptyDay() {
   return { day_name: '', focus: '', exercises: [emptyExercise()] }
@@ -100,7 +100,6 @@ function BuildRoutineModal({ clientName, initialType, onClose, onCreate }) {
           exercise_order: j,
           sets: e.sets !== '' ? parseInt(e.sets, 10) : null,
           reps: e.reps.trim() || null,
-          rest_seconds: e.rest_seconds !== '' ? parseInt(e.rest_seconds, 10) : null,
           notes: e.notes.trim() || null,
         })),
     }))
@@ -225,13 +224,6 @@ function BuildRoutineModal({ clientName, initialType, onClose, onCreate }) {
                   onChange={e => updateExercise(di, ei, 'reps', e.target.value)}
                   placeholder="Reps (8-12)"
                   style={{ flex: 1, fontSize: '12px', textAlign: 'center' }}
-                />
-                <input
-                  className="input-field" type="number" inputMode="numeric"
-                  value={ex.rest_seconds}
-                  onChange={e => updateExercise(di, ei, 'rest_seconds', e.target.value)}
-                  placeholder="Desc. (s)"
-                  style={{ width: '78px', fontSize: '12px', textAlign: 'center' }}
                 />
               </div>
               <input

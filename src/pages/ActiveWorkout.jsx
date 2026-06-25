@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import ExerciseRow from '../components/ExerciseRow'
-import { useActiveWorkout } from '../hooks/useWorkout'
+import { useActiveWorkout, useExercisePR, calc1RM, calcVolume } from '../hooks/useWorkout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { hoverColor, ERROR_STYLE } from '../lib/ui'
@@ -39,12 +39,19 @@ function RestTimer({ onDone, onDismiss }) {
   const secs = remaining % 60
   const done = remaining <= 0
 
+  // Auto-dismiss shortly after the rest is up, so the pill never lingers.
+  useEffect(() => {
+    if (!done) return
+    const id = setTimeout(() => onDismiss?.(), 2200)
+    return () => clearTimeout(id)
+  }, [done, onDismiss])
+
   return (
     <div
       className="fade-in"
       style={{
         position: 'fixed',
-        top: 'max(16px, env(safe-area-inset-top))',
+        bottom: 'calc(20px + env(safe-area-inset-bottom))',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 40,
@@ -394,6 +401,194 @@ function EditConfirmModal({ step, onFirstConfirm, onSecondConfirm, onCancel }) {
   )
 }
 
+/* ── Exercise history sheet ─────────────────────────────────────────── */
+function ExerciseHistorySheet({ exercise, userId, onClose }) {
+  const { prSets, allTimePR, loading } = useExercisePR(exercise?.name, userId)
+  const sessions = [...(prSets || [])].reverse() // most recent first
+  const bestRM = allTimePR?.best1RM || 0
+
+  const fmtDate = (iso) => {
+    try {
+      return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+    } catch { return '' }
+  }
+
+  return (
+    <Sheet title={exercise?.name || 'Historial'} subtitle="Sesiones anteriores" onClose={onClose}>
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+          <span className="spinner" style={{ width: '18px', height: '18px' }} />
+        </div>
+      ) : sessions.length === 0 ? (
+        <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', textAlign: 'center', padding: '24px 0' }}>
+          Aún no hay sesiones registradas de este ejercicio.
+        </p>
+      ) : (
+        <div style={{ maxHeight: '60vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '8px' }}>
+          {sessions.map((s, i) => {
+            const isBest = bestRM > 0 && s.best1RM >= bestRM
+            return (
+              <div key={s.workoutId || i} style={{
+                background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
+                borderRadius: '12px', padding: '12px 14px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span className="mono" style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-text-dim)' }}>
+                    {fmtDate(s.date)}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {isBest && (
+                      <span style={{ background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '2px 6px', borderRadius: '2px' }}>
+                        Récord
+                      </span>
+                    )}
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-text-dim)' }}>
+                      <span style={{ color: 'var(--c-data)', fontWeight: 800 }}>~{s.best1RM}</span> 1RM
+                    </span>
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {(s.sets || []).map((set, j) => (
+                    <span key={set.id || j} style={{
+                      fontSize: '13px', fontWeight: 800, color: 'var(--c-text)',
+                      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+                      borderRadius: '8px', padding: '4px 8px', fontVariantNumeric: 'tabular-nums',
+                    }}>
+                      {set.reps}×{set.weight}<span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--c-text-dim)', marginLeft: '2px' }}>{s.unit}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </Sheet>
+  )
+}
+
+/* ── Session summary (on finish) ────────────────────────────────────── */
+function SessionSummary({ workout, workoutExercises, userId, onClose }) {
+  const [prIds, setPrIds] = useState(null) // Set<exercise_id> beating a prior best; null = loading
+
+  const allSets = workoutExercises.flatMap(we => (we.sets || []).map(s => ({ ...s, unit: we.unit })))
+  const totalVolume = Math.round(calcVolume(allSets))
+  const totalSets = allSets.length
+
+  const durationLabel = () => {
+    const start = new Date(workout.started_at).getTime()
+    const end = workout.ended_at ? new Date(workout.ended_at).getTime() : Date.now()
+    const mins = Math.max(0, Math.floor((end - start) / 60000))
+    const h = Math.floor(mins / 60), m = mins % 60
+    return h > 0 ? `${h}h ${m}m` : `${m}m`
+  }
+
+  const perExercise = workoutExercises.map(we => {
+    const sets = we.sets || []
+    const best1RM = sets.reduce((b, s) => Math.max(b, calc1RM(s.weight, s.reps)), 0)
+    const topSet = sets.reduce((t, s) => (calc1RM(s.weight, s.reps) > (t ? calc1RM(t.weight, t.reps) : 0) ? s : t), null)
+    return { exerciseId: we.exercises?.id, name: we.exercises?.name, unit: we.unit, count: sets.length, best1RM, topSet }
+  }).filter(e => e.count > 0)
+
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      const ids = perExercise.map(e => e.exerciseId).filter(Boolean)
+      if (!ids.length) { setPrIds(new Set()); return }
+      try {
+        const { data, error } = await supabase
+          .from('sets')
+          .select('reps, weight, workout_exercises!inner(exercise_id, workout_id, workouts!inner(user_id))')
+          .eq('workout_exercises.workouts.user_id', userId)
+          .in('workout_exercises.exercise_id', ids)
+        if (error) throw error
+        // Best 1RM per exercise from sessions OTHER than this one.
+        const prevBest = {}
+        for (const row of (data || [])) {
+          const we = row.workout_exercises
+          if (!we || we.workout_id === workout.id) continue
+          const rm = calc1RM(row.weight, row.reps)
+          if (rm > (prevBest[we.exercise_id] || 0)) prevBest[we.exercise_id] = rm
+        }
+        const prs = new Set()
+        for (const e of perExercise) {
+          const prev = prevBest[e.exerciseId] || 0
+          if (e.exerciseId && prev > 0 && e.best1RM > prev) prs.add(e.exerciseId)
+        }
+        if (!cancelled) setPrIds(prs)
+      } catch { if (!cancelled) setPrIds(new Set()) }
+    }
+    run()
+    return () => { cancelled = true }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const prCount = prIds ? prIds.size : 0
+
+  return (
+    <Sheet title={workout.name} subtitle="Entreno completo" onClose={onClose}>
+      {/* Hero — volume leads (data voice) */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px',
+        background: 'var(--c-border-subtle)', border: '1px solid var(--c-border-subtle)',
+        borderRadius: '12px', overflow: 'hidden', marginBottom: '14px',
+      }}>
+        <SummaryStat value={totalVolume.toLocaleString('es-ES')} unit="kg" label="Volumen" valueColor="var(--c-data)" />
+        <SummaryStat value={durationLabel()} label="Duración" />
+        <SummaryStat value={totalSets} label="Series" />
+      </div>
+
+      {/* PR line — only when earned */}
+      {prCount > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px',
+          background: 'var(--c-record)', color: 'var(--c-record-ink)',
+          borderRadius: '10px', padding: '10px 12px',
+        }}>
+          <span style={{ fontSize: '14px' }}>🏆</span>
+          <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+            {prCount} {prCount === 1 ? 'récord nuevo' : 'récords nuevos'}
+          </span>
+        </div>
+      )}
+
+      {/* Per-exercise recap */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '38vh', overflowY: 'auto', marginBottom: '16px' }}>
+        {perExercise.map((e, i) => {
+          const isPR = prIds?.has(e.exerciseId)
+          return (
+            <div key={e.exerciseId || i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 2px', borderBottom: '1px solid var(--c-border-subtle)' }}>
+              <span style={{ flex: 1, minWidth: 0, fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {e.name}
+              </span>
+              {isPR && (
+                <span style={{ flexShrink: 0, background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '2px 6px', borderRadius: '2px' }}>PR</span>
+              )}
+              <span style={{ flexShrink: 0, fontSize: '12px', fontWeight: 700, color: 'var(--c-text-dim)', fontVariantNumeric: 'tabular-nums' }}>
+                {e.count} ser{e.topSet ? <> · {e.topSet.reps}×{e.topSet.weight}{e.unit}</> : ''}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      <Button variant="primary" full size="lg" onClick={onClose}>Listo</Button>
+    </Sheet>
+  )
+}
+
+function SummaryStat({ value, unit, label, valueColor = 'var(--c-text)' }) {
+  return (
+    <div style={{ background: 'var(--c-surface)', padding: '14px 8px', textAlign: 'center' }}>
+      <p style={{ color: valueColor, fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+        {value}{unit && <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-text-dim)', marginLeft: '2px' }}>{unit}</span>}
+      </p>
+      <p className="mono" style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-dim)', marginTop: '6px' }}>
+        {label}
+      </p>
+    </div>
+  )
+}
+
 /* ── Main page ──────────────────────────────────────────────────────── */
 export default function ActiveWorkout() {
   const { id } = useParams()
@@ -404,8 +599,11 @@ export default function ActiveWorkout() {
   const {
     workout, workoutExercises, loading, error,
     updateWorkoutName, finishWorkout,
-    addExercise, replaceExercise, updateUnit, updateExerciseNotes, addSet, updateSet, deleteSet, removeExercise,
+    addExercise, replaceExercise, updateUnit, updateExerciseNotes, addSet, updateSet, deleteSet, removeExercise, moveExercise,
   } = useActiveWorkout(id)
+
+  const [historyExercise, setHistoryExercise] = useState(null)
+  const [showSummary, setShowSummary] = useState(false)
 
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
@@ -424,6 +622,34 @@ export default function ActiveWorkout() {
     try { return localStorage.getItem('raw_rest_timer') !== 'off' } catch { return true }
   })
   const [restActive, setRestActive] = useState(false)
+
+  // Per-set completion + finished exercises — persisted locally per workout so
+  // progress survives a reload mid-session without touching the database.
+  const [doneSets, setDoneSets] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(`raw_done_sets_${id}`) || '[]')) } catch { return new Set() }
+  })
+  const [doneExs, setDoneExs] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem(`raw_done_ex_${id}`) || '[]')) } catch { return new Set() }
+  })
+  useEffect(() => { try { localStorage.setItem(`raw_done_sets_${id}`, JSON.stringify([...doneSets])) } catch {} }, [doneSets, id])
+  useEffect(() => { try { localStorage.setItem(`raw_done_ex_${id}`, JSON.stringify([...doneExs])) } catch {} }, [doneExs, id])
+
+  const toggleSetDone = useCallback((setId, nextDone) => {
+    setDoneSets(prev => {
+      const next = new Set(prev)
+      if (nextDone) next.add(setId); else next.delete(setId)
+      return next
+    })
+    if (nextDone && restEnabled) setRestActive(true)
+  }, [restEnabled])
+
+  const toggleExerciseFinish = useCallback((weId, nextFinished) => {
+    setDoneExs(prev => {
+      const next = new Set(prev)
+      if (nextFinished) next.add(weId); else next.delete(weId)
+      return next
+    })
+  }, [])
 
   const toggleRest = () => {
     const next = !restEnabled
@@ -455,7 +681,10 @@ export default function ActiveWorkout() {
     setFinishing(true)
     try {
       await finishWorkout()
-      navigate('/', { replace: true })
+      // Clear local completion flags for this session — it's logged now.
+      try { localStorage.removeItem(`raw_done_sets_${id}`); localStorage.removeItem(`raw_done_ex_${id}`) } catch {}
+      setFinishing(false)
+      setShowSummary(true)
     } catch (err) {
       setFinishError(err.message)
       setFinishing(false)
@@ -465,12 +694,6 @@ export default function ActiveWorkout() {
   const handleAddExercise = async (name) => {
     try { await addExercise(name) } catch (err) { console.error(err) }
   }
-
-  // Wrap addSet to trigger rest timer automatically
-  const handleAddSet = useCallback(async (weId, reps, weight) => {
-    await addSet(weId, reps, weight)
-    if (restEnabled) setRestActive(true)
-  }, [addSet, restEnabled])
 
   const handleSwapExercise = async (name) => {
     if (!swappingId) return
@@ -585,6 +808,33 @@ export default function ActiveWorkout() {
           )}
         </div>
 
+        {/* Session progress — exercises finalized */}
+        {!isFinished && workoutExercises.length > 0 && (() => {
+          const finishedCount = workoutExercises.filter(we => doneExs.has(we.id)).length
+          const total = workoutExercises.length
+          const pct = Math.round((finishedCount / total) * 100)
+          const allDone = finishedCount === total
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+              <div style={{ flex: 1, height: '4px', borderRadius: '999px', background: 'var(--c-surface-2)', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${pct}%`, height: '100%', borderRadius: '999px',
+                  background: 'var(--c-success)',
+                  transition: 'width 320ms var(--ease-out)',
+                }} />
+              </div>
+              <span style={{
+                fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
+                letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0,
+                color: allDone ? 'var(--c-success)' : 'var(--c-text-dim)',
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {finishedCount}/{total} hechos
+              </span>
+            </div>
+          )
+        })()}
+
         {finishError && (
           <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>
             {finishError}
@@ -612,13 +862,21 @@ export default function ActiveWorkout() {
               <ExerciseRow
                 workoutExercise={we}
                 workoutId={id}
-                onAddSet={handleAddSet}
+                onAddSet={addSet}
                 onDeleteSet={deleteSet}
                 onUpdateSet={updateSet}
                 onUpdateUnit={updateUnit}
                 onRemoveExercise={removeExercise}
                 onSwapExercise={(!isFinished || isEditing) ? (weId) => setSwappingId(weId) : undefined}
                 onUpdateNotes={(!isFinished || isEditing) ? updateExerciseNotes : undefined}
+                completedSetIds={doneSets}
+                onToggleSetDone={toggleSetDone}
+                isExerciseFinished={doneExs.has(we.id)}
+                onToggleFinish={toggleExerciseFinish}
+                onShowHistory={setHistoryExercise}
+                onMove={(!isFinished || isEditing) ? moveExercise : undefined}
+                canMoveUp={i > 0}
+                canMoveDown={i < workoutExercises.length - 1}
                 readOnly={isFinished && !isEditing}
               />
             </div>
@@ -743,6 +1001,23 @@ export default function ActiveWorkout() {
           onAdd={handleSwapExercise}
           onClose={() => setSwappingId(null)}
           closeOnSelect={true}
+        />
+      )}
+
+      {showSummary && (
+        <SessionSummary
+          workout={workout}
+          workoutExercises={workoutExercises}
+          userId={user?.id}
+          onClose={() => navigate('/', { replace: true })}
+        />
+      )}
+
+      {historyExercise && (
+        <ExerciseHistorySheet
+          exercise={historyExercise}
+          userId={user?.id}
+          onClose={() => setHistoryExercise(null)}
         />
       )}
 
