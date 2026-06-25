@@ -344,11 +344,11 @@ export function useActiveWorkout(workoutId) {
     )
   }
 
-  const addSet = async (workoutExerciseId, reps, weight) => {
+  const addSet = async (workoutExerciseId, reps, weight, setNumber = null) => {
     const we = workoutExercises.find(w => w.id === workoutExerciseId)
-    const nextSetNumber = (we?.sets?.length || 0) + 1
+    const nextSetNumber = setNumber ?? (we?.sets?.length || 0) + 1
 
-    const { error: err } = await supabase
+    const { data, error: err } = await supabase
       .from('sets')
       .insert({
         workout_exercise_id: workoutExerciseId,
@@ -356,9 +356,12 @@ export function useActiveWorkout(workoutId) {
         reps: parseInt(reps, 10) || 0,
         weight: parseFloat(weight) || 0
       })
+      .select()
+      .single()
 
     if (err) throw err
     await fetchWorkout()
+    return data
   }
 
   const updateSet = async (setId, updates) => {
@@ -377,6 +380,29 @@ export function useActiveWorkout(workoutId) {
       .eq('id', setId)
     if (err) throw err
     await fetchWorkout()
+  }
+
+  // Move an exercise up/down in the workout, reindexing sort_order so the
+  // change survives even if existing values were non-contiguous.
+  const moveExercise = async (workoutExerciseId, dir) => {
+    const ordered = [...workoutExercises].sort((a, b) => a.sort_order - b.sort_order)
+    const idx = ordered.findIndex(w => w.id === workoutExerciseId)
+    if (idx === -1) return
+    const target = dir === 'up' ? idx - 1 : idx + 1
+    if (target < 0 || target >= ordered.length) return
+
+    const reordered = [...ordered]
+    ;[reordered[idx], reordered[target]] = [reordered[target], reordered[idx]]
+    setWorkoutExercises(reordered.map((w, i) => ({ ...w, sort_order: i })))
+
+    try {
+      await Promise.all(reordered.map((w, i) =>
+        supabase.from('workout_exercises').update({ sort_order: i }).eq('id', w.id)
+      ))
+    } catch (err) {
+      setError(err.message)
+      await fetchWorkout()
+    }
   }
 
   const updateExerciseNotes = async (workoutExerciseId, notes) => {
@@ -442,7 +468,8 @@ export function useActiveWorkout(workoutId) {
     addSet,
     updateSet,
     deleteSet,
-    removeExercise
+    removeExercise,
+    moveExercise
   }
 }
 

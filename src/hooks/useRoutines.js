@@ -64,7 +64,7 @@ export function useRoutines(targetUserId = null) {
           routine_days (
             id, day_name, day_order, focus,
             routine_day_exercises (
-              id, exercise_name, exercise_order, sets, reps, rest_seconds, notes
+              id, exercise_name, exercise_order, sets, reps, notes
             )
           )
         `)
@@ -135,7 +135,6 @@ export function useRoutines(targetUserId = null) {
             exercise_order: ex.exercise_order ?? i,
             sets: ex.sets || null,
             reps: ex.reps || null,
-            rest_seconds: ex.rest_seconds || null,
             notes: ex.notes || null,
           }))
 

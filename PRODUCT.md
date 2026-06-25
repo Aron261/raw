@@ -8,7 +8,7 @@ product
 
 Two linked roles, both first-class:
 
-- **Lifters** — people training in the gym who log workouts set-by-set on their phone. Their context is physical: standing between sets, sweaty hands, bright or uneven ambient light, short attention windows. The job is to record what just happened (reps, weight, RPE), see whether it beats last time, and move on without fighting the UI.
+- **Lifters** — people training in the gym who log workouts set-by-set on their phone. Their context is physical: standing between sets, sweaty hands, bright or uneven ambient light, short attention windows. The job is to record what just happened (reps, weight), see whether it beats last time, and move on without fighting the UI.
 - **Trainers** — coaches who build routines, assign them to clients, monitor progress, and message back and forth. Their context is review-and-respond: scanning a client's recent sessions, spotting stalls or PRs, adjusting the plan, replying in chat.
 
 The relationship between the two — assigned routines, shared history, live chat, unread signals — is core, not a bolt-on. Raw serves both the solo logging loop and the coaching loop equally.
