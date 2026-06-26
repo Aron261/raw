@@ -12,10 +12,12 @@ import { useTheme } from '../hooks/useTheme'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button } from '../components/ui'
 
-// Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
+// Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
 const CHART = {
-  light: { bar: '#2438FF', grid: '#D5D2C7', axis: '#67696c', cursor: 'rgba(36,56,255,0.08)' },
-  dark:  { bar: '#6E7BFF', grid: '#26271F', axis: '#A2A096', cursor: 'rgba(110,123,255,0.14)' },
+  'slate-light': { bar: '#3E5C76', grid: '#DDE0E4', axis: '#565C64', cursor: 'rgba(62,92,118,0.10)' },
+  'slate-dark':  { bar: '#7FA0BE', grid: '#2F343B', axis: '#9AA0A8', cursor: 'rgba(127,160,190,0.16)' },
+  'riso-light':  { bar: '#2438FF', grid: '#D5D2C7', axis: '#67696c', cursor: 'rgba(36,56,255,0.08)' },
+  'riso-dark':   { bar: '#6E7BFF', grid: '#26271F', axis: '#A2A096', cursor: 'rgba(110,123,255,0.14)' },
 }
 
 const SECTION_LABEL = {
@@ -377,8 +379,8 @@ export default function ClientDetail() {
   const { routines, loading: routLoading, createRoutine, deleteRoutine, setActiveRoutine } = useRoutines(clientId)
   const { goals, loading: goalsLoading, createGoal, deleteGoal } = useGoals(clientId)
   const { data: dash } = useDashboard(clientId)
-  const { resolved } = useTheme()
-  const cc = CHART[resolved] || CHART.light
+  const { resolved, palette } = useTheme()
+  const cc = CHART[`${palette}-${resolved}`] || CHART['slate-light']
 
   const [modal, setModal] = useState(null) // 'cycle' | 'single' | 'goal'
   const [actionError, setActionError] = useState(null)

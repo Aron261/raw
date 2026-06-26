@@ -1,8 +1,14 @@
 ---
 name: Raw
-description: A mobile-first PWA for logging strength training and coaching it remotely — print-shop ink meets electric signal. The number is the hero.
+description: A mobile-first PWA for logging strength training. Two selectable palettes — Slate (sober steel, default) and Riso (vibrant pink/blue/lime) — each in light + dark. The number is the hero.
 colors:
-  action: "#FF2E7E"
+  slate-accent: "#3E5C76"
+  slate-accent-dark: "#7FA0BE"
+  slate-bg: "#F3F4F6"
+  slate-surface: "#FFFFFF"
+  slate-ink: "#1A1D21"
+  slate-muted: "#5E646D"
+  riso-action: "#FF2E7E"
   action-text: "#C8185A"
   on-action: "#15140F"
   action-dim: "rgba(255,46,126,0.10)"
@@ -132,7 +138,14 @@ This explicitly rejects Raw's three anti-references. It is **not a generic SaaS 
 
 ## 2. Colors
 
-A committed, role-based palette (a full-palette strategy, not restrained) sitting on a warm-grey/near-black neutral spine. Every color carries a fixed meaning across every screen. Values below are the **light (paper)** canon; each has a **dark (ink)** counterpart that brightens for legibility on black.
+**Two palettes, chosen in Profile (`data-palette` on `<html>`), each in light + dark:**
+
+- **Slate — the default (sober).** A restrained, near-monochrome system: graphite neutrals + **one** muted steel accent (`#3E5C76` light / `#7FA0BE` dark). The three roles collapse onto that single accent (action = data = record = steel); hierarchy comes from weight and size, not hue. Success stays a muted green. This is the calm, "honest instrument" face.
+- **Riso — opt-in (vibrant).** The full-palette "Ink & Voltage" system documented below: pink (act) / blue (data) / lime (record) on a warm paper/ink spine.
+
+Both are driven by the **same role tokens** (`--c-action`, `--c-data`, `--c-record`, `--c-success`), so components never hardcode a hue — switching palette just remaps the tokens. The Riso palette below is the reference for role *meaning*; Slate applies the same roles in one quiet voice.
+
+A committed, role-based palette (a full-palette strategy, not restrained) sitting on a warm-grey/near-black neutral spine. Every color carries a fixed meaning across every screen. Values below are the Riso **light (paper)** canon; each has a **dark (ink)** counterpart that brightens for legibility on black.
 
 ### Primary
 - **Action Pink** (light `#FF2E7E` / dark `#FF3D86`): The brand voice and every primary action — CTAs, the "today" card, active nav, send/invite. On light it is a **fill only** (pink-as-text fails on paper — use Action-Text `#C8185A` for the rare pink label). Text on a pink fill is always ink (`on-action`), never white.

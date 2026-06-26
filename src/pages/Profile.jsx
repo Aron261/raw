@@ -14,45 +14,66 @@ import { useTheme } from '../hooks/useTheme'
 import { ERROR_STYLE } from '../lib/ui'
 import { Button } from '../components/ui'
 
-// Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
+// Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
 const PROFILE_CHART = {
-  light: { line: '#2438FF', grid: '#D5D2C7', axis: '#67696c' },
-  dark:  { line: '#6E7BFF', grid: '#26271F', axis: '#A2A096' },
+  'slate-light': { line: '#3E5C76', grid: '#DDE0E4', axis: '#565C64' },
+  'slate-dark':  { line: '#7FA0BE', grid: '#2F343B', axis: '#9AA0A8' },
+  'riso-light':  { line: '#2438FF', grid: '#D5D2C7', axis: '#67696c' },
+  'riso-dark':   { line: '#6E7BFF', grid: '#26271F', axis: '#A2A096' },
 }
 
-// ── Theme selector (Auto / Claro / Oscuro) ───────────────────────────────
+// ── Appearance: mode (Auto/Claro/Oscuro) + palette (Slate/Vibrante) ──────
 function ThemeSection() {
-  const { preference, setPreference } = useTheme()
-  const opts = [
+  const { preference, setPreference, palette, setPalette } = useTheme()
+  const modeOpts = [
     { value: 'auto',  label: 'Auto',   icon: '◐' },
     { value: 'light', label: 'Claro',  icon: '☀' },
     { value: 'dark',  label: 'Oscuro', icon: '☾' },
   ]
+  const paletteOpts = [
+    { value: 'slate', label: 'Sobrio',   sub: 'Calmado' },
+    { value: 'riso',  label: 'Vibrante', sub: 'Con color' },
+  ]
+  const cell = (active) => ({
+    flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+    padding: '12px 8px', borderRadius: '12px',
+    background: active ? 'var(--c-action-dim)' : 'var(--c-surface-2)',
+    border: `1px solid ${active ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
+    color: active ? 'var(--c-action-text)' : 'var(--c-text-dim)',
+    fontSize: '11px', fontWeight: 700, transition: 'all 150ms var(--ease-out)',
+  })
   return (
     <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px' }}>
-      <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
-        Apariencia
+      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+        Tema
       </p>
-      <div role="group" aria-label="Tema" style={{ display: 'flex', gap: '8px' }}>
-        {opts.map(o => {
+      <div role="group" aria-label="Modo de color" style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+        {modeOpts.map(o => {
           const active = preference === o.value
           return (
-            <button
-              key={o.value}
-              type="button"
-              onClick={() => setPreference(o.value)}
-              aria-pressed={active}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-                padding: '12px 8px', borderRadius: '12px',
-                background: active ? 'var(--c-action-dim)' : 'var(--c-surface-2)',
-                border: `1px solid ${active ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
-                color: active ? 'var(--c-action-text)' : 'var(--c-text-dim)',
-                fontSize: '11px', fontWeight: 700, transition: 'all 150ms var(--ease-out)',
-              }}
-            >
+            <button key={o.value} type="button" onClick={() => setPreference(o.value)} aria-pressed={active} style={cell(active)}>
               <span aria-hidden="true" style={{ fontSize: '18px', lineHeight: 1 }}>{o.icon}</span>
               {o.label}
+            </button>
+          )
+        })}
+      </div>
+
+      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+        Paleta
+      </p>
+      <div role="group" aria-label="Paleta de color" style={{ display: 'flex', gap: '8px' }}>
+        {paletteOpts.map(o => {
+          const active = palette === o.value
+          return (
+            <button key={o.value} type="button" onClick={() => setPalette(o.value)} aria-pressed={active} style={cell(active)}>
+              <span style={{ display: 'flex', gap: '3px' }} aria-hidden="true">
+                {(o.value === 'riso' ? ['#FF2E7E', '#2438FF', '#C0EE2E'] : ['#3E5C76', '#6B7280', '#1A1D21']).map(c => (
+                  <span key={c} style={{ width: '10px', height: '10px', borderRadius: '50%', background: c }} />
+                ))}
+              </span>
+              {o.label}
+              <span style={{ fontSize: '9px', fontWeight: 500, color: 'var(--c-text-muted)' }}>{o.sub}</span>
             </button>
           )
         })}
@@ -194,8 +215,8 @@ function WeightTooltip({ active, payload, label }) {
 
 // ── Body weight section ─────────────────────────────────────────────────
 function BodyWeightSection() {
-  const { resolved } = useTheme()
-  const cc = PROFILE_CHART[resolved] || PROFILE_CHART.light
+  const { resolved, palette } = useTheme()
+  const cc = PROFILE_CHART[`${palette}-${resolved}`] || PROFILE_CHART['slate-light']
   const { logs, chartData, latestLog, loading, adding, addLog, deleteLog } = useBodyWeight()
   const [inputWeight, setInputWeight] = useState('')
   const [inputUnit, setInputUnit] = useState(latestLog?.unit ?? 'kg')

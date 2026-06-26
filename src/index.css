@@ -4,12 +4,15 @@
 
 /* ─── Design tokens ─────────────────────────────────────────────────── */
 /*
-  Raw / Riso design system. Color is a committed, role-based palette:
-    action (pink)  = CTAs, brand voice, active state
-    data   (blue)  = volume, charts, informational accents
-    record (lime)  = PRs / records ONLY — the rare "earned win" color
-  Theme is controlled by data-theme on <html> ("light" default / "dark").
-  An inline boot script in index.html resolves "auto" before first paint.
+  Raw has TWO palettes, chosen via data-palette on <html>:
+    • slate (default) — sober: graphite neutrals + one muted steel accent.
+    • riso             — vibrant: pink (act) / blue (data) / lime (record).
+  And TWO modes via data-theme ("light" default / "dark").
+  Roles (action/data/record/success) are remapped per palette so components
+  never hardcode a hue. Boot script in index.html resolves both before paint.
+
+  Cascade order matters: :root = Slate light, [data-theme=dark] = Slate dark,
+  then the [data-palette=riso] blocks override for the vibrant palette.
 */
 :root {
   /* Easing */
@@ -22,29 +25,29 @@
   --font-sans:    'Archivo', system-ui, -apple-system, sans-serif;
   --font-mono:    'Space Mono', ui-monospace, SFMono-Regular, monospace;
 
-  /* ── Riso palette · LIGHT (paper) ── */
-  --c-bg:             #EAE7DE;
-  --c-surface:        #F4F2EB;
-  --c-surface-2:      #DFDCD2;
-  --c-surface-3:      #D5D2C7;
-  --c-border:         rgba(21, 20, 15, 0.22);
-  --c-border-subtle:  rgba(21, 20, 15, 0.12);
-  --c-text:           #15140F;
-  --c-text-secondary: #3A3833;
-  --c-text-dim:       #5A584F;
-  --c-text-muted:     #646359; /* AA: 4.89:1 on paper, 5.40:1 on surface */
-  --c-text-ghost:     #9A988E; /* decorative only — never must-read text */
+  /* ══ Slate palette · LIGHT (default) — graphite + one steel accent ══ */
+  --c-bg:             #F3F4F6;
+  --c-surface:        #FFFFFF;
+  --c-surface-2:      #E9EBEE;
+  --c-surface-3:      #DDE0E4;
+  --c-border:         rgba(20, 22, 26, 0.14);
+  --c-border-subtle:  rgba(20, 22, 26, 0.09);
+  --c-text:           #1A1D21;
+  --c-text-secondary: #3A3F46;
+  --c-text-dim:       #565C64;
+  --c-text-muted:     #5E646D; /* AA on bg + surface */
+  --c-text-ghost:     #9AA0A8;
 
-  /* Role colors */
-  --c-action:         #FF2E7E;            /* pink — FILL only on light (text fails on paper) */
-  --c-action-text:    #C8185A;            /* darkened pink for pink-as-text/icon on light (4.55:1) */
-  --c-on-action:      #15140F;            /* ink text on a pink fill (5.22:1) */
-  --c-action-dim:     rgba(255, 46, 126, 0.10);
-  --c-action-border:  rgba(255, 46, 126, 0.30);
-  --c-data:           #2438FF;            /* electric blue */
-  --c-record:         #C0EE2E;            /* lime fill */
-  --c-record-ink:     #15140F;            /* ink text on lime (13.6:1) */
-  --c-success:        oklch(48% 0.16 150);/* functional "done/complete" — AA on paper (4.8:1) */
+  /* Role colors — sober: action = data = record = one steel accent */
+  --c-action:         #3E5C76;            /* muted steel */
+  --c-action-text:    #355068;
+  --c-on-action:      #FFFFFF;            /* white on steel fill (~8:1) */
+  --c-action-dim:     rgba(62, 92, 118, 0.10);
+  --c-action-border:  rgba(62, 92, 118, 0.28);
+  --c-data:           #3E5C76;
+  --c-record:         #3E5C76;
+  --c-record-ink:     #FFFFFF;
+  --c-success:        oklch(48% 0.09 150);/* muted green, done/complete */
 
   /* Legacy aliases — keep older code working; accent == action */
   --c-accent:         var(--c-action);
@@ -52,9 +55,9 @@
   --c-accent-border:  var(--c-action-border);
 
   /* Glazed surfaces + scrim */
-  --c-surface-glass:  rgba(244, 242, 235, 0.85);
-  --c-bg-glass:       rgba(234, 231, 222, 0.88);
-  --c-scrim:          rgba(21, 20, 15, 0.55);
+  --c-surface-glass:  rgba(255, 255, 255, 0.85);
+  --c-bg-glass:       rgba(243, 244, 246, 0.88);
+  --c-scrim:          rgba(20, 22, 26, 0.55);
 
   /* Radius scale */
   --r-xs:  6px;
@@ -64,8 +67,66 @@
   --r-xl:  24px;
 }
 
-/* ── Riso palette · DARK (ink) ── */
 [data-theme="dark"] {
+  /* ══ Slate palette · DARK (default) ══ */
+  --c-bg:             #15171B;
+  --c-surface:        #1D2025;
+  --c-surface-2:      #262A30;
+  --c-surface-3:      #2F343B;
+  --c-border:         rgba(233, 235, 238, 0.16);
+  --c-border-subtle:  rgba(233, 235, 238, 0.09);
+  --c-text:           #E9EBEE;
+  --c-text-secondary: #C2C6CC;
+  --c-text-dim:       #9AA0A8;
+  --c-text-muted:     #868C95; /* AA on bg */
+  --c-text-ghost:     #565C64;
+
+  --c-action:         #7FA0BE;            /* lighter steel for ink */
+  --c-action-text:    #8FB0CE;
+  --c-on-action:      #15171B;            /* ink text on light-steel fill */
+  --c-action-dim:     rgba(127, 160, 190, 0.16);
+  --c-action-border:  rgba(127, 160, 190, 0.34);
+  --c-data:           #7FA0BE;
+  --c-record:         #7FA0BE;
+  --c-record-ink:     #15171B;
+  --c-success:        oklch(70% 0.10 150);
+
+  --c-surface-glass:  rgba(29, 32, 37, 0.82);
+  --c-bg-glass:       rgba(21, 23, 27, 0.86);
+  --c-scrim:          rgba(0, 0, 0, 0.78);
+}
+
+/* ══ Riso palette (vibrant) · LIGHT — opt-in via data-palette="riso" ══ */
+[data-palette="riso"] {
+  --c-bg:             #EAE7DE;
+  --c-surface:        #F4F2EB;
+  --c-surface-2:      #DFDCD2;
+  --c-surface-3:      #D5D2C7;
+  --c-border:         rgba(21, 20, 15, 0.22);
+  --c-border-subtle:  rgba(21, 20, 15, 0.12);
+  --c-text:           #15140F;
+  --c-text-secondary: #3A3833;
+  --c-text-dim:       #5A584F;
+  --c-text-muted:     #646359;
+  --c-text-ghost:     #9A988E;
+
+  --c-action:         #FF2E7E;
+  --c-action-text:    #C8185A;
+  --c-on-action:      #15140F;
+  --c-action-dim:     rgba(255, 46, 126, 0.10);
+  --c-action-border:  rgba(255, 46, 126, 0.30);
+  --c-data:           #2438FF;
+  --c-record:         #C0EE2E;
+  --c-record-ink:     #15140F;
+  --c-success:        oklch(48% 0.16 150);
+
+  --c-surface-glass:  rgba(244, 242, 235, 0.85);
+  --c-bg-glass:       rgba(234, 231, 222, 0.88);
+  --c-scrim:          rgba(21, 20, 15, 0.55);
+}
+
+/* ══ Riso palette (vibrant) · DARK ══ */
+[data-palette="riso"][data-theme="dark"] {
   --c-bg:             #0E0F0C;
   --c-surface:        #161712;
   --c-surface-2:      #1F201A;
@@ -75,18 +136,18 @@
   --c-text:           #EFEDE4;
   --c-text-secondary: #C9C7BC;
   --c-text-dim:       #A2A096;
-  --c-text-muted:     #86857A; /* AA: 5.17:1 on bg */
+  --c-text-muted:     #86857A;
   --c-text-ghost:     #5C5B53;
 
-  --c-action:         #FF3D86;            /* brighter pink — usable as text on ink (5.73:1) */
+  --c-action:         #FF3D86;
   --c-action-text:    #FF3D86;
-  --c-on-action:      #0E0F0C;            /* ink text on a pink fill (5.73:1) */
+  --c-on-action:      #0E0F0C;
   --c-action-dim:     rgba(255, 61, 134, 0.14);
   --c-action-border:  rgba(255, 61, 134, 0.34);
-  --c-data:           #6E7BFF;            /* brighter blue (5.44:1) */
-  --c-record:         #C6FB50;            /* lime (15.8:1) */
+  --c-data:           #6E7BFF;
+  --c-record:         #C6FB50;
   --c-record-ink:     #0E0F0C;
-  --c-success:        oklch(72% 0.17 150);/* functional "done/complete" — AA on ink (7.8:1) */
+  --c-success:        oklch(72% 0.17 150);
 
   --c-surface-glass:  rgba(22, 23, 18, 0.82);
   --c-bg-glass:       rgba(14, 15, 12, 0.86);

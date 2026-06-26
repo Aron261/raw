@@ -9,10 +9,12 @@ import { useExercisePR, calc1RM } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
 
-// Literal hex per theme — CSS vars don't resolve in recharts SVG attrs.
+// Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
 const CHART = {
-  light: { line: '#2438FF', grid: '#D5D2C7', axis: '#5A584F' },
-  dark:  { line: '#6E7BFF', grid: '#26271F', axis: '#A2A096' },
+  'slate-light': { line: '#3E5C76', grid: '#DDE0E4', axis: '#565C64' },
+  'slate-dark':  { line: '#7FA0BE', grid: '#2F343B', axis: '#9AA0A8' },
+  'riso-light':  { line: '#2438FF', grid: '#D5D2C7', axis: '#5A584F' },
+  'riso-dark':   { line: '#6E7BFF', grid: '#26271F', axis: '#A2A096' },
 }
 
 // Custom tooltip — light theme
@@ -40,8 +42,8 @@ export default function ExerciseDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const { resolved } = useTheme()
-  const cc = CHART[resolved] || CHART.light
+  const { resolved, palette } = useTheme()
+  const cc = CHART[`${palette}-${resolved}`] || CHART['slate-light']
 
   const exerciseName = decodeURIComponent(name)
   const { prSets, allTimePR, loading } = useExercisePR(exerciseName, user?.id)
