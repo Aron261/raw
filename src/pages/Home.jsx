@@ -17,8 +17,10 @@ import { Sheet, Field, Button } from '../components/ui'
 
 // Chart colors must be literal hex — CSS vars don't resolve in recharts SVG attrs.
 const CHART_COLORS = {
-  light: { axis: '#5A584F', bar: '#2438FF', today: '#FF2E7E', empty: '#D5D2C7' },
-  dark:  { axis: '#A2A096', bar: '#6E7BFF', today: '#FF3D86', empty: '#26271F' },
+  'slate-light': { axis: '#565C64', bar: '#3E5C76', today: '#1A1D21', empty: '#DDE0E4' },
+  'slate-dark':  { axis: '#9AA0A8', bar: '#7FA0BE', today: '#E9EBEE', empty: '#2F343B' },
+  'riso-light':  { axis: '#5A584F', bar: '#2438FF', today: '#FF2E7E', empty: '#D5D2C7' },
+  'riso-dark':   { axis: '#A2A096', bar: '#6E7BFF', today: '#FF3D86', empty: '#26271F' },
 }
 
 // ── Date helpers ─────────────────────────────────────────────────────────
@@ -385,8 +387,8 @@ export default function Home() {
   const { activeRoutine, routines } = useRoutines()
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
   const { trainers } = useInvites()
-  const { resolved, preference, cycle } = useTheme()
-  const chartColors = CHART_COLORS[resolved] || CHART_COLORS.light
+  const { resolved, preference, cycle, palette } = useTheme()
+  const chartColors = CHART_COLORS[`${palette}-${resolved}`] || CHART_COLORS['slate-light']
   const themeIcon = preference === 'auto' ? '◐' : preference === 'light' ? '☀' : '☾'
 
   // Mapa id_entrenador → nombre, para mostrar quién asignó cada rutina.
