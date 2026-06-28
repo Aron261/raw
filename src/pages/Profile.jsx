@@ -12,7 +12,7 @@ import { useInvites } from '../hooks/useInvites'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { useTheme } from '../hooks/useTheme'
 import { ERROR_STYLE } from '../lib/ui'
-import { Button } from '../components/ui'
+import { Button, Sheet } from '../components/ui'
 
 // Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
 const PROFILE_CHART = {
@@ -22,7 +22,384 @@ const PROFILE_CHART = {
   'riso-dark':   { line: '#6E7BFF', grid: '#26271F', axis: '#A2A096' },
 }
 
-// ── Appearance: mode (Auto/Claro/Oscuro) + palette (Slate/Vibrante) ──────
+// ── Shared label styles ───────────────────────────────────────────────────
+const LABEL = {
+  fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
+  letterSpacing: '0.09em', color: 'var(--c-text-dim)',
+  display: 'block', marginBottom: '8px',
+}
+
+const SECTION_TITLE = {
+  fontSize: '10px', fontWeight: 800, textTransform: 'uppercase',
+  letterSpacing: '0.12em', color: 'var(--c-text-dim)',
+  marginBottom: '16px', paddingBottom: '10px',
+  borderBottom: '1px solid var(--c-border-subtle)',
+}
+
+const CARD = {
+  background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+  borderRadius: '16px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+}
+
+// ── Pill selector (radio group) ────────────────────────────────────────
+function PillGroup({ options, value, onChange }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+      {options.map(opt => {
+        const selected = value === opt
+        return (
+          <button
+            key={opt}
+            type="button"
+            onClick={() => onChange(opt)}
+            style={{
+              padding: '7px 16px', borderRadius: '999px',
+              fontSize: '12px', fontWeight: 700,
+              border: `1px solid ${selected ? 'var(--c-accent)' : 'var(--c-border)'}`,
+              background: selected ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
+              color: selected ? 'var(--c-accent)' : 'var(--c-text-dim)',
+              transition: 'all 150ms var(--ease-out)', cursor: 'pointer',
+            }}
+          >
+            {opt}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Number + unit selector ─────────────────────────────────────────────
+function NumberWithUnit({ value, unit, onValueChange, onUnitChange, units, placeholder }) {
+  return (
+    <div style={{ display: 'flex', gap: '8px' }}>
+      <input
+        type="number"
+        value={value ?? ''}
+        onChange={e => onValueChange(e.target.value ? parseFloat(e.target.value) : null)}
+        placeholder={placeholder}
+        className="input-field"
+        style={{ flex: 1 }}
+      />
+      <div style={{ display: 'flex', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
+        {units.map(u => (
+          <button
+            key={u}
+            type="button"
+            onClick={() => onUnitChange(u)}
+            style={{
+              padding: '0 14px', fontSize: '11px', fontWeight: 700,
+              background: unit === u ? 'var(--c-accent)' : 'transparent',
+              color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
+              transition: 'all 150ms var(--ease-out)', height: '100%',
+            }}
+          >
+            {u}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Days picker (1-7) ──────────────────────────────────────────────────
+function DaysPicker({ value, onChange }) {
+  return (
+    <div style={{ display: 'flex', gap: '6px' }}>
+      {[1, 2, 3, 4, 5, 6, 7].map(d => {
+        const selected = value === d
+        return (
+          <button
+            key={d}
+            type="button"
+            onClick={() => onChange(d)}
+            style={{
+              width: '36px', height: '36px', borderRadius: '50%',
+              fontSize: '13px', fontWeight: 800,
+              border: `1px solid ${selected ? 'var(--c-accent)' : 'var(--c-border)'}`,
+              background: selected ? 'var(--c-accent)' : 'var(--c-surface-2)',
+              color: selected ? 'var(--c-on-action)' : 'var(--c-text-dim)',
+              transition: 'all 150ms var(--ease-out)', cursor: 'pointer', flexShrink: 0,
+            }}
+          >
+            {d}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Summary row: label + value, taps to open a sheet ──────────────────────
+function SummaryRow({ label, value, onClick, isFirst }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        width: '100%', padding: '13px 0', textAlign: 'left',
+        borderTop: isFirst ? 'none' : '1px solid var(--c-border-subtle)',
+        cursor: 'pointer',
+      }}
+    >
+      <span style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 600 }}>{label}</span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ color: value ? 'var(--c-text)' : 'var(--c-text-ghost)', fontSize: '13px', fontWeight: 700 }}>
+          {value || '—'}
+        </span>
+        <span style={{ color: 'var(--c-text-ghost)', fontSize: '13px' }}>›</span>
+      </span>
+    </button>
+  )
+}
+
+// ── Sheet: Mis características (identity + físico + nivel) ──────────────────
+function CharacteristicsSheet({ form, set, age, saving, onSave, onClose }) {
+  return (
+    <Sheet title="Mis características" subtitle="Datos que cambian poco. Edítalos cuando haga falta." onClose={onClose} maxHeight="92dvh">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div>
+          <label style={LABEL}>Nombre</label>
+          <input
+            type="text" value={form.name}
+            onChange={e => set('name', e.target.value)}
+            placeholder="Tu nombre" className="input-field"
+          />
+        </div>
+
+        <div>
+          <label style={LABEL}>Fecha de nacimiento</label>
+          <input
+            type="date" value={form.birth_date}
+            onChange={e => set('birth_date', e.target.value)}
+            className="input-field" style={{ colorScheme: 'light' }}
+          />
+          {age !== null && (
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '5px' }}>{age} años</p>
+          )}
+        </div>
+
+        <div>
+          <label style={LABEL}>Sexo</label>
+          <PillGroup options={['Masculino', 'Femenino', 'Otro']} value={form.sex} onChange={v => set('sex', v)} />
+        </div>
+
+        <div>
+          <label style={LABEL}>Altura</label>
+          <NumberWithUnit
+            value={form.height} unit={form.height_unit}
+            onValueChange={v => set('height', v)} onUnitChange={u => set('height_unit', u)}
+            units={['cm', 'ft']} placeholder="0"
+          />
+        </div>
+
+        <div>
+          <label style={LABEL}>Peso de referencia</label>
+          <NumberWithUnit
+            value={form.weight} unit={form.weight_unit}
+            onValueChange={v => set('weight', v)} onUnitChange={u => set('weight_unit', u)}
+            units={['kg', 'lb']} placeholder="0"
+          />
+          <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '6px', lineHeight: 1.4 }}>
+            Tu peso base. El seguimiento diario va en «Peso corporal».
+          </p>
+        </div>
+
+        <div>
+          <label style={LABEL}>Nivel de entrenamiento</label>
+          <PillGroup options={['Principiante', 'Intermedio', 'Avanzado']} value={form.level} onChange={v => set('level', v)} />
+        </div>
+      </div>
+
+      <Button
+        type="button" variant="primary" full size="lg"
+        loading={saving} disabled={saving} onClick={onSave}
+        style={{ marginTop: '24px' }}
+      >
+        {saving ? 'Guardando...' : 'Guardar'}
+      </Button>
+    </Sheet>
+  )
+}
+
+// ── Weight chart tooltip ────────────────────────────────────────────────
+function WeightTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={{
+      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+      padding: '7px 11px', borderRadius: '10px', fontSize: '11px',
+    }}>
+      <p style={{ color: 'var(--c-text-dim)', letterSpacing: '0.06em', marginBottom: '2px' }}>{label}</p>
+      <p style={{ color: 'var(--c-text)', fontWeight: 700 }}>
+        {payload[0].value} {payload[0].payload.unit}
+      </p>
+    </div>
+  )
+}
+
+// Relative-time label: "hoy", "ayer", "hace 3 días", or a date
+function relativeDay(iso) {
+  if (!iso) return ''
+  const then = new Date(iso); then.setHours(0, 0, 0, 0)
+  const now = new Date(); now.setHours(0, 0, 0, 0)
+  const days = Math.round((now - then) / 86400000)
+  if (days <= 0) return 'hoy'
+  if (days === 1) return 'ayer'
+  if (days < 7) return `hace ${days} días`
+  return new Date(iso).toLocaleDateString('es', { month: 'short', day: 'numeric' })
+}
+
+// ── Sheet: body-weight history (chart + full log + add) ───────────────────
+function BodyWeightSheet({ unit, onClose }) {
+  const { resolved, palette } = useTheme()
+  const cc = PROFILE_CHART[`${palette}-${resolved}`] || PROFILE_CHART['slate-light']
+  const { logs, chartData, latestLog, loading, adding, addLog, deleteLog } = useBodyWeight()
+  const [inputWeight, setInputWeight] = useState('')
+
+  const handleAdd = async () => {
+    const val = parseFloat(inputWeight)
+    if (!val || val <= 0) return
+    await addLog(val, unit)
+    setInputWeight('')
+  }
+
+  const recentLogs = [...logs].reverse()
+
+  return (
+    <Sheet title="Peso corporal" subtitle={`Registrando en ${unit}. Cambia la unidad en Mis características.`} onClose={onClose} maxHeight="92dvh">
+      {/* Quick-add — single unit, no toggle */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+        <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <input
+            type="number"
+            value={inputWeight}
+            onChange={e => setInputWeight(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleAdd()}
+            placeholder={latestLog ? `Último: ${latestLog.weight}` : 'Ej: 75'}
+            className="input-field"
+            style={{ width: '100%', paddingRight: '34px' }}
+            autoFocus
+          />
+          <span style={{ position: 'absolute', right: '12px', color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, pointerEvents: 'none' }}>
+            {unit}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={adding || !inputWeight}
+          style={{
+            padding: '0 18px', background: 'var(--c-accent)', color: 'var(--c-on-action)',
+            fontSize: '12px', fontWeight: 800, borderRadius: '10px',
+            opacity: adding || !inputWeight ? 0.5 : 1, transition: 'opacity 150ms', flexShrink: 0,
+          }}
+        >
+          {adding ? '...' : '+ Log'}
+        </button>
+      </div>
+
+      {loading && (
+        <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', textAlign: 'center', padding: '24px 0' }} className="animate-pulse">
+          Cargando...
+        </p>
+      )}
+
+      {/* Chart */}
+      {!loading && chartData.length >= 2 && (
+        <div style={{ height: '160px', width: '100%', marginBottom: '20px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+              <CartesianGrid stroke={cc.grid} strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
+              <Tooltip content={<WeightTooltip />} />
+              <Line type="monotone" dataKey="peso" stroke={cc.line} strokeWidth={2}
+                dot={{ fill: cc.line, r: 3, strokeWidth: 0 }} activeDot={{ fill: cc.line, r: 5, strokeWidth: 0 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && logs.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '20px 0 8px' }}>
+          <p style={{ color: 'var(--c-text-muted)', fontSize: '11px' }}>Registra tu primer peso arriba.</p>
+        </div>
+      )}
+
+      {/* Full log list */}
+      {!loading && recentLogs.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+          {recentLogs.map((log, i) => {
+            const dateStr = new Date(log.logged_at).toLocaleDateString('es', { weekday: 'short', month: 'short', day: 'numeric' })
+            return (
+              <div key={log.id} style={{
+                display: 'flex', alignItems: 'center', padding: '10px 0',
+                borderTop: i === 0 ? 'none' : '1px solid var(--c-border-subtle)',
+              }}>
+                <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', flex: 1 }}>{dateStr}</span>
+                <span style={{ color: 'var(--c-text)', fontWeight: 800, fontSize: '14px' }}>
+                  {log.weight}
+                  <span style={{ color: 'var(--c-text-dim)', fontWeight: 400, fontSize: '11px', marginLeft: '3px' }}>{log.unit}</span>
+                </span>
+                <button
+                  type="button" onClick={() => deleteLog(log.id)} aria-label="Eliminar"
+                  style={{ color: 'var(--c-text-ghost)', fontSize: '12px', marginLeft: '12px', padding: '2px 6px' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+                >
+                  ✕
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </Sheet>
+  )
+}
+
+// ── Body-weight summary (collapsed) — latest only, taps to open sheet ──────
+function BodyWeightSummary({ unit, onOpen }) {
+  const { latestLog, loading } = useBodyWeight()
+
+  return (
+    <section style={CARD}>
+      <p style={SECTION_TITLE}>Peso corporal</p>
+      <button
+        type="button"
+        onClick={onOpen}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', textAlign: 'left', cursor: 'pointer',
+        }}
+      >
+        <div>
+          {loading ? (
+            <span className="animate-pulse" style={{ color: 'var(--c-text-muted)', fontSize: '12px' }}>Cargando...</span>
+          ) : latestLog ? (
+            <>
+              <span style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.03em' }}>
+                {latestLog.weight}
+                <span style={{ color: 'var(--c-text-dim)', fontSize: '14px', fontWeight: 700, marginLeft: '4px' }}>{latestLog.unit}</span>
+              </span>
+              <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '2px' }}>{relativeDay(latestLog.logged_at)}</p>
+            </>
+          ) : (
+            <span style={{ color: 'var(--c-text-ghost)', fontSize: '13px', fontWeight: 600 }}>Sin registros aún</span>
+          )}
+        </div>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-accent)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          {latestLog ? 'Ver historial' : 'Registrar'} ›
+        </span>
+      </button>
+    </section>
+  )
+}
+
+// ── Appearance: mode + palette ───────────────────────────────────────────
 function ThemeSection() {
   const { preference, setPreference, palette, setPalette } = useTheme()
   const modeOpts = [
@@ -43,7 +420,8 @@ function ThemeSection() {
     fontSize: '11px', fontWeight: 700, transition: 'all 150ms var(--ease-out)',
   })
   return (
-    <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px' }}>
+    <section style={CARD}>
+      <p style={SECTION_TITLE}>Apariencia</p>
       <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
         Tema
       </p>
@@ -82,288 +460,6 @@ function ThemeSection() {
   )
 }
 
-// ── Shared label style ──────────────────────────────────────────────────
-const LABEL = {
-  fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-  letterSpacing: '0.09em', color: 'var(--c-text-dim)',
-  display: 'block', marginBottom: '8px',
-}
-
-const SECTION_TITLE = {
-  fontSize: '10px', fontWeight: 800, textTransform: 'uppercase',
-  letterSpacing: '0.12em', color: 'var(--c-text-dim)',
-  marginBottom: '16px', paddingBottom: '10px',
-  borderBottom: '1px solid var(--c-border-subtle)',
-}
-
-// ── Pill selector (radio group) ────────────────────────────────────────
-function PillGroup({ options, value, onChange }) {
-  return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-      {options.map(opt => {
-        const selected = value === opt
-        return (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => onChange(opt)}
-            style={{
-              padding: '7px 16px',
-              borderRadius: '999px',
-              fontSize: '12px',
-              fontWeight: 700,
-              border: `1px solid ${selected ? 'var(--c-accent)' : 'var(--c-border)'}`,
-              background: selected ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
-              color: selected ? 'var(--c-accent)' : 'var(--c-text-dim)',
-              transition: 'all 150ms var(--ease-out)',
-              cursor: 'pointer',
-            }}
-          >
-            {opt}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-// ── Number + unit selector ─────────────────────────────────────────────
-function NumberWithUnit({ value, unit, onValueChange, onUnitChange, units, placeholder }) {
-  return (
-    <div style={{ display: 'flex', gap: '8px' }}>
-      <input
-        type="number"
-        value={value ?? ''}
-        onChange={e => onValueChange(e.target.value ? parseFloat(e.target.value) : null)}
-        placeholder={placeholder}
-        className="input-field"
-        style={{ flex: 1 }}
-      />
-      <div style={{ display: 'flex', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
-        {units.map(u => (
-          <button
-            key={u}
-            type="button"
-            onClick={() => onUnitChange(u)}
-            style={{
-              padding: '0 14px',
-              fontSize: '11px',
-              fontWeight: 700,
-              background: unit === u ? 'var(--c-accent)' : 'transparent',
-              color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
-              transition: 'all 150ms var(--ease-out)',
-              height: '100%',
-            }}
-          >
-            {u}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── Days picker (1-7) ──────────────────────────────────────────────────
-function DaysPicker({ value, onChange }) {
-  return (
-    <div style={{ display: 'flex', gap: '6px' }}>
-      {[1, 2, 3, 4, 5, 6, 7].map(d => {
-        const selected = value === d
-        return (
-          <button
-            key={d}
-            type="button"
-            onClick={() => onChange(d)}
-            style={{
-              width: '36px', height: '36px',
-              borderRadius: '50%',
-              fontSize: '13px', fontWeight: 800,
-              border: `1px solid ${selected ? 'var(--c-accent)' : 'var(--c-border)'}`,
-              background: selected ? 'var(--c-accent)' : 'var(--c-surface-2)',
-              color: selected ? 'var(--c-on-action)' : 'var(--c-text-dim)',
-              transition: 'all 150ms var(--ease-out)',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            {d}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-// ── Weight chart tooltip ────────────────────────────────────────────────
-function WeightTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{
-      background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)',
-      padding: '7px 11px',
-      borderRadius: '10px',
-      fontSize: '11px',
-    }}>
-      <p style={{ color: 'var(--c-text-dim)', letterSpacing: '0.06em', marginBottom: '2px' }}>{label}</p>
-      <p style={{ color: 'var(--c-text)', fontWeight: 700 }}>
-        {payload[0].value} {payload[0].payload.unit}
-      </p>
-    </div>
-  )
-}
-
-// ── Body weight section ─────────────────────────────────────────────────
-function BodyWeightSection() {
-  const { resolved, palette } = useTheme()
-  const cc = PROFILE_CHART[`${palette}-${resolved}`] || PROFILE_CHART['slate-light']
-  const { logs, chartData, latestLog, loading, adding, addLog, deleteLog } = useBodyWeight()
-  const [inputWeight, setInputWeight] = useState('')
-  const [inputUnit, setInputUnit] = useState(latestLog?.unit ?? 'kg')
-
-  // Sync unit with latest entry when it loads
-  useEffect(() => {
-    if (latestLog?.unit) setInputUnit(latestLog.unit)
-  }, [latestLog?.unit])
-
-  const handleAdd = async () => {
-    const val = parseFloat(inputWeight)
-    if (!val || val <= 0) return
-    await addLog(val, inputUnit)
-    setInputWeight('')
-  }
-
-  const recentLogs = [...logs].reverse().slice(0, 10)
-
-  return (
-    <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-      <p style={SECTION_TITLE}>Peso corporal</p>
-
-      {/* Quick-add input */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-        <input
-          type="number"
-          value={inputWeight}
-          onChange={e => setInputWeight(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleAdd()}
-          placeholder={latestLog ? `Último: ${latestLog.weight} ${latestLog.unit}` : 'Ej: 75'}
-          className="input-field"
-          style={{ flex: 1 }}
-        />
-        <div style={{ display: 'flex', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
-          {['kg', 'lb'].map(u => (
-            <button
-              key={u}
-              type="button"
-              onClick={() => setInputUnit(u)}
-              style={{
-                padding: '0 14px',
-                fontSize: '11px', fontWeight: 700,
-                background: inputUnit === u ? 'var(--c-accent)' : 'transparent',
-                color: inputUnit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
-                transition: 'all 150ms var(--ease-out)',
-                height: '100%',
-              }}
-            >
-              {u}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={adding || !inputWeight}
-          style={{
-            padding: '0 16px',
-            background: 'var(--c-accent)',
-            color: 'var(--c-on-action)',
-            fontSize: '12px', fontWeight: 800,
-            borderRadius: '10px',
-            opacity: adding || !inputWeight ? 0.5 : 1,
-            transition: 'opacity 150ms',
-            flexShrink: 0,
-          }}
-        >
-          {adding ? '...' : '+ Log'}
-        </button>
-      </div>
-
-      {loading && (
-        <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', textAlign: 'center', padding: '24px 0' }} className="animate-pulse">
-          Cargando...
-        </p>
-      )}
-
-      {/* Chart */}
-      {!loading && chartData.length >= 2 && (
-        <div style={{ height: '140px', width: '100%', marginBottom: '20px' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-              <CartesianGrid stroke={cc.grid} strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
-              <Tooltip content={<WeightTooltip />} />
-              <Line
-                type="monotone"
-                dataKey="peso"
-                stroke={cc.line}
-                strokeWidth={2}
-                dot={{ fill: cc.line, r: 3, strokeWidth: 0 }}
-                activeDot={{ fill: cc.line, r: 5, strokeWidth: 0 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!loading && logs.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '20px 0 8px' }}>
-          <p style={{ color: 'var(--c-text-muted)', fontSize: '11px' }}>Registra tu primer peso arriba.</p>
-        </div>
-      )}
-
-      {/* Recent log list */}
-      {!loading && recentLogs.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-          {recentLogs.map((log, i) => {
-            const dateStr = new Date(log.logged_at).toLocaleDateString('es', {
-              weekday: 'short', month: 'short', day: 'numeric',
-            })
-            const isFirst = i === 0
-            return (
-              <div
-                key={log.id}
-                style={{
-                  display: 'flex', alignItems: 'center',
-                  padding: '9px 0',
-                  borderTop: isFirst ? 'none' : '1px solid var(--c-border-subtle)',
-                }}
-              >
-                <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', flex: 1 }}>{dateStr}</span>
-                <span style={{ color: 'var(--c-text)', fontWeight: 800, fontSize: '14px' }}>
-                  {log.weight}
-                  <span style={{ color: 'var(--c-text-dim)', fontWeight: 400, fontSize: '11px', marginLeft: '3px' }}>{log.unit}</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => deleteLog(log.id)}
-                  aria-label="Eliminar"
-                  style={{ color: 'var(--c-text-ghost)', fontSize: '12px', marginLeft: '12px', padding: '2px 6px' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
-                >
-                  ✕
-                </button>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </section>
-  )
-}
-
 // ── Trainer / coach section ─────────────────────────────────────────────
 function TrainerSection() {
   const navigate = useNavigate()
@@ -395,7 +491,7 @@ function TrainerSection() {
   }
 
   return (
-    <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+    <section style={CARD}>
       <p style={SECTION_TITLE}>Entrenador</p>
 
       {(localError || trainerError || inviteError) && (
@@ -517,33 +613,30 @@ export default function Profile() {
   const { user } = useAuth()
   const { profile, loading, saving, saveError, saveSuccess, saveProfile, age } = useProfile()
 
+  // sheet: null | 'characteristics' | 'weight'
+  const [sheet, setSheet] = useState(null)
+
   // Local form state — mirrors profile fields
   const [form, setForm] = useState({
-    name: '',
-    birth_date: '',
-    sex: null,
-    weight: null,
-    weight_unit: 'kg',
-    height: null,
-    height_unit: 'cm',
-    level: null,
-    goal: null,
-    days_per_week: null,
+    name: '', birth_date: '', sex: null,
+    weight: null, weight_unit: 'kg',
+    height: null, height_unit: 'cm',
+    level: null, goal: null, days_per_week: null,
   })
 
   // Sync from loaded profile
   useEffect(() => {
     if (profile) {
       setForm({
-        name:         profile.name         ?? '',
-        birth_date:   profile.birth_date   ?? '',
-        sex:          profile.sex          ?? null,
-        weight:       profile.weight       ?? null,
-        weight_unit:  profile.weight_unit  ?? 'kg',
-        height:       profile.height       ?? null,
-        height_unit:  profile.height_unit  ?? 'cm',
-        level:        profile.level        ?? null,
-        goal:         profile.goal         ?? null,
+        name:          profile.name          ?? '',
+        birth_date:    profile.birth_date    ?? '',
+        sex:           profile.sex           ?? null,
+        weight:        profile.weight        ?? null,
+        weight_unit:   profile.weight_unit   ?? 'kg',
+        height:        profile.height        ?? null,
+        height_unit:   profile.height_unit   ?? 'cm',
+        level:         profile.level         ?? null,
+        goal:          profile.goal          ?? null,
         days_per_week: profile.days_per_week ?? null,
       })
     }
@@ -551,14 +644,35 @@ export default function Profile() {
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }))
 
-  const handleSave = (e) => {
-    e.preventDefault()
-    const payload = { ...form }
-    // Convert empty strings to null
-    if (!payload.name) payload.name = null
-    if (!payload.birth_date) payload.birth_date = null
-    saveProfile(payload)
+  // Save a subset (sheet) or all editable fields. upsert only writes passed keys.
+  const persist = async (keys) => {
+    const payload = {}
+    for (const k of keys) {
+      let v = form[k]
+      if ((k === 'name' || k === 'birth_date') && !v) v = null
+      payload[k] = v
+    }
+    await saveProfile(payload)
   }
+
+  const saveCharacteristics = async () => {
+    await persist(['name', 'birth_date', 'sex', 'height', 'height_unit', 'weight', 'weight_unit', 'level'])
+    setSheet(null)
+  }
+
+  const saveTraining = (e) => {
+    e.preventDefault()
+    persist(['goal', 'days_per_week'])
+  }
+
+  const weightUnit = form.weight_unit || 'kg'
+
+  // Summary line for the characteristics card
+  const charsSummary = [
+    form.sex,
+    form.height ? `${form.height} ${form.height_unit}` : null,
+    form.level,
+  ].filter(Boolean).join(' · ')
 
   if (loading) {
     return (
@@ -578,12 +692,10 @@ export default function Profile() {
 
         {/* Header */}
         <div style={{ marginBottom: '32px' }}>
-          {/* Avatar circle with initials */}
           <div style={{
             width: '64px', height: '64px', borderRadius: '50%',
             background: 'var(--c-accent-dim)', border: '2px solid var(--c-accent-border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: '16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px',
           }}>
             <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--c-action-text)', letterSpacing: '-0.03em' }}>
               {form.name ? form.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
@@ -601,147 +713,85 @@ export default function Profile() {
           <p style={{ color: 'var(--c-text-ghost)', fontSize: '11px', marginTop: '2px' }}>{user?.email}</p>
         </div>
 
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-          {/* ── Identidad ── */}
-          <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-            <p style={SECTION_TITLE}>Identidad</p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={LABEL}>Nombre</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={e => set('name', e.target.value)}
-                  placeholder="Tu nombre"
-                  className="input-field"
-                />
-              </div>
-
-              <div>
-                <label style={LABEL}>Fecha de nacimiento</label>
-                <input
-                  type="date"
-                  value={form.birth_date}
-                  onChange={e => set('birth_date', e.target.value)}
-                  className="input-field"
-                  style={{ colorScheme: 'light' }}
-                />
-                {age !== null && (
-                  <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '5px' }}>
-                    {age} años
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label style={LABEL}>Sexo</label>
-                <PillGroup
-                  options={['Masculino', 'Femenino', 'Otro']}
-                  value={form.sex}
-                  onChange={v => set('sex', v)}
-                />
-              </div>
-            </div>
+          {/* ── Mis características (summary → sheet) ── */}
+          <section style={CARD}>
+            <p style={SECTION_TITLE}>Mis características</p>
+            <button
+              type="button"
+              onClick={() => setSheet('characteristics')}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                width: '100%', textAlign: 'left', cursor: 'pointer',
+              }}
+            >
+              <span style={{ color: charsSummary ? 'var(--c-text)' : 'var(--c-text-ghost)', fontSize: '13px', fontWeight: 600, lineHeight: 1.5 }}>
+                {charsSummary || 'Añade tus datos'}
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-accent)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0, marginLeft: '12px' }}>
+                Editar ›
+              </span>
+            </button>
           </section>
 
-          {/* ── Físico ── */}
-          <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-            <p style={SECTION_TITLE}>Físico</p>
+          {/* ── Entrenamiento (inline) ── */}
+          <form onSubmit={saveTraining}>
+            <section style={CARD}>
+              <p style={SECTION_TITLE}>Entrenamiento</p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={LABEL}>Peso</label>
-                <NumberWithUnit
-                  value={form.weight}
-                  unit={form.weight_unit}
-                  onValueChange={v => set('weight', v)}
-                  onUnitChange={u => set('weight_unit', u)}
-                  units={['kg', 'lb']}
-                  placeholder="0"
-                />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                  <label style={LABEL}>Objetivo principal</label>
+                  <PillGroup
+                    options={['Ganar músculo', 'Perder grasa', 'Fuerza', 'Resistencia', 'Mantener']}
+                    value={form.goal}
+                    onChange={v => set('goal', v)}
+                  />
+                </div>
+
+                <div>
+                  <label style={LABEL}>Días que entrenas por semana</label>
+                  <DaysPicker value={form.days_per_week} onChange={v => set('days_per_week', v)} />
+                </div>
               </div>
 
-              <div>
-                <label style={LABEL}>Altura</label>
-                <NumberWithUnit
-                  value={form.height}
-                  unit={form.height_unit}
-                  onValueChange={v => set('height', v)}
-                  onUnitChange={u => set('height_unit', u)}
-                  units={['cm', 'ft']}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-          </section>
+              {saveError && (
+                <div className="fade-in" style={{ ...ERROR_STYLE, marginTop: '16px' }}>{saveError}</div>
+              )}
 
-          {/* ── Entrenamiento ── */}
-          <section style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-            <p style={SECTION_TITLE}>Entrenamiento</p>
+              <Button
+                type="submit" variant="primary" full size="lg"
+                loading={saving} disabled={saving}
+                style={{ marginTop: '20px', background: saveSuccess ? 'var(--c-success)' : undefined, transition: 'background 300ms var(--ease-out)' }}
+              >
+                {saving ? 'Guardando...' : saveSuccess ? '✓ Guardado' : 'Guardar'}
+              </Button>
+            </section>
+          </form>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div>
-                <label style={LABEL}>Nivel</label>
-                <PillGroup
-                  options={['Principiante', 'Intermedio', 'Avanzado']}
-                  value={form.level}
-                  onChange={v => set('level', v)}
-                />
-              </div>
-
-              <div>
-                <label style={LABEL}>Objetivo principal</label>
-                <PillGroup
-                  options={['Ganar músculo', 'Perder grasa', 'Fuerza', 'Resistencia', 'Mantener']}
-                  value={form.goal}
-                  onChange={v => set('goal', v)}
-                />
-              </div>
-
-              <div>
-                <label style={LABEL}>Días que entrenas por semana</label>
-                <DaysPicker value={form.days_per_week} onChange={v => set('days_per_week', v)} />
-              </div>
-            </div>
-          </section>
-
-          {/* ── Peso corporal ── */}
-          <BodyWeightSection />
+          {/* ── Peso corporal (collapsed → sheet) ── */}
+          <BodyWeightSummary unit={weightUnit} onOpen={() => setSheet('weight')} />
 
           {/* ── Entrenador ── */}
           <TrainerSection />
 
-          {/* ── Apariencia (tema) ── */}
+          {/* ── Apariencia ── */}
           <ThemeSection />
-
-          {/* ── Save ── */}
-          {saveError && (
-            <div className="fade-in" style={{
-              background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
-              color: 'var(--c-accent)', fontSize: '12px', padding: '10px 14px', borderRadius: '10px',
-            }}>
-              {saveError}
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            variant="primary"
-            full
-            size="lg"
-            loading={saving}
-            disabled={saving}
-            style={{
-              background: saveSuccess ? 'var(--c-success)' : undefined,
-              transition: 'background 300ms var(--ease-out)',
-            }}
-          >
-            {saving ? 'Guardando...' : saveSuccess ? '✓ Guardado' : 'Guardar perfil'}
-          </Button>
-        </form>
+        </div>
       </div>
+
+      {/* ── Sheets ── */}
+      {sheet === 'characteristics' && (
+        <CharacteristicsSheet
+          form={form} set={set} age={age}
+          saving={saving} onSave={saveCharacteristics}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet === 'weight' && (
+        <BodyWeightSheet unit={weightUnit} onClose={() => setSheet(null)} />
+      )}
     </Layout>
   )
 }

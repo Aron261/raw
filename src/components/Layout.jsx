@@ -70,8 +70,7 @@ export default function Layout({ children, hideNav = false }) {
             <main className={`flex-1 flex flex-col ${hideNav ? '' : 'pb-20'}`}>
               {children}
             </main>
-            {!hideNav && <StartFab onClick={openPicker} />}
-            {!hideNav && <BottomNav />}
+            {!hideNav && <BottomNav onStart={openPicker} />}
           </div>
 
           {/* ── Desktop (≥ md) ─────────────────────────────────────────── */}
