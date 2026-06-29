@@ -28,12 +28,14 @@ export default function ExerciseRow({
 }) {
   const { user } = useAuth()
   const storageKey = `raw_ex_expanded_${workoutExercise.id}`
+  // During a live workout exercises start collapsed (open the one you're on);
+  // when reviewing a finished workout they default open for scanning.
   const [expanded, setExpanded] = useState(() => {
     try {
       const saved = localStorage.getItem(storageKey)
-      return saved === null ? true : saved === 'true'
+      return saved === null ? readOnly : saved === 'true'
     } catch {
-      return true
+      return readOnly
     }
   })
   const [showMenu, setShowMenu] = useState(false)
