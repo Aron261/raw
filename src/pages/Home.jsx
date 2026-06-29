@@ -49,19 +49,6 @@ function getGreeting() {
   return 'Buenas noches'
 }
 
-// Frase contextual del header: "Tu semana va en 3 entrenos y 14.8k kg de volumen."
-function getContextSentence(count, weekVolume) {
-  if (!count) return null
-  const fmtVol = weekVolume >= 10000
-    ? `${(weekVolume / 1000).toFixed(1)}k`
-    : weekVolume.toLocaleString()
-  const entrenos = count === 1 ? 'entreno' : 'entrenos'
-  if (weekVolume > 0) {
-    return `Tu semana va en ${count} ${entrenos} y ${fmtVol} kg de volumen.`
-  }
-  return `Llevas ${count} ${entrenos} esta semana.`
-}
-
 // ── Format volume ─────────────────────────────────────────────────────────
 function formatVolume(v) {
   if (!v) return '—'
@@ -772,15 +759,9 @@ export default function Home() {
               {dateStr}
             </p>
             {/* Saludo + nombre — Archivo 900, sentence case para legibilidad */}
-            <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02, marginBottom: '6px' }}>
+            <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
               {getGreeting()}{firstName ? `, ${firstName}` : ''}
             </h1>
-            {/* Frase contextual: solo aparece cuando hay datos cargados */}
-            {!loading && !error && stats.count > 0 && (
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 500, lineHeight: 1.4 }}>
-                {getContextSentence(stats.count, stats.weekVolume)}
-              </p>
-            )}
           </div>
         </div>
 
@@ -972,151 +953,100 @@ export default function Home() {
         {/* ── Contenido principal ── */}
         {!loading && !error && workouts.length > 0 && (
           <>
-            {/*
-              Grid responsivo:
-              - Móvil: DOM order → Resumen → [PR + Highlight + Metas] → Chart
-              - Desktop: 2 cols con placement explícito:
-                  Col 1 row 1: Resumen semanal
-                  Col 2 rows 1–2: PR + Highlight + Metas
-                  Col 1 row 2: Gráfico
-            */}
+            {/* ── Resumen semanal — el número es el héroe, sin tarjeta ── */}
+            <div className="fade-in" style={{ marginBottom: '32px', animationDelay: '40ms' }}>
+              <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
+                Esta semana
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                {[
+                  { value: stats.count, label: stats.count === 1 ? 'entreno' : 'entrenos' },
+                  { value: formatVolume(stats.weekVolume), label: 'kg de volumen' },
+                  { value: stats.thisMonth, label: 'días este mes' },
+                ].map((s, i) => (
+                  <div key={s.label} style={{ paddingLeft: i > 0 ? '16px' : 0, borderLeft: i > 0 ? '1px solid var(--c-border-subtle)' : 'none' }}>
+                    <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-display)', fontSize: '42px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '8px' }}>
+                      {s.value}
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
+                      {s.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Grid: gráfico (izq) · señal ganada + metas (der) */}
             <div className="md:grid md:grid-cols-[1fr_360px] md:gap-x-6 md:items-start">
 
-              {/* ── Resumen semanal — col 1, row 1 ── */}
+              {/* ── Columna derecha: señal ganada (PR o highlight) + Metas ── */}
               <div
-                className="fade-in mb-4 md:mb-4 md:col-start-1 md:row-start-1"
-                style={{ animationDelay: '40ms' }}
-              >
-                <div style={{
-                  background: 'var(--c-surface)',
-                  border: '1px solid var(--c-border-subtle)',
-                  borderRadius: '16px',
-                  padding: '20px',
-                }}>
-                  <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '16px' }}>
-                    Esta semana
-                  </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    {/* Entrenos */}
-                    <div>
-                      <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-display)', fontSize: '38px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '6px' }}>
-                        {stats.count}
-                      </p>
-                      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
-                        {stats.count === 1 ? 'entreno' : 'entrenos'}
-                      </p>
-                    </div>
-                    {/* Volumen */}
-                    <div>
-                      <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-display)', fontSize: '38px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '6px' }}>
-                        {formatVolume(stats.weekVolume)}
-                      </p>
-                      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
-                        kg de volumen
-                      </p>
-                    </div>
-                    {/* Este mes */}
-                    <div>
-                      <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-display)', fontSize: '38px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '6px' }}>
-                        {stats.thisMonth}
-                      </p>
-                      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
-                        días este mes
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Columna derecha: PR + Highlight + Metas — col 2, rows 1–2 ── */}
-              <div
-                className="fade-in md:col-start-2 md:row-start-1 md:row-span-2"
+                className="fade-in md:col-start-2 md:row-start-1"
                 style={{ animationDelay: '60ms', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}
               >
 
-                {/* ── PR de la semana ── */}
-                <div style={{
-                  background: 'var(--c-surface)',
-                  border: '1px solid var(--c-border-subtle)',
-                  borderTop: stats.weekPR ? '3px solid var(--c-record)' : '1px solid var(--c-border-subtle)',
-                  borderRadius: '16px',
-                  padding: '20px',
-                }}>
-                  <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
-                    Mejor marca esta semana
-                  </p>
-
-                  {stats.weekPR ? (
-                    <>
-                      <span style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '5px',
-                        background: 'var(--c-record)',
-                        color: 'var(--c-record-ink)',
-                        borderRadius: '6px',
-                        padding: '4px 9px',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '9px', fontWeight: 700,
-                        textTransform: 'uppercase', letterSpacing: '0.1em',
-                        marginBottom: '10px',
-                      }}>
-                        ▲ Nuevo récord
+                {/* ── Señal ganada: PR de la semana, o highlight si no hay PR ── */}
+                {stats.weekPR ? (
+                  <div style={{
+                    background: 'var(--c-surface)',
+                    border: '1px solid var(--c-border-subtle)',
+                    borderTop: '3px solid var(--c-record)',
+                    borderRadius: '16px',
+                    padding: '20px',
+                  }}>
+                    <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
+                      Mejor marca esta semana
+                    </p>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '5px',
+                      background: 'var(--c-record)',
+                      color: 'var(--c-record-ink)',
+                      borderRadius: '6px',
+                      padding: '4px 9px',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '9px', fontWeight: 700,
+                      textTransform: 'uppercase', letterSpacing: '0.1em',
+                      marginBottom: '10px',
+                    }}>
+                      ▲ Nuevo récord
+                    </span>
+                    <p className="font-display" style={{ color: 'var(--c-text)', fontSize: '24px', lineHeight: 1, marginBottom: '8px' }}>
+                      {stats.weekPR.exercise}
+                    </p>
+                    <p style={{ color: 'var(--c-text-dim)', fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>
+                      {stats.weekPR.weight} × {stats.weekPR.reps} reps
+                    </p>
+                    <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, marginBottom: '10px' }}>
+                      1RM estimado:{' '}
+                      <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>
+                        {stats.weekPR.rm} {stats.weekPR.unit === 'lb' ? 'lb' : 'kg'}
                       </span>
-                      {/* Nombre del ejercicio en sentence case, sin uppercase */}
-                      <p className="font-display" style={{ color: 'var(--c-text)', fontSize: '24px', lineHeight: 1, marginBottom: '8px' }}>
-                        {stats.weekPR.exercise}
-                      </p>
-                      <p style={{ color: 'var(--c-text-dim)', fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>
-                        {stats.weekPR.weight} × {stats.weekPR.reps} reps
-                      </p>
-                      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, marginBottom: '10px' }}>
-                        1RM estimado:{' '}
-                        <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>
-                          {stats.weekPR.rm} {stats.weekPR.unit === 'lb' ? 'lb' : 'kg'}
-                        </span>
-                      </p>
-                      {/* Microcopy */}
-                      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, borderTop: '1px solid var(--c-border-subtle)', paddingTop: '10px', lineHeight: 1.5 }}>
-                        Superaste tu mejor registro en este ejercicio.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 600, marginBottom: '6px' }}>
-                        Sin récords nuevos esta semana.
-                      </p>
-                      <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 500, lineHeight: 1.5 }}>
-                        Seguís acumulando trabajo. Eso también cuenta.
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {/* ── Highlight del día ── */}
-                {todayHighlight && (
+                    </p>
+                    <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, borderTop: '1px solid var(--c-border-subtle)', paddingTop: '10px', lineHeight: 1.5 }}>
+                      Superaste tu mejor registro en este ejercicio.
+                    </p>
+                  </div>
+                ) : todayHighlight ? (
                   <div style={{
                     background: 'var(--c-surface)',
                     border: '1px solid var(--c-border-subtle)',
                     borderRadius: '16px',
                     padding: '20px',
                   }}>
-                    {/* Label: pequeño y sentence case */}
                     <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
                       {todayHighlight.label}
                     </p>
-                    {/* Nombre del ejercicio/sesión: normal case, tamaño medio */}
                     <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 600, marginBottom: '4px', lineHeight: 1.3 }}>
                       {todayHighlight.title}
                     </p>
-                    {/* Valor principal: grande y bold */}
                     <p className="font-display" style={{ color: 'var(--c-text)', fontSize: '40px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '8px' }}>
                       {todayHighlight.value}
                     </p>
-                    {/* Sub como frase completa y natural */}
                     <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, lineHeight: 1.5 }}>
                       {todayHighlight.sub}
                     </p>
                   </div>
-                )}
+                ) : null}
 
                 {/* ── Metas ── */}
                 <div style={{
@@ -1242,16 +1172,15 @@ export default function Home() {
               </div>
               {/* fin columna derecha */}
 
-              {/* ── Gráfico semanal — col 1, row 2 ── */}
+              {/* ── Gráfico semanal — col 1 ── */}
               <div
-                className="fade-in md:col-start-1 md:row-start-2 mb-4 md:mb-0"
+                className="fade-in md:col-start-1 md:row-start-1 mb-4 md:mb-0"
                 style={{ animationDelay: '100ms' }}
               >
                 <WeeklyChart
                   chartData={stats.chartData}
                   height={160}
                   title="Volumen semanal"
-                  subtitle={stats.weekVolume > 0 ? `Total esta semana: ${formatVolume(stats.weekVolume)} kg` : undefined}
                   colors={chartColors}
                 />
               </div>
