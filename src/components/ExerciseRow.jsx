@@ -148,16 +148,6 @@ export default function ExerciseRow({
     }
   }
 
-  // Fill this exercise with last session's sets — one tap, then tweak.
-  const repeatPrevious = async () => {
-    if (!previousSets.length) return
-    setTargetCount(c => Math.max(c, previousSets.length))
-    for (let i = 0; i < previousSets.length; i++) {
-      const p = previousSets[i]
-      await saveRow(i + 1, String(p.reps), String(p.weight), false)
-    }
-  }
-
   const toggleExpand = () => setExpanded(e => {
     const next = !e
     try { localStorage.setItem(storageKey, String(next)) } catch {}
@@ -310,11 +300,6 @@ export default function ExerciseRow({
                   {onShowHistory && (
                     <MenuItem onClick={() => { onShowHistory(exercise); setShowMenu(false) }}>
                       Ver historial
-                    </MenuItem>
-                  )}
-                  {previousSets.length > 0 && (
-                    <MenuItem onClick={() => { repeatPrevious(); setShowMenu(false) }}>
-                      Igual que la vez pasada
                     </MenuItem>
                   )}
                   {onMove && canMoveUp && (
