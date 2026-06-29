@@ -958,32 +958,43 @@ export default function ActiveWorkout() {
           <LoggingPrimer onDismiss={dismissPrimer} />
         )}
 
-        {/* Exercise list */}
+        {/* Exercise list — finished exercises collapse and rise to the top;
+            the ones still to do stay at the bottom. Move arrows operate within
+            the pending sublist. */}
         <div style={{ marginBottom: '8px' }}>
-          {workoutExercises.map((we, i) => (
-            <div key={we.id} className="stagger-item" style={{ animationDelay: `${i * 40}ms` }}>
-              <ExerciseRow
-                workoutExercise={we}
-                workoutId={id}
-                onAddSet={addSet}
-                onDeleteSet={deleteSet}
-                onUpdateSet={updateSet}
-                onUpdateUnit={updateUnit}
-                onRemoveExercise={removeExercise}
-                onSwapExercise={(!isFinished || isEditing) ? (weId) => setSwappingId(weId) : undefined}
-                onUpdateNotes={(!isFinished || isEditing) ? updateExerciseNotes : undefined}
-                completedSetIds={doneSets}
-                onToggleSetDone={toggleSetDone}
-                isExerciseFinished={doneExs.has(we.id)}
-                onToggleFinish={toggleExerciseFinish}
-                onShowHistory={setHistoryExercise}
-                onMove={(!isFinished || isEditing) ? moveExercise : undefined}
-                canMoveUp={i > 0}
-                canMoveDown={i < workoutExercises.length - 1}
-                readOnly={isFinished && !isEditing}
-              />
-            </div>
-          ))}
+          {(() => {
+            const finished = workoutExercises.filter(we => doneExs.has(we.id))
+            const pending  = workoutExercises.filter(we => !doneExs.has(we.id))
+            const display  = [...finished, ...pending]
+            return display.map((we, i) => {
+              const exFinished = doneExs.has(we.id)
+              const pIdx = exFinished ? -1 : pending.findIndex(p => p.id === we.id)
+              return (
+                <div key={we.id} className="stagger-item" style={{ animationDelay: `${i * 40}ms` }}>
+                  <ExerciseRow
+                    workoutExercise={we}
+                    workoutId={id}
+                    onAddSet={addSet}
+                    onDeleteSet={deleteSet}
+                    onUpdateSet={updateSet}
+                    onUpdateUnit={updateUnit}
+                    onRemoveExercise={removeExercise}
+                    onSwapExercise={(!isFinished || isEditing) ? (weId) => setSwappingId(weId) : undefined}
+                    onUpdateNotes={(!isFinished || isEditing) ? updateExerciseNotes : undefined}
+                    completedSetIds={doneSets}
+                    onToggleSetDone={toggleSetDone}
+                    isExerciseFinished={exFinished}
+                    onToggleFinish={toggleExerciseFinish}
+                    onShowHistory={setHistoryExercise}
+                    onMove={(!isFinished || isEditing) ? moveExercise : undefined}
+                    canMoveUp={!exFinished && pIdx > 0}
+                    canMoveDown={!exFinished && pIdx < pending.length - 1}
+                    readOnly={isFinished && !isEditing}
+                  />
+                </div>
+              )
+            })
+          })()}
         </div>
 
         {/* Bottom actions */}
@@ -1061,10 +1072,10 @@ export default function ActiveWorkout() {
                   width: '100%', padding: '14px', fontSize: '10px', fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: '0.08em',
                   color: 'var(--c-text-dim)', border: '1px solid var(--c-border-subtle)',
-                  borderRadius: '2px', transition: 'color 150ms, border-color 150ms',
+                  borderRadius: '10px', transition: 'color 150ms, border-color 150ms',
                   background: 'transparent', cursor: 'pointer',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'oklch(70% 0.15 260)'; e.currentTarget.style.borderColor = 'oklch(70% 0.15 260)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
               >
                 Editar entreno
@@ -1090,7 +1101,8 @@ export default function ActiveWorkout() {
                 width: '100%', padding: '14px', fontSize: '10px', fontWeight: 700,
                 textTransform: 'uppercase', letterSpacing: '0.08em',
                 color: 'var(--c-text-dim)', border: '1px solid var(--c-border-subtle)',
-                borderRadius: '2px', transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
+                borderRadius: '10px', transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
+                background: 'transparent', cursor: 'pointer',
               }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-accent)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
