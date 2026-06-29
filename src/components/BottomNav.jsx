@@ -30,15 +30,6 @@ function ProgramaIcon() {
   )
 }
 
-function ProfileIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-    </svg>
-  )
-}
-
 function CoachIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -136,8 +127,12 @@ export default function BottomNav({ onStart }) {
   const { profile } = useProfile()
   const isTrainer = !!profile?.is_trainer
 
-  // Lifter:  Inicio | Historial | [START] | Rutinas | Perfil
-  // Trainer: Inicio | Coach     | [START] | Rutinas | Perfil
+  // Profile lives in the top-right avatar, not the nav — which frees a slot so
+  // trainers keep BOTH Historial and Coach. Start stays centered: Rutinas is
+  // always immediately right of it; Coach appends for trainers, else a spacer
+  // keeps the layout balanced.
+  // Lifter:  Inicio | Historial | [START] | Rutinas | ·
+  // Trainer: Inicio | Historial | [START] | Rutinas | Coach
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50"
@@ -154,14 +149,14 @@ export default function BottomNav({ onStart }) {
         maxWidth: '480px', margin: '0 auto',
         height: '60px', padding: '0 4px',
       }}>
-        <TabItem to="/"        label="Inicio"   Icon={HomeIcon}    exact />
-        {isTrainer
-          ? <TabItem to="/coach"   label="Coach"    Icon={CoachIcon} />
-          : <TabItem to="/history" label="Historial" Icon={HistoryIcon} />
-        }
+        <TabItem to="/"        label="Inicio"    Icon={HomeIcon}    exact />
+        <TabItem to="/history" label="Historial" Icon={HistoryIcon} />
         <StartAction onClick={onStart} />
-        <TabItem to="/rutinas" label="Rutinas"  Icon={ProgramaIcon} />
-        <TabItem to="/profile" label="Perfil"   Icon={ProfileIcon} />
+        <TabItem to="/rutinas" label="Rutinas"   Icon={ProgramaIcon} />
+        {isTrainer
+          ? <TabItem to="/coach" label="Coach" Icon={CoachIcon} />
+          : <span style={{ flex: 1 }} aria-hidden="true" />
+        }
       </div>
     </nav>
   )

@@ -1,11 +1,58 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import BottomNav from './BottomNav'
 import Sidebar from './Sidebar'
 import WorkoutPickerModal from './WorkoutPickerModal'
 import { StartFab } from './ui'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useRoutines } from '../hooks/useRoutines'
+import { useProfile } from '../hooks/useProfile'
+import { useAuth } from '../hooks/useAuth'
+
+// ProfileAvatar — the profile entry point, top-right on mobile tab screens.
+// Lives outside the bottom nav so trainers keep both Historial and Coach there.
+function ProfileAvatar() {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const { profile } = useProfile()
+  const { user } = useAuth()
+  const active = pathname === '/profile'
+  const initial = (profile?.name || user?.email || '?').charAt(0).toUpperCase()
+
+  return (
+    <div
+      style={{
+        position: 'fixed', top: 'calc(env(safe-area-inset-top) + 12px)',
+        left: 0, right: 0, zIndex: 40, pointerEvents: 'none',
+      }}
+    >
+      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '0 16px', display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          type="button"
+          onClick={() => navigate('/profile')}
+          aria-label="Perfil"
+          aria-current={active ? 'page' : undefined}
+          style={{
+            pointerEvents: 'auto',
+            width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            background: active ? 'var(--c-accent)' : 'var(--c-surface)',
+            border: `1px solid ${active ? 'var(--c-accent)' : 'var(--c-border)'}`,
+            color: active ? 'var(--c-on-action)' : 'var(--c-text-dim)',
+            fontSize: '14px', fontWeight: 900, letterSpacing: '-0.02em',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+            transition: 'background 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms, transform 160ms var(--ease-out)',
+          }}
+          onPointerDown={e => { e.currentTarget.style.transform = 'scale(0.92)' }}
+          onPointerUp={e => { e.currentTarget.style.transform = 'scale(1)' }}
+          onPointerLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
+        >
+          {initial}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 // WorkoutStarter: lógica del picker global — vive en Layout para que el
 // botón + del nav funcione desde cualquier pantalla.
@@ -67,6 +114,7 @@ export default function Layout({ children, hideNav = false }) {
         <>
           {/* ── Mobile (< md) ──────────────────────────────────────────── */}
           <div className="md:hidden min-h-dvh bg-background flex flex-col">
+            {!hideNav && <ProfileAvatar />}
             <main className={`flex-1 flex flex-col ${hideNav ? '' : 'pb-20'}`}>
               {children}
             </main>

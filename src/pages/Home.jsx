@@ -5,7 +5,6 @@ import {
 } from 'recharts'
 import Layout from '../components/Layout'
 import { useWorkouts } from '../hooks/useWorkout'
-import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { useGoals } from '../hooks/useGoals'
 import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
@@ -373,7 +372,6 @@ function getDayHighlightType() {
 // ── Home ──────────────────────────────────────────────────────────────────
 export default function Home() {
   const navigate = useNavigate()
-  const { signOut } = useAuth()
   const { profile } = useProfile()
   const { workouts, loading, error, createWorkout, fetchWorkouts } = useWorkouts()
   const { goals, createGoal, deleteGoal } = useGoals()
@@ -387,9 +385,8 @@ export default function Home() {
   const { activeRoutine, routines } = useRoutines()
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
   const { trainers } = useInvites()
-  const { resolved, preference, cycle, palette } = useTheme()
+  const { resolved, palette } = useTheme()
   const chartColors = CHART_COLORS[`${palette}-${resolved}`] || CHART_COLORS['slate-light']
-  const themeIcon = preference === 'auto' ? '◐' : preference === 'light' ? '☀' : '☾'
 
   // Mapa id_entrenador → nombre, para mostrar quién asignó cada rutina.
   const trainerNameById = Object.fromEntries(
@@ -768,8 +765,8 @@ export default function Home() {
       <div className="w-full px-4 pt-10 pb-10 max-w-[480px] mx-auto md:max-w-none md:px-8 md:py-8">
 
         {/* ── Header ── */}
-        <div className="fade-in flex items-start justify-between mb-6 md:mb-8">
-          <div>
+        <div className="fade-in flex items-start mb-6 md:mb-8">
+          <div className="pr-12 md:pr-0">
             {/* Fecha — eyebrow mono en azul (dato) */}
             <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-data)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
               {dateStr}
@@ -784,36 +781,6 @@ export default function Home() {
                 {getContextSentence(stats.count, stats.weekVolume)}
               </p>
             )}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, marginTop: '4px' }}>
-            <button
-              type="button"
-              onClick={cycle}
-              aria-label={`Tema: ${preference}. Cambiar.`}
-              title="Cambiar tema"
-              style={{
-                width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '15px', lineHeight: 1,
-                color: 'var(--c-text-dim)', background: 'var(--c-surface-2)',
-                border: '1px solid var(--c-border-subtle)', borderRadius: '8px',
-                transition: 'color 150ms, border-color 150ms',
-              }}
-            >
-              <span aria-hidden="true">{themeIcon}</span>
-            </button>
-            <button
-              onClick={signOut}
-              style={{
-                color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500,
-                border: '1px solid var(--c-border-subtle)', padding: '6px 10px',
-                borderRadius: '8px',
-                transition: 'color 150ms, border-color 150ms',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-muted)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
-            >
-              Salir
-            </button>
           </div>
         </div>
 

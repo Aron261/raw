@@ -610,8 +610,14 @@ function TrainerSection() {
 
 // ── Main page ──────────────────────────────────────────────────────────
 export default function Profile() {
-  const { user } = useAuth()
+  const navigate = useNavigate()
+  const { user, signOut } = useAuth()
   const { profile, loading, saving, saveError, saveSuccess, saveProfile, age } = useProfile()
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login', { replace: true })
+  }
 
   // sheet: null | 'characteristics' | 'weight'
   const [sheet, setSheet] = useState(null)
@@ -778,6 +784,24 @@ export default function Profile() {
 
           {/* ── Apariencia ── */}
           <ThemeSection />
+
+          {/* ── Cerrar sesión ── */}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            style={{
+              alignSelf: 'center', marginTop: '4px',
+              color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700,
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+              border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+              padding: '10px 20px', background: 'transparent',
+              transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-accent)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+          >
+            Cerrar sesión
+          </button>
         </div>
       </div>
 
