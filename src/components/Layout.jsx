@@ -34,12 +34,12 @@ function ProfileAvatar() {
           aria-current={active ? 'page' : undefined}
           style={{
             pointerEvents: 'auto',
-            width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0,
+            width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             background: active ? 'var(--c-accent)' : 'var(--c-surface)',
             border: `1px solid ${active ? 'var(--c-accent)' : 'var(--c-border)'}`,
             color: active ? 'var(--c-on-action)' : 'var(--c-text-dim)',
-            fontSize: '14px', fontWeight: 900, letterSpacing: '-0.02em',
+            fontSize: '16px', fontWeight: 900, letterSpacing: '-0.02em',
             boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
             transition: 'background 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms, transform 160ms var(--ease-out)',
           }}

@@ -9,122 +9,6 @@ import { hoverColor, ERROR_STYLE } from '../lib/ui'
 import { useWorkouts } from '../hooks/useWorkout'
 import { Sheet, Button } from '../components/ui'
 
-/* ── Rest Timer ─────────────────────────────────────────────────────── */
-const REST_PRESETS = [60, 90, 120, 180] // seconds
-
-function RestTimer({ onDone, onDismiss }) {
-  const [duration, setDuration] = useState(90)
-  const [remaining, setRemaining] = useState(90)
-  const [running, setRunning] = useState(true)
-
-  // Reset remaining when duration changes
-  useEffect(() => { setRemaining(duration); setRunning(true) }, [duration])
-
-  useEffect(() => {
-    if (!running) return
-    if (remaining <= 0) {
-      // Vibrate on finish (mobile)
-      try { navigator.vibrate?.([200, 100, 200]) } catch {}
-      setRunning(false)
-      onDone?.()
-      return
-    }
-    const id = setInterval(() => setRemaining(r => r - 1), 1000)
-    return () => clearInterval(id)
-  }, [running, remaining, onDone])
-
-  const pct = Math.max(0, remaining / duration)
-  const pad = n => String(n).padStart(2, '0')
-  const mins = Math.floor(remaining / 60)
-  const secs = remaining % 60
-  const done = remaining <= 0
-
-  // Auto-dismiss shortly after the rest is up, so the pill never lingers.
-  useEffect(() => {
-    if (!done) return
-    const id = setTimeout(() => onDismiss?.(), 2200)
-    return () => clearTimeout(id)
-  }, [done, onDismiss])
-
-  return (
-    <div
-      className="fade-in"
-      style={{
-        position: 'fixed',
-        bottom: 'calc(20px + env(safe-area-inset-bottom))',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 40,
-        background: 'var(--c-surface)',
-        border: '1px solid var(--c-border-subtle)',
-        borderRadius: '999px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.16)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        padding: '10px 16px 10px 20px',
-        minWidth: '220px',
-      }}
-    >
-      {/* Circular progress ring */}
-      <svg width="32" height="32" style={{ flexShrink: 0, transform: 'rotate(-90deg)' }}>
-        <circle cx="16" cy="16" r="13" fill="none" stroke="var(--c-border-subtle)" strokeWidth="2.5" />
-        <circle
-          cx="16" cy="16" r="13" fill="none"
-          stroke={done ? 'var(--c-success)' : 'var(--c-accent)'}
-          strokeWidth="2.5"
-          strokeDasharray={`${2 * Math.PI * 13}`}
-          strokeDashoffset={`${2 * Math.PI * 13 * (1 - pct)}`}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 1s linear, stroke 300ms' }}
-        />
-      </svg>
-
-      {/* Time display */}
-      <span style={{
-        fontFamily: 'ui-monospace, monospace',
-        fontSize: '18px', fontWeight: 800,
-        color: done ? 'var(--c-success)' : 'var(--c-text)',
-        letterSpacing: '-0.02em',
-        fontVariantNumeric: 'tabular-nums',
-        minWidth: '48px',
-      }}>
-        {done ? '✓' : `${pad(mins)}:${pad(secs)}`}
-      </span>
-
-      {/* Preset buttons */}
-      <div style={{ display: 'flex', gap: '4px' }}>
-        {REST_PRESETS.map(s => (
-          <button
-            key={s}
-            onClick={() => setDuration(s)}
-            style={{
-              fontSize: '9px', fontWeight: 800,
-              padding: '3px 6px', borderRadius: '999px',
-              background: duration === s ? 'var(--c-surface-2)' : 'transparent',
-              border: `1px solid ${duration === s ? 'var(--c-border)' : 'transparent'}`,
-              color: duration === s ? 'var(--c-text)' : 'var(--c-text-ghost)',
-              transition: 'all 150ms',
-            }}
-          >
-            {s < 60 ? `${s}s` : `${s / 60}m`}
-          </button>
-        ))}
-      </div>
-
-      {/* Dismiss */}
-      <button
-        onClick={onDismiss}
-        style={{ color: 'var(--c-text-ghost)', fontSize: '14px', padding: '4px', lineHeight: 1, transition: 'color 120ms' }}
-        onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text-dim)' }}
-        onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
-      >
-        ✕
-      </button>
-    </div>
-  )
-}
-
 /* ── Workout elapsed timer ───────────────────────────────────────────── */
 function WorkoutTimer({ startedAt }) {
   const [elapsed, setElapsed] = useState(0)
@@ -707,12 +591,6 @@ export default function ActiveWorkout() {
   const [editConfirmStep, setEditConfirmStep] = useState(1)
   const nameRef = useRef(null)
 
-  // Rest timer
-  const [restEnabled, setRestEnabled] = useState(() => {
-    try { return localStorage.getItem('raw_rest_timer') !== 'off' } catch { return true }
-  })
-  const [restActive, setRestActive] = useState(false)
-
   // Per-set completion + finished exercises — persisted locally per workout so
   // progress survives a reload mid-session without touching the database.
   const [doneSets, setDoneSets] = useState(() => {
@@ -730,8 +608,7 @@ export default function ActiveWorkout() {
       if (nextDone) next.add(setId); else next.delete(setId)
       return next
     })
-    if (nextDone && restEnabled) setRestActive(true)
-  }, [restEnabled])
+  }, [])
 
   const toggleExerciseFinish = useCallback((weId, nextFinished) => {
     setDoneExs(prev => {
@@ -741,12 +618,6 @@ export default function ActiveWorkout() {
     })
   }, [])
 
-  const toggleRest = () => {
-    const next = !restEnabled
-    setRestEnabled(next)
-    try { localStorage.setItem('raw_rest_timer', next ? 'on' : 'off') } catch {}
-    if (!next) setRestActive(false)
-  }
 
   const isFinished = !!workout?.ended_at
 
@@ -860,32 +731,6 @@ export default function ActiveWorkout() {
               <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 Finalizado
               </span>
-            )}
-            {/* Rest timer toggle — labeled pill, state shown by fill + color */}
-            {!isFinished && (
-              <button
-                onClick={toggleRest}
-                role="switch"
-                aria-checked={restEnabled}
-                aria-label={`Temporizador de descanso ${restEnabled ? 'activado' : 'desactivado'}`}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  padding: '5px 9px', borderRadius: '999px',
-                  fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: '0.06em',
-                  background: restEnabled ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
-                  border: `1px solid ${restEnabled ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
-                  color: restEnabled ? 'var(--c-accent)' : 'var(--c-text-dim)',
-                  transition: 'background 150ms var(--ease-out), color 150ms var(--ease-out), border-color 150ms var(--ease-out)',
-                }}
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="13" r="8" />
-                  <path d="M12 9v4l2.5 2.5" />
-                  <path d="M9 2h6" />
-                </svg>
-                Descanso
-              </button>
             )}
           </div>
         </div>
@@ -1124,14 +969,6 @@ export default function ActiveWorkout() {
           </div>
         )}
       </div>
-
-      {/* Rest timer overlay */}
-      {restActive && (
-        <RestTimer
-          onDone={() => {}}
-          onDismiss={() => setRestActive(false)}
-        />
-      )}
 
       {showAdd && (
         <AddExerciseModal
