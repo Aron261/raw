@@ -15,8 +15,7 @@ export default function SetRow({
   setNumber,
   unit,
   allTimeBest1RM,
-  previousSet = null,   // { reps, weight } from the last session, for the ghost hint
-  previousUnit = null,  // unit that previousSet was logged in
+  previousSet = null,   // { reps, weight } from the last session — shown as the ghost placeholder
   done = false,
   readOnly = false,
   onSave,        // (setNumber, reps, weight, markDone) => Promise
@@ -92,9 +91,9 @@ export default function SetRow({
         value={reps}
         onChange={e => setReps(e.target.value)}
         onBlur={handleBlur}
-        className="input-field"
+        className="input-field set-input"
         style={inputStyle(52)}
-        placeholder="reps"
+        placeholder={previousSet ? String(previousSet.reps) : 'reps'}
         min="1"
         aria-label={`Reps serie ${setNumber}`}
       />
@@ -107,9 +106,9 @@ export default function SetRow({
         value={weight}
         onChange={e => setWeight(e.target.value)}
         onBlur={handleBlur}
-        className="input-field"
+        className="input-field set-input"
         style={inputStyle(64)}
-        placeholder="peso"
+        placeholder={previousSet ? String(previousSet.weight) : 'peso'}
         min="0"
         step="2.5"
         aria-label={`Peso serie ${setNumber}`}
@@ -117,16 +116,9 @@ export default function SetRow({
 
       <span style={unitStyle}>{unit}</span>
 
-      {/* Right-aligned: previous-session ghost hint + PR badge */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
-        {previousSet && (
-          <span style={prevHint} title="Sesión anterior">
-            <span aria-hidden="true" style={{ marginRight: '2px' }}>↺</span>
-            {previousSet.reps}×{previousSet.weight}{previousUnit && previousUnit !== unit ? previousUnit : ''}
-          </span>
-        )}
-        {isPR && filled && <PRBadge small />}
-      </div>
+      <span style={{ flex: 1, minWidth: 0 }} />
+
+      {isPR && filled && <PRBadge small />}
 
       {/* ✓ — commit + done toggle */}
       <button
@@ -219,19 +211,6 @@ const staticVal = (w) => ({
   flexShrink: 0,
   fontVariantNumeric: 'tabular-nums',
 })
-
-const prevHint = {
-  color: 'var(--c-text-ghost)',
-  fontFamily: 'var(--font-mono)',
-  fontSize: '10px',
-  fontWeight: 600,
-  letterSpacing: '0.02em',
-  fontVariantNumeric: 'tabular-nums',
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  opacity: 0.7,
-}
 
 const times = { color: 'var(--c-text-ghost)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }
 const unitStyle = { color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, flexShrink: 0 }

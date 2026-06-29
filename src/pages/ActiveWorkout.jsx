@@ -372,6 +372,25 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
   )
 }
 
+/* ── Discard Confirm Modal ──────────────────────────────────────────── */
+function DiscardConfirmModal({ onConfirm, onCancel, busy }) {
+  return (
+    <Sheet title="Descartar entreno" onClose={onCancel}>
+      <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
+        Se eliminará esta sesión y todo lo que llevas registrado en ella. Esta acción no se puede deshacer.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <Button variant="primary" full size="lg" loading={busy} disabled={busy} onClick={onConfirm}>
+          {busy ? 'Descartando...' : 'Sí, descartar'}
+        </Button>
+        <Button variant="secondary" full size="lg" disabled={busy} onClick={onCancel}>
+          Seguir entrenando
+        </Button>
+      </div>
+    </Sheet>
+  )
+}
+
 /* ── Edit Confirm Modal ─────────────────────────────────────────────── */
 function EditConfirmModal({ step, onFirstConfirm, onSecondConfirm, onCancel }) {
   return (
@@ -612,6 +631,8 @@ export default function ActiveWorkout() {
   const [finishing, setFinishing] = useState(false)
   const [finishError, setFinishError] = useState(null)
   const [showFinishConfirm, setShowFinishConfirm] = useState(false)
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
+  const [discarding, setDiscarding] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [showEditConfirm, setShowEditConfirm] = useState(false)
   const [editConfirmStep, setEditConfirmStep] = useState(1)
@@ -688,6 +709,20 @@ export default function ActiveWorkout() {
     } catch (err) {
       setFinishError(err.message)
       setFinishing(false)
+    }
+  }
+
+  const handleDiscard = async () => {
+    setDiscarding(true)
+    setFinishError(null)
+    try {
+      await deleteWorkout(workout.id)
+      try { localStorage.removeItem(`raw_done_sets_${id}`); localStorage.removeItem(`raw_done_ex_${id}`) } catch {}
+      navigate('/', { replace: true })
+    } catch (err) {
+      setFinishError(err.message)
+      setDiscarding(false)
+      setShowDiscardConfirm(false)
     }
   }
 
@@ -920,6 +955,22 @@ export default function ActiveWorkout() {
                 {finishing ? 'Finalizando...' : 'Finalizar entreno'}
               </Button>
             )}
+            {!isEditing && (
+              <button
+                onClick={() => setShowDiscardConfirm(true)}
+                style={{
+                  alignSelf: 'center', marginTop: '2px',
+                  color: 'var(--c-text-ghost)', fontSize: '11px', fontWeight: 700,
+                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                  padding: '6px 12px', background: 'transparent',
+                  transition: 'color 150ms var(--ease-out)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-accent)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
+              >
+                Descartar entreno
+              </button>
+            )}
           </div>
         )}
 
@@ -1027,6 +1078,14 @@ export default function ActiveWorkout() {
           workoutExercises={workoutExercises}
           onConfirm={handleFinish}
           onCancel={() => setShowFinishConfirm(false)}
+        />
+      )}
+
+      {showDiscardConfirm && (
+        <DiscardConfirmModal
+          busy={discarding}
+          onConfirm={handleDiscard}
+          onCancel={() => setShowDiscardConfirm(false)}
         />
       )}
 
