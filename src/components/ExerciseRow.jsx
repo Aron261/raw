@@ -46,7 +46,7 @@ export default function ExerciseRow({
   const unit = workoutExercise.unit
 
   const { allTimeBestWeight } = useExerciseAllTimeBest(exercise?.id, user?.id)
-  const { previousSets, previousUnit } = usePreviousSets(exercise?.id, workoutId, user?.id)
+  const { previousSets } = usePreviousSets(exercise?.id, workoutId, user?.id)
 
   // Number of rows to show: at least the saved sets, defaulting to last
   // session's set count (or 3) so a lifter sees their plan laid out and just
@@ -331,7 +331,6 @@ export default function ExerciseRow({
                     unit={unit}
                     allTimeBest1RM={allTimeBestWeight}
                     previousSet={previousSets[i] || null}
-                    previousUnit={previousUnit}
                     done={set ? !!completedSetIds?.has(set.id) : false}
                     onSave={saveRow}
                     onToggleDone={onToggleSetDone}

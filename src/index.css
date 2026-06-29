@@ -226,6 +226,12 @@
     border-color: var(--c-action);
     box-shadow: 0 0 0 3px var(--c-action-dim);
   }
+  /* Set-row inputs: the previous session's value shows as a faded ghost
+     placeholder, sitting right where the new value is typed. */
+  .set-input::placeholder {
+    color: var(--c-text-ghost);
+    opacity: 0.65;
+  }
 
   /* ─── Cards ────────────────────────────────────────────────────────── */
   .card {
