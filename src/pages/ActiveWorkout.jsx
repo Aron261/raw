@@ -939,12 +939,6 @@ export default function ActiveWorkout() {
           )
         })()}
 
-        {finishError && (
-          <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>
-            {finishError}
-          </div>
-        )}
-
         {/* Empty state */}
         {workoutExercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '14px', marginBottom: '16px' }}>
@@ -1010,6 +1004,12 @@ export default function ActiveWorkout() {
               marginTop: '8px',
             }}
           >
+            {/* Error surfaces right where the action that caused it lives */}
+            {finishError && (
+              <div style={{ ...ERROR_STYLE }}>
+                {finishError}
+              </div>
+            )}
             <Button variant="secondary" full size="lg" onClick={() => setShowAdd(true)}>
               + Agregar ejercicio
             </Button>

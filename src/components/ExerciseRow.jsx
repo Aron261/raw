@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import SetRow from './SetRow'
 import PRBadge from './PRBadge'
 import { calc1RM, useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWorkout'
@@ -36,7 +37,19 @@ export default function ExerciseRow({
     }
   })
   const [showMenu, setShowMenu] = useState(false)
-  const menuRef = useRef(null)
+  const [menuPos, setMenuPos] = useState(null)   // {top, right} for the portalled menu
+  const menuRef = useRef(null)                    // wrapper around the ··· trigger
+  const menuPanelRef = useRef(null)               // the portalled panel
+  const triggerRef = useRef(null)                 // the ··· button
+
+  // Open the menu anchored to the trigger. The panel is portalled to <body>,
+  // so it escapes the card's overflow:hidden and the row's transform stacking
+  // context (which would otherwise clip it or paint it under the next card).
+  const openMenu = () => {
+    const r = triggerRef.current?.getBoundingClientRect()
+    if (r) setMenuPos({ top: r.bottom + 6, right: window.innerWidth - r.right })
+    setShowMenu(true)
+  }
   const [showNotes, setShowNotes] = useState(false)
   const [notesValue, setNotesValue] = useState(workoutExercise.notes || '')
   const notesRef = useRef(null)
@@ -76,13 +89,22 @@ export default function ExerciseRow({
   useEffect(() => {
     if (!showMenu) return
     const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false)
+      const inTrigger = menuRef.current?.contains(e.target)
+      const inPanel = menuPanelRef.current?.contains(e.target)
+      if (!inTrigger && !inPanel) setShowMenu(false)
     }
+    // The menu is anchored on open; close it if the page scrolls or resizes
+    // rather than chase the trigger's moving position.
+    const close = () => setShowMenu(false)
     document.addEventListener('mousedown', handler)
     document.addEventListener('touchstart', handler)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
     return () => {
       document.removeEventListener('mousedown', handler)
       document.removeEventListener('touchstart', handler)
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
     }
   }, [showMenu])
 
@@ -256,10 +278,13 @@ export default function ExerciseRow({
 
           {/* ··· menu */}
           {!readOnly && (
-            <div ref={menuRef} style={{ position: 'relative', flexShrink: 0 }}>
+            <div ref={menuRef} style={{ flexShrink: 0 }}>
               <button
-                onClick={() => setShowMenu(m => !m)}
+                ref={triggerRef}
+                onClick={() => (showMenu ? setShowMenu(false) : openMenu())}
                 aria-label="Opciones"
+                aria-haspopup="menu"
+                aria-expanded={showMenu}
                 style={{
                   color: showMenu ? 'var(--c-text)' : 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1,
                   padding: '4px 6px', borderRadius: '6px', background: showMenu ? 'var(--c-surface-2)' : 'transparent',
@@ -269,12 +294,17 @@ export default function ExerciseRow({
                 ···
               </button>
 
-              {showMenu && (
-                <div style={{
-                  position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 30,
-                  background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: '10px',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.18)', minWidth: '184px', overflow: 'hidden',
-                }}>
+              {showMenu && menuPos && createPortal(
+                <div
+                  ref={menuPanelRef}
+                  role="menu"
+                  className="fade-in"
+                  style={{
+                    position: 'fixed', top: `${menuPos.top}px`, right: `${menuPos.right}px`, zIndex: 90,
+                    background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: '10px',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.18)', minWidth: '184px', overflow: 'hidden',
+                  }}
+                >
                   {onShowHistory && (
                     <MenuItem onClick={() => { onShowHistory(exercise); setShowMenu(false) }}>
                       Ver historial
@@ -311,7 +341,8 @@ export default function ExerciseRow({
                   <MenuItem color="var(--c-action-text)" onClick={() => { onRemoveExercise(workoutExercise.id); setShowMenu(false) }}>
                     Eliminar ejercicio
                   </MenuItem>
-                </div>
+                </div>,
+                document.body
               )}
             </div>
           )}
