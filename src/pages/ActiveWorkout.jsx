@@ -861,18 +861,30 @@ export default function ActiveWorkout() {
                 Finalizado
               </span>
             )}
-            {/* Rest timer toggle */}
+            {/* Rest timer toggle — labeled pill, state shown by fill + color */}
             {!isFinished && (
               <button
                 onClick={toggleRest}
-                title={restEnabled ? 'Desactivar descanso' : 'Activar descanso'}
+                role="switch"
+                aria-checked={restEnabled}
+                aria-label={`Temporizador de descanso ${restEnabled ? 'activado' : 'desactivado'}`}
                 style={{
-                  fontSize: '16px', lineHeight: 1, padding: '4px',
-                  opacity: restEnabled ? 1 : 0.35,
-                  transition: 'opacity 200ms',
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  padding: '5px 9px', borderRadius: '999px',
+                  fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
+                  textTransform: 'uppercase', letterSpacing: '0.06em',
+                  background: restEnabled ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
+                  border: `1px solid ${restEnabled ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
+                  color: restEnabled ? 'var(--c-accent)' : 'var(--c-text-dim)',
+                  transition: 'background 150ms var(--ease-out), color 150ms var(--ease-out), border-color 150ms var(--ease-out)',
                 }}
               >
-                ⏱
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="13" r="8" />
+                  <path d="M12 9v4l2.5 2.5" />
+                  <path d="M9 2h6" />
+                </svg>
+                Descanso
               </button>
             )}
           </div>
