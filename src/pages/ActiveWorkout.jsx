@@ -608,6 +608,68 @@ function SummaryStat({ value, unit, label, valueColor = 'var(--c-text)' }) {
   )
 }
 
+/* ── First-run logging primer ───────────────────────────────────────── */
+// One-time, dismissable hint that teaches the three logging mechanics in
+// Raw's own vocabulary (the green ✓, auto-save, the faded previous value).
+// Non-blocking; persists dismissal to localStorage so it shows once.
+const LOGGING_PRIMER_KEY = 'raw_onboard_logging'
+
+function LoggingPrimer({ onDismiss }) {
+  const chip = {
+    flexShrink: 0, width: '26px', height: '26px', borderRadius: '8px',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  }
+  const text = { color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.4 }
+
+  return (
+    <div className="fade-in" style={{
+      position: 'relative',
+      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+      borderRadius: '14px', padding: '16px', marginBottom: '12px',
+    }}>
+      <button
+        onClick={onDismiss}
+        aria-label="Entendido, no mostrar de nuevo"
+        style={{ position: 'absolute', top: '8px', right: '8px', color: 'var(--c-text-ghost)', fontSize: '14px', lineHeight: 1, padding: '6px' }}
+        onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text-dim)' }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
+      >
+        ✕
+      </button>
+
+      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+        Cómo registrar
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
+        {/* ✓ — the real done control */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ ...chip, background: 'var(--c-success)', color: '#fff' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+          </span>
+          <span style={text}>Marca la serie como hecha e inicia el descanso.</span>
+        </div>
+
+        {/* auto-save */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ ...chip, background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', color: 'var(--c-text-dim)' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4" /><path d="M5 21h14" /></svg>
+          </span>
+          <span style={text}>Tus reps y peso se guardan solos al salir del campo.</span>
+        </div>
+
+        {/* ghost previous value */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ ...chip, background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', color: 'var(--c-text-ghost)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700 }}>
+            8×
+          </span>
+          <span style={text}>El número tenue en cada campo es tu última vez.</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ── Main page ──────────────────────────────────────────────────────── */
 export default function ActiveWorkout() {
   const { id } = useParams()
@@ -633,6 +695,13 @@ export default function ActiveWorkout() {
   const [showFinishConfirm, setShowFinishConfirm] = useState(false)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [discarding, setDiscarding] = useState(false)
+  const [primerDismissed, setPrimerDismissed] = useState(() => {
+    try { return localStorage.getItem(LOGGING_PRIMER_KEY) === 'done' } catch { return false }
+  })
+  const dismissPrimer = () => {
+    setPrimerDismissed(true)
+    try { localStorage.setItem(LOGGING_PRIMER_KEY, 'done') } catch {}
+  }
   const [isEditing, setIsEditing] = useState(false)
   const [showEditConfirm, setShowEditConfirm] = useState(false)
   const [editConfirmStep, setEditConfirmStep] = useState(1)
@@ -878,16 +947,21 @@ export default function ActiveWorkout() {
 
         {/* Empty state */}
         {workoutExercises.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px 0', border: '1px dashed var(--c-border-subtle)', borderRadius: '6px', marginBottom: '16px' }}>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '14px', marginBottom: '16px' }}>
+            <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
               Sin ejercicios aún
             </p>
             {!isFinished && (
-              <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '6px' }}>
-                Tap + Agregar ejercicio below to start.
+              <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px', lineHeight: 1.5 }}>
+                Agrega tu primer ejercicio para empezar a registrar tus series.
               </p>
             )}
           </div>
+        )}
+
+        {/* First-run logging primer — teaches the loop where it happens */}
+        {!isFinished && !primerDismissed && workoutExercises.length > 0 && (
+          <LoggingPrimer onDismiss={dismissPrimer} />
         )}
 
         {/* Exercise list */}

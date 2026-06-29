@@ -938,14 +938,14 @@ export default function Home() {
           </section>
         )}
 
-        {/* ── Empty state ── */}
+        {/* ── Empty state — first run ── */}
         {!loading && !error && workouts.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '15px', fontWeight: 600, marginBottom: '6px' }}>
-              Sin entrenos aún
+          <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px' }}>
+            <p style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 800, letterSpacing: '-0.01em', marginBottom: '8px' }}>
+              Registra tu primer entreno
             </p>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '13px' }}>
-              Usá el botón de arriba para registrar tu primer entreno.
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '13px', lineHeight: 1.5, maxWidth: '34ch', margin: '0 auto' }}>
+              Anota tus series y Raw te dice al instante si superas tu última marca. Toca «Empezar entreno» arriba.
             </p>
           </div>
         )}
