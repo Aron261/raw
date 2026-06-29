@@ -73,7 +73,14 @@ function AssignedBadge() {
 }
 
 // ── Card: ciclo activo ────────────────────────────────────────────────────
-function ActiveCycleCard({ routine, onDeactivate }) {
+const REFRESH_CYCLE_WEEKS = 12  // suggest refreshing a cycle after this long
+
+function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate }) {
+  const activeLabel = weeksActive < 1
+    ? 'Recién activado'
+    : `Activo hace ${weeksActive} ${weeksActive === 1 ? 'semana' : 'semanas'}`
+  const shouldRefresh = weeksActive >= REFRESH_CYCLE_WEEKS
+
   return (
     <div style={{
       padding: '18px 16px',
@@ -95,7 +102,26 @@ function ActiveCycleCard({ routine, onDeactivate }) {
         </span>
       </div>
 
-      <RoutineMeta routine={routine} style={{ marginBottom: '12px' }} />
+      {/* Time active */}
+      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '12px' }}>
+        {activeLabel}
+      </p>
+
+      <RoutineMeta routine={routine} style={{ marginBottom: shouldRefresh ? '12px' : '12px' }} />
+
+      {/* Refresh recommendation after a long run on the same cycle */}
+      {shouldRefresh && (
+        <div style={{
+          display: 'flex', gap: '8px', alignItems: 'flex-start',
+          background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
+          borderRadius: '10px', padding: '10px 12px', marginBottom: '14px',
+        }}>
+          <span aria-hidden="true" style={{ color: 'var(--c-action-text)', fontSize: '12px', lineHeight: 1.4, flexShrink: 0 }}>↻</span>
+          <p style={{ color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 600, lineHeight: 1.45 }}>
+            Llevas {weeksActive} semanas en este ciclo. Cambiarlo o ajustar cargas y ejercicios ayuda a seguir progresando.
+          </p>
+        </div>
+      )}
 
       {(routine.routine_days || []).length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px' }}>
@@ -1105,6 +1131,17 @@ export default function Rutinas() {
   const savedCycles    = routines.filter(r => r.type === 'cycle' && !r.is_active)
   const singleDayItems = routines.filter(r => r.type === 'single_day')
 
+  // Weeks the active cycle has been in use — measured from the first workout
+  // logged under it (0 if none yet).
+  const cycleWeeksActive = useMemo(() => {
+    if (!activeCycle) return 0
+    const times = workouts
+      .filter(w => w.routine_id === activeCycle.id && w.started_at)
+      .map(w => new Date(w.started_at).getTime())
+    if (!times.length) return 0
+    return Math.floor((Date.now() - Math.min(...times)) / (7 * 86400000))
+  }, [activeCycle, workouts])
+
   const handleDeactivate = async () => {
     if (!activeCycle) return
     setActionError(null)
@@ -1183,7 +1220,7 @@ export default function Rutinas() {
                 <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
                   Ciclo activo
                 </p>
-                <ActiveCycleCard routine={activeCycle} onDeactivate={handleDeactivate} />
+                <ActiveCycleCard routine={activeCycle} weeksActive={cycleWeeksActive} onDeactivate={handleDeactivate} />
               </section>
             )}
 
