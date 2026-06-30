@@ -5,15 +5,26 @@ function formatVolume(v) {
   return v.toLocaleString()
 }
 
+const CATCH_ALL = 'Otros'
+
 export default function MuscleBalanceModule({ data }) {
   const groups = data?.muscleBalance || []
   if (groups.length === 0) return null
-  const max = groups[0].volume || 1
+
+  // Keep the catch-all bucket last and visually muted — it's "sin clasificar",
+  // not a real muscle group.
+  const known = groups.filter(g => g.group !== CATCH_ALL)
+  const other = groups.find(g => g.group === CATCH_ALL)
+  const ordered = other ? [...known, other] : known
+  const max = Math.max(...groups.map(g => g.volume), 1)
 
   return (
     <section style={{ marginBottom: '32px' }}>
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
+      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
         Balance muscular
+      </p>
+      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, lineHeight: 1.45, marginBottom: '12px' }}>
+        Cómo se reparte tu volumen total (peso × reps) entre grupos musculares.
       </p>
       <div style={{
         background: 'var(--c-surface)',
@@ -22,29 +33,38 @@ export default function MuscleBalanceModule({ data }) {
         padding: '16px',
         display: 'flex', flexDirection: 'column', gap: '14px',
       }}>
-        {groups.map(g => (
-          <div key={g.group}>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
-              <span style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {g.group}
-              </span>
-              <span style={{ flexShrink: 0, color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700 }}>
-                {formatVolume(g.volume)} kg
-              </span>
+        {ordered.map(g => {
+          const isOther = g.group === CATCH_ALL
+          return (
+            <div key={g.group}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+                <span style={{ color: isOther ? 'var(--c-text-muted)' : 'var(--c-text)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {g.group}
+                </span>
+                <span style={{ flexShrink: 0, color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700 }}>
+                  {formatVolume(g.volume)} kg
+                </span>
+              </div>
+              <div style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: '100%',
+                  transformOrigin: 'left center',
+                  transform: `scaleX(${Math.max(0.02, g.volume / max)})`,
+                  background: isOther ? 'var(--c-border)' : 'var(--c-action)',
+                  borderRadius: '999px',
+                  transition: 'transform 500ms cubic-bezier(0.4, 0, 0.2, 1)',
+                }} />
+              </div>
             </div>
-            <div style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
-              <div style={{
-                height: '100%',
-                width: '100%',
-                transformOrigin: 'left center',
-                transform: `scaleX(${Math.max(0.02, g.volume / max)})`,
-                background: 'var(--c-action)',
-                borderRadius: '999px',
-                transition: 'transform 500ms cubic-bezier(0.4, 0, 0.2, 1)',
-              }} />
-            </div>
-          </div>
-        ))}
+          )
+        })}
+
+        {other && (
+          <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, lineHeight: 1.4, marginTop: '2px', paddingTop: '12px', borderTop: '1px solid var(--c-border-subtle)' }}>
+            «Otros» son ejercicios sin grupo muscular asignado en la librería.
+          </p>
+        )}
       </div>
     </section>
   )
