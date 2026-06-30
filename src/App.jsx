@@ -9,6 +9,7 @@ import Home from './pages/Home'
 import ActiveWorkout from './pages/ActiveWorkout'
 import ExerciseDetail from './pages/ExerciseDetail'
 import History from './pages/History'
+import Stats from './pages/Stats'
 import Profile from './pages/Profile'
 import Rutinas from './pages/Rutinas'
 import Coach from './pages/Coach'
@@ -98,6 +99,7 @@ function AppWithAuth() {
           {/* Protected */}
           <Route path="/"           element={<R auth={auth} element={<Home />} />} />
           <Route path="/history"    element={<R auth={auth} element={<History />} />} />
+          <Route path="/stats"      element={<R auth={auth} element={<Stats />} />} />
           <Route path="/rutinas"    element={<R auth={auth} element={<Rutinas />} />} />
           <Route path="/profile"    element={<R auth={auth} element={<Profile />} />} />
 
