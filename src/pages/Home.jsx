@@ -762,6 +762,15 @@ export default function Home() {
             <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
               {getGreeting()}{firstName ? `, ${firstName}` : ''}
             </h1>
+            {/* Acceso a estadísticas — eyebrow mono, bajo perfil visual */}
+            <button
+              onClick={() => navigate('/stats')}
+              style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-dim)'}
+            >
+              Estadísticas <span aria-hidden="true" style={{ fontSize: '12px' }}>→</span>
+            </button>
           </div>
         </div>
 
