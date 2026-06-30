@@ -50,7 +50,7 @@ export default function History() {
 
   return (
     <Layout>
-      <div className="px-4 max-w-lg mx-auto w-full">
+      <div className="fade-in px-4 max-w-lg mx-auto w-full">
         {/* Header */}
         <div className="pt-10 pb-6">
           <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '30px', letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1.02 }}>
