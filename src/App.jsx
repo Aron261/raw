@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
 import { AuthContext, useAuthProvider } from './hooks/useAuth'
 import { useBetaGate } from './hooks/useBetaGate'
@@ -13,6 +14,32 @@ import Rutinas from './pages/Rutinas'
 import Coach from './pages/Coach'
 import ClientDetail from './pages/ClientDetail'
 import Chat from './pages/Chat'
+
+// Native-feel scrolling: jump to top when navigating to a new screen, and
+// restore the previous position when going back/forward (POP). Pairs with the
+// SWR cache — cached pages render at full height immediately, so restoration
+// lands on the right spot.
+function ScrollManager() {
+  const { key } = useLocation()
+  const navType = useNavigationType()
+  const positions = useRef(new Map())
+
+  useEffect(() => {
+    const save = () => positions.current.set(key, window.scrollY)
+    window.addEventListener('scroll', save, { passive: true })
+    return () => { save(); window.removeEventListener('scroll', save) }
+  }, [key])
+
+  useLayoutEffect(() => {
+    if (navType === 'POP') {
+      window.scrollTo(0, positions.current.get(key) ?? 0)
+    } else {
+      window.scrollTo(0, 0)
+    }
+  }, [key, navType])
+
+  return null
+}
 
 // Loading splash reutilizable
 function Splash() {
@@ -49,6 +76,7 @@ function AppWithAuth() {
   return (
     <AuthContext.Provider value={auth}>
       <BrowserRouter>
+        <ScrollManager />
         <ErrorBoundary>
         <Routes>
           {/* Public */}
