@@ -50,6 +50,26 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio',
   const [added, setAdded] = useState([])
   const inputRef = useRef(null)
 
+  // Frequent exercises from history (cached) — shown before any typing so the
+  // common case is one tap, not a search. Ranked by use count, then recency.
+  const { workouts } = useWorkouts()
+  const frequents = useMemo(() => {
+    const count = new Map()
+    const last = new Map()
+    for (const w of workouts || []) {
+      const t = new Date(w.started_at).getTime()
+      for (const we of w.workout_exercises || []) {
+        const name = we.exercises?.name
+        if (!name) continue
+        count.set(name, (count.get(name) || 0) + 1)
+        if (!last.has(name) || t > last.get(name)) last.set(name, t)
+      }
+    }
+    return [...count.keys()]
+      .sort((a, b) => (count.get(b) - count.get(a)) || (last.get(b) - last.get(a)))
+      .slice(0, 8)
+  }, [workouts])
+
   // Focus after the sheet animation completes (320ms) instead of a fixed timeout
   useLayoutEffect(() => {
     const id = setTimeout(() => inputRef.current?.focus(), 340)
@@ -166,7 +186,40 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio',
             </button>
           )}
 
-          {!searching && !query.trim() && (
+          {/* Frequents — one-tap, shown before any typing */}
+          {!query.trim() && frequents.length > 0 && (
+            <>
+              <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', padding: '4px 0 8px' }}>
+                Frecuentes
+              </p>
+              {frequents.map(name => {
+                const isAdded = added.includes(name)
+                return (
+                  <button
+                    key={name}
+                    onClick={() => { if (!isAdded) select(name) }}
+                    disabled={isAdded}
+                    style={{
+                      width: '100%', textAlign: 'left', padding: '11px 10px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
+                      color: isAdded ? 'var(--c-text-muted)' : 'var(--c-text)',
+                      fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em',
+                      borderRadius: '6px', transition: 'background 120ms var(--ease-out)',
+                    }}
+                    onMouseEnter={e => { if (!isAdded) e.currentTarget.style.background = 'var(--c-surface-2)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    {name}
+                    <span style={{ flexShrink: 0, color: isAdded ? 'var(--c-success)' : 'var(--c-text-ghost)', fontSize: '14px', fontWeight: 800 }}>
+                      {isAdded ? '✓' : '+'}
+                    </span>
+                  </button>
+                )
+              })}
+            </>
+          )}
+
+          {!searching && !query.trim() && frequents.length === 0 && (
             <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '8px 0' }}>
               Escribe para buscar o crear un ejercicio.
             </p>
