@@ -748,7 +748,7 @@ export default function Home() {
 
   // ─────────────────────────────────────────────────────────────────────
   return (
-    <Layout>
+    <Layout showProfile>
       <div className="w-full px-4 pt-10 pb-10 max-w-[480px] mx-auto md:max-w-none md:px-8 md:py-8">
 
         {/* ── Header ── */}
@@ -762,14 +762,14 @@ export default function Home() {
             <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
               {getGreeting()}{firstName ? `, ${firstName}` : ''}
             </h1>
-            {/* Acceso a estadísticas — eyebrow mono, bajo perfil visual */}
+            {/* Acceso a estadísticas — chip tappable, legible */}
             <button
               onClick={() => navigate('/stats')}
-              style={{ marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', transition: 'color 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-dim)'}
+              style={{ marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '999px', padding: '7px 14px', fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', transition: 'background 150ms, border-color 150ms' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-action-dim)'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--c-surface)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
             >
-              Estadísticas <span aria-hidden="true" style={{ fontSize: '12px' }}>→</span>
+              Estadísticas <span aria-hidden="true" style={{ fontSize: '13px' }}>→</span>
             </button>
           </div>
         </div>
