@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useBetaGate } from '../hooks/useBetaGate'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
-import { Button } from '../components/ui'
+import { Button, Logo } from '../components/ui'
 
 // Pantalla de acceso durante la beta: pide el código compartido.
 // Se muestra a cualquier usuario autenticado que aún no esté aprobado.
@@ -29,8 +29,9 @@ export default function BetaGate() {
       <div className="fade-in" style={{ width: '100%', maxWidth: '360px' }}>
 
         {/* Wordmark */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '40px', letterSpacing: '0.02em', color: 'var(--c-action-text)' }}>RAW</span>
+        <div style={{ textAlign: 'center', marginBottom: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+          <Logo size={72} />
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '40px', letterSpacing: '0.02em', color: 'var(--c-text)' }}>RAW</span>
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: '4px' }}>
             Acceso beta
           </p>
