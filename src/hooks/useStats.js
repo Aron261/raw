@@ -116,7 +116,32 @@ export function useStats(targetUserId = null) {
         })
         const allLifts = Object.values(liftMap).sort((a, b) => b.best1RM - a.best1RM)
 
-        setData({ totals, volumeByMonth, allLifts })
+        // ── Volume by muscle group (all-time) ─────────────────────────
+        const names = [...new Set(
+          list.flatMap(w => (w.workout_exercises || []).map(we => we.exercises?.name).filter(Boolean))
+        )]
+        const groupByName = {}
+        if (names.length > 0) {
+          const { data: lib } = await supabase
+            .from('exercises_library')
+            .select('name, muscle_group')
+            .in('name', names)
+          ;(lib || []).forEach(e => { groupByName[e.name] = e.muscle_group })
+        }
+        const groupVolume = {}
+        list.forEach(w => {
+          ;(w.workout_exercises || []).forEach(we => {
+            const group = groupByName[we.exercises?.name] || 'Otro'
+            const vol = calcVolume((we.sets || []).map(s => ({ ...s, unit: we.unit || 'kg' })))
+            if (vol === 0) return
+            groupVolume[group] = (groupVolume[group] || 0) + vol
+          })
+        })
+        const muscleBalance = Object.entries(groupVolume)
+          .map(([group, volume]) => ({ group, volume: Math.round(volume) }))
+          .sort((a, b) => b.volume - a.volume)
+
+        setData({ totals, volumeByMonth, allLifts, muscleBalance })
       } catch (err) {
         console.error('Stats fetch error:', err)
         setError(err.message || 'Error inesperado')
