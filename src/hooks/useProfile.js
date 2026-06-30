@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
+import { useCachedResource, mutateCache } from '../lib/swr'
 
 // Calcula edad a partir de fecha de nacimiento
 export function calcAge(birthDate) {
@@ -15,36 +16,25 @@ export function calcAge(birthDate) {
 
 export function useProfile() {
   const { user } = useAuth()
-  const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const key = user ? `profile:${user.id}` : null
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(null)
   const [saveError, setSaveError] = useState(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
-  const fetchProfile = useCallback(async () => {
-    if (!user) return
-    setLoading(true)
-    setError(null)
-    try {
-      const { data, error: fetchErr } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      if (fetchErr) throw fetchErr
-      setProfile(data || {})
-    } catch (err) {
-      console.error('Error fetching profile:', err)
-      setError(err.message || 'Error inesperado')
-      setProfile({})
-    } finally {
-      setLoading(false)
-    }
+  const fetcher = useCallback(async () => {
+    const { data, error: fetchErr } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (fetchErr) throw fetchErr
+    return data || {}
   }, [user])
 
-  useEffect(() => { fetchProfile() }, [fetchProfile])
+  const { data, loading, error: loadError, refetch } = useCachedResource(key, fetcher)
+  const profile = data || null
+  const fetchProfile = refetch
+  const error = loadError ? (loadError.message || 'Error inesperado') : null
 
   const saveProfile = async (updates) => {
     if (!user) return
@@ -57,7 +47,7 @@ export function useProfile() {
         .upsert({ ...updates, id: user.id, updated_at: new Date().toISOString() })
 
       if (error) throw error
-      setProfile(prev => ({ ...prev, ...updates }))
+      mutateCache(key, prev => ({ ...(prev || {}), ...updates }))
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 2500)
     } catch (err) {
@@ -69,5 +59,5 @@ export function useProfile() {
 
   const age = profile?.birth_date ? calcAge(profile.birth_date) : null
 
-  return { profile, loading, saving, error, saveError, saveSuccess, saveProfile, age }
+  return { profile, loading, saving, error, saveError, saveSuccess, saveProfile, fetchProfile, age }
 }
