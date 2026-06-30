@@ -1,3 +1,8 @@
+import { useState } from 'react'
+import { useExerciseGroups } from '../../hooks/useExerciseGroups'
+import { CATCH_ALL } from '../../lib/muscleGroups'
+import ClassifySheet from './ClassifySheet'
+
 // All-time volume distribution across muscle groups, shown as proportional
 // horizontal bars (relative to the most-trained group).
 function formatVolume(v) {
@@ -5,9 +10,10 @@ function formatVolume(v) {
   return v.toLocaleString()
 }
 
-const CATCH_ALL = 'Otros'
+export default function MuscleBalanceModule({ data, refetch }) {
+  const { unclassified, classify } = useExerciseGroups()
+  const [showClassify, setShowClassify] = useState(false)
 
-export default function MuscleBalanceModule({ data }) {
   const groups = data?.muscleBalance || []
   if (groups.length === 0) return null
 
@@ -62,10 +68,33 @@ export default function MuscleBalanceModule({ data }) {
 
         {other && (
           <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, lineHeight: 1.4, marginTop: '2px', paddingTop: '12px', borderTop: '1px solid var(--c-border-subtle)' }}>
-            «Otros» son ejercicios sin grupo muscular asignado en la librería.
+            «Otros» son ejercicios sin grupo muscular asignado.
           </p>
         )}
       </div>
+
+      {/* Classify unclassified exercises — turns "Otros" into real groups */}
+      {unclassified.length > 0 && (
+        <button
+          onClick={() => setShowClassify(true)}
+          style={{
+            marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '5px',
+            fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '11px', fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+          }}
+        >
+          Clasificar {unclassified.length} {unclassified.length === 1 ? 'ejercicio' : 'ejercicios'}
+          <span aria-hidden="true" style={{ fontSize: '13px' }}>→</span>
+        </button>
+      )}
+
+      {showClassify && (
+        <ClassifySheet
+          items={unclassified}
+          onClassify={classify}
+          onClose={() => { setShowClassify(false); refetch?.() }}
+        />
+      )}
     </section>
   )
 }

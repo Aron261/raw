@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth'
 import { hoverColor, ERROR_STYLE } from '../lib/ui'
 import { useWorkouts } from '../hooks/useWorkout'
 import { Sheet, Button } from '../components/ui'
+import { MUSCLE_GROUPS } from '../lib/muscleGroups'
 
 /* ── Workout elapsed timer ───────────────────────────────────────────── */
 function WorkoutTimer({ startedAt }) {
@@ -48,6 +49,7 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio',
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
   const [added, setAdded] = useState([])
+  const [pendingNew, setPendingNew] = useState(null) // nombre de ejercicio nuevo esperando grupo muscular
   const inputRef = useRef(null)
 
   // Frequent exercises from history (cached) — shown before any typing so the
@@ -107,15 +109,54 @@ function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio',
     setAdded(prev => [...prev, name])
     setQuery('')
   }
+  // Crear ejercicio nuevo → primero pide grupo muscular, luego lo agrega clasificado.
   const create = () => {
     if (!query.trim()) return
-    const name = query.trim()
-    onAdd(name)
+    setPendingNew(query.trim())
+  }
+  const confirmNew = (group) => {
+    const name = pendingNew
+    if (!name) return
+    onAdd(name, group)
+    setPendingNew(null)
     if (closeOnSelect) { onClose(); return }
     setAdded(prev => [...prev, name])
     setQuery('')
   }
   const exactMatch = results.some(r => r.name.toLowerCase() === query.trim().toLowerCase())
+
+  if (pendingNew) {
+    return (
+      <Sheet title="Grupo muscular" onClose={() => setPendingNew(null)}>
+        <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 500, lineHeight: 1.5, marginBottom: '16px' }}>
+          ¿Qué grupo muscular trabaja{' '}
+          <span style={{ color: 'var(--c-text)', fontWeight: 800 }}>{pendingNew}</span>?
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '18px' }}>
+          {MUSCLE_GROUPS.map(g => (
+            <button
+              key={g}
+              onClick={() => confirmNew(g)}
+              style={{
+                padding: '11px 16px', borderRadius: '999px',
+                background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
+                color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em',
+                transition: 'background 120ms var(--ease-out), border-color 120ms var(--ease-out)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-action-dim)'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Button variant="secondary" full onClick={() => setPendingNew(null)}>Atrás</Button>
+          <Button variant="ghost" full onClick={() => confirmNew(null)}>Omitir</Button>
+        </div>
+      </Sheet>
+    )
+  }
 
   return (
     <Sheet title={title} subtitle={subtitle} onClose={onClose}>
@@ -719,13 +760,13 @@ export default function ActiveWorkout() {
     }
   }
 
-  const handleAddExercise = async (name) => {
-    try { await addExercise(name) } catch (err) { console.error(err) }
+  const handleAddExercise = async (name, muscleGroup = null) => {
+    try { await addExercise(name, muscleGroup) } catch (err) { console.error(err) }
   }
 
-  const handleSwapExercise = async (name) => {
+  const handleSwapExercise = async (name, muscleGroup = null) => {
     if (!swappingId) return
-    try { await replaceExercise(swappingId, name) } catch (err) { console.error(err) }
+    try { await replaceExercise(swappingId, name, muscleGroup) } catch (err) { console.error(err) }
     setSwappingId(null)
   }
 

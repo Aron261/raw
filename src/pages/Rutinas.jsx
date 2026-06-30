@@ -7,6 +7,7 @@ import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { generateRecommendedRoutine, generateSingleDayRoutine, FOCUS_TO_MUSCLES } from '../lib/cycleGenerator'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button } from '../components/ui'
+import CycleMuscleDistribution from '../components/CycleMuscleDistribution'
 
 // ── Constantes ────────────────────────────────────────────────────────────
 const GOALS_CYCLE      = ['Hipertrofia', 'Fuerza', 'Fuerza-Hipertrofia', 'Recomposición']
@@ -1221,6 +1222,7 @@ export default function Rutinas() {
                   Ciclo activo
                 </p>
                 <ActiveCycleCard routine={activeCycle} weeksActive={cycleWeeksActive} onDeactivate={handleDeactivate} />
+                <CycleMuscleDistribution routine={activeCycle} />
               </section>
             )}
 
