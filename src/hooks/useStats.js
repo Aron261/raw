@@ -131,7 +131,7 @@ export function useStats(targetUserId = null) {
         const groupVolume = {}
         list.forEach(w => {
           ;(w.workout_exercises || []).forEach(we => {
-            const group = groupByName[we.exercises?.name] || 'Otro'
+            const group = groupByName[we.exercises?.name] || 'Otros'
             const vol = calcVolume((we.sets || []).map(s => ({ ...s, unit: we.unit || 'kg' })))
             if (vol === 0) return
             groupVolume[group] = (groupVolume[group] || 0) + vol
