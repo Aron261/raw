@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
+import { useCachedResource } from '../lib/swr'
 
 // Calculate estimated 1RM using Epley formula
 export const calc1RM = (weight, reps) => {
@@ -29,46 +30,39 @@ export const formatDuration = (startedAt, endedAt) => {
   return `${mins}m`
 }
 
-// Hook to manage workouts list (Home + History pages)
+// Hook to manage workouts list (Home + History pages).
+// Backed by the shared SWR cache so switching tabs renders instantly and
+// refreshes quietly instead of refetching with a skeleton each time.
 export function useWorkouts() {
   const { user } = useAuth()
-  const [workouts, setWorkouts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const key = user ? `workouts:${user.id}` : null
 
-  const fetchWorkouts = useCallback(async () => {
-    if (!user) return
-    setLoading(true)
-    setError(null)
-    try {
-      // Fetch workouts with their exercises and sets for volume calculation
-      const { data, error: fetchError } = await supabase
-        .from('workouts')
-        .select(`
-          id, name, started_at, ended_at, notes, routine_id, routine_day_id,
-          workout_exercises (
-            id,
-            exercise_id,
-            unit,
-            exercises ( name ),
-            sets ( reps, weight )
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('started_at', { ascending: false })
+  const fetcher = useCallback(async () => {
+    const { data, error: fetchError } = await supabase
+      .from('workouts')
+      .select(`
+        id, name, started_at, ended_at, notes, routine_id, routine_day_id,
+        workout_exercises (
+          id,
+          exercise_id,
+          unit,
+          exercises ( name ),
+          sets ( reps, weight )
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('started_at', { ascending: false })
 
-      if (fetchError) throw fetchError
-      setWorkouts(data || [])
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+    if (fetchError) throw fetchError
+    return data || []
   }, [user])
 
-  useEffect(() => {
-    fetchWorkouts()
-  }, [fetchWorkouts])
+  const { data, loading, error: loadError, refetch } = useCachedResource(key, fetcher)
+  const workouts = data || []
+  const [mutError, setMutError] = useState(null)
+  const setError = setMutError
+  const fetchWorkouts = refetch
+  const error = (loadError ? (loadError.message || 'Error inesperado') : null) || mutError
 
   const createWorkout = async () => {
     setError(null)

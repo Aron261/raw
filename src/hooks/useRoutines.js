@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
+import { useCachedResource } from '../lib/swr'
 
 // Calcula el siguiente día de un ciclo activo dado el historial de entrenos.
 // Ignora workouts sin routine_id o routine_day_id (entrenos libres).
@@ -40,59 +41,50 @@ export function getNextRoutineDay(activeCycle, workoutsHistory) {
 // de ese cliente; las que cree quedan marcadas con assigned_by = entrenador.
 export function useRoutines(targetUserId = null) {
   const { user } = useAuth()
-  const [routines, setRoutines] = useState([])
-  const [activeRoutine, setActiveRoutineState] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
 
   // Dueño de las rutinas (cliente si es un entrenador operando, si no el propio usuario)
   const ownerId = targetUserId || user?.id
   // Si se opera sobre otro usuario, marcar quién asignó la rutina
   const assignedBy = targetUserId ? (user?.id ?? null) : null
 
+  const key = ownerId ? `routines:${ownerId}` : null
+
   // Trae todas las rutinas del usuario con sus días y ejercicios
-  const fetchRoutines = useCallback(async () => {
-    if (!ownerId) return
-    setLoading(true)
-    setError(null)
-    try {
-      const { data, error: err } = await supabase
-        .from('routines')
-        .select(`
-          id, user_id, name, description, type, source, goal, level,
-          days_per_week, is_active, sort_order, assigned_by, created_at, updated_at,
-          routine_days (
-            id, day_name, day_order, focus,
-            routine_day_exercises (
-              id, exercise_name, exercise_order, sets, reps, notes
-            )
+  const fetcher = useCallback(async () => {
+    const { data, error: err } = await supabase
+      .from('routines')
+      .select(`
+        id, user_id, name, description, type, source, goal, level,
+        days_per_week, is_active, sort_order, assigned_by, created_at, updated_at,
+        routine_days (
+          id, day_name, day_order, focus,
+          routine_day_exercises (
+            id, exercise_name, exercise_order, sets, reps, notes
           )
-        `)
-        .eq('user_id', ownerId)
-        .order('created_at', { ascending: false })
+        )
+      `)
+      .eq('user_id', ownerId)
+      .order('created_at', { ascending: false })
 
-      if (err) throw err
+    if (err) throw err
 
-      // Ordenar días y ejercicios dentro de cada rutina
-      const sorted = (data || []).map(r => ({
-        ...r,
-        routine_days: [...(r.routine_days || [])].sort((a, b) => a.day_order - b.day_order).map(d => ({
-          ...d,
-          routine_day_exercises: [...(d.routine_day_exercises || [])].sort((a, b) => a.exercise_order - b.exercise_order),
-        })),
-      }))
-
-      setRoutines(sorted)
-      setActiveRoutineState(sorted.find(r => r.is_active) || null)
-    } catch (err) {
-      console.error('Error fetching routines:', err)
-      setError(err.message || 'Error inesperado')
-    } finally {
-      setLoading(false)
-    }
+    // Ordenar días y ejercicios dentro de cada rutina
+    return (data || []).map(r => ({
+      ...r,
+      routine_days: [...(r.routine_days || [])].sort((a, b) => a.day_order - b.day_order).map(d => ({
+        ...d,
+        routine_day_exercises: [...(d.routine_day_exercises || [])].sort((a, b) => a.exercise_order - b.exercise_order),
+      })),
+    }))
   }, [ownerId])
 
-  useEffect(() => { fetchRoutines() }, [fetchRoutines])
+  const { data, loading, error: loadError, refetch } = useCachedResource(key, fetcher)
+  const routines = data || []
+  const activeRoutine = routines.find(r => r.is_active) || null
+  const [mutError, setMutError] = useState(null)
+  const setError = setMutError
+  const fetchRoutines = refetch
+  const error = (loadError ? (loadError.message || 'Error inesperado') : null) || mutError
 
   // Crear rutina completa con días y ejercicios en cascada
   // data: { name, type, goal?, level?, days_per_week?, days?: [{ day_name, day_order, focus?, exercises?: [...] }] }
