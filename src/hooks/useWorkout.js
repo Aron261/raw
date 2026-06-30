@@ -293,23 +293,21 @@ export function useActiveWorkout(workoutId) {
   }
 
   // Add exercise to workout (creates exercise if not exists, then adds workout_exercise)
-  const addExercise = async (exerciseName) => {
+  // muscleGroup (optional): set on the user's exercises row so custom exercises
+  // get classified. Only written when provided, never nulling an existing value.
+  const addExercise = async (exerciseName, muscleGroup = null) => {
     const name = exerciseName.trim()
 
     // Upsert exercise (unique per user+name)
+    const payload = { user_id: user.id, name }
+    if (muscleGroup) payload.muscle_group = muscleGroup
     const { data: exerciseData, error: exError } = await supabase
       .from('exercises')
-      .upsert({ user_id: user.id, name }, { onConflict: 'user_id,name' })
+      .upsert(payload, { onConflict: 'user_id,name' })
       .select()
       .single()
 
     if (exError) throw exError
-
-    // Also add to global library so it appears in future searches for everyone
-    await supabase
-      .from('exercises_library')
-      .upsert({ name, muscle_group: 'Personalizado' }, { onConflict: 'name' })
-      .select()
 
     // Determine next sort order
     const nextOrder = workoutExercises.length
@@ -421,21 +419,18 @@ export function useActiveWorkout(workoutId) {
   }
 
   // Swap the exercise in a workout_exercise row without touching the routine
-  const replaceExercise = async (workoutExerciseId, newExerciseName) => {
+  const replaceExercise = async (workoutExerciseId, newExerciseName, muscleGroup = null) => {
     const name = newExerciseName.trim()
 
     // Upsert the new exercise for this user
+    const payload = { user_id: user.id, name }
+    if (muscleGroup) payload.muscle_group = muscleGroup
     const { data: ex, error: exErr } = await supabase
       .from('exercises')
-      .upsert({ user_id: user.id, name }, { onConflict: 'user_id,name' })
+      .upsert(payload, { onConflict: 'user_id,name' })
       .select()
       .single()
     if (exErr) throw exErr
-
-    // Also register in global library
-    await supabase
-      .from('exercises_library')
-      .upsert({ name, muscle_group: 'Personalizado' }, { onConflict: 'name' })
 
     // Point this workout_exercise to the new exercise — routine is untouched
     const { error: weErr } = await supabase

@@ -42,7 +42,7 @@ function ModuleToggle({ module, on, onToggle }) {
 
 export default function Stats() {
   const navigate = useNavigate()
-  const { data, loading, error } = useStats()
+  const { data, loading, error, refetch } = useStats()
   const { enabled, toggle } = useStatPrefs()
   const [customizing, setCustomizing] = useState(false)
 
@@ -126,7 +126,7 @@ export default function Stats() {
                 </button>
               </div>
             ) : (
-              visible.map(m => <m.Component key={m.id} data={data} />)
+              visible.map(m => <m.Component key={m.id} data={data} refetch={refetch} />)
             )}
           </div>
         )}

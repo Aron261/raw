@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { calc1RM, calcVolume } from './useWorkout'
+import { CATCH_ALL } from '../lib/muscleGroups'
 
 // Month key (YYYY-MM) + short label for a given date.
 function monthKey(date) {
@@ -33,10 +34,9 @@ export function useStats(targetUserId = null) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const fetchStats = useCallback(async () => {
     if (!ownerId) return
-
-    const fetch = async () => {
+    {
       setLoading(true)
       setError(null)
       try {
@@ -46,7 +46,7 @@ export function useStats(targetUserId = null) {
             id, started_at, ended_at,
             workout_exercises (
               unit,
-              exercises ( name ),
+              exercises ( name, muscle_group ),
               sets ( weight, reps )
             )
           `)
@@ -131,7 +131,8 @@ export function useStats(targetUserId = null) {
         const groupVolume = {}
         list.forEach(w => {
           ;(w.workout_exercises || []).forEach(we => {
-            const group = groupByName[we.exercises?.name] || 'Otros'
+            // Precedence: user's own classification → library → catch-all.
+            const group = we.exercises?.muscle_group || groupByName[we.exercises?.name] || CATCH_ALL
             const vol = calcVolume((we.sets || []).map(s => ({ ...s, unit: we.unit || 'kg' })))
             if (vol === 0) return
             groupVolume[group] = (groupVolume[group] || 0) + vol
@@ -149,9 +150,9 @@ export function useStats(targetUserId = null) {
         setLoading(false)
       }
     }
-
-    fetch()
   }, [ownerId])
 
-  return { data, loading, error }
+  useEffect(() => { fetchStats() }, [fetchStats])
+
+  return { data, loading, error, refetch: fetchStats }
 }
