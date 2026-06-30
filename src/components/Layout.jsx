@@ -107,14 +107,17 @@ function WorkoutStarter({ children }) {
   )
 }
 
-export default function Layout({ children, hideNav = false }) {
+// showProfile: el avatar de perfil solo se muestra donde se pide (hoy, Inicio).
+// No vive en la barra inferior, así que las pantallas de tabs sin avatar
+// llegan a Perfil volviendo a Inicio.
+export default function Layout({ children, hideNav = false, showProfile = false }) {
   return (
     <WorkoutStarter>
       {(openPicker, _starting) => (
         <>
           {/* ── Mobile (< md) ──────────────────────────────────────────── */}
           <div className="md:hidden min-h-dvh bg-background flex flex-col">
-            {!hideNav && <ProfileAvatar />}
+            {!hideNav && showProfile && <ProfileAvatar />}
             <main className={`flex-1 flex flex-col ${hideNav ? '' : 'pb-20'}`}>
               {children}
             </main>
