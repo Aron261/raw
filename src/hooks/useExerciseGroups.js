@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
+import { isLegacyGroup, guessLegGroup } from '../lib/muscleGroups'
 
-// The user's exercises with their muscle-group classification, plus the library
-// fallback. `unclassified` = exercises with no own group AND none in the library
-// (these are what fall into the "Otros" bucket in the balance views).
+// The user's exercises with their effective muscle-group classification.
+// Precedence: own exercises.muscle_group → library → unclassified.
+// `needsAttention` = unclassified OR tagged with a legacy group (e.g. "Pierna"
+// after the leg split) — both should be re-assigned in the exercise manager.
 export function useExerciseGroups() {
   const { user } = useAuth()
-  const [exercises, setExercises] = useState([])
+  const [rows, setRows] = useState([])
   const [libGroups, setLibGroups] = useState({})
   const [loading, setLoading] = useState(true)
 
@@ -29,14 +31,33 @@ export function useExerciseGroups() {
         .in('name', names)
       ;(data || []).forEach(e => { lib[e.name] = e.muscle_group })
     }
-    setExercises(list)
+    setRows(list)
     setLibGroups(lib)
     setLoading(false)
   }, [user?.id])
 
   useEffect(() => { load() }, [load])
 
-  const unclassified = exercises.filter(e => !e.muscle_group && !libGroups[e.name])
+  const exercises = rows.map(e => {
+    const ownGroup = e.muscle_group || null
+    const libGroup = libGroups[e.name] || null
+    const effective = ownGroup || libGroup || null
+    const isLegacy = isLegacyGroup(effective)
+    const isUnclassified = !effective
+    return {
+      id: e.id,
+      name: e.name,
+      ownGroup,
+      libGroup,
+      effective,
+      isLegacy,
+      isUnclassified,
+      needsAttention: isLegacy || isUnclassified,
+      suggestion: (isLegacy || isUnclassified) ? guessLegGroup(e.name) : null,
+    }
+  })
+
+  const needsAttention = exercises.filter(e => e.needsAttention)
 
   const classify = useCallback(async (exerciseId, group) => {
     const { error } = await supabase
@@ -45,8 +66,8 @@ export function useExerciseGroups() {
       .eq('id', exerciseId)
       .eq('user_id', user.id)
     if (error) throw error
-    setExercises(prev => prev.map(e => (e.id === exerciseId ? { ...e, muscle_group: group } : e)))
+    setRows(prev => prev.map(e => (e.id === exerciseId ? { ...e, muscle_group: group } : e)))
   }, [user?.id])
 
-  return { exercises, unclassified, loading, classify, refresh: load }
+  return { exercises, needsAttention, loading, classify, refresh: load }
 }
