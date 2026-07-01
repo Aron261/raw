@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigationType, useParams } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
 import { AuthContext, useAuthProvider } from './hooks/useAuth'
 import { useBetaGate } from './hooks/useBetaGate'
@@ -72,6 +72,12 @@ function R({ auth, element }) {
   return <RequireAuth auth={auth}>{element}</RequireAuth>
 }
 
+// Coach viewing a client's stats — same window, read-only, scoped to the client.
+function ClientStats() {
+  const { id } = useParams()
+  return <Stats userId={id} readOnly />
+}
+
 // App root with auth provider
 function AppWithAuth() {
   const auth = useAuthProvider()
@@ -108,7 +114,8 @@ function AppWithAuth() {
           <Route path="/profile"    element={<R auth={auth} element={<Profile />} />} />
 
           <Route path="/coach"             element={<R auth={auth} element={<Coach />} />} />
-          <Route path="/coach/cliente/:id" element={<R auth={auth} element={<ClientDetail />} />} />
+          <Route path="/coach/cliente/:id"       element={<R auth={auth} element={<ClientDetail />} />} />
+          <Route path="/coach/cliente/:id/stats" element={<R auth={auth} element={<ClientStats />} />} />
           <Route path="/chat/:otherId"     element={<R auth={auth} element={<Chat />} />} />
 
           <Route path="/workout/:id"    element={<R auth={auth} element={<ActiveWorkout />} />} />

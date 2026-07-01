@@ -442,7 +442,15 @@ export default function ClientDetail() {
 
         {/* ── Progreso ─────────────────────────────────────────────── */}
         <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '40ms' }}>
-          <p style={SECTION_LABEL}>Progreso</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
+            <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Progreso</p>
+            <button
+              onClick={() => navigate(`/coach/cliente/${clientId}/stats`)}
+              style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+            >
+              Estadísticas →
+            </button>
+          </div>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
             <Stat label="Entrenos" value={dash?.totalWorkouts ?? '—'} />
             <Stat label="Este mes" value={dash?.thisMonth ?? '—'} />

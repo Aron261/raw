@@ -4,6 +4,7 @@ import {
 } from 'recharts'
 import { useTheme } from '../../hooks/useTheme'
 import SectionHeader from './SectionHeader'
+import Segmented from './Segmented'
 
 // Monthly volume trend. Hex per palette+theme — CSS vars don't resolve in
 // recharts SVG attrs (same pattern as Home / ExerciseDetail).
@@ -29,31 +30,7 @@ function ChartTooltip({ active, payload, label }) {
   )
 }
 
-function RangeToggle({ range, onChange }) {
-  return (
-    <div style={{ display: 'flex', gap: '2px', background: 'var(--c-surface-2)', borderRadius: '8px', padding: '2px' }}>
-      {['6', '12'].map(r => {
-        const active = range === r
-        return (
-          <button
-            key={r}
-            onClick={() => onChange(r)}
-            style={{
-              padding: '4px 9px', borderRadius: '6px',
-              fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.02em',
-              background: active ? 'var(--c-surface)' : 'transparent',
-              color: active ? 'var(--c-text)' : 'var(--c-text-muted)',
-              boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              transition: 'color 150ms',
-            }}
-          >
-            {r}M
-          </button>
-        )
-      })}
-    </div>
-  )
-}
+const RANGE_OPTIONS = [{ id: '6', label: '6M' }, { id: '12', label: '12M' }]
 
 export default function VolumeTrendModule({ data }) {
   const { resolved, palette } = useTheme()
@@ -93,7 +70,7 @@ export default function VolumeTrendModule({ data }) {
         subtitle={deltaPct != null
           ? undefined
           : 'Kg totales por mes.'}
-        right={all.length > 6 ? <RangeToggle range={range} onChange={setRange} /> : null}
+        right={all.length > 6 ? <Segmented options={RANGE_OPTIONS} value={range} onChange={setRange} ariaLabel="Rango de meses" /> : null}
       />
 
       {deltaPct != null && (
