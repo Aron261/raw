@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useExerciseGroups } from '../../hooks/useExerciseGroups'
 import { CATCH_ALL } from '../../lib/muscleGroups'
-import ClassifySheet from './ClassifySheet'
 
 // All-time volume distribution across muscle groups, shown as proportional
 // horizontal bars (relative to the most-trained group).
@@ -10,9 +9,9 @@ function formatVolume(v) {
   return v.toLocaleString()
 }
 
-export default function MuscleBalanceModule({ data, refetch }) {
-  const { unclassified, classify } = useExerciseGroups()
-  const [showClassify, setShowClassify] = useState(false)
+export default function MuscleBalanceModule({ data }) {
+  const navigate = useNavigate()
+  const { needsAttention } = useExerciseGroups()
 
   const groups = data?.muscleBalance || []
   if (groups.length === 0) return null
@@ -73,28 +72,20 @@ export default function MuscleBalanceModule({ data, refetch }) {
         )}
       </div>
 
-      {/* Classify unclassified exercises — turns "Otros" into real groups */}
-      {unclassified.length > 0 && (
-        <button
-          onClick={() => setShowClassify(true)}
-          style={{
-            marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '5px',
-            fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '11px', fontWeight: 700,
-            textTransform: 'uppercase', letterSpacing: '0.06em',
-          }}
-        >
-          Clasificar {unclassified.length} {unclassified.length === 1 ? 'ejercicio' : 'ejercicios'}
-          <span aria-hidden="true" style={{ fontSize: '13px' }}>→</span>
-        </button>
-      )}
-
-      {showClassify && (
-        <ClassifySheet
-          items={unclassified}
-          onClassify={classify}
-          onClose={() => { setShowClassify(false); refetch?.() }}
-        />
-      )}
+      {/* Manage / classify exercises — full editor at /ejercicios */}
+      <button
+        onClick={() => navigate('/ejercicios')}
+        style={{
+          marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '5px',
+          fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '11px', fontWeight: 700,
+          textTransform: 'uppercase', letterSpacing: '0.06em',
+        }}
+      >
+        {needsAttention.length > 0
+          ? `Clasificar ${needsAttention.length} ${needsAttention.length === 1 ? 'ejercicio' : 'ejercicios'}`
+          : 'Gestionar ejercicios'}
+        <span aria-hidden="true" style={{ fontSize: '13px' }}>→</span>
+      </button>
     </section>
   )
 }
