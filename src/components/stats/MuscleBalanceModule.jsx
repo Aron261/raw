@@ -10,7 +10,7 @@ function formatVolume(v) {
   return v.toLocaleString()
 }
 
-export default function MuscleBalanceModule({ data }) {
+export default function MuscleBalanceModule({ data, readOnly = false }) {
   const navigate = useNavigate()
   const { needsAttention } = useExerciseGroups()
 
@@ -72,6 +72,7 @@ export default function MuscleBalanceModule({ data }) {
       </div>
 
       {/* Manage / classify exercises — full editor at /ejercicios */}
+      {!readOnly && (
       <button
         onClick={() => navigate('/ejercicios')}
         style={{
@@ -85,6 +86,7 @@ export default function MuscleBalanceModule({ data }) {
           : 'Gestionar ejercicios'}
         <span aria-hidden="true" style={{ fontSize: '13px' }}>→</span>
       </button>
+      )}
     </section>
   )
 }
