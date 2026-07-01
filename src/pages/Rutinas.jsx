@@ -76,7 +76,7 @@ function AssignedBadge() {
 // ── Card: ciclo activo ────────────────────────────────────────────────────
 const REFRESH_CYCLE_WEEKS = 12  // suggest refreshing a cycle after this long
 
-function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate }) {
+function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit }) {
   const activeLabel = weeksActive < 1
     ? 'Recién activado'
     : `Activo hace ${weeksActive} ${weeksActive === 1 ? 'semana' : 'semanas'}`
@@ -144,20 +144,30 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate }) {
         </div>
       )}
 
-      <button
-        onClick={onDeactivate}
-        style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-border-subtle)', padding: '6px 12px', borderRadius: '8px', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
-        onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
-        onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
-      >
-        Desactivar
-      </button>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={onEdit}
+          style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '6px 12px', borderRadius: '8px', transition: 'background 150ms var(--ease-out)' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+          Editar
+        </button>
+        <button
+          onClick={onDeactivate}
+          style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-border-subtle)', padding: '6px 12px', borderRadius: '8px', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+        >
+          Desactivar
+        </button>
+      </div>
     </div>
   )
 }
 
 // ── Card: ciclo guardado ──────────────────────────────────────────────────
-function CycleCard({ routine, onActivate, onDelete }) {
+function CycleCard({ routine, onActivate, onDelete, onEdit }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   return (
     <div style={{
@@ -172,6 +182,14 @@ function CycleCard({ routine, onActivate, onDelete }) {
           {routine.name}
         </p>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            onClick={onEdit}
+            style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', border: '1px solid var(--c-border-subtle)', padding: '4px 10px', borderRadius: '8px', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+          >
+            Editar
+          </button>
           <button
             onClick={onActivate}
             style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', border: '1px solid var(--c-accent-border)', padding: '4px 10px', borderRadius: '8px', transition: 'background 150ms var(--ease-out)' }}
@@ -202,7 +220,7 @@ function CycleCard({ routine, onActivate, onDelete }) {
 }
 
 // ── Card: rutina de un día ─────────────────────────────────────────────────
-function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises }) {
+function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onEdit }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const day = (routine.routine_days || [])[0]
   const exCount = day ? (day.routine_day_exercises || []).filter(e => e.exercise_name?.trim()).length : 0
@@ -221,6 +239,14 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises }) {
           {routine.name}
         </p>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            onClick={onEdit}
+            style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', border: '1px solid var(--c-border-subtle)', padding: '4px 10px', borderRadius: '8px', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+          >
+            Editar
+          </button>
           {day && (
             <button
               onClick={canStart ? onStart : undefined}
@@ -1221,7 +1247,7 @@ export default function Rutinas() {
                 <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
                   Ciclo activo
                 </p>
-                <ActiveCycleCard routine={activeCycle} weeksActive={cycleWeeksActive} onDeactivate={handleDeactivate} />
+                <ActiveCycleCard routine={activeCycle} weeksActive={cycleWeeksActive} onDeactivate={handleDeactivate} onEdit={() => navigate(`/rutina/${activeCycle.id}`)} />
                 <CycleMuscleDistribution routine={activeCycle} />
               </section>
             )}
@@ -1232,7 +1258,7 @@ export default function Rutinas() {
                   Ciclos guardados
                 </p>
                 {savedCycles.map(r => (
-                  <CycleCard key={r.id} routine={r} onActivate={() => handleActivate(r.id)} onDelete={() => handleDelete(r.id)} />
+                  <CycleCard key={r.id} routine={r} onActivate={() => handleActivate(r.id)} onDelete={() => handleDelete(r.id)} onEdit={() => navigate(`/rutina/${r.id}`)} />
                 ))}
               </section>
             )}
@@ -1251,6 +1277,7 @@ export default function Rutinas() {
                       onDelete={() => handleDelete(r.id)}
                       onStart={() => handleStartSingleDay(r)}
                       starting={startingId === r.id}
+                      onEdit={() => navigate(`/rutina/${r.id}`)}
                     />
                   )
                 })}
