@@ -79,18 +79,15 @@ export function useStatPrefs() {
     })
   }, [])
 
-  const move = useCallback((id, dir) => {
+  const setOrder = useCallback((newOrder) => {
     setState(prev => {
-      const order = [...prev.order]
-      const i = order.indexOf(id)
-      if (i < 0) return prev
-      const j = dir === 'up' ? i - 1 : i + 1
-      if (j < 0 || j >= order.length) return prev
-      ;[order[i], order[j]] = [order[j], order[i]]
+      const allIds = STAT_MODULES.map(m => m.id)
+      const order = newOrder.filter(id => allIds.includes(id))
+      for (const m of STAT_MODULES) if (!order.includes(m.id)) order.push(m.id)
       persist(prev.enabled, prev.known, order)
       return { ...prev, order }
     })
   }, [])
 
-  return { enabled: state.enabled, order: state.order, toggle, move }
+  return { enabled: state.enabled, order: state.order, toggle, setOrder }
 }
