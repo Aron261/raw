@@ -12,6 +12,7 @@ import History from './pages/History'
 import Stats from './pages/Stats'
 import Profile from './pages/Profile'
 import Rutinas from './pages/Rutinas'
+import RoutineDetail from './pages/RoutineDetail'
 import Coach from './pages/Coach'
 import ClientDetail from './pages/ClientDetail'
 import Chat from './pages/Chat'
@@ -101,6 +102,7 @@ function AppWithAuth() {
           <Route path="/history"    element={<R auth={auth} element={<History />} />} />
           <Route path="/stats"      element={<R auth={auth} element={<Stats />} />} />
           <Route path="/rutinas"    element={<R auth={auth} element={<Rutinas />} />} />
+          <Route path="/rutina/:id" element={<R auth={auth} element={<RoutineDetail />} />} />
           <Route path="/profile"    element={<R auth={auth} element={<Profile />} />} />
 
           <Route path="/coach"             element={<R auth={auth} element={<Coach />} />} />

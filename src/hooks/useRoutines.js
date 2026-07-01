@@ -232,6 +232,113 @@ export function useRoutines(targetUserId = null) {
     }
   }
 
+  // ── Día: agregar / editar / eliminar ──────────────────────────────────
+  const addDay = async (routineId, { day_name = 'Nuevo día', focus = null } = {}) => {
+    setError(null)
+    try {
+      const routine = routines.find(r => r.id === routineId)
+      const order = routine?.routine_days?.length ?? 0
+      const { error: err } = await supabase
+        .from('routine_days')
+        .insert({ routine_id: routineId, day_name, day_order: order, focus })
+      if (err) throw err
+      await fetchRoutines()
+    } catch (err) {
+      console.error('Error adding day:', err)
+      setError(err.message || 'Error inesperado')
+      throw err
+    }
+  }
+
+  const updateDay = async (dayId, updates) => {
+    setError(null)
+    try {
+      const { error: err } = await supabase
+        .from('routine_days').update(updates).eq('id', dayId)
+      if (err) throw err
+      await fetchRoutines()
+    } catch (err) {
+      console.error('Error updating day:', err)
+      setError(err.message || 'Error inesperado')
+      throw err
+    }
+  }
+
+  const removeDay = async (dayId) => {
+    setError(null)
+    try {
+      const { error: err } = await supabase.from('routine_days').delete().eq('id', dayId)
+      if (err) throw err
+      await fetchRoutines()
+    } catch (err) {
+      console.error('Error removing day:', err)
+      setError(err.message || 'Error inesperado')
+      throw err
+    }
+  }
+
+  // ── Ejercicio del día: agregar / editar / eliminar ────────────────────
+  // muscleGroup (opcional): clasifica el ejercicio en la tabla del usuario
+  // (best-effort — un fallo de clasificación no impide agregarlo al día).
+  const addDayExercise = async (routineDayId, { name, sets = null, reps = null, muscleGroup = null }) => {
+    setError(null)
+    try {
+      const cleanName = (name || '').trim()
+      if (!cleanName) return
+
+      // Clasificación en la tabla propia de ejercicios (no bloquea si falla)
+      if (ownerId) {
+        const payload = { user_id: ownerId, name: cleanName }
+        if (muscleGroup) payload.muscle_group = muscleGroup
+        await supabase.from('exercises').upsert(payload, { onConflict: 'user_id,name' })
+      }
+
+      // Orden = cantidad actual de ejercicios en ese día (conteo fresco en DB)
+      const { count } = await supabase
+        .from('routine_day_exercises')
+        .select('*', { count: 'exact', head: true })
+        .eq('routine_day_id', routineDayId)
+      const order = count ?? 0
+
+      const { error: err } = await supabase
+        .from('routine_day_exercises')
+        .insert({ routine_day_id: routineDayId, exercise_name: cleanName, exercise_order: order, sets, reps })
+      if (err) throw err
+      await fetchRoutines()
+    } catch (err) {
+      console.error('Error adding day exercise:', err)
+      setError(err.message || 'Error inesperado')
+      throw err
+    }
+  }
+
+  const updateDayExercise = async (id, updates) => {
+    setError(null)
+    try {
+      const { error: err } = await supabase
+        .from('routine_day_exercises').update(updates).eq('id', id)
+      if (err) throw err
+      await fetchRoutines()
+    } catch (err) {
+      console.error('Error updating day exercise:', err)
+      setError(err.message || 'Error inesperado')
+      throw err
+    }
+  }
+
+  const removeDayExercise = async (id) => {
+    setError(null)
+    try {
+      const { error: err } = await supabase.from('routine_day_exercises').delete().eq('id', id)
+      if (err) throw err
+      await fetchRoutines()
+    } catch (err) {
+      console.error('Error removing day exercise:', err)
+      setError(err.message || 'Error inesperado')
+      throw err
+    }
+  }
+
   return {
     routines,
     activeRoutine,
@@ -242,5 +349,11 @@ export function useRoutines(targetUserId = null) {
     updateRoutine,
     deleteRoutine,
     setActiveRoutine,
+    addDay,
+    updateDay,
+    removeDay,
+    addDayExercise,
+    updateDayExercise,
+    removeDayExercise,
   }
 }
