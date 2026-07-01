@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { Sheet } from '../components/ui'
@@ -8,56 +8,99 @@ import { STAT_MODULES } from '../lib/statModules'
 
 const BY_ID = Object.fromEntries(STAT_MODULES.map(m => [m.id, m]))
 
-// ── Row in the customize sheet: reorder (up/down) + on/off toggle ──────────
-function ModuleRow({ module, on, isFirst, isLast, onToggle, onMove }) {
-  const arrow = (dir, disabled) => (
-    <button
-      onClick={() => !disabled && onMove(module.id, dir)}
-      disabled={disabled}
-      aria-label={dir === 'up' ? 'Subir' : 'Bajar'}
-      style={{
-        width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        borderRadius: '8px', background: 'transparent', border: '1px solid var(--c-border-subtle)',
-        color: disabled ? 'var(--c-text-ghost)' : 'var(--c-text-dim)',
-        opacity: disabled ? 0.4 : 1, fontSize: '12px', lineHeight: 1,
-      }}
-    >
-      {dir === 'up' ? '↑' : '↓'}
-    </button>
-  )
+// ── Drag-to-reorder list of modules (drag handle) + on/off toggle ─────────
+function ReorderList({ order, enabled, onToggle, onReorder }) {
+  const [items, setItems] = useState(order)
+  const [draggingId, setDraggingId] = useState(null)
+  const dragId = useRef(null)
+  const rowEls = useRef({})
+
+  // Order can change externally (new module reconciled in); resync when not dragging.
+  useEffect(() => { if (!dragId.current) setItems(order) }, [order])
+
+  const onMove = (e) => {
+    if (!dragId.current) return
+    const y = e.clientY
+    const cur = items.indexOf(dragId.current)
+    let target = 0
+    for (let i = 0; i < items.length; i++) {
+      const el = rowEls.current[items[i]]
+      if (el && y > el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2) target = i
+    }
+    if (target !== cur && cur !== -1) {
+      const next = [...items]
+      next.splice(cur, 1)
+      next.splice(target, 0, dragId.current)
+      setItems(next)
+    }
+  }
+
+  const onStart = (e, id) => {
+    dragId.current = id
+    setDraggingId(id)
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* noop */ }
+  }
+  const onEnd = (e) => {
+    if (!dragId.current) return
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch { /* noop */ }
+    dragId.current = null
+    setDraggingId(null)
+    onReorder(items)
+  }
 
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
-      background: 'var(--c-surface-2)',
-      border: `1px solid ${on ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
-      borderRadius: '12px',
-    }}>
-      <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>
-        {module.label}
-      </span>
-      <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-        {arrow('up', isFirst)}
-        {arrow('down', isLast)}
-      </div>
-      {/* Switch */}
-      <button
-        onClick={() => onToggle(module.id)}
-        aria-label={on ? 'Ocultar' : 'Mostrar'}
-        aria-pressed={on}
-        style={{
-          position: 'relative', flexShrink: 0, marginLeft: '4px',
-          width: '40px', height: '24px', borderRadius: '999px', border: 'none',
-          background: on ? 'var(--c-action)' : 'var(--c-border)',
-          transition: 'background 160ms var(--ease-out)', cursor: 'pointer',
-        }}
-      >
-        <span style={{
-          position: 'absolute', top: '3px', left: on ? '19px' : '3px',
-          width: '18px', height: '18px', borderRadius: '50%', background: 'var(--c-surface)',
-          transition: 'left 160ms var(--ease-out)',
-        }} />
-      </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {items.map(id => {
+        const m = BY_ID[id]
+        if (!m) return null
+        const on = enabled.has(id)
+        const dragging = draggingId === id
+        return (
+          <div
+            key={id}
+            ref={el => { rowEls.current[id] = el }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px',
+              background: 'var(--c-surface-2)',
+              border: `1px solid ${on ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
+              borderRadius: '12px',
+              boxShadow: dragging ? '0 6px 16px rgba(0,0,0,0.14)' : 'none',
+              transform: dragging ? 'scale(1.02)' : 'none',
+              transition: dragging ? 'none' : 'transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out)',
+            }}
+          >
+            <span
+              onPointerDown={e => onStart(e, id)}
+              onPointerMove={onMove}
+              onPointerUp={onEnd}
+              aria-label="Arrastrar para reordenar"
+              style={{ flexShrink: 0, touchAction: 'none', cursor: 'grab', color: 'var(--c-text-ghost)', fontSize: '16px', lineHeight: 1, padding: '2px 4px' }}
+            >
+              ⠿
+            </span>
+            <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>
+              {m.label}
+            </span>
+            <button
+              onClick={() => onToggle(id)}
+              aria-label={on ? 'Ocultar' : 'Mostrar'}
+              aria-pressed={on}
+              style={{
+                position: 'relative', flexShrink: 0,
+                width: '40px', height: '24px', borderRadius: '999px', border: 'none',
+                background: on ? 'var(--c-action)' : 'var(--c-border)',
+                transition: 'background 160ms var(--ease-out)', cursor: 'pointer',
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: '3px', left: on ? '19px' : '3px',
+                width: '18px', height: '18px', borderRadius: '50%', background: 'var(--c-surface)',
+                transition: 'left 160ms var(--ease-out)',
+              }} />
+            </button>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -67,7 +110,7 @@ function ModuleRow({ module, on, isFirst, isLast, onToggle, onMove }) {
 export default function Stats({ userId = null, readOnly = false }) {
   const navigate = useNavigate()
   const { data, loading, error, refetch } = useStats(userId)
-  const { enabled, order, toggle, move } = useStatPrefs()
+  const { enabled, order, toggle, setOrder } = useStatPrefs()
   const [customizing, setCustomizing] = useState(false)
 
   // Own view: user's chosen order, filtered to enabled. Coach view: all modules,
@@ -179,26 +222,10 @@ export default function Stats({ userId = null, readOnly = false }) {
       {!readOnly && customizing && (
         <Sheet
           title="Personalizar"
-          subtitle="Elige qué ver y en qué orden."
+          subtitle="Arrastra para ordenar; toca el interruptor para mostrar u ocultar."
           onClose={() => setCustomizing(false)}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {order.map((id, i) => {
-              const m = BY_ID[id]
-              if (!m) return null
-              return (
-                <ModuleRow
-                  key={id}
-                  module={m}
-                  on={enabled.has(id)}
-                  isFirst={i === 0}
-                  isLast={i === order.length - 1}
-                  onToggle={toggle}
-                  onMove={move}
-                />
-              )
-            })}
-          </div>
+          <ReorderList order={order} enabled={enabled} onToggle={toggle} onReorder={setOrder} />
         </Sheet>
       )}
     </Layout>
