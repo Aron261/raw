@@ -73,7 +73,7 @@ export default function Stats() {
               color: 'var(--c-accent)', padding: '4px 6px',
             }}
           >
-            Editar
+            Personalizar
           </button>
         </div>
 
@@ -95,6 +95,12 @@ export default function Stats() {
         {!loading && error && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)', color: 'var(--c-action-text)', fontSize: '13px', padding: '12px 14px', borderRadius: '12px', marginTop: '24px' }}>
             <span>No pudimos cargar tus estadísticas.</span>
+            <button
+              onClick={refetch}
+              style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-action-border)', borderRadius: '8px', padding: '6px 12px', background: 'transparent' }}
+            >
+              Reintentar
+            </button>
           </div>
         )}
 
@@ -126,7 +132,11 @@ export default function Stats() {
                 </button>
               </div>
             ) : (
-              visible.map(m => <m.Component key={m.id} data={data} refetch={refetch} />)
+              visible.map((m, i) => (
+                <div key={m.id} className="fade-in" style={{ animationDelay: `${i * 60}ms` }}>
+                  <m.Component data={data} refetch={refetch} />
+                </div>
+              ))
             )}
           </div>
         )}

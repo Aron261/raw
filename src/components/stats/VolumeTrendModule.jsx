@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell,
 } from 'recharts'
 import { useTheme } from '../../hooks/useTheme'
+import SectionHeader from './SectionHeader'
 
 // Monthly volume trend. Hex per palette+theme — CSS vars don't resolve in
 // recharts SVG attrs (same pattern as Home / ExerciseDetail).
@@ -27,53 +29,101 @@ function ChartTooltip({ active, payload, label }) {
   )
 }
 
+function RangeToggle({ range, onChange }) {
+  return (
+    <div style={{ display: 'flex', gap: '2px', background: 'var(--c-surface-2)', borderRadius: '8px', padding: '2px' }}>
+      {['6', '12'].map(r => {
+        const active = range === r
+        return (
+          <button
+            key={r}
+            onClick={() => onChange(r)}
+            style={{
+              padding: '4px 9px', borderRadius: '6px',
+              fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.02em',
+              background: active ? 'var(--c-surface)' : 'transparent',
+              color: active ? 'var(--c-text)' : 'var(--c-text-muted)',
+              boxShadow: active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              transition: 'color 150ms',
+            }}
+          >
+            {r}M
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function VolumeTrendModule({ data }) {
   const { resolved, palette } = useTheme()
   const colors = CHART_COLORS[`${palette}-${resolved}`] || CHART_COLORS['slate-light']
-  const chartData = data?.volumeByMonth || []
+  const [range, setRange] = useState('12')
+
+  const all = data?.volumeByMonth || []
+  const chartData = range === '6' ? all.slice(-6) : all
   const hasData = chartData.some(d => d.volume > 0)
   const lastIdx = chartData.length - 1
 
+  // Delta: current month vs previous.
+  const cur = all[all.length - 1]?.volume || 0
+  const prev = all[all.length - 2]?.volume || 0
+  const deltaPct = prev > 0 ? Math.round(((cur - prev) / prev) * 100) : null
+  const up = deltaPct != null && deltaPct >= 0
+
+  // Current month gets a bold, accent-colored axis label (not color alone).
+  const renderTick = ({ x, y, payload, index }) => {
+    const isCurrent = index === lastIdx
+    return (
+      <text
+        x={x} y={y + 12} textAnchor="middle"
+        fill={isCurrent ? colors.current : colors.axis}
+        fontSize={10} fontWeight={isCurrent ? 800 : 700}
+        style={{ textDecoration: isCurrent ? 'underline' : 'none' }}
+      >
+        {payload.value}
+      </text>
+    )
+  }
+
   return (
-    <section style={{ marginBottom: '32px' }}>
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
-        Volumen por mes
-      </p>
-      <div style={{
-        background: 'var(--c-surface)',
-        border: '1px solid var(--c-border-subtle)',
-        borderRadius: '16px',
-        padding: '20px 8px 12px',
-        overflow: 'hidden',
-      }}>
-        {!hasData ? (
-          <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--c-text-muted)', fontSize: '11px' }}>
-            Sin entrenos registrados todavía
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={170}>
-            <BarChart data={chartData} barSize={16} margin={{ top: 0, right: 8, bottom: 0, left: -20 }}>
-              <XAxis
-                dataKey="label"
-                tick={{ fill: colors.axis, fontSize: 10, fontWeight: 700 }}
-                axisLine={false}
-                tickLine={false}
-                interval={0}
-              />
-              <YAxis hide />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'transparent' }} />
-              <Bar dataKey="volume" radius={[5, 5, 0, 0]}>
-                {chartData.map((entry, i) => (
-                  <Cell
-                    key={i}
-                    fill={entry.volume > 0 ? (i === lastIdx ? colors.current : colors.bar) : colors.empty}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
+    <section style={{ marginBottom: '40px' }}>
+      <SectionHeader
+        title="Volumen"
+        subtitle={deltaPct != null
+          ? undefined
+          : 'Kg totales por mes.'}
+        right={all.length > 6 ? <RangeToggle range={range} onChange={setRange} /> : null}
+      />
+
+      {deltaPct != null && (
+        <p style={{ fontSize: '12px', fontWeight: 600, marginTop: '-4px', marginBottom: '10px', color: 'var(--c-text-muted)' }}>
+          Este mes{' '}
+          <span style={{ color: up ? 'var(--c-success)' : 'var(--c-action-text)', fontWeight: 800 }}>
+            {up ? '▲' : '▼'} {Math.abs(deltaPct)}%
+          </span>{' '}
+          vs. el anterior
+        </p>
+      )}
+
+      {!hasData ? (
+        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--c-text-muted)', fontSize: '11px', border: '1px dashed var(--c-border-subtle)', borderRadius: '12px' }}>
+          Sin entrenos registrados todavía
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={180}>
+          <BarChart data={chartData} barSize={range === '6' ? 26 : 16} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
+            <XAxis dataKey="label" tick={renderTick} axisLine={false} tickLine={false} interval={0} height={24} />
+            <YAxis hide />
+            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'transparent' }} />
+            <Bar dataKey="volume" radius={[5, 5, 0, 0]}>
+              {chartData.map((entry, i) => (
+                <Cell key={i} fill={entry.volume > 0 ? (i === lastIdx ? colors.current : colors.bar) : colors.empty} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      )}
     </section>
   )
 }

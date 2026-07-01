@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useExerciseGroups } from '../../hooks/useExerciseGroups'
 import { CATCH_ALL } from '../../lib/muscleGroups'
+import SectionHeader from './SectionHeader'
 
 // All-time volume distribution across muscle groups, shown as proportional
 // horizontal bars (relative to the most-trained group).
@@ -24,13 +25,11 @@ export default function MuscleBalanceModule({ data }) {
   const max = Math.max(...groups.map(g => g.volume), 1)
 
   return (
-    <section style={{ marginBottom: '32px' }}>
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
-        Balance muscular
-      </p>
-      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, lineHeight: 1.45, marginBottom: '12px' }}>
-        Cómo se reparte tu volumen total (peso × reps) entre grupos musculares.
-      </p>
+    <section style={{ marginBottom: '40px' }}>
+      <SectionHeader
+        title="Balance muscular"
+        subtitle="Cómo se reparte tu volumen total (peso × reps) entre grupos."
+      />
       <div style={{
         background: 'var(--c-surface)',
         border: '1px solid var(--c-border-subtle)',
