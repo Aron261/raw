@@ -492,7 +492,7 @@ export default function ActiveWorkout() {
     try {
       await deleteWorkout(workout.id)
       try { localStorage.removeItem(`raw_done_sets_${id}`); localStorage.removeItem(`raw_done_ex_${id}`) } catch {}
-      navigate('/', { replace: true })
+      navigate('/training', { replace: true })
     } catch (err) {
       setFinishError(err.message)
       setDiscarding(false)
@@ -511,7 +511,7 @@ export default function ActiveWorkout() {
   }
 
   // Prefer explicit home navigation over navigate(-1) — safer when arriving via direct URL
-  const handleBack = () => navigate('/')
+  const handleBack = () => navigate('/training')
 
   if (loading) {
     return (
@@ -785,7 +785,7 @@ export default function ActiveWorkout() {
             <button
               onClick={async () => {
                 if (!window.confirm(`¿Eliminar "${workout.name}"? Esta acción no se puede deshacer.`)) return
-                try { await deleteWorkout(workout.id); navigate('/', { replace: true }) }
+                try { await deleteWorkout(workout.id); navigate('/training', { replace: true }) }
                 catch (e) { console.error(e) }
               }}
               style={{
@@ -829,7 +829,7 @@ export default function ActiveWorkout() {
           workout={workout}
           workoutExercises={workoutExercises}
           userId={user?.id}
-          onClose={() => navigate('/', { replace: true })}
+          onClose={() => navigate('/training', { replace: true })}
         />
       )}
 

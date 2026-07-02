@@ -1,12 +1,26 @@
-import { NavLink } from 'react-router-dom'
-import { useProfile } from '../hooks/useProfile'
+import { NavLink, useLocation } from 'react-router-dom'
+import { sectionFor } from '../lib/sections'
 
 // ── Icons ──────────────────────────────────────────────────────────────
-function HomeIcon() {
+function MenuIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  )
+}
+
+function BarbellIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.5 6.5v11" />
+      <path d="M17.5 6.5v11" />
+      <path d="M3 9.5v5" />
+      <path d="M21 9.5v5" />
+      <path d="M6.5 12h11" />
     </svg>
   )
 }
@@ -26,17 +40,6 @@ function ProgramaIcon() {
       <rect x="3" y="4" width="18" height="3" rx="1.5" />
       <rect x="3" y="10.5" width="18" height="3" rx="1.5" />
       <rect x="3" y="17" width="18" height="3" rx="1.5" />
-    </svg>
-  )
-}
-
-function CoachIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   )
 }
@@ -123,16 +126,14 @@ function StartAction({ onClick }) {
 }
 
 // ── Nav ───────────────────────────────────────────────────────────────
+// The tab bar belongs to the Training section. The hub and the other
+// sections (Nutrición, Longevidad, Social, Coach, Perfil) navigate from
+// the hub menu + back headers, so the bar stays out of their way.
+// Training: Menú | Inicio | [START] | Historial | Rutinas
 export default function BottomNav({ onStart }) {
-  const { profile } = useProfile()
-  const isTrainer = !!profile?.is_trainer
+  const { pathname } = useLocation()
+  if (sectionFor(pathname) !== 'training') return null
 
-  // Profile lives in the top-right avatar, not the nav — which frees a slot so
-  // trainers keep BOTH Historial and Coach. Start stays centered: Rutinas is
-  // always immediately right of it; Coach appends for trainers, else a spacer
-  // keeps the layout balanced.
-  // Lifter:  Inicio | Historial | [START] | Rutinas | ·
-  // Trainer: Inicio | Historial | [START] | Rutinas | Coach
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50"
@@ -149,14 +150,11 @@ export default function BottomNav({ onStart }) {
         maxWidth: '480px', margin: '0 auto',
         height: '60px', padding: '0 4px',
       }}>
-        <TabItem to="/"        label="Inicio"    Icon={HomeIcon}    exact />
-        <TabItem to="/history" label="Historial" Icon={HistoryIcon} />
+        <TabItem to="/"         label="Menú"      Icon={MenuIcon}    exact />
+        <TabItem to="/training" label="Inicio"    Icon={BarbellIcon} />
         <StartAction onClick={onStart} />
-        <TabItem to="/rutinas" label="Rutinas"   Icon={ProgramaIcon} />
-        {isTrainer
-          ? <TabItem to="/coach" label="Coach" Icon={CoachIcon} />
-          : <span style={{ flex: 1 }} aria-hidden="true" />
-        }
+        <TabItem to="/history"  label="Historial" Icon={HistoryIcon} />
+        <TabItem to="/rutinas"  label="Rutinas"   Icon={ProgramaIcon} />
       </div>
     </nav>
   )

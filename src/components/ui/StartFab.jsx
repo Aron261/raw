@@ -1,7 +1,7 @@
 // Persistent primary action — the always-available "start a workout" affordance.
 // Floats above the bottom nav so the app's core job is one tap from any lifter
 // screen. Wired to the global WorkoutPickerModal in Layout.
-export default function StartFab({ onClick }) {
+export default function StartFab({ onClick, offset = 72 }) {
   return (
     <button
       onClick={onClick}
@@ -9,7 +9,7 @@ export default function StartFab({ onClick }) {
       style={{
         position: 'fixed',
         right: '16px',
-        bottom: 'calc(72px + env(safe-area-inset-bottom))',
+        bottom: `calc(${offset}px + env(safe-area-inset-bottom))`,
         zIndex: 45,
         display: 'inline-flex', alignItems: 'center', gap: '8px',
         background: 'var(--c-action)', color: 'var(--c-on-action)',

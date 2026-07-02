@@ -698,6 +698,14 @@ export default function Profile() {
 
         {/* Header */}
         <div style={{ marginBottom: '32px' }}>
+          <button
+            onClick={() => navigate(-1)}
+            className="md:hidden"
+            style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, padding: '6px 8px 6px 0', marginBottom: '10px', display: 'block' }}
+            aria-label="Volver"
+          >
+            ←
+          </button>
           <div style={{
             width: '64px', height: '64px', borderRadius: '50%',
             background: 'var(--c-accent-dim)', border: '2px solid var(--c-accent-border)',

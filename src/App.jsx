@@ -5,7 +5,11 @@ import { AuthContext, useAuthProvider } from './hooks/useAuth'
 import { useBetaGate } from './hooks/useBetaGate'
 import BetaGate from './pages/BetaGate'
 import Auth from './pages/Auth'
-import Home from './pages/Home'
+import Hub from './pages/Hub'
+import Training from './pages/Training'
+import Nutrition from './pages/Nutrition'
+import Longevity from './pages/Longevity'
+import Social from './pages/Social'
 import ActiveWorkout from './pages/ActiveWorkout'
 import ExerciseDetail from './pages/ExerciseDetail'
 import History from './pages/History'
@@ -104,13 +108,22 @@ function AppWithAuth() {
             }
           />
 
-          {/* Protected */}
-          <Route path="/"           element={<R auth={auth} element={<Home />} />} />
+          {/* Protected — hub */}
+          <Route path="/"           element={<R auth={auth} element={<Hub />} />} />
+
+          {/* Entreno */}
+          <Route path="/training"   element={<R auth={auth} element={<Training />} />} />
           <Route path="/history"    element={<R auth={auth} element={<History />} />} />
           <Route path="/stats"      element={<R auth={auth} element={<Stats />} />} />
           <Route path="/ejercicios" element={<R auth={auth} element={<ExerciseManager />} />} />
           <Route path="/rutinas"    element={<R auth={auth} element={<Rutinas />} />} />
           <Route path="/rutina/:id" element={<R auth={auth} element={<RoutineDetail />} />} />
+
+          {/* Nutrición · Longevidad · Social */}
+          <Route path="/nutrition"  element={<R auth={auth} element={<Nutrition />} />} />
+          <Route path="/longevity"  element={<R auth={auth} element={<Longevity />} />} />
+          <Route path="/social"     element={<R auth={auth} element={<Social />} />} />
+
           <Route path="/profile"    element={<R auth={auth} element={<Profile />} />} />
 
           <Route path="/coach"             element={<R auth={auth} element={<Coach />} />} />

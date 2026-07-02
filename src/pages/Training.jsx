@@ -5,7 +5,6 @@ import {
 } from 'recharts'
 import Layout from '../components/Layout'
 import { useWorkouts } from '../hooks/useWorkout'
-import { useProfile } from '../hooks/useProfile'
 import { useGoals } from '../hooks/useGoals'
 import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
@@ -41,13 +40,6 @@ const dateStr = (() => {
   })
   return s.charAt(0).toUpperCase() + s.slice(1)
 })()
-
-function getGreeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Buenos días'
-  if (h < 19) return 'Buenas tardes'
-  return 'Buenas noches'
-}
 
 // ── Format volume ─────────────────────────────────────────────────────────
 function formatVolume(v) {
@@ -356,14 +348,12 @@ function getDayHighlightType() {
   return dayOfYear % 4
 }
 
-// ── Home ──────────────────────────────────────────────────────────────────
-export default function Home() {
+// ── Training (home de la sección Entreno) ────────────────────────────────
+export default function Training() {
   const navigate = useNavigate()
-  const { profile } = useProfile()
   const { workouts, loading, error, createWorkout, fetchWorkouts } = useWorkouts()
   const { goals, createGoal, deleteGoal } = useGoals()
 
-  const firstName = profile?.name?.split(' ')[0] || ''
   const [showGoalModal, setShowGoalModal] = useState(false)
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
@@ -748,19 +738,19 @@ export default function Home() {
 
   // ─────────────────────────────────────────────────────────────────────
   return (
-    <Layout showProfile>
+    <Layout>
       <div className="w-full px-4 pt-10 pb-10 max-w-[480px] mx-auto md:max-w-none md:px-8 md:py-8">
 
         {/* ── Header ── */}
         <div className="fade-in flex items-start mb-6 md:mb-8">
-          <div className="pr-12 md:pr-0">
+          <div>
             {/* Fecha — eyebrow mono en azul (dato) */}
             <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-data)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
               {dateStr}
             </p>
-            {/* Saludo + nombre — Archivo 900, sentence case para legibilidad */}
-            <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
-              {getGreeting()}{firstName ? `, ${firstName}` : ''}
+            {/* Título de sección — el saludo vive en el menú */}
+            <h1 className="font-display" style={{ color: 'var(--c-text)', fontSize: '34px', lineHeight: 0.95 }}>
+              Entreno
             </h1>
             {/* Acceso a estadísticas — chip tappable, legible */}
             <button
