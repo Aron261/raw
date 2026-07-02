@@ -2,11 +2,20 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 
-function DashboardIcon() {
+function MenuIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+      <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  )
+}
+
+function BarbellIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.5 6.5v11" /><path d="M17.5 6.5v11" />
+      <path d="M3 9.5v5" /><path d="M21 9.5v5" /><path d="M6.5 12h11" />
     </svg>
   )
 }
@@ -37,6 +46,35 @@ function RoutinesIcon() {
   )
 }
 
+function NutritionIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+      <line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" />
+    </svg>
+  )
+}
+
+function LongevityIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+    </svg>
+  )
+}
+
+function SocialIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
 function ProfileIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -49,21 +87,54 @@ function ProfileIcon() {
 function CoachIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      <path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8z" />
     </svg>
   )
 }
 
-function CycleIcon() {
+function NavItem({ to, label, Icon, exact }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-      <path d="M2 17l10 5 10-5" />
-      <path d="M2 12l10 5 10-5" />
-    </svg>
+    <NavLink
+      to={to}
+      end={exact}
+      style={({ isActive }) => ({
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '8px 14px',
+        borderRadius: '10px',
+        fontSize: '12px',
+        fontWeight: 700,
+        letterSpacing: '-0.01em',
+        color: isActive ? 'var(--c-text)' : 'var(--c-text-dim)',
+        background: isActive ? 'var(--c-surface-2)' : 'transparent',
+        transition: `color 150ms var(--ease-out), background 150ms var(--ease-out)`,
+      })}
+    >
+      {({ isActive }) => (
+        <>
+          <span style={{ color: isActive ? 'var(--c-accent)' : 'inherit', flexShrink: 0 }}>
+            <Icon />
+          </span>
+          {label}
+        </>
+      )}
+    </NavLink>
+  )
+}
+
+function GroupLabel({ children }) {
+  return (
+    <p style={{
+      fontFamily: 'var(--font-mono)',
+      fontSize: '9px', fontWeight: 700,
+      textTransform: 'uppercase', letterSpacing: '0.14em',
+      color: 'var(--c-text-ghost)',
+      padding: '14px 14px 5px',
+      userSelect: 'none',
+    }}>
+      {children}
+    </p>
   )
 }
 
@@ -71,14 +142,6 @@ export default function Sidebar() {
   const { user, signOut } = useAuth()
   const { profile } = useProfile()
   const navigate = useNavigate()
-
-  const navItems = [
-    { to: '/',          label: 'Inicio',    Icon: DashboardIcon, exact: true },
-    { to: '/history',   label: 'Historial', Icon: HistoryIcon },
-    { to: '/rutinas',   label: 'Rutinas',   Icon: RoutinesIcon },
-    ...(profile?.is_trainer ? [{ to: '/coach', label: 'Coach', Icon: CoachIcon }] : []),
-    { to: '/profile',   label: 'Perfil',    Icon: ProfileIcon },
-  ]
 
   const handleSignOut = async () => {
     await signOut()
@@ -101,8 +164,8 @@ export default function Sidebar() {
         overflow: 'hidden',
       }}
     >
-      {/* Wordmark */}
-      <div style={{ padding: '28px 24px 24px' }}>
+      {/* Wordmark → hub */}
+      <NavLink to="/" style={{ padding: '28px 24px 20px', display: 'block' }}>
         <span
           style={{
             display: 'block',
@@ -127,55 +190,42 @@ export default function Sidebar() {
             marginTop: '4px',
           }}
         >
-          Workout Tracker
+          Todo tu progreso
         </span>
-      </div>
+      </NavLink>
 
       <div style={{ height: '1px', background: 'var(--c-border-subtle)', margin: '0 16px' }} />
 
-      {/* Nav */}
-      <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        {navItems.map(({ to, label, Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            style={({ isActive }) => ({
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '9px 14px',
-              borderRadius: '10px',
-              fontSize: '12px',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-              color: isActive ? 'var(--c-text)' : 'var(--c-text-dim)',
-              background: isActive ? 'var(--c-surface-2)' : 'transparent',
-              transition: `color 150ms var(--ease-out), background 150ms var(--ease-out)`,
-            })}
-            onMouseEnter={e => {
-              if (!e.currentTarget.dataset.active) e.currentTarget.style.color = 'var(--c-text-secondary)'
-            }}
-            onMouseLeave={e => {
-              if (!e.currentTarget.dataset.active) e.currentTarget.style.color = ''
-            }}
-          >
-            {({ isActive }) => (
-              <>
-                <span style={{ color: isActive ? 'var(--c-accent)' : 'inherit', flexShrink: 0 }}>
-                  <Icon />
-                </span>
-                {label}
-              </>
-            )}
-          </NavLink>
-        ))}
+      {/* Nav — hub + sections */}
+      <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: '1px', overflowY: 'auto' }}>
+        <NavItem to="/" label="Menú" Icon={MenuIcon} exact />
+
+        <GroupLabel>Entreno</GroupLabel>
+        <NavItem to="/training" label="Inicio"        Icon={BarbellIcon} />
+        <NavItem to="/history"  label="Historial"     Icon={HistoryIcon} />
+        <NavItem to="/rutinas"  label="Rutinas"       Icon={RoutinesIcon} />
+        <NavItem to="/stats"    label="Estadísticas"  Icon={ProgressIcon} />
+
+        <GroupLabel>Vida</GroupLabel>
+        <NavItem to="/nutrition" label="Nutrición"  Icon={NutritionIcon} />
+        <NavItem to="/longevity" label="Longevidad" Icon={LongevityIcon} />
+        <NavItem to="/social"    label="Social"     Icon={SocialIcon} />
+
+        {profile?.is_trainer && (
+          <>
+            <GroupLabel>Coaching</GroupLabel>
+            <NavItem to="/coach" label="Coach" Icon={CoachIcon} />
+          </>
+        )}
       </nav>
 
       <div style={{ height: '1px', background: 'var(--c-border-subtle)', margin: '0 16px' }} />
 
-      {/* User + sign out */}
-      <div style={{ padding: '16px 24px 24px' }}>
+      {/* Perfil + user + sign out */}
+      <div style={{ padding: '10px 8px 0' }}>
+        <NavItem to="/profile" label="Perfil" Icon={ProfileIcon} />
+      </div>
+      <div style={{ padding: '10px 24px 24px' }}>
         <p
           style={{
             fontSize: '10px',

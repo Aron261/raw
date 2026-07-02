@@ -8,6 +8,7 @@ import { useWorkouts } from '../hooks/useWorkout'
 import { useRoutines } from '../hooks/useRoutines'
 import { useProfile } from '../hooks/useProfile'
 import { useAuth } from '../hooks/useAuth'
+import { sectionFor } from '../lib/sections'
 
 // ProfileAvatar — the profile entry point, top-right on mobile tab screens.
 // Lives outside the bottom nav so trainers keep both Historial and Coach there.
@@ -107,10 +108,15 @@ function WorkoutStarter({ children }) {
   )
 }
 
-// showProfile: el avatar de perfil solo se muestra donde se pide (hoy, Inicio).
+// showProfile: el avatar de perfil solo se muestra donde se pide (Menú, Inicio).
 // No vive en la barra inferior, así que las pantallas de tabs sin avatar
-// llegan a Perfil volviendo a Inicio.
+// llegan a Perfil volviendo al menú.
 export default function Layout({ children, hideNav = false, showProfile = false }) {
+  const { pathname } = useLocation()
+  const section = sectionFor(pathname)
+  // Solo la sección Entreno tiene barra de tabs; el hub usa el FAB de inicio.
+  const hasTabs = section === 'training'
+
   return (
     <WorkoutStarter>
       {(openPicker, _starting) => (
@@ -118,10 +124,11 @@ export default function Layout({ children, hideNav = false, showProfile = false 
           {/* ── Mobile (< md) ──────────────────────────────────────────── */}
           <div className="md:hidden min-h-dvh bg-background flex flex-col">
             {!hideNav && showProfile && <ProfileAvatar />}
-            <main className={`flex-1 flex flex-col ${hideNav ? '' : 'pb-20'}`}>
+            <main className={`flex-1 flex flex-col ${!hideNav && hasTabs ? 'pb-20' : 'pb-8'}`}>
               {children}
             </main>
             {!hideNav && <BottomNav onStart={openPicker} />}
+            {!hideNav && section === 'hub' && <StartFab onClick={openPicker} offset={20} />}
           </div>
 
           {/* ── Desktop (≥ md) ─────────────────────────────────────────── */}

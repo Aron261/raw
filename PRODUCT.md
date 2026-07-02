@@ -17,6 +17,18 @@ The relationship between the two — assigned routines, shared history, live cha
 
 Raw is a mobile-first PWA for logging strength training and coaching it remotely. It exists to make in-gym logging fast and honest, and to give trainers a clear, low-friction window into what their clients are actually doing. Success looks like: a lifter logs a full session without thinking about the app, immediately sees whether they progressed, and a trainer can act on that data the same day.
 
+## Sections
+
+Raw is a hub of sections; the home screen is a poster-style index (one live number per section) and each section opens its own world:
+
+- **Entreno** — the original app: dashboard, active workout logging, history, routines, stats. The only section with a bottom tab bar (Menú · Inicio · + · Historial · Rutinas).
+- **Nutrición** — meals with macros (P/C/G + kcal, auto-computed from macros when omitted) against daily targets, per-day view with day navigation.
+- **Longevidad** — supplement stack with a daily taken-checklist, and bloodwork results by marker with reference ranges and per-marker trends.
+- **Social** — planned (friends, workout feed, shared PRs); currently a declared placeholder.
+- **Coach** — the trainer panel, reachable from the hub for trainers.
+
+Other sections are single-screen with a back-to-menu header; the global "+ Empezar" workout action stays reachable from the hub (FAB) and the training tab bar.
+
 ## Brand Personality
 
 **Unfiltered · Precise · Driven.**

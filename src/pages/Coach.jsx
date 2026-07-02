@@ -231,12 +231,24 @@ export default function Coach() {
 
         {/* Header */}
         <div className="fade-in" style={{ paddingTop: '40px', paddingBottom: '28px' }}>
-          <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
-            Clientes
-          </h1>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
-            Panel de entrenador
-          </p>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+            <button
+              onClick={() => navigate('/')}
+              className="md:hidden"
+              style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0, padding: '6px 4px 6px 0', marginTop: '2px' }}
+              aria-label="Volver al menú"
+            >
+              ←
+            </button>
+            <div>
+              <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
+                Clientes
+              </h1>
+              <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
+                Panel de entrenador
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Aviso si el rol no está activo */}
