@@ -100,6 +100,19 @@ export function useWorkouts() {
     }
   }
 
+  // Resolve a list of exercise names to their ids for this user, creating any
+  // that don't exist yet — in one batched upsert instead of N round-trips.
+  const resolveExerciseIds = async (names) => {
+    const unique = [...new Set(names.filter(Boolean).map(n => n))]
+    if (unique.length === 0) return {}
+    const { data, error: err } = await supabase
+      .from('exercises')
+      .upsert(unique.map(name => ({ user_id: user.id, name })), { onConflict: 'user_id,name' })
+      .select('id, name')
+    if (err) throw err
+    return Object.fromEntries((data || []).map(e => [e.name, e.id]))
+  }
+
   // Create a workout pre-populated with a routine's exercises
   const createWorkoutFromRoutine = async (routine) => {
     // 1. Create the workout using the routine name
@@ -110,28 +123,20 @@ export function useWorkouts() {
       .single()
     if (workoutErr) throw workoutErr
 
-    // 2. Add each routine exercise in order
+    // 2. Resolve every exercise id up front, then insert the join rows in one call
     const exercises = [...(routine.routine_exercises || [])].sort((a, b) => a.sort_order - b.sort_order)
-    for (let i = 0; i < exercises.length; i++) {
-      const re = exercises[i]
-      const exerciseName = re.exercises?.name
-      if (!exerciseName) continue
+    const idByName = await resolveExerciseIds(exercises.map(re => re.exercises?.name))
 
-      const { data: ex, error: exErr } = await supabase
-        .from('exercises')
-        .upsert({ user_id: user.id, name: exerciseName }, { onConflict: 'user_id,name' })
-        .select()
-        .single()
-      if (exErr) throw exErr
-
-      const { error: weErr } = await supabase
-        .from('workout_exercises')
-        .insert({
-          workout_id: workoutData.id,
-          exercise_id: ex.id,
-          sort_order: re.sort_order,
-          unit: re.unit || 'lb',
-        })
+    const rows = exercises
+      .filter(re => re.exercises?.name && idByName[re.exercises.name])
+      .map(re => ({
+        workout_id: workoutData.id,
+        exercise_id: idByName[re.exercises.name],
+        sort_order: re.sort_order,
+        unit: re.unit || 'lb',
+      }))
+    if (rows.length > 0) {
+      const { error: weErr } = await supabase.from('workout_exercises').insert(rows)
       if (weErr) throw weErr
     }
 
@@ -163,23 +168,20 @@ export function useWorkouts() {
 
     // Copy exercises in order, blank sets
     const exercises = [...(sourceWorkout.workout_exercises || [])].sort((a, b) => a.sort_order - b.sort_order)
-    for (let i = 0; i < exercises.length; i++) {
-      const we = exercises[i]
-      const exName = we.exercises?.name
-      if (!exName) continue
+    const idByName = await resolveExerciseIds(exercises.map(we => we.exercises?.name))
 
-      const { data: ex, error: exErr } = await supabase
-        .from('exercises')
-        .upsert({ user_id: user.id, name: exName }, { onConflict: 'user_id,name' })
-        .select().single()
-      if (exErr) throw exErr
-
-      await supabase.from('workout_exercises').insert({
+    const rows = exercises
+      .map((we, i) => ({ we, i }))
+      .filter(({ we }) => we.exercises?.name && idByName[we.exercises.name])
+      .map(({ we, i }) => ({
         workout_id: newWorkout.id,
-        exercise_id: ex.id,
+        exercise_id: idByName[we.exercises.name],
         sort_order: i,
         unit: we.unit || 'lb',
-      })
+      }))
+    if (rows.length > 0) {
+      const { error: weErr } = await supabase.from('workout_exercises').insert(rows)
+      if (weErr) throw weErr
     }
 
     await fetchWorkouts()
@@ -196,20 +198,19 @@ export function useWorkouts() {
     if (workoutErr) throw workoutErr
 
     const exercises = cycleDay.exercises || []
-    for (let i = 0; i < exercises.length; i++) {
-      const ex = exercises[i]
-      if (!ex.exercise_name) continue
+    const idByName = await resolveExerciseIds(exercises.map(ex => ex.exercise_name))
 
-      const { data: exRow, error: exErr } = await supabase
-        .from('exercises')
-        .upsert({ user_id: user.id, name: ex.exercise_name }, { onConflict: 'user_id,name' })
-        .select()
-        .single()
-      if (exErr) throw exErr
-
-      const { error: weErr } = await supabase
-        .from('workout_exercises')
-        .insert({ workout_id: workoutData.id, exercise_id: exRow.id, sort_order: i, unit: 'lb' })
+    const rows = exercises
+      .map((ex, i) => ({ ex, i }))
+      .filter(({ ex }) => ex.exercise_name && idByName[ex.exercise_name])
+      .map(({ ex, i }) => ({
+        workout_id: workoutData.id,
+        exercise_id: idByName[ex.exercise_name],
+        sort_order: i,
+        unit: 'lb',
+      }))
+    if (rows.length > 0) {
+      const { error: weErr } = await supabase.from('workout_exercises').insert(rows)
       if (weErr) throw weErr
     }
 

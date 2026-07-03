@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { calc1RM, calcVolume } from './useWorkout'
 import { CATCH_ALL } from '../lib/muscleGroups'
+import { useCachedResource } from '../lib/swr'
 
 // Month key (YYYY-MM) + short label for a given date.
 function monthKey(date) {
@@ -30,16 +31,11 @@ function getLastNMonths(n = 12) {
 export function useStats(targetUserId = null) {
   const { user } = useAuth()
   const ownerId = targetUserId || user?.id
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const key = ownerId ? `stats:${ownerId}` : null
 
-  const fetchStats = useCallback(async () => {
-    if (!ownerId) return
+  const fetcher = useCallback(async () => {
     {
-      setLoading(true)
-      setError(null)
-      try {
+      {
         const { data: workouts, error } = await supabase
           .from('workouts')
           .select(`
@@ -142,17 +138,13 @@ export function useStats(targetUserId = null) {
           .map(([group, volume]) => ({ group, volume: Math.round(volume) }))
           .sort((a, b) => b.volume - a.volume)
 
-        setData({ totals, volumeByMonth, allLifts, muscleBalance })
-      } catch (err) {
-        console.error('Stats fetch error:', err)
-        setError(err.message || 'Error inesperado')
-      } finally {
-        setLoading(false)
+        return { totals, volumeByMonth, allLifts, muscleBalance }
       }
     }
   }, [ownerId])
 
-  useEffect(() => { fetchStats() }, [fetchStats])
+  const { data, loading, error: loadError, refetch } = useCachedResource(key, fetcher)
+  const error = loadError ? (loadError.message || 'Error inesperado') : null
 
-  return { data, loading, error, refetch: fetchStats }
+  return { data: data ?? null, loading, error, refetch }
 }
