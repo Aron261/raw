@@ -1,26 +1,30 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigationType, useParams } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
 import { AuthContext, useAuthProvider } from './hooks/useAuth'
 import { useBetaGate } from './hooks/useBetaGate'
-import BetaGate from './pages/BetaGate'
-import Auth from './pages/Auth'
-import Hub from './pages/Hub'
-import Training from './pages/Training'
-import Nutrition from './pages/Nutrition'
-import Longevity from './pages/Longevity'
-import Social from './pages/Social'
-import ActiveWorkout from './pages/ActiveWorkout'
-import ExerciseDetail from './pages/ExerciseDetail'
-import History from './pages/History'
-import Stats from './pages/Stats'
-import ExerciseManager from './pages/ExerciseManager'
-import Profile from './pages/Profile'
-import Rutinas from './pages/Rutinas'
-import RoutineDetail from './pages/RoutineDetail'
-import Coach from './pages/Coach'
-import ClientDetail from './pages/ClientDetail'
-import Chat from './pages/Chat'
+
+// Route-level code splitting: each screen is its own chunk so the initial load
+// only ships the shell + whatever route the user landed on. Recharts and other
+// heavy per-page deps ride along in their route's chunk instead of the entry.
+const BetaGate       = lazy(() => import('./pages/BetaGate'))
+const Auth           = lazy(() => import('./pages/Auth'))
+const Hub            = lazy(() => import('./pages/Hub'))
+const Training       = lazy(() => import('./pages/Training'))
+const Nutrition      = lazy(() => import('./pages/Nutrition'))
+const Longevity      = lazy(() => import('./pages/Longevity'))
+const Social         = lazy(() => import('./pages/Social'))
+const ActiveWorkout  = lazy(() => import('./pages/ActiveWorkout'))
+const ExerciseDetail = lazy(() => import('./pages/ExerciseDetail'))
+const History        = lazy(() => import('./pages/History'))
+const Stats          = lazy(() => import('./pages/Stats'))
+const ExerciseManager = lazy(() => import('./pages/ExerciseManager'))
+const Profile        = lazy(() => import('./pages/Profile'))
+const Rutinas        = lazy(() => import('./pages/Rutinas'))
+const RoutineDetail  = lazy(() => import('./pages/RoutineDetail'))
+const Coach          = lazy(() => import('./pages/Coach'))
+const ClientDetail   = lazy(() => import('./pages/ClientDetail'))
+const Chat           = lazy(() => import('./pages/Chat'))
 
 // Native-feel scrolling: jump to top when navigating to a new screen, and
 // restore the previous position when going back/forward (POP). Pairs with the
@@ -91,6 +95,7 @@ function AppWithAuth() {
       <BrowserRouter>
         <ScrollManager />
         <ErrorBoundary>
+        <Suspense fallback={<Splash />}>
         <Routes>
           {/* Public */}
           <Route
@@ -137,6 +142,7 @@ function AppWithAuth() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
         </ErrorBoundary>
       </BrowserRouter>
     </AuthContext.Provider>

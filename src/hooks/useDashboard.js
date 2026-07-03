@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { calc1RM, calcVolume } from './useWorkout'
+import { useCachedResource } from '../lib/swr'
 
 // Returns the ISO Monday for any given date
 function getWeekKey(date) {
@@ -34,17 +35,10 @@ function weekLabel(isoDate) {
 export function useDashboard(targetUserId = null) {
   const { user } = useAuth()
   const ownerId = targetUserId || user?.id
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const key = ownerId ? `dashboard:${ownerId}` : null
 
-  useEffect(() => {
-    if (!ownerId) return
-
-    const fetch = async () => {
-      setLoading(true)
-      setError(null)
-      try {
+  const fetcher = useCallback(async () => {
+      {
         const { data: workouts, error } = await supabase
           .from('workouts')
           .select(`
@@ -60,7 +54,7 @@ export function useDashboard(targetUserId = null) {
           .order('started_at', { ascending: false })
 
         if (error) throw error
-        if (!workouts) { setLoading(false); return }
+        if (!workouts) return null
 
         // ── Weekly data ────────────────────────────────────────────────
         const weekKeys = getLastNWeeks(8)
@@ -149,24 +143,19 @@ export function useDashboard(targetUserId = null) {
 
         const lastWorkout = workouts[0] || null
 
-        setData({
+        return {
           weeklyData,
           bestLifts,
           muscleGroupData,
           totalWorkouts: workouts.length,
           thisMonth,
           lastWorkout,
-        })
-      } catch (err) {
-        console.error('Dashboard fetch error:', err)
-        setError(err.message || 'Error inesperado')
-      } finally {
-        setLoading(false)
+        }
       }
-    }
-
-    fetch()
   }, [ownerId])
 
-  return { data, loading, error }
+  const { data, loading, error: loadError, refetch } = useCachedResource(key, fetcher)
+  const error = loadError ? (loadError.message || 'Error inesperado') : null
+
+  return { data: data ?? null, loading, error, refetch }
 }
