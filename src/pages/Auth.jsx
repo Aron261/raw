@@ -6,10 +6,11 @@ import { ERROR_STYLE, pressProps } from '../lib/ui'
 import { Button, Logo } from '../components/ui'
 
 export default function Auth() {
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, sendPasswordReset } = useAuth()
   const navigate = useNavigate()
   const { prompt, install, isInstalled, isIOS } = useInstallPrompt()
 
+  // mode: 'login' | 'signup' | 'reset'
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -24,7 +25,10 @@ export default function Auth() {
     setLoading(true)
 
     try {
-      if (mode === 'login') {
+      if (mode === 'reset') {
+        await sendPasswordReset(email)
+        setMessage('Si el email existe, te enviamos un enlace para restablecer tu contraseña. Revisa tu bandeja.')
+      } else if (mode === 'login') {
         await signIn(email, password)
         navigate('/', { replace: true })
       } else {
@@ -134,34 +138,47 @@ export default function Auth() {
       {/* ── Form ── */}
       <div style={{ width: '100%', maxWidth: '340px' }}>
 
-        {/* Mode toggle */}
-        <div style={{
-          display: 'flex',
-          background: 'var(--c-surface)',
-          border: '1px solid var(--c-border-subtle)',
-          borderRadius: '14px',
-          padding: '3px',
-          marginBottom: '20px',
-        }}>
-          {['login', 'signup'].map(m => (
-            <button
-              key={m}
-              onClick={() => switchMode(m)}
-              aria-pressed={mode === m}
-              style={{
-                flex: 1, padding: '8px',
-                fontSize: '10px', fontWeight: 800,
-                textTransform: 'uppercase', letterSpacing: '0.1em',
-                borderRadius: '10px',
-                transition: 'background 200ms var(--ease-out), color 200ms var(--ease-out)',
-                background: mode === m ? 'var(--c-surface-2)' : 'transparent',
-                color: mode === m ? 'var(--c-text)' : 'var(--c-text-dim)',
-              }}
-            >
-              {m === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
-            </button>
-          ))}
-        </div>
+        {/* Mode toggle — oculto en recuperación de contraseña */}
+        {mode !== 'reset' && (
+          <div style={{
+            display: 'flex',
+            background: 'var(--c-surface)',
+            border: '1px solid var(--c-border-subtle)',
+            borderRadius: '14px',
+            padding: '3px',
+            marginBottom: '20px',
+          }}>
+            {['login', 'signup'].map(m => (
+              <button
+                key={m}
+                onClick={() => switchMode(m)}
+                aria-pressed={mode === m}
+                style={{
+                  flex: 1, padding: '8px',
+                  fontSize: '10px', fontWeight: 800,
+                  textTransform: 'uppercase', letterSpacing: '0.1em',
+                  borderRadius: '10px',
+                  transition: 'background 200ms var(--ease-out), color 200ms var(--ease-out)',
+                  background: mode === m ? 'var(--c-surface-2)' : 'transparent',
+                  color: mode === m ? 'var(--c-text)' : 'var(--c-text-dim)',
+                }}
+              >
+                {m === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {mode === 'reset' && (
+          <div style={{ marginBottom: '20px' }}>
+            <h2 style={{ fontFamily: 'var(--font-sans)', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
+              Restablecer contraseña
+            </h2>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', marginTop: '4px', lineHeight: 1.5 }}>
+              Ingresa tu email y te enviaremos un enlace para crear una nueva.
+            </p>
+          </div>
+        )}
 
         {error && (
           <div className="fade-in" style={{ ...ERROR_STYLE, marginBottom: '14px' }}>
@@ -203,21 +220,23 @@ export default function Auth() {
             />
           </div>
 
-          <div>
-            <label style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
-              Contraseña
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="input-field"
-              placeholder="••••••••"
-              required
-              minLength={6}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            />
-          </div>
+          {mode !== 'reset' && (
+            <div>
+              <label style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
+                Contraseña
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="input-field"
+                placeholder="••••••••"
+                required
+                minLength={6}
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              />
+            </div>
+          )}
 
           <Button
             type="submit"
@@ -228,9 +247,31 @@ export default function Auth() {
             disabled={loading}
             style={{ marginTop: '4px' }}
           >
-            {loading ? 'Cargando...' : mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+            {loading ? 'Cargando...' : mode === 'reset' ? 'Enviar enlace' : mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
           </Button>
         </form>
+
+        {/* Enlaces contextuales */}
+        <div style={{ textAlign: 'center', marginTop: '18px' }}>
+          {mode === 'login' && (
+            <button
+              type="button"
+              onClick={() => switchMode('reset')}
+              style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'transparent' }}
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
+          {mode === 'reset' && (
+            <button
+              type="button"
+              onClick={() => switchMode('login')}
+              style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'transparent' }}
+            >
+              ← Volver a iniciar sesión
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

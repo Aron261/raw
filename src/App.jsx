@@ -9,6 +9,7 @@ import { useBetaGate } from './hooks/useBetaGate'
 // heavy per-page deps ride along in their route's chunk instead of the entry.
 const BetaGate       = lazy(() => import('./pages/BetaGate'))
 const Auth           = lazy(() => import('./pages/Auth'))
+const ResetPassword  = lazy(() => import('./pages/ResetPassword'))
 const Hub            = lazy(() => import('./pages/Hub'))
 const Training       = lazy(() => import('./pages/Training'))
 const Nutrition      = lazy(() => import('./pages/Nutrition'))
@@ -25,6 +26,7 @@ const RoutineDetail  = lazy(() => import('./pages/RoutineDetail'))
 const Coach          = lazy(() => import('./pages/Coach'))
 const ClientDetail   = lazy(() => import('./pages/ClientDetail'))
 const Chat           = lazy(() => import('./pages/Chat'))
+const Admin          = lazy(() => import('./pages/Admin'))
 
 // Native-feel scrolling: jump to top when navigating to a new screen, and
 // restore the previous position when going back/forward (POP). Pairs with the
@@ -113,6 +115,10 @@ function AppWithAuth() {
             }
           />
 
+          {/* Password recovery landing (email link) — solo requiere la sesión
+              de recuperación, fuera del gate de beta. */}
+          <Route path="/reset-password" element={<ResetPassword />} />
+
           {/* Protected — hub */}
           <Route path="/"           element={<R auth={auth} element={<Hub />} />} />
 
@@ -135,6 +141,10 @@ function AppWithAuth() {
           <Route path="/coach/cliente/:id"       element={<R auth={auth} element={<ClientDetail />} />} />
           <Route path="/coach/cliente/:id/stats" element={<R auth={auth} element={<ClientStats />} />} />
           <Route path="/chat/:otherId"     element={<R auth={auth} element={<Chat />} />} />
+
+          {/* Admin — protegido por sesión; el gate real (is_admin) vive en la
+              página y en las RPC del servidor. Sin entrada en la navegación. */}
+          <Route path="/admin"             element={<R auth={auth} element={<Admin />} />} />
 
           <Route path="/workout/:id"    element={<R auth={auth} element={<ActiveWorkout />} />} />
           <Route path="/exercise/:name" element={<R auth={auth} element={<ExerciseDetail />} />} />
