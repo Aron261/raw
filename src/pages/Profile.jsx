@@ -608,6 +608,175 @@ function TrainerSection() {
   )
 }
 
+// ── Account row (tappable, opens a sheet) ─────────────────────────────────
+function AccountRow({ label, hint, danger, onClick, isFirst }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        width: '100%', padding: '13px 0', textAlign: 'left',
+        borderTop: isFirst ? 'none' : '1px solid var(--c-border-subtle)', cursor: 'pointer',
+      }}
+    >
+      <span>
+        <span style={{ color: danger ? 'var(--c-danger, #C0392B)' : 'var(--c-text)', fontSize: '13px', fontWeight: 700, display: 'block' }}>{label}</span>
+        {hint && <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '2px', display: 'block' }}>{hint}</span>}
+      </span>
+      <span style={{ color: 'var(--c-text-ghost)', fontSize: '13px' }}>›</span>
+    </button>
+  )
+}
+
+// ── Sheet: cambiar contraseña ─────────────────────────────────────────────
+function ChangePasswordSheet({ onClose }) {
+  const { updatePassword } = useAuth()
+  const [current, setCurrent] = useState('')
+  const [next, setNext] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
+  const [done, setDone] = useState(false)
+
+  const submit = async () => {
+    setError(null)
+    if (next.length < 6) { setError('La contraseña nueva debe tener al menos 6 caracteres.'); return }
+    if (next !== confirm) { setError('Las contraseñas no coinciden.'); return }
+    setSaving(true)
+    try {
+      await updatePassword(current, next)
+      setDone(true)
+      setTimeout(onClose, 1200)
+    } catch (e) {
+      setError(e.message || 'No se pudo cambiar la contraseña.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Sheet title="Cambiar contraseña" subtitle="Confirma tu contraseña actual y elige una nueva." onClose={onClose}>
+      {error && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{error}</div>}
+      {done ? (
+        <p style={{ color: 'var(--c-success)', fontSize: '13px', fontWeight: 700, textAlign: 'center', padding: '12px 0' }}>✓ Contraseña actualizada</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <input type="password" value={current} onChange={e => setCurrent(e.target.value)} className="input-field" placeholder="Contraseña actual" autoComplete="current-password" />
+          <input type="password" value={next} onChange={e => setNext(e.target.value)} className="input-field" placeholder="Nueva contraseña" autoComplete="new-password" minLength={6} />
+          <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} className="input-field" placeholder="Repite la nueva" autoComplete="new-password" minLength={6} />
+          <Button type="button" variant="primary" full size="lg" loading={saving} disabled={saving} onClick={submit} style={{ marginTop: '4px' }}>
+            {saving ? 'Guardando…' : 'Guardar'}
+          </Button>
+        </div>
+      )}
+    </Sheet>
+  )
+}
+
+// ── Sheet: cambiar email ──────────────────────────────────────────────────
+function ChangeEmailSheet({ currentEmail, onClose }) {
+  const { updateEmail } = useAuth()
+  const [email, setEmail] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
+  const [sent, setSent] = useState(false)
+
+  const submit = async () => {
+    setError(null)
+    if (!email.includes('@')) { setError('Ingresa un email válido.'); return }
+    if (email === currentEmail) { setError('Ese ya es tu email actual.'); return }
+    setSaving(true)
+    try {
+      await updateEmail(email)
+      setSent(true)
+    } catch (e) {
+      setError(e.message || 'No se pudo cambiar el email.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Sheet title="Cambiar email" subtitle={`Actual: ${currentEmail}`} onClose={onClose}>
+      {error && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{error}</div>}
+      {sent ? (
+        <p style={{ color: 'var(--c-text-secondary)', fontSize: '13px', lineHeight: 1.5, textAlign: 'center', padding: '12px 0' }}>
+          Te enviamos un enlace de confirmación a <strong>{email}</strong>. El cambio se aplica cuando lo confirmes.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="input-field" placeholder="nuevo@email.com" autoComplete="email" />
+          <Button type="button" variant="primary" full size="lg" loading={saving} disabled={saving} onClick={submit} style={{ marginTop: '4px' }}>
+            {saving ? 'Enviando…' : 'Enviar confirmación'}
+          </Button>
+        </div>
+      )}
+    </Sheet>
+  )
+}
+
+// ── Sheet: eliminar cuenta ────────────────────────────────────────────────
+function DeleteAccountSheet({ onClose }) {
+  const { deleteAccount } = useAuth()
+  const navigate = useNavigate()
+  const [confirmText, setConfirmText] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState(null)
+  const ready = confirmText.trim().toUpperCase() === 'ELIMINAR'
+
+  const submit = async () => {
+    if (!ready) return
+    setError(null)
+    setDeleting(true)
+    try {
+      await deleteAccount()
+      navigate('/login', { replace: true })
+    } catch (e) {
+      setError(e.message || 'No se pudo eliminar la cuenta.')
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <Sheet title="Eliminar cuenta" subtitle="Esta acción es permanente y no se puede deshacer." onClose={onClose}>
+      {error && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{error}</div>}
+      <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
+        Se borrarán tu perfil, entrenos, rutinas, metas, nutrición, peso corporal, vínculos con entrenadores y mensajes. Escribe <strong style={{ color: 'var(--c-text)' }}>ELIMINAR</strong> para confirmar.
+      </p>
+      <input
+        type="text" value={confirmText} onChange={e => setConfirmText(e.target.value)}
+        className="input-field" placeholder="ELIMINAR"
+        style={{ marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}
+      />
+      <Button
+        type="button" variant="primary" full size="lg"
+        loading={deleting} disabled={deleting || !ready} onClick={submit}
+        style={{ background: ready ? 'var(--c-danger, #C0392B)' : undefined }}
+      >
+        {deleting ? 'Eliminando…' : 'Eliminar mi cuenta'}
+      </Button>
+    </Sheet>
+  )
+}
+
+// ── Account / security section ────────────────────────────────────────────
+function AccountSection({ email }) {
+  const [sheet, setSheet] = useState(null)   // 'password' | 'email' | 'delete' | null
+  return (
+    <section style={CARD}>
+      <p style={SECTION_TITLE}>Cuenta</p>
+      <AccountRow label="Cambiar contraseña" onClick={() => setSheet('password')} isFirst />
+      <AccountRow label="Cambiar email" hint={email} onClick={() => setSheet('email')} />
+      <AccountRow label="Eliminar cuenta" hint="Permanente" danger onClick={() => setSheet('delete')} />
+
+      {sheet === 'password' && <ChangePasswordSheet onClose={() => setSheet(null)} />}
+      {sheet === 'email' && <ChangeEmailSheet currentEmail={email} onClose={() => setSheet(null)} />}
+      {sheet === 'delete' && <DeleteAccountSheet onClose={() => setSheet(null)} />}
+    </section>
+  )
+}
+
 // ── Main page ──────────────────────────────────────────────────────────
 export default function Profile() {
   const navigate = useNavigate()
@@ -792,6 +961,27 @@ export default function Profile() {
 
           {/* ── Apariencia ── */}
           <ThemeSection />
+
+          {/* ── Acceso admin (solo administradores) ── */}
+          {profile?.is_admin && (
+            <button
+              type="button"
+              onClick={() => navigate('/admin')}
+              style={{
+                ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                width: '100%', textAlign: 'left', cursor: 'pointer',
+              }}
+            >
+              <span>
+                <span style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, display: 'block' }}>Panel de administración</span>
+                <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '2px', display: 'block' }}>Estado de la app, usuarios y actividad</span>
+              </span>
+              <span style={{ color: 'var(--c-accent)', fontSize: '13px', fontWeight: 800 }}>›</span>
+            </button>
+          )}
+
+          {/* ── Cuenta (contraseña · email · eliminar) ── */}
+          <AccountSection email={user?.email} />
 
           {/* ── Cerrar sesión ── */}
           <button

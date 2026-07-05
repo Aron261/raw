@@ -50,5 +50,51 @@ export function useAuthProvider() {
     if (error) throw error
   }
 
-  return { user, loading, signIn, signUp, signOut }
+  // Envía el correo de recuperación. El enlace lleva a /reset-password, donde
+  // supabase-js procesa el token del hash y abre una sesión de recuperación.
+  const sendPasswordReset = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (error) throw error
+  }
+
+  // Cambia la contraseña del usuario con sesión activa. Reautentica primero con
+  // la contraseña actual para no permitir cambios desde una sesión secuestrada.
+  const updatePassword = async (currentPassword, newPassword) => {
+    if (!user?.email) throw new Error('Sesión no disponible')
+    const { error: reauthErr } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    })
+    if (reauthErr) throw new Error('La contraseña actual no es correcta')
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw error
+  }
+
+  // Fija una contraseña nueva usando la sesión de recuperación (sin la actual).
+  const setNewPassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw error
+  }
+
+  // Cambia el email. Supabase envía confirmación al correo nuevo (y al viejo);
+  // el cambio no surte efecto hasta confirmar.
+  const updateEmail = async (newEmail) => {
+    const { error } = await supabase.auth.updateUser({ email: newEmail })
+    if (error) throw error
+  }
+
+  // Elimina la cuenta y todos los datos (RPC SECURITY DEFINER) y cierra sesión.
+  const deleteAccount = async () => {
+    const { error } = await supabase.rpc('delete_own_account')
+    if (error) throw error
+    await supabase.auth.signOut()
+    setUser(null)
+  }
+
+  return {
+    user, loading, signIn, signUp, signOut,
+    sendPasswordReset, updatePassword, setNewPassword, updateEmail, deleteAccount,
+  }
 }
