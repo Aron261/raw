@@ -4,8 +4,9 @@ import { Sheet, Field, Button, PageHeader } from '../components/ui'
 import { ERROR_STYLE } from '../lib/ui'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { searchFoods, normalizeFood, parseServing } from '../lib/foodLibrary'
 import {
-  useNutritionDay, useNutritionTargets, useRecentFoods,
+  useNutritionDay, useNutritionTargets, useMyFoods,
   toLocalISODate, MEALS, DEFAULT_TARGETS, recommendMacros,
 } from '../hooks/useNutrition'
 
@@ -65,7 +66,16 @@ const PORTIONS = [
   { m: 2,   label: '2' },
 ]
 
-function EntrySheet({ initial, defaultMeal, recents, onSave, onDelete, onClose }) {
+// Etiqueta de porción para una sugerencia: "100 g", "1 unidad", nada si es genérica.
+function servingLabel(f) {
+  if (f.serving) return f.serving                     // biblioteca incorporada
+  if (f.serving_qty == null) return null
+  const q = Number(f.serving_qty)
+  if (q === 1 && f.serving_unit === 'porción') return null
+  return `${q % 1 ? q : Math.round(q)} ${f.serving_unit}`
+}
+
+function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) {
   const editing = !!initial
   const [name, setName] = useState(initial?.name || '')
   const [meal, setMeal] = useState(initial?.meal || defaultMeal || 'desayuno')
@@ -75,11 +85,12 @@ function EntrySheet({ initial, defaultMeal, recents, onSave, onDelete, onClose }
   const [fat, setFat] = useState(initial ? String(initial.fat_g) : '')
   const [saving, setSaving] = useState(false)
 
-  // Base para porciones: la comida elegida de recientes (o la entrada al editar).
+  // Base para porciones: la comida elegida (o la entrada al editar), con su
+  // porción de referencia. `amount` es la cantidad editable en esa unidad.
   const [base, setBase] = useState(initial
-    ? { kcal: Number(initial.kcal), protein_g: Number(initial.protein_g), carbs_g: Number(initial.carbs_g), fat_g: Number(initial.fat_g) }
+    ? { qty: 1, unit: 'porción', kcal: Number(initial.kcal), protein_g: Number(initial.protein_g), carbs_g: Number(initial.carbs_g), fat_g: Number(initial.fat_g) }
     : null)
-  const [mult, setMult] = useState(1)
+  const [amount, setAmount] = useState('1')
   const [picked, setPicked] = useState(editing)
 
   const num = (v) => (v === '' ? 0 : Math.max(0, parseFloat(v) || 0))
@@ -97,41 +108,67 @@ function EntrySheet({ initial, defaultMeal, recents, onSave, onDelete, onClose }
     setKcal(b.kcal ? String(Math.round(b.kcal * m)) : '')
   }
 
-  const pickRecent = (f) => {
-    const b = { kcal: Number(f.kcal), protein_g: Number(f.protein_g), carbs_g: Number(f.carbs_g), fat_g: Number(f.fat_g) }
+  // Porción de referencia de una sugerencia: de la biblioteca personal
+  // (serving_qty/unit) o parseada del texto de la biblioteca incorporada.
+  const baseFromSuggestion = (f) => {
+    const { qty, unit } = f.serving_qty != null
+      ? { qty: Number(f.serving_qty), unit: f.serving_unit }
+      : parseServing(f.serving)
+    return { qty, unit, kcal: Number(f.kcal), protein_g: Number(f.protein_g), carbs_g: Number(f.carbs_g), fat_g: Number(f.fat_g) }
+  }
+
+  const pickSuggestion = (f) => {
+    const b = baseFromSuggestion(f)
     setName(f.name)
     setBase(b)
-    setMult(1)
+    setAmount(String(b.qty))
     setPicked(true)
     applyBase(b, 1)
   }
 
+  // Sugerencias: biblioteca personal primero, luego comidas típicas
+  // (con la porción visible). Sin duplicados por nombre.
   const matches = useMemo(() => {
     if (editing || picked) return []
-    const q = name.trim().toLowerCase()
-    const list = q ? recents.filter(f => f.name.toLowerCase().includes(q)) : recents
-    return list.slice(0, 6)
-  }, [recents, name, editing, picked])
+    const q = normalizeFood(name)
+    const mine = (q ? foods.filter(f => normalizeFood(f.name).includes(q)) : foods)
+      .slice(0, q ? 4 : 6)
+    const seen = new Set(mine.map(f => normalizeFood(f.name)))
+    const libList = searchFoods(name, 7 - mine.length)
+      .filter(f => !seen.has(normalizeFood(f.name)))
+    return [...mine, ...libList]
+  }, [foods, name, editing, picked])
 
-  const doSave = async (fields) => {
+  const foodFields = (b, foodName) => ({
+    name: foodName.trim(), serving_qty: b.qty, serving_unit: b.unit,
+    kcal: b.kcal, protein_g: b.protein_g, carbs_g: b.carbs_g, fat_g: b.fat_g,
+  })
+
+  const doSave = async (fields, food) => {
     if (saving) return
     setSaving(true)
-    try { await onSave(fields) } finally { setSaving(false) }
+    try { await onSave(fields, food) } finally { setSaving(false) }
   }
 
   const handleSave = () => {
     if (!canSave) return
-    doSave({ name: name.trim(), meal, kcal: kcalFinal, protein_g: num(protein), carbs_g: num(carbs), fat_g: num(fat) })
+    const entry = { name: name.trim(), meal, kcal: kcalFinal, protein_g: num(protein), carbs_g: num(carbs), fat_g: num(fat) }
+    // Toda comida nueva queda en la biblioteca personal: con su porción de
+    // referencia si vino de una sugerencia, o tal cual (1 porción) si es nueva.
+    const food = editing ? null : (base
+      ? foodFields(base, name)
+      : { name: name.trim(), serving_qty: 1, serving_unit: 'porción', kcal: kcalFinal, protein_g: num(protein), carbs_g: num(carbs), fat_g: num(fat) })
+    doSave(entry, food)
   }
 
-  // Registro instantáneo de una comida reciente, tal cual (porción ×1).
-  const quickAdd = (f) => doSave({
-    name: f.name, meal,
-    kcal: Number(f.kcal), protein_g: Number(f.protein_g), carbs_g: Number(f.carbs_g), fat_g: Number(f.fat_g),
-  })
+  // Registro instantáneo de una sugerencia, tal cual (porción base).
+  const quickAdd = (f) => doSave(
+    { name: f.name, meal, kcal: Number(f.kcal), protein_g: Number(f.protein_g), carbs_g: Number(f.carbs_g), fat_g: Number(f.fat_g) },
+    foodFields(baseFromSuggestion(f), f.name)
+  )
 
-  // Editar un macro a mano invalida la porción seleccionada, no la base.
-  const manual = (setter) => (e) => { setter(e.target.value); setMult(null) }
+  // Editar un macro a mano desengancha la cantidad: los campos mandan.
+  const manual = (setter) => (e) => { setter(e.target.value); setAmount('') }
 
   return (
     <Sheet title={editing ? 'Editar comida' : 'Agregar comida'} onClose={onClose}>
@@ -148,19 +185,19 @@ function EntrySheet({ initial, defaultMeal, recents, onSave, onDelete, onClose }
       {matches.length > 0 && (
         <div style={{ margin: '-4px 0 14px', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', overflow: 'hidden', background: 'var(--c-surface-2)' }}>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-muted)', padding: '8px 12px 4px' }}>
-            Recientes · toca para llenar, + para registrar ya
+            Sugerencias · toca para llenar, + para registrar ya
           </p>
           {matches.map(f => (
             <div key={f.name.trim().toLowerCase()} style={{ display: 'flex', alignItems: 'center', borderTop: '1px solid var(--c-border-subtle)' }}>
               <button
-                onClick={() => pickRecent(f)}
+                onClick={() => pickSuggestion(f)}
                 style={{ flex: 1, minWidth: 0, textAlign: 'left', padding: '9px 12px', background: 'transparent', border: 'none', cursor: 'pointer' }}
               >
                 <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {f.name}
                 </p>
                 <p className="tnum" style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, marginTop: '2px', letterSpacing: '0.03em' }}>
-                  {fmt(f.kcal)} kcal · P {Math.round(f.protein_g)} · C {Math.round(f.carbs_g)} · G {Math.round(f.fat_g)}
+                  {servingLabel(f) ? `${servingLabel(f)} · ` : ''}{fmt(f.kcal)} kcal · P {Math.round(f.protein_g)} · C {Math.round(f.carbs_g)} · G {Math.round(f.fat_g)}
                 </p>
               </button>
               <button
@@ -204,24 +241,44 @@ function EntrySheet({ initial, defaultMeal, recents, onSave, onDelete, onClose }
       </Field>
 
       {base && (
-        <Field label="Porción" hint={mult === null ? 'Ajustada a mano' : undefined}>
+        <Field
+          label={base.unit && base.unit !== 'porción' ? `Porción (${base.unit})` : 'Porción'}
+          hint={amount === '' ? 'Macros ajustados a mano' : undefined}
+        >
           <div style={{ display: 'flex', gap: '6px' }}>
-            {PORTIONS.map(p => (
-              <button
-                key={p.m}
-                onClick={() => { setMult(p.m); applyBase(base, p.m) }}
-                style={{
-                  flex: 1, padding: '9px 4px', borderRadius: '8px',
-                  fontSize: '12px', fontWeight: 700,
-                  background: mult === p.m ? 'var(--c-accent)' : 'var(--c-surface-2)',
-                  color: mult === p.m ? 'var(--c-on-action)' : 'var(--c-text-dim)',
-                  border: `1px solid ${mult === p.m ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
-                  transition: 'all 150ms',
-                }}
-              >
-                ×{p.label}
-              </button>
-            ))}
+            <input
+              className="input-field tnum" type="number" inputMode="decimal"
+              placeholder={String(base.qty)}
+              value={amount}
+              onChange={e => {
+                const v = e.target.value
+                setAmount(v)
+                const a = parseFloat(v)
+                if (Number.isFinite(a) && a > 0) applyBase(base, a / base.qty)
+              }}
+              style={{ flex: '0 0 88px', width: '88px' }}
+              aria-label="Cantidad"
+            />
+            {PORTIONS.map(p => {
+              const val = Math.round(base.qty * p.m * 10) / 10
+              const active = parseFloat(amount) === val
+              return (
+                <button
+                  key={p.m}
+                  onClick={() => { setAmount(String(val)); applyBase(base, p.m) }}
+                  style={{
+                    flex: 1, padding: '9px 4px', borderRadius: '8px',
+                    fontSize: '12px', fontWeight: 700,
+                    background: active ? 'var(--c-accent)' : 'var(--c-surface-2)',
+                    color: active ? 'var(--c-on-action)' : 'var(--c-text-dim)',
+                    border: `1px solid ${active ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
+                    transition: 'all 150ms',
+                  }}
+                >
+                  ×{p.label}
+                </button>
+              )
+            })}
           </div>
         </Field>
       )}
@@ -436,7 +493,7 @@ export default function Nutrition() {
   const isToday = dateISO === today
 
   const { entries, totals, loading, error, refetch, addEntry, updateEntry, deleteEntry } = useNutritionDay(dateISO)
-  const { recents } = useRecentFoods()
+  const { foods, saveFood } = useMyFoods()
   const { targets, saveTargets } = useNutritionTargets()
   const t = targets || DEFAULT_TARGETS
 
@@ -451,9 +508,15 @@ export default function Nutrition() {
   const kcalPct = t.kcal > 0 ? Math.min(100, (totals.kcal / t.kcal) * 100) : 0
   const kcalOver = totals.kcal > t.kcal
 
-  const handleSaveEntry = async (fields) => {
-    if (sheet?.entry) await updateEntry(sheet.entry.id, fields)
-    else await addEntry(fields)
+  const handleSaveEntry = async (fields, food) => {
+    if (sheet?.entry) {
+      await updateEntry(sheet.entry.id, fields)
+    } else {
+      await addEntry(fields)
+      // Actualiza la biblioteca personal en segundo plano; si falla, la
+      // entrada del día ya quedó guardada.
+      if (food) saveFood(food).catch(err => console.error('Error guardando comida en biblioteca:', err))
+    }
     setSheet(null)
   }
 
@@ -652,7 +715,7 @@ export default function Nutrition() {
         <EntrySheet
           initial={sheet.entry}
           defaultMeal={sheet.meal}
-          recents={recents}
+          foods={foods}
           onSave={handleSaveEntry}
           onDelete={handleDeleteEntry}
           onClose={() => setSheet(null)}

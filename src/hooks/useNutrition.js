@@ -46,16 +46,6 @@ export function useNutritionDay(dateISO) {
       .single()
     if (err) throw err
     mutateCache(key, prev => [...(prev || []), row])
-    // Sube la comida al tope de recientes para que el próximo registro sea instantáneo.
-    mutateCache(`nutrition-recents:${user.id}`, prev => {
-      if (!prev) return prev
-      const norm = row.name.trim().toLowerCase()
-      const existing = prev.find(f => f.name.trim().toLowerCase() === norm)
-      return [
-        { name: row.name, kcal: row.kcal, protein_g: row.protein_g, carbs_g: row.carbs_g, fat_g: row.fat_g, created_at: row.created_at, count: (existing?.count || 0) + 1 },
-        ...prev.filter(f => f.name.trim().toLowerCase() !== norm),
-      ]
-    })
     return row
   }, [user?.id, dateISO, key])
 
@@ -91,37 +81,57 @@ export function useNutritionDay(dateISO) {
   return { entries, totals, loading, error, refetch, addEntry, updateEntry, deleteEntry }
 }
 
-// Comidas recientes/frecuentes (últimos 60 días), dedupe por nombre.
-// Derivadas de las entradas — sin tabla nueva. Ordenadas por frecuencia y
-// luego por recencia, para que "lo de siempre" quede arriba.
-export function useRecentFoods() {
+// Biblioteca personal: cada comida registrada queda guardada con su porción
+// base en nutrition_foods, para reutilizarla para siempre. Ordenada por
+// último uso (lo de esta semana arriba).
+export function useMyFoods() {
   const { user } = useAuth()
-  const key = user ? `nutrition-recents:${user.id}` : null
+  const key = user ? `nutrition-foods:${user.id}` : null
 
   const fetcher = useCallback(async () => {
-    const since = toLocalISODate(new Date(Date.now() - 60 * 86400000))
     const { data, error } = await supabase
-      .from('nutrition_entries')
-      .select('name, kcal, protein_g, carbs_g, fat_g, created_at')
+      .from('nutrition_foods')
+      .select('*')
       .eq('user_id', user.id)
-      .gte('eaten_on', since)
-      .order('created_at', { ascending: false })
-      .limit(400)
+      .order('last_used_at', { ascending: false })
+      .limit(200)
     if (error) throw error
-    const map = new Map()
-    for (const e of data || []) {
-      const norm = e.name.trim().toLowerCase()
-      const cur = map.get(norm)
-      if (cur) cur.count += 1        // macros quedan las de la entrada más reciente
-      else map.set(norm, { ...e, count: 1 })
-    }
-    return [...map.values()].sort((a, b) =>
-      b.count - a.count || (a.created_at < b.created_at ? 1 : -1)
-    )
+    return data || []
   }, [user?.id])
 
   const { data, loading } = useCachedResource(key, fetcher)
-  return { recents: data || [], loading }
+
+  // Upsert por nombre normalizado: nueva comida se crea, conocida se
+  // actualiza (macros base + contador de uso).
+  const saveFood = useCallback(async (food) => {
+    const name = food.name.trim()
+    const norm = name.toLowerCase()
+    const patch = {
+      name,
+      serving_qty: food.serving_qty,
+      serving_unit: food.serving_unit,
+      kcal: food.kcal, protein_g: food.protein_g, carbs_g: food.carbs_g, fat_g: food.fat_g,
+      last_used_at: new Date().toISOString(),
+    }
+    const { data: existing } = await supabase
+      .from('nutrition_foods')
+      .select('id, times_used')
+      .eq('user_id', user.id)
+      .eq('name_norm', norm)
+      .maybeSingle()
+    const { data: row, error } = existing
+      ? await supabase.from('nutrition_foods')
+          .update({ ...patch, times_used: existing.times_used + 1 })
+          .eq('id', existing.id).select().single()
+      : await supabase.from('nutrition_foods')
+          .insert({ user_id: user.id, name_norm: norm, ...patch })
+          .select().single()
+    if (error) throw error
+    mutateCache(key, prev => (prev ? [row, ...prev.filter(f => f.id !== row.id)] : prev))
+    return row
+  }, [user?.id, key])
+
+  return { foods: data || [], loading, saveFood }
 }
 
 export const DEFAULT_TARGETS = { kcal: 2500, protein_g: 160, carbs_g: 280, fat_g: 80 }
