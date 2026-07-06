@@ -323,21 +323,37 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
 // ── Sheet: objetivos diarios ─────────────────────────────────────────────
 const LB_TO_KG = 0.4536
 
+// Balances de macros estilo MyFitnessPal (% de las calorías). 'peso' es la
+// recomendación propia (2 g/kg), 'custom' es % libre y 'gramos' es exacto.
+const BALANCES = [
+  { id: 'peso',        label: '2 g/kg proteína' },
+  { id: 'equilibrado', label: 'Equilibrado',    p: 20, c: 50, f: 30 },
+  { id: 'alta',        label: 'Alta proteína',  p: 30, c: 45, f: 25 },
+  { id: 'baja',        label: 'Baja en carbos', p: 25, c: 25, f: 50 },
+  { id: 'keto',        label: 'Keto',           p: 25, c: 10, f: 65 },
+  { id: 'custom',      label: '% personalizado' },
+  { id: 'gramos',      label: 'Gramos exactos' },
+]
+
+const KCAL_OF = (p, c, f) => Math.round(p * 4 + c * 4 + f * 9)
+
 function TargetsSheet({ targets, onSave, onClose }) {
   const t = targets || DEFAULT_TARGETS
   const { user } = useAuth()
-  const [mode, setMode] = useState('auto')   // 'auto' | 'manual'
+  const [mode, setMode] = useState('peso')
   const [saving, setSaving] = useState(false)
 
-  // Recomendado
-  const [goalKcal, setGoalKcal] = useState(String(t.kcal))
+  const [kcal, setKcal] = useState(String(t.kcal))
   const [weight, setWeight] = useState('')
 
-  // Manual
-  const [kcal, setKcal] = useState(String(t.kcal))
-  const [protein, setProtein] = useState(String(t.protein_g))
-  const [carbs, setCarbs] = useState(String(t.carbs_g))
-  const [fat, setFat] = useState(String(t.fat_g))
+  // % personalizado: carbos siempre es el resto (100 − proteína − grasa).
+  const [pctP, setPctP] = useState(String(Math.round((t.protein_g * 4 / t.kcal) * 100) || 30))
+  const [pctF, setPctF] = useState(String(Math.round((t.fat_g * 9 / t.kcal) * 100) || 25))
+
+  // Gramos exactos
+  const [gP, setGP] = useState(String(t.protein_g))
+  const [gC, setGC] = useState(String(t.carbs_g))
+  const [gF, setGF] = useState(String(t.fat_g))
 
   // Prefill del peso ideal con el último peso registrado (solo si no ha escrito).
   useEffect(() => {
@@ -357,31 +373,85 @@ function TargetsSheet({ targets, onSave, onClose }) {
     return () => { alive = false }
   }, [user?.id])
 
+  // Objetivo calculado según el modo activo.
   const rec = useMemo(() => {
-    const k = parseInt(goalKcal, 10)
-    const w = parseFloat(weight)
-    if (!Number.isFinite(k) || k <= 0 || !Number.isFinite(w) || w <= 0) return null
-    return recommendMacros(k, w)
-  }, [goalKcal, weight])
+    const k = parseInt(kcal, 10)
+    if (!Number.isFinite(k) || k <= 0) return null
+    if (mode === 'peso') {
+      const w = parseFloat(weight)
+      if (!Number.isFinite(w) || w <= 0) return null
+      return recommendMacros(k, w)
+    }
+    if (mode === 'gramos') {
+      const p = parseFloat(gP) || 0
+      const c = parseFloat(gC) || 0
+      const f = parseFloat(gF) || 0
+      if (p + c + f <= 0) return null
+      return { kcal: k, protein_g: Math.round(p), carbs_g: Math.round(c), fat_g: Math.round(f) }
+    }
+    let p, c, f
+    if (mode === 'custom') {
+      p = parseFloat(pctP)
+      f = parseFloat(pctF)
+      if (!Number.isFinite(p) || !Number.isFinite(f) || p < 0 || f < 0 || p + f > 100) return null
+      c = 100 - p - f
+    } else {
+      const b = BALANCES.find(x => x.id === mode)
+      p = b.p; c = b.c; f = b.f
+    }
+    return {
+      kcal: k,
+      protein_g: Math.round(k * p / 100 / 4),
+      carbs_g:   Math.round(k * c / 100 / 4),
+      fat_g:     Math.round(k * f / 100 / 9),
+    }
+  }, [mode, kcal, weight, pctP, pctF, gP, gC, gF])
 
   const pct = (g, per, k) => (k > 0 ? Math.round((g * per / k) * 100) : 0)
 
-  const num = (v, fallback) => {
-    const n = parseInt(v, 10)
-    return Number.isFinite(n) && n > 0 ? n : fallback
+  // Cambiar de modo hereda el objetivo actual para seguir ajustándolo.
+  const switchMode = (id) => {
+    if (rec) {
+      if (id === 'gramos') {
+        setGP(String(rec.protein_g)); setGC(String(rec.carbs_g)); setGF(String(rec.fat_g))
+      } else if (id === 'custom') {
+        setPctP(String(pct(rec.protein_g, 4, rec.kcal)))
+        setPctF(String(pct(rec.fat_g, 9, rec.kcal)))
+      }
+    }
+    setMode(id)
+  }
+
+  // Gramos: editar un macro recalcula las calorías (4P + 4C + 9G).
+  const onGram = (which, setter) => (e) => {
+    const v = e.target.value
+    setter(v)
+    const p = which === 'p' ? parseFloat(v) || 0 : parseFloat(gP) || 0
+    const c = which === 'c' ? parseFloat(v) || 0 : parseFloat(gC) || 0
+    const f = which === 'f' ? parseFloat(v) || 0 : parseFloat(gF) || 0
+    if (p + c + f > 0) setKcal(String(KCAL_OF(p, c, f)))
+  }
+
+  // Calorías: en gramos, proteína y grasa quedan fijas y los carbos
+  // absorben la diferencia.
+  const onKcal = (e) => {
+    const v = e.target.value
+    setKcal(v)
+    if (mode === 'gramos') {
+      const k = parseInt(v, 10)
+      if (Number.isFinite(k) && k > 0) {
+        const p = parseFloat(gP) || 0
+        const f = parseFloat(gF) || 0
+        setGC(String(Math.max(0, Math.round((k - p * 4 - f * 9) / 4))))
+      }
+    }
   }
 
   const handleSave = async () => {
-    if (saving) return
-    if (mode === 'auto' && !rec) return
+    if (saving || !rec) return
     setSaving(true)
     try {
-      await onSave(mode === 'auto' ? rec : {
-        kcal: num(kcal, DEFAULT_TARGETS.kcal),
-        protein_g: num(protein, DEFAULT_TARGETS.protein_g),
-        carbs_g: num(carbs, DEFAULT_TARGETS.carbs_g),
-        fat_g: num(fat, DEFAULT_TARGETS.fat_g),
-      })
+      await onSave(rec)
     } finally {
       setSaving(false)
     }
@@ -402,85 +472,107 @@ function TargetsSheet({ targets, onSave, onClose }) {
       subtitle="Tu meta de calorías y macros para cada día."
       onClose={onClose}
     >
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
-        <button onClick={() => setMode('auto')} style={tabStyle(mode === 'auto')}>Recomendado</button>
-        <button onClick={() => setMode('manual')} style={tabStyle(mode === 'manual')}>Manual</button>
+      <Field label="Balance de macros">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {BALANCES.map(b => (
+            <button key={b.id} onClick={() => switchMode(b.id)} style={{ ...tabStyle(mode === b.id), flex: '1 1 30%' }}>
+              {b.label}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+        <Field
+          label="Calorías (kcal)"
+          hint={mode === 'gramos' ? 'Editarla ajusta los carbos' : undefined}
+        >
+          <input className="input-field tnum" type="number" inputMode="numeric" value={kcal} onChange={onKcal} />
+        </Field>
+        {mode === 'peso' && (
+          <Field label="Peso ideal (kg)">
+            <input className="input-field tnum" type="number" inputMode="decimal" placeholder="70" value={weight} onChange={e => setWeight(e.target.value)} />
+          </Field>
+        )}
       </div>
 
-      {mode === 'auto' ? (
-        <>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
-            <Field label="Calorías (kcal)">
-              <input className="input-field tnum" type="number" inputMode="numeric" value={goalKcal} onChange={e => setGoalKcal(e.target.value)} />
-            </Field>
-            <Field label="Peso ideal (kg)">
-              <input className="input-field tnum" type="number" inputMode="decimal" placeholder="70" value={weight} onChange={e => setWeight(e.target.value)} />
-            </Field>
-          </div>
+      {mode === 'custom' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 10px' }}>
+          <Field label="Proteína (%)">
+            <input className="input-field tnum" type="number" inputMode="numeric" value={pctP} onChange={e => setPctP(e.target.value)} />
+          </Field>
+          <Field label="Grasa (%)">
+            <input className="input-field tnum" type="number" inputMode="numeric" value={pctF} onChange={e => setPctF(e.target.value)} />
+          </Field>
+          <Field label="Carbos (%)" hint="El resto">
+            <input
+              className="input-field tnum" type="number" disabled readOnly
+              value={Math.max(0, 100 - (parseFloat(pctP) || 0) - (parseFloat(pctF) || 0))}
+            />
+          </Field>
+        </div>
+      )}
 
-          {rec ? (
-            <div style={{ background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', padding: '14px', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                {[
-                  { label: 'Proteína', g: rec.protein_g, per: 4 },
-                  { label: 'Carbos',   g: rec.carbs_g,   per: 4 },
-                  { label: 'Grasa',    g: rec.fat_g,     per: 9 },
-                ].map(x => (
-                  <div key={x.label} style={{ flex: 1 }}>
-                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-dim)', marginBottom: '4px' }}>
-                      {x.label}
-                    </p>
-                    <p className="tnum" style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
-                      {x.g}<span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--c-text-muted)' }}> g</span>
-                    </p>
-                    <p className="tnum" style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', marginTop: '2px' }}>
-                      {pct(x.g, x.per, rec.kcal)}%
-                    </p>
-                  </div>
-                ))}
+      {mode === 'gramos' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 10px' }}>
+          <Field label="Proteína (g)">
+            <input className="input-field tnum" type="number" inputMode="numeric" value={gP} onChange={onGram('p', setGP)} />
+          </Field>
+          <Field label="Carbos (g)">
+            <input className="input-field tnum" type="number" inputMode="numeric" value={gC} onChange={onGram('c', setGC)} />
+          </Field>
+          <Field label="Grasa (g)">
+            <input className="input-field tnum" type="number" inputMode="numeric" value={gF} onChange={onGram('f', setGF)} />
+          </Field>
+        </div>
+      )}
+
+      {rec ? (
+        <div style={{ background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', padding: '14px', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            {[
+              { label: 'Proteína', g: rec.protein_g, per: 4 },
+              { label: 'Carbos',   g: rec.carbs_g,   per: 4 },
+              { label: 'Grasa',    g: rec.fat_g,     per: 9 },
+            ].map(x => (
+              <div key={x.label} style={{ flex: 1 }}>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-dim)', marginBottom: '4px' }}>
+                  {x.label}
+                </p>
+                <p className="tnum" style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
+                  {x.g}<span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--c-text-muted)' }}> g</span>
+                </p>
+                <p className="tnum" style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', marginTop: '2px' }}>
+                  {pct(x.g, x.per, rec.kcal)}%
+                </p>
               </div>
-              <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '12px' }}>
-                Proteína = 2 g por kg de peso ideal · grasa 25% de las calorías · el resto, carbos.
-              </p>
-            </div>
-          ) : (
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginBottom: '12px' }}>
-              Ingresa tu meta de calorías y tu peso ideal para calcular los macros.
+            ))}
+          </div>
+          {mode === 'peso' && (
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '12px' }}>
+              Proteína = 2 g por kg de peso ideal · grasa 25% de las calorías · el resto, carbos.
             </p>
           )}
-        </>
+          {mode === 'gramos' && KCAL_OF(parseFloat(gP) || 0, parseFloat(gC) || 0, parseFloat(gF) || 0) !== rec.kcal && (
+            <p style={{ color: 'var(--c-action-text)', fontSize: '11px', lineHeight: 1.5, marginTop: '12px' }}>
+              Los macros suman {fmt(KCAL_OF(parseFloat(gP) || 0, parseFloat(gC) || 0, parseFloat(gF) || 0))} kcal, no {fmt(rec.kcal)}.
+            </p>
+          )}
+        </div>
       ) : (
-        <>
-          <Field label="Calorías (kcal)">
-            <input className="input-field tnum" type="number" inputMode="numeric" value={kcal} onChange={e => setKcal(e.target.value)} />
-          </Field>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 10px' }}>
-            {[
-              { label: 'Proteína (g)', value: protein, set: setProtein, per: 4 },
-              { label: 'Carbos (g)',   value: carbs,   set: setCarbs,   per: 4 },
-              { label: 'Grasa (g)',    value: fat,     set: setFat,     per: 9 },
-            ].map(x => {
-              const k = parseInt(kcal, 10)
-              const g = parseInt(x.value, 10)
-              const hint = Number.isFinite(k) && k > 0 && Number.isFinite(g) && g >= 0
-                ? `${pct(g, x.per, k)}%`
-                : undefined
-              return (
-                <Field key={x.label} label={x.label} hint={hint}>
-                  <input className="input-field tnum" type="number" inputMode="numeric" value={x.value} onChange={e => x.set(e.target.value)} />
-                </Field>
-              )
-            })}
-          </div>
-        </>
+        <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginBottom: '12px' }}>
+          {mode === 'peso'
+            ? 'Ingresa tu meta de calorías y tu peso ideal para calcular los macros.'
+            : 'Ingresa tu meta de calorías y el reparto de macros.'}
+        </p>
       )}
 
       <Button
         variant="primary" full size="lg"
-        loading={saving} disabled={saving || (mode === 'auto' && !rec)}
+        loading={saving} disabled={saving || !rec}
         onClick={handleSave} style={{ marginTop: '8px' }}
       >
-        {saving ? 'Guardando...' : mode === 'auto' ? 'Usar estos objetivos' : 'Guardar objetivos'}
+        {saving ? 'Guardando...' : 'Guardar objetivos'}
       </Button>
     </Sheet>
   )
@@ -498,6 +590,16 @@ export default function Nutrition() {
   const t = targets || DEFAULT_TARGETS
 
   const [sheet, setSheet] = useState(null)   // { entry?, meal? } | 'targets' | null
+
+  // Colapso por comida, recordado en el dispositivo.
+  const [collapsedMeals, setCollapsedMeals] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('nutrition-meals-collapsed')) || {} } catch { return {} }
+  })
+  const toggleMeal = (id) => setCollapsedMeals(prev => {
+    const next = { ...prev, [id]: !prev[id] }
+    try { localStorage.setItem('nutrition-meals-collapsed', JSON.stringify(next)) } catch { /* sin storage */ }
+    return next
+  })
 
   const byMeal = useMemo(() => {
     const map = Object.fromEntries(MEALS.map(m => [m.id, []]))
@@ -639,16 +741,26 @@ export default function Nutrition() {
             {MEALS.map(m => {
               const list = byMeal[m.id]
               const mealKcal = list.reduce((s, e) => s + Number(e.kcal || 0), 0)
+              const isCollapsed = !!collapsedMeals[m.id]
               return (
                 <section key={m.id} style={{ marginBottom: '22px' }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', marginBottom: '4px' }}>
-                    <h2 style={{ fontFamily: 'var(--font-sans)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
-                      {m.label}
-                    </h2>
+                    <button
+                      onClick={() => toggleMeal(m.id)}
+                      aria-expanded={!isCollapsed}
+                      style={{ display: 'flex', alignItems: 'baseline', gap: '7px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', minWidth: 0 }}
+                    >
+                      <span aria-hidden style={{ color: 'var(--c-text-dim)', fontSize: '10px', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'none', transition: 'transform 150ms var(--ease-out)' }}>
+                        ▾
+                      </span>
+                      <h2 style={{ fontFamily: 'var(--font-sans)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
+                        {m.label}
+                      </h2>
+                    </button>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', flexShrink: 0 }}>
-                      {mealKcal > 0 && (
+                      {(mealKcal > 0 || (isCollapsed && list.length > 0)) && (
                         <span className="tnum" style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: 'var(--c-text-dim)' }}>
-                          {fmt(mealKcal)} kcal
+                          {isCollapsed && list.length > 0 ? `${list.length} · ` : ''}{fmt(mealKcal)} kcal
                         </span>
                       )}
                       <button
@@ -661,7 +773,7 @@ export default function Nutrition() {
                     </div>
                   </div>
 
-                  {list.length === 0 ? (
+                  {!isCollapsed && (list.length === 0 ? (
                     <p style={{ color: 'var(--c-text-ghost)', fontSize: '12px', padding: '8px 0 2px', borderTop: '1px solid var(--c-border-subtle)' }}>
                       Sin registros
                     </p>
@@ -694,7 +806,7 @@ export default function Nutrition() {
                         </button>
                       ))}
                     </div>
-                  )}
+                  ))}
                 </section>
               )
             })}
