@@ -46,6 +46,16 @@ export function useNutritionDay(dateISO) {
       .single()
     if (err) throw err
     mutateCache(key, prev => [...(prev || []), row])
+    // Sube la comida al tope de recientes para que el próximo registro sea instantáneo.
+    mutateCache(`nutrition-recents:${user.id}`, prev => {
+      if (!prev) return prev
+      const norm = row.name.trim().toLowerCase()
+      const existing = prev.find(f => f.name.trim().toLowerCase() === norm)
+      return [
+        { name: row.name, kcal: row.kcal, protein_g: row.protein_g, carbs_g: row.carbs_g, fat_g: row.fat_g, created_at: row.created_at, count: (existing?.count || 0) + 1 },
+        ...prev.filter(f => f.name.trim().toLowerCase() !== norm),
+      ]
+    })
     return row
   }, [user?.id, dateISO, key])
 
@@ -81,7 +91,50 @@ export function useNutritionDay(dateISO) {
   return { entries, totals, loading, error, refetch, addEntry, updateEntry, deleteEntry }
 }
 
+// Comidas recientes/frecuentes (últimos 60 días), dedupe por nombre.
+// Derivadas de las entradas — sin tabla nueva. Ordenadas por frecuencia y
+// luego por recencia, para que "lo de siempre" quede arriba.
+export function useRecentFoods() {
+  const { user } = useAuth()
+  const key = user ? `nutrition-recents:${user.id}` : null
+
+  const fetcher = useCallback(async () => {
+    const since = toLocalISODate(new Date(Date.now() - 60 * 86400000))
+    const { data, error } = await supabase
+      .from('nutrition_entries')
+      .select('name, kcal, protein_g, carbs_g, fat_g, created_at')
+      .eq('user_id', user.id)
+      .gte('eaten_on', since)
+      .order('created_at', { ascending: false })
+      .limit(400)
+    if (error) throw error
+    const map = new Map()
+    for (const e of data || []) {
+      const norm = e.name.trim().toLowerCase()
+      const cur = map.get(norm)
+      if (cur) cur.count += 1        // macros quedan las de la entrada más reciente
+      else map.set(norm, { ...e, count: 1 })
+    }
+    return [...map.values()].sort((a, b) =>
+      b.count - a.count || (a.created_at < b.created_at ? 1 : -1)
+    )
+  }, [user?.id])
+
+  const { data, loading } = useCachedResource(key, fetcher)
+  return { recents: data || [], loading }
+}
+
 export const DEFAULT_TARGETS = { kcal: 2500, protein_g: 160, carbs_g: 280, fat_g: 80 }
+
+// Recomendación de macros a partir de meta calórica y peso ideal:
+// proteína = 2 g × kg de peso ideal, grasa = 25% de las calorías,
+// carbos = las calorías restantes.
+export function recommendMacros(kcal, weightKg) {
+  const protein_g = Math.round(weightKg * 2)
+  const fat_g = Math.round((kcal * 0.25) / 9)
+  const carbs_g = Math.max(0, Math.round((kcal - protein_g * 4 - fat_g * 9) / 4))
+  return { kcal: Math.round(kcal), protein_g, carbs_g, fat_g }
+}
 
 // Objetivos diarios del usuario (una fila por usuario; defaults si no existe).
 export function useNutritionTargets() {

@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Layout from '../components/Layout'
 import { Sheet, Field, Button, PageHeader } from '../components/ui'
 import { ERROR_STYLE } from '../lib/ui'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
 import {
-  useNutritionDay, useNutritionTargets,
-  toLocalISODate, MEALS, DEFAULT_TARGETS,
+  useNutritionDay, useNutritionTargets, useRecentFoods,
+  toLocalISODate, MEALS, DEFAULT_TARGETS, recommendMacros,
 } from '../hooks/useNutrition'
 
 // ── Fecha helpers ────────────────────────────────────────────────────────
@@ -56,7 +58,14 @@ function MacroBar({ label, current, target, unit = 'g' }) {
 }
 
 // ── Sheet: agregar / editar comida ───────────────────────────────────────
-function EntrySheet({ initial, defaultMeal, onSave, onDelete, onClose }) {
+const PORTIONS = [
+  { m: 0.5, label: '½' },
+  { m: 1,   label: '1' },
+  { m: 1.5, label: '1½' },
+  { m: 2,   label: '2' },
+]
+
+function EntrySheet({ initial, defaultMeal, recents, onSave, onDelete, onClose }) {
   const editing = !!initial
   const [name, setName] = useState(initial?.name || '')
   const [meal, setMeal] = useState(initial?.meal || defaultMeal || 'desayuno')
@@ -66,40 +75,112 @@ function EntrySheet({ initial, defaultMeal, onSave, onDelete, onClose }) {
   const [fat, setFat] = useState(initial ? String(initial.fat_g) : '')
   const [saving, setSaving] = useState(false)
 
+  // Base para porciones: la comida elegida de recientes (o la entrada al editar).
+  const [base, setBase] = useState(initial
+    ? { kcal: Number(initial.kcal), protein_g: Number(initial.protein_g), carbs_g: Number(initial.carbs_g), fat_g: Number(initial.fat_g) }
+    : null)
+  const [mult, setMult] = useState(1)
+  const [picked, setPicked] = useState(editing)
+
   const num = (v) => (v === '' ? 0 : Math.max(0, parseFloat(v) || 0))
   // kcal vacío = calculado de los macros (4P + 4C + 9G)
   const kcalComputed = Math.round(num(protein) * 4 + num(carbs) * 4 + num(fat) * 9)
   const kcalFinal = kcal === '' ? kcalComputed : num(kcal)
   const canSave = name.trim() && (kcalFinal > 0 || num(protein) > 0 || num(carbs) > 0 || num(fat) > 0)
 
-  const handleSave = async () => {
-    if (!canSave || saving) return
-    setSaving(true)
-    try {
-      await onSave({
-        name: name.trim(),
-        meal,
-        kcal: kcalFinal,
-        protein_g: num(protein),
-        carbs_g: num(carbs),
-        fat_g: num(fat),
-      })
-    } finally {
-      setSaving(false)
-    }
+  const scale1 = (v, m) => Math.round(Number(v) * m * 10) / 10
+
+  const applyBase = (b, m) => {
+    setProtein(b.protein_g ? String(scale1(b.protein_g, m)) : '')
+    setCarbs(b.carbs_g ? String(scale1(b.carbs_g, m)) : '')
+    setFat(b.fat_g ? String(scale1(b.fat_g, m)) : '')
+    setKcal(b.kcal ? String(Math.round(b.kcal * m)) : '')
   }
+
+  const pickRecent = (f) => {
+    const b = { kcal: Number(f.kcal), protein_g: Number(f.protein_g), carbs_g: Number(f.carbs_g), fat_g: Number(f.fat_g) }
+    setName(f.name)
+    setBase(b)
+    setMult(1)
+    setPicked(true)
+    applyBase(b, 1)
+  }
+
+  const matches = useMemo(() => {
+    if (editing || picked) return []
+    const q = name.trim().toLowerCase()
+    const list = q ? recents.filter(f => f.name.toLowerCase().includes(q)) : recents
+    return list.slice(0, 6)
+  }, [recents, name, editing, picked])
+
+  const doSave = async (fields) => {
+    if (saving) return
+    setSaving(true)
+    try { await onSave(fields) } finally { setSaving(false) }
+  }
+
+  const handleSave = () => {
+    if (!canSave) return
+    doSave({ name: name.trim(), meal, kcal: kcalFinal, protein_g: num(protein), carbs_g: num(carbs), fat_g: num(fat) })
+  }
+
+  // Registro instantáneo de una comida reciente, tal cual (porción ×1).
+  const quickAdd = (f) => doSave({
+    name: f.name, meal,
+    kcal: Number(f.kcal), protein_g: Number(f.protein_g), carbs_g: Number(f.carbs_g), fat_g: Number(f.fat_g),
+  })
+
+  // Editar un macro a mano invalida la porción seleccionada, no la base.
+  const manual = (setter) => (e) => { setter(e.target.value); setMult(null) }
 
   return (
     <Sheet title={editing ? 'Editar comida' : 'Agregar comida'} onClose={onClose}>
       <Field label="Nombre">
         <input
           className="input-field"
-          placeholder="Ej: Pollo con arroz"
+          placeholder="Busca o escribe: Pollo con arroz"
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={e => { setName(e.target.value); setPicked(false) }}
           autoFocus={!editing}
         />
       </Field>
+
+      {matches.length > 0 && (
+        <div style={{ margin: '-4px 0 14px', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', overflow: 'hidden', background: 'var(--c-surface-2)' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-muted)', padding: '8px 12px 4px' }}>
+            Recientes · toca para llenar, + para registrar ya
+          </p>
+          {matches.map(f => (
+            <div key={f.name.trim().toLowerCase()} style={{ display: 'flex', alignItems: 'center', borderTop: '1px solid var(--c-border-subtle)' }}>
+              <button
+                onClick={() => pickRecent(f)}
+                style={{ flex: 1, minWidth: 0, textAlign: 'left', padding: '9px 12px', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              >
+                <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {f.name}
+                </p>
+                <p className="tnum" style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, marginTop: '2px', letterSpacing: '0.03em' }}>
+                  {fmt(f.kcal)} kcal · P {Math.round(f.protein_g)} · C {Math.round(f.carbs_g)} · G {Math.round(f.fat_g)}
+                </p>
+              </button>
+              <button
+                onClick={() => quickAdd(f)}
+                disabled={saving}
+                aria-label={`Registrar ${f.name} ahora`}
+                style={{
+                  flexShrink: 0, width: '34px', height: '34px', margin: '0 10px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--c-on-action)', background: 'var(--c-accent)',
+                  borderRadius: '999px', fontSize: '17px', fontWeight: 400, lineHeight: 1,
+                  opacity: saving ? 0.5 : 1,
+                }}
+              >
+                +
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Field label="Comida">
         <div style={{ display: 'flex', gap: '6px' }}>
@@ -122,18 +203,41 @@ function EntrySheet({ initial, defaultMeal, onSave, onDelete, onClose }) {
         </div>
       </Field>
 
+      {base && (
+        <Field label="Porción" hint={mult === null ? 'Ajustada a mano' : undefined}>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {PORTIONS.map(p => (
+              <button
+                key={p.m}
+                onClick={() => { setMult(p.m); applyBase(base, p.m) }}
+                style={{
+                  flex: 1, padding: '9px 4px', borderRadius: '8px',
+                  fontSize: '12px', fontWeight: 700,
+                  background: mult === p.m ? 'var(--c-accent)' : 'var(--c-surface-2)',
+                  color: mult === p.m ? 'var(--c-on-action)' : 'var(--c-text-dim)',
+                  border: `1px solid ${mult === p.m ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
+                  transition: 'all 150ms',
+                }}
+              >
+                ×{p.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
         <Field label="Proteína (g)">
-          <input className="input-field tnum" type="number" inputMode="decimal" placeholder="0" value={protein} onChange={e => setProtein(e.target.value)} />
+          <input className="input-field tnum" type="number" inputMode="decimal" placeholder="0" value={protein} onChange={manual(setProtein)} />
         </Field>
         <Field label="Carbos (g)">
-          <input className="input-field tnum" type="number" inputMode="decimal" placeholder="0" value={carbs} onChange={e => setCarbs(e.target.value)} />
+          <input className="input-field tnum" type="number" inputMode="decimal" placeholder="0" value={carbs} onChange={manual(setCarbs)} />
         </Field>
         <Field label="Grasa (g)">
-          <input className="input-field tnum" type="number" inputMode="decimal" placeholder="0" value={fat} onChange={e => setFat(e.target.value)} />
+          <input className="input-field tnum" type="number" inputMode="decimal" placeholder="0" value={fat} onChange={manual(setFat)} />
         </Field>
         <Field label="Calorías" hint={kcal === '' && kcalComputed > 0 ? `Auto: ${kcalComputed} kcal` : undefined}>
-          <input className="input-field tnum" type="number" inputMode="decimal" placeholder={kcalComputed > 0 ? String(kcalComputed) : '0'} value={kcal} onChange={e => setKcal(e.target.value)} />
+          <input className="input-field tnum" type="number" inputMode="decimal" placeholder={kcalComputed > 0 ? String(kcalComputed) : '0'} value={kcal} onChange={manual(setKcal)} />
         </Field>
       </div>
 
@@ -160,13 +264,50 @@ function EntrySheet({ initial, defaultMeal, onSave, onDelete, onClose }) {
 }
 
 // ── Sheet: objetivos diarios ─────────────────────────────────────────────
+const LB_TO_KG = 0.4536
+
 function TargetsSheet({ targets, onSave, onClose }) {
   const t = targets || DEFAULT_TARGETS
+  const { user } = useAuth()
+  const [mode, setMode] = useState('auto')   // 'auto' | 'manual'
+  const [saving, setSaving] = useState(false)
+
+  // Recomendado
+  const [goalKcal, setGoalKcal] = useState(String(t.kcal))
+  const [weight, setWeight] = useState('')
+
+  // Manual
   const [kcal, setKcal] = useState(String(t.kcal))
   const [protein, setProtein] = useState(String(t.protein_g))
   const [carbs, setCarbs] = useState(String(t.carbs_g))
   const [fat, setFat] = useState(String(t.fat_g))
-  const [saving, setSaving] = useState(false)
+
+  // Prefill del peso ideal con el último peso registrado (solo si no ha escrito).
+  useEffect(() => {
+    if (!user?.id) return
+    let alive = true
+    ;(async () => {
+      const { data } = await supabase
+        .from('body_weight_logs')
+        .select('weight, unit')
+        .eq('user_id', user.id)
+        .order('logged_at', { ascending: false })
+        .limit(1)
+      if (!alive || !data?.[0]) return
+      const kg = data[0].unit === 'lb' ? data[0].weight * LB_TO_KG : data[0].weight
+      setWeight(prev => (prev === '' ? String(Math.round(kg)) : prev))
+    })()
+    return () => { alive = false }
+  }, [user?.id])
+
+  const rec = useMemo(() => {
+    const k = parseInt(goalKcal, 10)
+    const w = parseFloat(weight)
+    if (!Number.isFinite(k) || k <= 0 || !Number.isFinite(w) || w <= 0) return null
+    return recommendMacros(k, w)
+  }, [goalKcal, weight])
+
+  const pct = (g, per, k) => (k > 0 ? Math.round((g * per / k) * 100) : 0)
 
   const num = (v, fallback) => {
     const n = parseInt(v, 10)
@@ -175,9 +316,10 @@ function TargetsSheet({ targets, onSave, onClose }) {
 
   const handleSave = async () => {
     if (saving) return
+    if (mode === 'auto' && !rec) return
     setSaving(true)
     try {
-      await onSave({
+      await onSave(mode === 'auto' ? rec : {
         kcal: num(kcal, DEFAULT_TARGETS.kcal),
         protein_g: num(protein, DEFAULT_TARGETS.protein_g),
         carbs_g: num(carbs, DEFAULT_TARGETS.carbs_g),
@@ -188,28 +330,100 @@ function TargetsSheet({ targets, onSave, onClose }) {
     }
   }
 
+  const tabStyle = (active) => ({
+    flex: 1, padding: '9px 4px', borderRadius: '8px',
+    fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em',
+    background: active ? 'var(--c-accent)' : 'var(--c-surface-2)',
+    color: active ? 'var(--c-on-action)' : 'var(--c-text-dim)',
+    border: `1px solid ${active ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
+    transition: 'all 150ms',
+  })
+
   return (
     <Sheet
       title="Objetivos diarios"
       subtitle="Tu meta de calorías y macros para cada día."
       onClose={onClose}
     >
-      <Field label="Calorías (kcal)">
-        <input className="input-field tnum" type="number" inputMode="numeric" value={kcal} onChange={e => setKcal(e.target.value)} />
-      </Field>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 10px' }}>
-        <Field label="Proteína (g)">
-          <input className="input-field tnum" type="number" inputMode="numeric" value={protein} onChange={e => setProtein(e.target.value)} />
-        </Field>
-        <Field label="Carbos (g)">
-          <input className="input-field tnum" type="number" inputMode="numeric" value={carbs} onChange={e => setCarbs(e.target.value)} />
-        </Field>
-        <Field label="Grasa (g)">
-          <input className="input-field tnum" type="number" inputMode="numeric" value={fat} onChange={e => setFat(e.target.value)} />
-        </Field>
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+        <button onClick={() => setMode('auto')} style={tabStyle(mode === 'auto')}>Recomendado</button>
+        <button onClick={() => setMode('manual')} style={tabStyle(mode === 'manual')}>Manual</button>
       </div>
-      <Button variant="primary" full size="lg" loading={saving} disabled={saving} onClick={handleSave} style={{ marginTop: '8px' }}>
-        {saving ? 'Guardando...' : 'Guardar objetivos'}
+
+      {mode === 'auto' ? (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+            <Field label="Calorías (kcal)">
+              <input className="input-field tnum" type="number" inputMode="numeric" value={goalKcal} onChange={e => setGoalKcal(e.target.value)} />
+            </Field>
+            <Field label="Peso ideal (kg)">
+              <input className="input-field tnum" type="number" inputMode="decimal" placeholder="70" value={weight} onChange={e => setWeight(e.target.value)} />
+            </Field>
+          </div>
+
+          {rec ? (
+            <div style={{ background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', padding: '14px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {[
+                  { label: 'Proteína', g: rec.protein_g, per: 4 },
+                  { label: 'Carbos',   g: rec.carbs_g,   per: 4 },
+                  { label: 'Grasa',    g: rec.fat_g,     per: 9 },
+                ].map(x => (
+                  <div key={x.label} style={{ flex: 1 }}>
+                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-dim)', marginBottom: '4px' }}>
+                      {x.label}
+                    </p>
+                    <p className="tnum" style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
+                      {x.g}<span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--c-text-muted)' }}> g</span>
+                    </p>
+                    <p className="tnum" style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', marginTop: '2px' }}>
+                      {pct(x.g, x.per, rec.kcal)}%
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '12px' }}>
+                Proteína = 2 g por kg de peso ideal · grasa 25% de las calorías · el resto, carbos.
+              </p>
+            </div>
+          ) : (
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginBottom: '12px' }}>
+              Ingresa tu meta de calorías y tu peso ideal para calcular los macros.
+            </p>
+          )}
+        </>
+      ) : (
+        <>
+          <Field label="Calorías (kcal)">
+            <input className="input-field tnum" type="number" inputMode="numeric" value={kcal} onChange={e => setKcal(e.target.value)} />
+          </Field>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 10px' }}>
+            {[
+              { label: 'Proteína (g)', value: protein, set: setProtein, per: 4 },
+              { label: 'Carbos (g)',   value: carbs,   set: setCarbs,   per: 4 },
+              { label: 'Grasa (g)',    value: fat,     set: setFat,     per: 9 },
+            ].map(x => {
+              const k = parseInt(kcal, 10)
+              const g = parseInt(x.value, 10)
+              const hint = Number.isFinite(k) && k > 0 && Number.isFinite(g) && g >= 0
+                ? `${pct(g, x.per, k)}%`
+                : undefined
+              return (
+                <Field key={x.label} label={x.label} hint={hint}>
+                  <input className="input-field tnum" type="number" inputMode="numeric" value={x.value} onChange={e => x.set(e.target.value)} />
+                </Field>
+              )
+            })}
+          </div>
+        </>
+      )}
+
+      <Button
+        variant="primary" full size="lg"
+        loading={saving} disabled={saving || (mode === 'auto' && !rec)}
+        onClick={handleSave} style={{ marginTop: '8px' }}
+      >
+        {saving ? 'Guardando...' : mode === 'auto' ? 'Usar estos objetivos' : 'Guardar objetivos'}
       </Button>
     </Sheet>
   )
@@ -222,6 +436,7 @@ export default function Nutrition() {
   const isToday = dateISO === today
 
   const { entries, totals, loading, error, refetch, addEntry, updateEntry, deleteEntry } = useNutritionDay(dateISO)
+  const { recents } = useRecentFoods()
   const { targets, saveTargets } = useNutritionTargets()
   const t = targets || DEFAULT_TARGETS
 
@@ -336,6 +551,12 @@ export default function Nutrition() {
             }} />
           </div>
 
+          <p className="tnum" style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.03em', color: kcalOver ? 'var(--c-action-text)' : 'var(--c-text-dim)', margin: '-10px 0 18px' }}>
+            {kcalOver
+              ? `${fmt(totals.kcal - t.kcal)} kcal por encima`
+              : `Quedan ${fmt(t.kcal - totals.kcal)} kcal`}
+          </p>
+
           <div style={{ display: 'flex', gap: '18px' }}>
             <MacroBar label="Proteína" current={totals.protein} target={t.protein_g} />
             <MacroBar label="Carbos"   current={totals.carbs}   target={t.carbs_g} />
@@ -431,6 +652,7 @@ export default function Nutrition() {
         <EntrySheet
           initial={sheet.entry}
           defaultMeal={sheet.meal}
+          recents={recents}
           onSave={handleSaveEntry}
           onDelete={handleDeleteEntry}
           onClose={() => setSheet(null)}
