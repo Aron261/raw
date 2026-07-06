@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useNutritionDay, useNutritionTargets, toLocalISODate, DEFAULT_TARGETS } from '../hooks/useNutrition'
@@ -33,61 +34,89 @@ function getGreeting() {
 // ── Section row ──────────────────────────────────────────────────────────
 // El menú es un índice de póster: nombre de sección en display, un dato real
 // debajo, hairline entre filas. Sin tarjetas — la tipografía es la estructura.
-function SectionRow({ title, sub, subTone = 'muted', live = false, to, soon = false, index, onNavigate }) {
+function SectionRow({ title, sub, subTone = 'muted', live = false, to, soon = false, kind, initial, index, onNavigate }) {
   const subColor = {
     muted:  'var(--c-text-muted)',
     strong: 'var(--c-text-dim)',
     action: 'var(--c-action-text)',
   }[subTone]
 
+  const isProfile = kind === 'profile'
+
   return (
     <button
       onClick={() => onNavigate(to)}
-      className="stagger-item"
+      className="stagger-item hub-row"
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
         width: '100%', textAlign: 'left',
-        padding: '22px 0',
+        // Profile sits apart from the content sections: a touch of extra top
+        // room so it reads as the account footer of the index, not a 6th world.
+        padding: isProfile ? '26px 0 22px' : '22px 0',
         background: 'transparent',
         border: 'none',
         borderTop: index === 0 ? 'none' : '1px solid var(--c-border-subtle)',
+        marginTop: isProfile ? '6px' : 0,
         cursor: 'pointer',
         animationDelay: `${index * 45}ms`,
         transition: 'opacity 150ms var(--ease-out)',
       }}
     >
-      <div style={{ minWidth: 0 }}>
-        <span
-          className="font-display"
-          style={{
-            display: 'block',
-            fontSize: '36px', lineHeight: 0.95,
-            color: soon ? 'var(--c-text-ghost)' : 'var(--c-text)',
-          }}
-        >
-          {title}
-        </span>
-        <span style={{
-          display: 'flex', alignItems: 'center', gap: '7px',
-          marginTop: '8px',
-          fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700,
-          letterSpacing: '0.03em',
-          color: subColor,
-        }}>
-          {live && (
-            <span
-              className="live-dot"
-              aria-hidden="true"
-              style={{
-                width: '7px', height: '7px', borderRadius: '50%',
-                background: 'var(--c-action)', flexShrink: 0,
-              }}
-            />
-          )}
-          {sub}
-        </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
+        {isProfile && (
+          <span
+            aria-hidden="true"
+            style={{
+              width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
+              color: 'var(--c-action-text)', fontSize: '18px', fontWeight: 900, letterSpacing: '-0.02em',
+            }}
+          >
+            {initial}
+          </span>
+        )}
+        <div style={{ minWidth: 0 }}>
+          <span
+            className={isProfile ? undefined : 'font-display text-[36px] md:text-[46px]'}
+            style={{
+              display: 'block',
+              // Profile uses the sans page-title voice (sentence case), not the
+              // Anton poster shout — it's a utility, not a content section.
+              fontFamily: isProfile ? 'var(--font-sans)' : undefined,
+              fontSize: isProfile ? '24px' : undefined,
+              fontWeight: isProfile ? 900 : undefined,
+              letterSpacing: isProfile ? '-0.03em' : undefined,
+              lineHeight: 0.95,
+              color: soon ? 'var(--c-text-ghost)' : 'var(--c-text)',
+            }}
+          >
+            {title}
+          </span>
+          <span style={{
+            display: 'flex', alignItems: 'center', gap: '7px',
+            marginTop: isProfile ? '4px' : '8px',
+            maxWidth: '100%',
+            fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700,
+            letterSpacing: '0.03em',
+            color: subColor,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {live && (
+              <span
+                className="live-dot"
+                aria-hidden="true"
+                style={{
+                  width: '7px', height: '7px', borderRadius: '50%',
+                  background: 'var(--c-action)', flexShrink: 0,
+                }}
+              />
+            )}
+            {sub}
+          </span>
+        </div>
       </div>
-      <span aria-hidden="true" style={{ color: 'var(--c-text-ghost)', fontSize: '20px', flexShrink: 0, fontFamily: 'var(--font-mono)' }}>
+      <span aria-hidden="true" className="hub-arrow" style={{ color: 'var(--c-text-ghost)', fontSize: '20px', flexShrink: 0, fontFamily: 'var(--font-mono)' }}>
         →
       </span>
     </button>
@@ -97,6 +126,7 @@ function SectionRow({ title, sub, subTone = 'muted', live = false, to, soon = fa
 // ── Hub ──────────────────────────────────────────────────────────────────
 export default function Hub() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const { profile } = useProfile()
   const firstName = profile?.name?.split(' ')[0] || ''
   const isTrainer = !!profile?.is_trainer
@@ -144,16 +174,19 @@ export default function Hub() {
     ? `${unread} ${unread === 1 ? 'mensaje sin leer' : 'mensajes sin leer'}`
     : 'Tus clientes'
 
+  const profileSub = profile?.name || user?.email || 'Ajustes y cuenta'
+
   const rows = [
     { title: 'Entreno',    sub: trainingSub,  to: '/training',  live: !!activeWorkout, subTone: activeWorkout ? 'action' : 'muted' },
     { title: 'Nutrición',  sub: nutritionSub, to: '/nutrition' },
     { title: 'Longevidad', sub: longevitySub, to: '/longevity' },
     ...(isTrainer ? [{ title: 'Coach', sub: coachSub, to: '/coach', subTone: unread > 0 ? 'action' : 'muted' }] : []),
     { title: 'Social',     sub: 'Próximamente', to: '/social', soon: true },
+    { title: 'Perfil',     sub: profileSub, to: '/profile', kind: 'profile', initial: (profile?.name || user?.email || '?').charAt(0).toUpperCase() },
   ]
 
   return (
-    <Layout showProfile>
+    <Layout>
       <div className="w-full px-5 pt-10 pb-10 max-w-[480px] mx-auto md:max-w-[640px] md:px-8 md:py-12">
 
         {/* ── Header ── */}
@@ -161,7 +194,7 @@ export default function Hub() {
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-data)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
             {dateStr}
           </p>
-          <h1 className="pr-12 md:pr-0" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
+          <h1 className="text-[30px] md:text-[36px]" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
             {getGreeting()}{firstName ? `, ${firstName}` : ''}
           </h1>
         </div>

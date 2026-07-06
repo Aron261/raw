@@ -863,9 +863,9 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="fade-in" style={{ padding: '32px 20px 60px', maxWidth: '600px', margin: '0 auto', width: '100%' }}>
+      <div className="fade-in w-full mx-auto max-w-[600px] lg:max-w-[960px]" style={{ padding: '32px 20px 60px' }}>
 
-        {/* Header */}
+        {/* Header — avatar beside identity; back button only on mobile */}
         <div style={{ marginBottom: '32px' }}>
           <button
             onClick={() => navigate(-1)}
@@ -875,28 +875,36 @@ export default function Profile() {
           >
             ←
           </button>
-          <div style={{
-            width: '64px', height: '64px', borderRadius: '50%',
-            background: 'var(--c-accent-dim)', border: '2px solid var(--c-accent-border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px',
-          }}>
-            <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--c-action-text)', letterSpacing: '-0.03em' }}>
-              {form.name ? form.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
-            </span>
-          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{
+              width: '64px', height: '64px', borderRadius: '50%', flexShrink: 0,
+              background: 'var(--c-accent-dim)', border: '2px solid var(--c-accent-border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--c-action-text)', letterSpacing: '-0.03em' }}>
+                {form.name ? form.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
+              </span>
+            </div>
 
-          <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1.02 }}>
-            {form.name || 'Tu perfil'}
-          </h1>
-          {age !== null && (
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', marginTop: '4px' }}>
-              {age} años{form.sex ? ` · ${form.sex}` : ''}
-            </p>
-          )}
-          <p style={{ color: 'var(--c-text-ghost)', fontSize: '11px', marginTop: '2px' }}>{user?.email}</p>
+            <div style={{ minWidth: 0 }}>
+              <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1.02 }}>
+                {form.name || 'Tu perfil'}
+              </h1>
+              {age !== null && (
+                <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', marginTop: '4px' }}>
+                  {age} años{form.sex ? ` · ${form.sex}` : ''}
+                </p>
+              )}
+              <p style={{ color: 'var(--c-text-ghost)', fontSize: '11px', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {/* Sections — una columna en móvil; en pantallas anchas dos: lo que se
+            edita a menudo (datos, entrenamiento, peso) a la izquierda y la
+            configuración (entrenador, apariencia, cuenta) a la derecha. */}
+        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
+          <div className="flex flex-col gap-6 min-w-0">
 
           {/* ── Mis características (summary → sheet) ── */}
           <section style={CARD}>
@@ -956,6 +964,10 @@ export default function Profile() {
           {/* ── Peso corporal (collapsed → sheet) ── */}
           <BodyWeightSummary unit={weightUnit} onOpen={() => setSheet('weight')} />
 
+          </div>{/* /col 1 */}
+
+          <div className="flex flex-col gap-6 min-w-0">
+
           {/* ── Entrenador ── */}
           <TrainerSection />
 
@@ -1000,6 +1012,8 @@ export default function Profile() {
           >
             Cerrar sesión
           </button>
+
+          </div>{/* /col 2 */}
         </div>
       </div>
 

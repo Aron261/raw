@@ -75,15 +75,6 @@ function SocialIcon() {
   )
 }
 
-function ProfileIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-    </svg>
-  )
-}
-
 function CoachIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -221,24 +212,42 @@ export default function Sidebar() {
 
       <div style={{ height: '1px', background: 'var(--c-border-subtle)', margin: '0 16px' }} />
 
-      {/* Perfil + user + sign out */}
+      {/* Perfil — avatar + identidad, la misma entrada que la fila del hub */}
       <div style={{ padding: '10px 8px 0' }}>
-        <NavItem to="/profile" label="Perfil" Icon={ProfileIcon} />
+        <NavLink
+          to="/profile"
+          style={({ isActive }) => ({
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '8px 10px',
+            borderRadius: '10px',
+            background: isActive ? 'var(--c-surface-2)' : 'transparent',
+            transition: `background 150ms var(--ease-out)`,
+          })}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
+              color: 'var(--c-action-text)', fontSize: '13px', fontWeight: 900, letterSpacing: '-0.02em',
+            }}
+          >
+            {(profile?.name || user?.email || '?').charAt(0).toUpperCase()}
+          </span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {profile?.name || 'Perfil'}
+            </span>
+            <span style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: 'var(--c-text-ghost)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '1px' }}>
+              {user?.email}
+            </span>
+          </span>
+        </NavLink>
       </div>
       <div style={{ padding: '10px 24px 24px' }}>
-        <p
-          style={{
-            fontSize: '10px',
-            fontWeight: 600,
-            color: 'var(--c-text-ghost)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            marginBottom: '10px',
-          }}
-        >
-          {user?.email}
-        </p>
         <button
           onClick={handleSignOut}
           style={{
@@ -262,7 +271,7 @@ export default function Sidebar() {
             e.currentTarget.style.borderColor = 'var(--c-border-subtle)'
           }}
         >
-          Sign Out
+          Cerrar sesión
         </button>
       </div>
     </aside>

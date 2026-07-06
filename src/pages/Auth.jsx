@@ -56,20 +56,43 @@ export default function Auth() {
   }
 
   return (
-    <div
-      className="fade-in"
-      style={{
-        minHeight: '100dvh',
-        background: 'var(--c-bg)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '32px 24px',
-      }}
-    >
-      {/* ── Logo + Branding ── */}
-      <div style={{ textAlign: 'center', marginBottom: '36px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+    <div className="fade-in min-h-dvh lg:grid lg:grid-cols-2" style={{ background: 'var(--c-bg)' }}>
+
+      {/* ── Panel de marca (solo PC) — el único bloque "drenched" del acceso:
+             fondo acción con texto on-action (regla Ink-on-Pink) ── */}
+      <div
+        className="hidden lg:flex"
+        style={{
+          background: 'var(--c-action)', color: 'var(--c-on-action)',
+          flexDirection: 'column', justifyContent: 'space-between',
+          padding: '48px', minHeight: '100dvh',
+        }}
+      >
+        <span className="font-display" style={{ fontSize: '26px', lineHeight: 1 }}>RAW</span>
+        <div>
+          <p className="font-display" style={{ fontSize: 'clamp(44px, 4.5vw, 72px)', lineHeight: 1.04 }}>
+            Registra.<br />Progresa.<br />Nada más.
+          </p>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.32em', marginTop: '20px' }}>
+            We Do Gym
+          </p>
+        </div>
+      </div>
+
+      {/* ── Columna de acceso — en móvil es la pantalla completa ── */}
+      <div
+        style={{
+          minHeight: '100dvh',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          padding: '32px 24px',
+        }}
+      >
+
+      {/* ── Logo + Branding — en PC la marca vive en el panel izquierdo.
+             display lo controlan las clases (flex / lg:hidden); no ponerlo
+             inline o pisaría el lg:hidden. ── */}
+      <div className="flex lg:hidden" style={{ textAlign: 'center', marginBottom: '36px', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
         <Logo size={96} />
         <span style={{ fontFamily: 'var(--font-display)', fontSize: '42px', letterSpacing: '0.03em', color: 'var(--c-text)', lineHeight: 1 }}>
           RAW
@@ -273,6 +296,8 @@ export default function Auth() {
           )}
         </div>
       </div>
+
+      </div>{/* /columna de acceso */}
     </div>
   )
 }

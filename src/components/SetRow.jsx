@@ -16,6 +16,7 @@ export default function SetRow({
   unit,
   allTimeBest1RM,
   previousSet = null,   // { reps, weight } from the last session — shown as the ghost placeholder
+  targetReps = null,    // routine's prescribed reps (e.g. "8-12") — reps hint when there's no prior set
   done = false,
   readOnly = false,
   onSave,        // (setNumber, reps, weight, markDone) => Promise
@@ -37,6 +38,12 @@ export default function SetRow({
   }, [set?.id, set?.reps, set?.weight])
 
   const filled = reps !== '' && weight !== ''
+  // The reps box is narrow; only hint the routine target inside it when it's a
+  // plain number (e.g. "10"). Ranges/text ("8-12", "Al fallo") would clip, so
+  // those live only in the exercise header's target chip.
+  const repsHint = previousSet
+    ? String(previousSet.reps)
+    : (targetReps && /^\d+$/.test(String(targetReps).trim()) ? String(targetReps).trim() : 'reps')
   const { set1RM, isPR } = useMemo(() => {
     const rm = calc1RM(parseFloat(weight) || 0, parseInt(reps, 10) || 0)
     return { set1RM: rm, isPR: rm > 0 && allTimeBest1RM > 0 && rm >= allTimeBest1RM }
@@ -93,7 +100,7 @@ export default function SetRow({
         onBlur={handleBlur}
         className="input-field set-input"
         style={inputStyle(52)}
-        placeholder={previousSet ? String(previousSet.reps) : 'reps'}
+        placeholder={repsHint}
         min="1"
         aria-label={`Reps serie ${setNumber}`}
       />

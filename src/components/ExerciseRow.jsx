@@ -63,13 +63,23 @@ export default function ExerciseRow({
   const { allTimeBestWeight } = useExerciseAllTimeBest(exercise?.id, user?.id)
   const { previousSets } = usePreviousSets(exercise?.id, workoutId, user?.id)
 
-  // Number of rows to show: at least the saved sets, defaulting to last
-  // session's set count (or 3) so a lifter sees their plan laid out and just
-  // fills it in. Grows with "+ fila"; never shrinks below the saved sets.
-  const [targetCount, setTargetCount] = useState(() => Math.max(sets.length, 3))
+  // The routine's prescription for this exercise, when the workout came from a
+  // routine day: target_sets (count) + target_reps (text, e.g. "8-12"). Shown
+  // as a guide — the lifter can still add or remove rows freely.
+  const targetSets = workoutExercise.target_sets || null
+  const targetReps = workoutExercise.target_reps || null
+
+  // Number of rows to show: at least the saved sets. Before anything's logged
+  // we lay out the routine's prescribed set count (so the plan appears exactly
+  // as written); with no routine we fall back to last session's count, then 3.
+  // Grows with "+ Serie"; never shrinks below the saved sets.
+  const [targetCount, setTargetCount] = useState(() => Math.max(sets.length, targetSets || 3))
   useEffect(() => {
-    if (sets.length === 0 && previousSets.length > 0) setTargetCount(previousSets.length)
-  }, [previousSets.length, sets.length])
+    if (sets.length === 0) {
+      if (targetSets) setTargetCount(targetSets)
+      else if (previousSets.length > 0) setTargetCount(previousSets.length)
+    }
+  }, [previousSets.length, sets.length, targetSets])
   const plannedCount = Math.max(sets.length, targetCount)
 
   const doneCount = useMemo(
@@ -238,6 +248,21 @@ export default function ExerciseRow({
               </span>
             )}
 
+            {/* Routine target — the prescribed sets × reps, shown as a guide */}
+            {(targetSets || targetReps) && (
+              <span
+                title="Objetivo de tu rutina"
+                style={{
+                  flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
+                  letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--c-text-dim)',
+                  border: '1px solid var(--c-border-subtle)', borderRadius: '4px', padding: '2px 5px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {targetSets ? `${targetSets}×` : ''}{targetReps || ''}
+              </span>
+            )}
+
             {isNewPR && <PRBadge small />}
 
             <span className={`chevron ${expanded ? 'open' : ''}`} style={{ marginLeft: 'auto', color: 'var(--c-text-ghost)', fontSize: '10px', flexShrink: 0 }}>▼</span>
@@ -349,6 +374,7 @@ export default function ExerciseRow({
                     unit={unit}
                     allTimeBest1RM={allTimeBestWeight}
                     previousSet={previousSets[i] || null}
+                    targetReps={targetReps}
                     done={set ? !!completedSetIds?.has(set.id) : false}
                     onSave={saveRow}
                     onToggleDone={onToggleSetDone}

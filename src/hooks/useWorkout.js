@@ -113,37 +113,6 @@ export function useWorkouts() {
     return Object.fromEntries((data || []).map(e => [e.name, e.id]))
   }
 
-  // Create a workout pre-populated with a routine's exercises
-  const createWorkoutFromRoutine = async (routine) => {
-    // 1. Create the workout using the routine name
-    const { data: workoutData, error: workoutErr } = await supabase
-      .from('workouts')
-      .insert({ user_id: user.id, name: routine.name, started_at: new Date().toISOString() })
-      .select()
-      .single()
-    if (workoutErr) throw workoutErr
-
-    // 2. Resolve every exercise id up front, then insert the join rows in one call
-    const exercises = [...(routine.routine_exercises || [])].sort((a, b) => a.sort_order - b.sort_order)
-    const idByName = await resolveExerciseIds(exercises.map(re => re.exercises?.name))
-
-    const rows = exercises
-      .filter(re => re.exercises?.name && idByName[re.exercises.name])
-      .map(re => ({
-        workout_id: workoutData.id,
-        exercise_id: idByName[re.exercises.name],
-        sort_order: re.sort_order,
-        unit: re.unit || 'lb',
-      }))
-    if (rows.length > 0) {
-      const { error: weErr } = await supabase.from('workout_exercises').insert(rows)
-      if (weErr) throw weErr
-    }
-
-    await fetchWorkouts()
-    return workoutData
-  }
-
   const deleteWorkout = async (id) => {
     setError(null)
     try {
@@ -188,11 +157,20 @@ export function useWorkouts() {
     return newWorkout
   }
 
-  // Create a new workout pre-loaded with exercises from a cycle day
+  // Create a new workout pre-loaded with exercises from a cycle day.
+  // Links back to the routine + day so the active workout can surface the
+  // day's prescribed sets/reps as a guide (and cycle progression advances).
   const createWorkoutFromCycleDay = async (cycleDay) => {
     const { data: workoutData, error: workoutErr } = await supabase
       .from('workouts')
-      .insert({ user_id: user.id, name: cycleDay.day_name, started_at: new Date().toISOString() })
+      .insert({
+        user_id: user.id,
+        name: cycleDay.day_name,
+        started_at: new Date().toISOString(),
+        routine_id: cycleDay.routineId || null,
+        routine_day_id: cycleDay.id || null,
+        source: cycleDay.routineId ? 'routine' : 'manual',
+      })
       .select()
       .single()
     if (workoutErr) throw workoutErr
@@ -218,7 +196,7 @@ export function useWorkouts() {
     return workoutData
   }
 
-  return { workouts, loading, error, fetchWorkouts, createWorkout, createWorkoutFromRoutine, updateWorkout, deleteWorkout, duplicateWorkout, createWorkoutFromCycleDay }
+  return { workouts, loading, error, fetchWorkouts, createWorkout, updateWorkout, deleteWorkout, duplicateWorkout, createWorkoutFromCycleDay }
 }
 
 // Hook to manage a single active workout
@@ -257,11 +235,35 @@ export function useActiveWorkout(workoutId) {
 
       if (exercisesError) throw exercisesError
 
-      // Sort sets by set_number within each exercise
-      const sorted = (exercisesData || []).map(we => ({
-        ...we,
-        sets: [...(we.sets || [])].sort((a, b) => a.set_number - b.set_number)
-      }))
+      // Prescription guide: if this workout came from a routine day, pull that
+      // day's planned sets/reps so each exercise can show its target (e.g.
+      // "4 × 8-12") and lay out the prescribed number of rows to fill in. It's
+      // a live guide, not stored history — the lifter can still do more or less.
+      // Best-effort: a lookup failure must never block the workout from loading.
+      let planByName = {}
+      if (workoutData.routine_day_id) {
+        try {
+          const { data: planned } = await supabase
+            .from('routine_day_exercises')
+            .select('exercise_name, sets, reps')
+            .eq('routine_day_id', workoutData.routine_day_id)
+          for (const p of (planned || [])) {
+            const key = (p.exercise_name || '').trim().toLowerCase()
+            if (key) planByName[key] = { sets: p.sets, reps: p.reps }
+          }
+        } catch { /* no guide — fall back to previous-session defaults */ }
+      }
+
+      // Sort sets by set_number within each exercise; attach the routine target.
+      const sorted = (exercisesData || []).map(we => {
+        const plan = planByName[(we.exercises?.name || '').trim().toLowerCase()]
+        return {
+          ...we,
+          target_sets: plan?.sets ?? null,
+          target_reps: plan?.reps ?? null,
+          sets: [...(we.sets || [])].sort((a, b) => a.set_number - b.set_number),
+        }
+      })
 
       setWorkoutExercises(sorted)
     } catch (err) {

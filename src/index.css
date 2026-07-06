@@ -360,6 +360,18 @@
   .card-hover:hover {
     border-color: var(--c-border);
   }
+
+  /* Hub poster index: on pointer devices the arrow slides toward the
+     destination and takes the accent — a quiet "this is a link" cue that
+     touch users never need. */
+  .hub-row:hover .hub-arrow {
+    transform: translateX(5px);
+    color: var(--c-accent);
+  }
+}
+
+.hub-arrow {
+  transition: transform 200ms var(--ease-out), color 200ms var(--ease-out);
 }
 
 /* ─── Reduced motion ────────────────────────────────────────────────── */
@@ -375,5 +387,9 @@
   }
   .exercise-sets-wrapper {
     transition: none;
+  }
+  .hub-arrow {
+    transition: none;
+    transform: none;
   }
 }
