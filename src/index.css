@@ -355,6 +355,17 @@
   display: inline-block;
 }
 
+/* ─── Skeleton loading ──────────────────────────────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+.skeleton {
+  background: var(--c-surface-2);
+  border-radius: var(--r-md);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
 /* ─── Hover guards (touch devices) ─────────────────────────────────── */
 @media (hover: hover) and (pointer: fine) {
   .card-hover:hover {
@@ -384,6 +395,12 @@
     animation: none;
     opacity: 1;
     transform: none;
+  }
+  .skeleton {
+    animation: none;
+  }
+  .live-dot {
+    animation: none;
   }
   .exercise-sets-wrapper {
     transition: none;

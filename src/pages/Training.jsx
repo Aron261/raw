@@ -11,7 +11,8 @@ import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { useInvites } from '../hooks/useInvites'
 import { useTheme } from '../hooks/useTheme'
 import { ERROR_STYLE } from '../lib/ui'
-import { Sheet, Field, Button } from '../components/ui'
+import { Sheet, Field, Button, LiveRegion, UndoSnackbar } from '../components/ui'
+import { useUndoableDelete } from '../hooks/useUndoableDelete'
 
 // Chart colors must be literal hex — CSS vars don't resolve in recharts SVG attrs.
 const CHART_COLORS = {
@@ -359,6 +360,10 @@ export default function Training() {
   const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
   const [startingCoachId, setStartingCoachId] = useState(null)
 
+  // Undoable goal delete (shared primitive) — hides optimistically, commits
+  // after a grace window, announces state to screen readers.
+  const goalDelete = useUndoableDelete(goal => deleteGoal(goal.id))
+
   const { activeRoutine, routines } = useRoutines()
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
   const { trainers } = useInvites()
@@ -468,7 +473,7 @@ export default function Training() {
 
   // ── Stats + PR + starLift ─────────────────────────────────────────────
   const stats = useMemo(() => {
-    const empty = { count: 0, weekVolume: 0, chartData: [], thisMonth: 0, weekPR: null, starLift: null }
+    const empty = { count: 0, weekVolume: 0, chartData: [], thisMonth: 0, weekPR: null }
     if (!workouts.length) return empty
 
     const monday = getMondayOfWeek()
@@ -558,29 +563,12 @@ export default function Training() {
       }
     })
 
-    // Mejor 1RM de todos los tiempos (starLift)
-    const allBest = {}
-    workouts.filter(w => w.ended_at).forEach(w => {
-      ;(w.workout_exercises || []).forEach(we => {
-        const name = we.exercises?.name
-        if (!name) return
-        ;(we.sets || []).forEach(s => {
-          const rm = calc1RM(s.weight, s.reps)
-          if (!allBest[name] || rm > allBest[name].rm) {
-            allBest[name] = { rm, unit: we.unit }
-          }
-        })
-      })
-    })
-    const starLift = Object.entries(allBest)
-      .map(([name, d]) => ({ exercise: name, ...d }))
-      .sort((a, b) => b.rm - a.rm)[0] || null
-
-    return { count: thisWeekWorkouts.length, weekVolume: Math.round(weekVolume), chartData, thisMonth, weekPR, starLift }
+    return { count: thisWeekWorkouts.length, weekVolume: Math.round(weekVolume), chartData, thisMonth, weekPR }
   }, [workouts])
 
   // ── Progreso de metas ─────────────────────────────────────────────────
-  const goalProgress = goals.map(goal => {
+  // Hide any goal awaiting an undoable delete so it vanishes optimistically.
+  const goalProgress = goals.filter(g => g.id !== goalDelete.pending?.id).map(goal => {
     if (goal.type === 'days_trained') {
       const current = stats.thisMonth || 0
       const pct = Math.min(100, Math.round((current / goal.target_value) * 100))
@@ -723,18 +711,16 @@ export default function Training() {
 
   // ── Helpers visuales ─────────────────────────────────────────────────
   const getMotivation = (pct) => {
-    if (pct >= 100) return 'Meta cumplida. Seteá una nueva.'
-    if (pct >= 75)  return 'Casi ahí. Un empujón más.'
-    if (pct >= 50)  return 'Ya pasaste la mitad. No aflojés.'
-    if (pct >= 25)  return 'Buen arranque. Mantené el ritmo.'
-    return 'Recién empezando. Cada entreno cuenta.'
+    if (pct >= 100) return 'Meta cumplida. Crea una nueva.'
+    if (pct >= 75)  return 'Ya casi. Te falta poco.'
+    if (pct >= 50)  return 'Vas por la mitad. Sigue así.'
+    if (pct >= 25)  return 'Buen arranque. Mantén el ritmo.'
+    return 'Apenas empiezas. Suma tu próximo entreno.'
   }
 
-  const getMotivationColor = (pct) => {
-    if (pct >= 100) return 'var(--c-success)'
-    if (pct >= 75)  return 'oklch(65% 0.18 60)'
-    return 'var(--c-text-muted)'
-  }
+  // On-palette + AA in every theme: success green at 100%, muted otherwise.
+  // (No off-system amber; the % badge and bar already encode the tier.)
+  const getMotivationColor = (pct) => (pct >= 100 ? 'var(--c-success)' : 'var(--c-text-muted)')
 
   // ─────────────────────────────────────────────────────────────────────
   return (
@@ -764,18 +750,23 @@ export default function Training() {
           </div>
         </div>
 
-        {/* ── Loading skeleton ── */}
+        {/* ── Loading skeleton — foreshadows CTA · resumen · gráfico ── */}
         {loading && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
-            {[...Array(3)].map((_, i) => (
-              <div key={i} style={{
-                height: '64px',
-                background: 'var(--c-surface)',
-                border: '1px solid var(--c-border-subtle)',
-                borderRadius: '16px',
-                opacity: 1 - i * 0.25,
-              }} />
-            ))}
+          <div aria-hidden="true" style={{ marginBottom: '24px' }}>
+            {/* CTA */}
+            <div className="skeleton" style={{ height: '56px', borderRadius: '14px', marginBottom: '28px' }} />
+            {/* Resumen semanal: eyebrow + 3 números */}
+            <div className="skeleton" style={{ height: '10px', width: '96px', borderRadius: '6px', marginBottom: '16px' }} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
+              {[...Array(3)].map((_, i) => (
+                <div key={i}>
+                  <div className="skeleton" style={{ height: '38px', borderRadius: '10px', marginBottom: '8px' }} />
+                  <div className="skeleton" style={{ height: '8px', width: '70%', borderRadius: '6px' }} />
+                </div>
+              ))}
+            </div>
+            {/* Gráfico */}
+            <div className="skeleton" style={{ height: '210px', borderRadius: '16px' }} />
           </div>
         )}
 
@@ -964,7 +955,7 @@ export default function Training() {
                   { value: stats.thisMonth, label: 'días este mes' },
                 ].map((s, i) => (
                   <div key={s.label} style={{ paddingLeft: i > 0 ? '16px' : 0, borderLeft: i > 0 ? '1px solid var(--c-border-subtle)' : 'none' }}>
-                    <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-display)', fontSize: '42px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '8px' }}>
+                    <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '42px', letterSpacing: '-0.04em', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', marginBottom: '8px' }}>
                       {s.value}
                     </p>
                     <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
@@ -1038,7 +1029,7 @@ export default function Training() {
                     <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 600, marginBottom: '4px', lineHeight: 1.3 }}>
                       {todayHighlight.title}
                     </p>
-                    <p className="font-display" style={{ color: 'var(--c-text)', fontSize: '40px', letterSpacing: '0.01em', lineHeight: 0.9, marginBottom: '8px' }}>
+                    <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '40px', letterSpacing: '-0.04em', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', marginBottom: '8px' }}>
                       {todayHighlight.value}
                     </p>
                     <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, lineHeight: 1.5 }}>
@@ -1061,8 +1052,9 @@ export default function Training() {
                     <button
                       onClick={() => setShowGoalModal(true)}
                       style={{
-                        color: 'var(--c-accent)', fontSize: '18px', lineHeight: 1,
-                        padding: '0 4px', fontWeight: 300,
+                        color: 'var(--c-accent)', fontSize: '22px', lineHeight: 1, fontWeight: 300,
+                        minWidth: '44px', minHeight: '44px', margin: '-11px -10px -11px 0',
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'opacity 150ms',
                       }}
                       onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
@@ -1074,7 +1066,7 @@ export default function Training() {
                     </button>
                   </div>
 
-                  {goals.length === 0 ? (
+                  {goalProgress.length === 0 ? (
                     /* Empty state humanizado */
                     <div style={{
                       background: 'var(--c-surface-2)',
@@ -1120,11 +1112,14 @@ export default function Training() {
                               </p>
                             </div>
                             <button
-                              onClick={() => deleteGoal(goal.id)}
-                              style={{ color: 'var(--c-text-muted)', fontSize: '12px', padding: '2px 4px', marginLeft: '8px', flexShrink: 0, transition: 'color 120ms' }}
+                              onClick={() => goalDelete.request(goal, {
+                                deletedMsg: `Meta «${goal.label}» eliminada. Toca deshacer para recuperarla.`,
+                                restoredMsg: `Meta «${goal.label}» restaurada.`,
+                              })}
+                              style={{ color: 'var(--c-text-muted)', fontSize: '13px', minWidth: '44px', minHeight: '44px', margin: '-12px -10px -12px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 120ms' }}
                               onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
                               onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
-                              aria-label="Eliminar meta"
+                              aria-label={`Eliminar meta: ${goal.label}`}
                               title="Eliminar meta"
                             >
                               ✕
@@ -1194,10 +1189,14 @@ export default function Training() {
       {showGoalModal && (
         <GoalModal
           onClose={() => setShowGoalModal(false)}
-          onSave={async (data) => { await createGoal(data); setShowGoalModal(false) }}
+          onSave={async (data) => { await createGoal(data); setShowGoalModal(false); goalDelete.setLiveMsg(`Meta «${data.label}» creada.`) }}
           exercises={userExercises}
         />
       )}
+
+      {/* ── Feedback compartido: región viva + snackbar de deshacer ── */}
+      <LiveRegion>{goalDelete.liveMsg}</LiveRegion>
+      <UndoSnackbar show={!!goalDelete.pending} message="Meta eliminada" onUndo={goalDelete.undo} />
     </Layout>
   )
 }
