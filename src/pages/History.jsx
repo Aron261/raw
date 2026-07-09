@@ -1,12 +1,21 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import WorkoutCard from '../components/WorkoutCard'
+import { LiveRegion, UndoSnackbar } from '../components/ui'
+import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import { useWorkouts, calc1RM, calcVolume } from '../hooks/useWorkout'
 
 const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : v.toLocaleString())
 
 export default function History() {
+  const navigate = useNavigate()
   const { workouts, loading, error, fetchWorkouts, deleteWorkout, duplicateWorkout } = useWorkouts()
+
+  // Undoable delete (shared primitive) — hide optimistically, commit after a
+  // grace window, announce to screen readers.
+  const workoutDelete = useUndoableDelete(w => deleteWorkout(w.id))
+  const visibleWorkouts = workouts.filter(w => w.id !== workoutDelete.pending?.id)
 
   // Workout ids that set an all-time PR — a set whose estimated 1RM beat the
   // running best for that exercise. Walk oldest → newest so "best so far" is true.
@@ -34,7 +43,7 @@ export default function History() {
   // Group by month (Spanish, capitalized) + per-month session count and volume.
   const months = useMemo(() => {
     const acc = {}
-    for (const w of workouts) {
+    for (const w of visibleWorkouts) {
       const d = new Date(w.started_at)
       const raw = d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
       const key = raw.charAt(0).toUpperCase() + raw.slice(1)
@@ -46,7 +55,7 @@ export default function History() {
       acc[key].volume += calcVolume(sets)
     }
     return acc
-  }, [workouts])
+  }, [workouts, workoutDelete.pending?.id])
 
   return (
     <Layout>
@@ -57,15 +66,22 @@ export default function History() {
             Historial
           </h1>
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
-            {workouts.length} {workouts.length === 1 ? 'entreno registrado' : 'entrenos registrados'}
+            {visibleWorkouts.length} {visibleWorkouts.length === 1 ? 'entreno registrado' : 'entrenos registrados'}
           </p>
         </div>
 
-        {/* Loading state */}
+        {/* Loading state — foreshadows month header + cards */}
         {loading && (
-          <div className="space-y-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="animate-pulse h-24" style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px' }} />
+          <div aria-hidden="true">
+            {[...Array(2)].map((_, g) => (
+              <div key={g} style={{ marginBottom: '32px' }}>
+                <div className="skeleton" style={{ height: '11px', width: '120px', borderRadius: '6px', marginBottom: '14px' }} />
+                <div className="space-y-3">
+                  {[...Array(2)].map((_, i) => (
+                    <div key={i} className="skeleton" style={{ height: '96px', borderRadius: '16px', opacity: 1 - (g * 2 + i) * 0.12 }} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -81,10 +97,18 @@ export default function History() {
         )}
 
         {/* Empty state */}
-        {!loading && !error && workouts.length === 0 && (
-          <div className="text-center py-16" style={{ border: '1px dashed var(--c-border)', borderRadius: '16px' }}>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '14px', fontWeight: 600 }}>Sin entrenos aún</p>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px' }}>Empieza tu primera sesión desde el inicio.</p>
+        {!loading && !error && visibleWorkouts.length === 0 && (
+          <div className="text-center py-16" style={{ border: '1px dashed var(--c-border)', borderRadius: '16px', padding: '48px 24px' }}>
+            <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em' }}>Sin entrenos aún</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px', lineHeight: 1.5, maxWidth: '30ch', marginInline: 'auto' }}>
+              Cada sesión que registres aparece aquí, agrupada por mes.
+            </p>
+            <button
+              onClick={() => navigate('/training')}
+              style={{ marginTop: '16px', background: 'var(--c-accent)', color: 'var(--c-on-action)', border: 'none', borderRadius: '12px', padding: '11px 20px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+            >
+              Empezar un entreno
+            </button>
           </div>
         )}
 
@@ -105,7 +129,10 @@ export default function History() {
                     <WorkoutCard
                       key={workout.id}
                       workout={workout}
-                      onDelete={deleteWorkout}
+                      onDelete={w => workoutDelete.request(w, {
+                        deletedMsg: `Entreno «${w.name}» eliminado. Toca deshacer para recuperarlo.`,
+                        restoredMsg: `Entreno «${w.name}» restaurado.`,
+                      })}
                       onDuplicate={duplicateWorkout}
                       hasPR={prWorkoutIds.has(workout.id)}
                     />
@@ -116,6 +143,10 @@ export default function History() {
           </div>
         )}
       </div>
+
+      {/* Feedback compartido: región viva + snackbar de deshacer */}
+      <LiveRegion>{workoutDelete.liveMsg}</LiveRegion>
+      <UndoSnackbar show={!!workoutDelete.pending} message="Entreno eliminado" onUndo={workoutDelete.undo} />
     </Layout>
   )
 }

@@ -19,21 +19,24 @@ export const MEALS = [
 ]
 
 // Entradas de un día concreto. Cacheado por día para que navegar entre
-// fechas (y volver) renderice al instante.
-export function useNutritionDay(dateISO) {
+// fechas (y volver) renderice al instante. Sin targetUserId es el propio
+// registro; con targetUserId un entrenador lee el de ese cliente (RLS solo
+// le permite lectura de entradas).
+export function useNutritionDay(dateISO, targetUserId = null) {
   const { user } = useAuth()
-  const key = user ? `nutrition:${user.id}:${dateISO}` : null
+  const ownerId = targetUserId || user?.id
+  const key = ownerId ? `nutrition:${ownerId}:${dateISO}` : null
 
   const fetcher = useCallback(async () => {
     const { data, error } = await supabase
       .from('nutrition_entries')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', ownerId)
       .eq('eaten_on', dateISO)
       .order('created_at', { ascending: true })
     if (error) throw error
     return data || []
-  }, [user?.id, dateISO])
+  }, [ownerId, dateISO])
 
   const { data, loading, error, refetch } = useCachedResource(key, fetcher)
   const entries = data || []
@@ -41,13 +44,13 @@ export function useNutritionDay(dateISO) {
   const addEntry = useCallback(async (fields) => {
     const { data: row, error: err } = await supabase
       .from('nutrition_entries')
-      .insert({ user_id: user.id, eaten_on: dateISO, ...fields })
+      .insert({ user_id: ownerId, eaten_on: dateISO, ...fields })
       .select()
       .single()
     if (err) throw err
     mutateCache(key, prev => [...(prev || []), row])
     return row
-  }, [user?.id, dateISO, key])
+  }, [ownerId, dateISO, key])
 
   const updateEntry = useCallback(async (id, patch) => {
     const { data: row, error: err } = await supabase
@@ -146,20 +149,22 @@ export function recommendMacros(kcal, weightKg) {
   return { kcal: Math.round(kcal), protein_g, carbs_g, fat_g }
 }
 
-// Objetivos diarios del usuario (una fila por usuario; defaults si no existe).
-export function useNutritionTargets() {
+// Objetivos diarios (una fila por usuario; defaults si no existe). Con
+// targetUserId, un entrenador lee y planifica los objetivos de ese cliente.
+export function useNutritionTargets(targetUserId = null) {
   const { user } = useAuth()
-  const key = user ? `nutrition-targets:${user.id}` : null
+  const ownerId = targetUserId || user?.id
+  const key = ownerId ? `nutrition-targets:${ownerId}` : null
 
   const fetcher = useCallback(async () => {
     const { data, error } = await supabase
       .from('nutrition_targets')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', ownerId)
       .maybeSingle()
     if (error) throw error
     return data   // null = sin configurar todavía
-  }, [user?.id])
+  }, [ownerId])
 
   const { data, loading, error } = useCachedResource(key, fetcher)
   const targets = data || null
@@ -167,13 +172,44 @@ export function useNutritionTargets() {
   const saveTargets = useCallback(async (fields) => {
     const { data: row, error: err } = await supabase
       .from('nutrition_targets')
-      .upsert({ user_id: user.id, ...fields, updated_at: new Date().toISOString() })
+      .upsert({ user_id: ownerId, ...fields, updated_at: new Date().toISOString() })
       .select()
       .single()
     if (err) throw err
     mutateCache(key, row)
     return row
-  }, [user?.id, key])
+  }, [ownerId, key])
 
   return { targets, hasCustomTargets: !!data, loading, error, saveTargets }
+}
+
+// Totales por día de un rango de fechas (para el resumen semanal del
+// entrenador). Devuelve un mapa { 'YYYY-MM-DD': { kcal, protein, carbs, fat, count } }.
+export function useNutritionRange(fromISO, toISO, targetUserId = null) {
+  const { user } = useAuth()
+  const ownerId = targetUserId || user?.id
+  const key = ownerId ? `nutrition-range:${ownerId}:${fromISO}:${toISO}` : null
+
+  const fetcher = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('nutrition_entries')
+      .select('eaten_on, kcal, protein_g, carbs_g, fat_g')
+      .eq('user_id', ownerId)
+      .gte('eaten_on', fromISO)
+      .lte('eaten_on', toISO)
+    if (error) throw error
+    const byDay = {}
+    for (const e of data || []) {
+      const d = byDay[e.eaten_on] || (byDay[e.eaten_on] = { kcal: 0, protein: 0, carbs: 0, fat: 0, count: 0 })
+      d.kcal    += Number(e.kcal || 0)
+      d.protein += Number(e.protein_g || 0)
+      d.carbs   += Number(e.carbs_g || 0)
+      d.fat     += Number(e.fat_g || 0)
+      d.count   += 1
+    }
+    return byDay
+  }, [ownerId, fromISO, toISO])
+
+  const { data, loading, error } = useCachedResource(key, fetcher)
+  return { byDay: data || {}, loading, error }
 }

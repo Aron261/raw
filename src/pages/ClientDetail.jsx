@@ -4,10 +4,13 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts'
 import Layout from '../components/Layout'
+import MacroBar from '../components/MacroBar'
+import NutritionTargetsSheet from '../components/NutritionTargetsSheet'
 import { useClientDetail } from '../hooks/useClientDetail'
 import { useRoutines } from '../hooks/useRoutines'
 import { useGoals } from '../hooks/useGoals'
 import { useDashboard } from '../hooks/useDashboard'
+import { useNutritionTargets, useNutritionRange, toLocalISODate } from '../hooks/useNutrition'
 import { useTheme } from '../hooks/useTheme'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button } from '../components/ui'
@@ -42,6 +45,100 @@ function Stat({ label, value }) {
       <p style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em' }}>{value}</p>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{label}</p>
     </div>
+  )
+}
+
+const fmt = (n) => Math.round(n).toLocaleString('es-CO')
+
+// ── Sección de nutrición del cliente ────────────────────────────────────────
+// Plan (objetivos de kcal/macros que fija el entrenador) + seguimiento de lo
+// que el cliente registró hoy y en los últimos 7 días.
+function NutritionSection({ clientId, clientName, onOpenLog }) {
+  const { targets, hasCustomTargets, loading, saveTargets } = useNutritionTargets(clientId)
+  const [showPlan, setShowPlan] = useState(false)
+
+  const today = toLocalISODate()
+  const weekAgoDate = new Date()
+  weekAgoDate.setDate(weekAgoDate.getDate() - 6)
+  const weekAgo = toLocalISODate(weekAgoDate)
+  const { byDay } = useNutritionRange(weekAgo, today, clientId)
+
+  const todayTotals = byDay[today] || { kcal: 0, protein: 0, carbs: 0, fat: 0, count: 0 }
+  const daysLogged = Object.keys(byDay).length
+  const avgKcal = daysLogged > 0
+    ? Object.values(byDay).reduce((s, d) => s + d.kcal, 0) / daysLogged
+    : 0
+
+  return (
+    <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '50ms' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Nutrición</p>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setShowPlan(true)} style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            {hasCustomTargets ? 'Editar plan' : '+ Plan'}
+          </button>
+          <button onClick={onOpenLog} style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Registro →
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ height: '80px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px' }} />
+      ) : !hasCustomTargets ? (
+        <div style={{ ...CARD, textAlign: 'center', padding: '20px 16px' }}>
+          <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
+            Sin plan de nutrición
+          </p>
+          <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5 }}>
+            Define las calorías y macros diarios de {clientName}.
+          </p>
+        </div>
+      ) : (
+        <div style={{ ...CARD }}>
+          {/* Plan asignado */}
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', marginBottom: '4px' }}>
+            <p style={MINI_LABEL}>Plan diario</p>
+            <p className="tnum" style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700 }}>
+              {fmt(targets.kcal)} kcal · P {targets.protein_g} · C {targets.carbs_g} · G {targets.fat_g}
+            </p>
+          </div>
+
+          {/* Hoy vs plan */}
+          <p className="tnum" style={{ marginTop: '8px', marginBottom: '10px' }}>
+            <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', color: todayTotals.kcal > targets.kcal ? 'var(--c-action-text)' : 'var(--c-text)' }}>
+              {fmt(todayTotals.kcal)}
+            </span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '8px' }}>
+              / {fmt(targets.kcal)} kcal hoy
+            </span>
+          </p>
+          <div style={{ display: 'flex', gap: '14px' }}>
+            <MacroBar label="Proteína" current={todayTotals.protein} target={targets.protein_g} />
+            <MacroBar label="Carbos"   current={todayTotals.carbs}   target={targets.carbs_g} />
+            <MacroBar label="Grasa"    current={todayTotals.fat}     target={targets.fat_g} />
+          </div>
+
+          {/* Últimos 7 días */}
+          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--c-border-subtle)' }}>
+            Últimos 7 días: {daysLogged === 0
+              ? 'sin registros'
+              : `${daysLogged} ${daysLogged === 1 ? 'día registrado' : 'días registrados'} · prom. ${fmt(avgKcal)} kcal`}
+          </p>
+        </div>
+      )}
+
+      {showPlan && (
+        <NutritionTargetsSheet
+          targets={targets}
+          userId={clientId}
+          title="Plan de nutrición"
+          subtitle={`Calorías y macros diarios para ${clientName}.`}
+          onSave={async (fields) => { await saveTargets(fields); setShowPlan(false) }}
+          onClose={() => setShowPlan(false)}
+        />
+      )}
+    </section>
   )
 }
 
@@ -440,6 +537,26 @@ export default function ClientDetail() {
 
         {actionError && <div style={{ ...ERROR_STYLE, marginBottom: '16px' }}>{actionError}</div>}
 
+        {/* ── Datos del cliente ────────────────────────────────────── */}
+        {(profile?.weight || profile?.height || profile?.sex || profile?.days_per_week) && (
+          <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '20ms' }}>
+            <p style={SECTION_LABEL}>Datos</p>
+            <div style={{ ...CARD, display: 'flex', flexWrap: 'wrap', rowGap: '12px', padding: '14px 16px' }}>
+              {[
+                profile?.weight        && { label: 'Peso',       value: `${profile.weight} ${profile.weight_unit || 'kg'}` },
+                profile?.height        && { label: 'Estatura',   value: `${profile.height} ${profile.height_unit || 'cm'}` },
+                profile?.sex           && { label: 'Sexo',       value: profile.sex },
+                profile?.days_per_week && { label: 'Frecuencia', value: `${profile.days_per_week} días/sem` },
+              ].filter(Boolean).map(d => (
+                <div key={d.label} style={{ flex: '1 1 50%', minWidth: 0 }}>
+                  <p style={{ ...MINI_LABEL, marginBottom: '2px' }}>{d.label}</p>
+                  <p className="tnum" style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em' }}>{d.value}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* ── Progreso ─────────────────────────────────────────────── */}
         <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '40ms' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
@@ -488,6 +605,13 @@ export default function ClientDetail() {
             </div>
           )}
         </section>
+
+        {/* ── Nutrición ────────────────────────────────────────────── */}
+        <NutritionSection
+          clientId={clientId}
+          clientName={name}
+          onOpenLog={() => navigate(`/coach/cliente/${clientId}/nutricion`)}
+        />
 
         {/* ── Rutinas ──────────────────────────────────────────────── */}
         <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '60ms' }}>

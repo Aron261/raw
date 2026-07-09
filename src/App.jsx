@@ -88,6 +88,12 @@ function ClientStats() {
   return <Stats userId={id} readOnly />
 }
 
+// Coach viewing a client's nutrition log — read-only entries, editable plan.
+function ClientNutrition() {
+  const { id } = useParams()
+  return <Nutrition userId={id} readOnly />
+}
+
 // App root with auth provider
 function AppWithAuth() {
   const auth = useAuthProvider()
@@ -140,6 +146,7 @@ function AppWithAuth() {
           <Route path="/coach"             element={<R auth={auth} element={<Coach />} />} />
           <Route path="/coach/cliente/:id"       element={<R auth={auth} element={<ClientDetail />} />} />
           <Route path="/coach/cliente/:id/stats" element={<R auth={auth} element={<ClientStats />} />} />
+          <Route path="/coach/cliente/:id/nutricion" element={<R auth={auth} element={<ClientNutrition />} />} />
           <Route path="/chat/:otherId"     element={<R auth={auth} element={<Chat />} />} />
 
           {/* Admin — protegido por sesión; el gate real (is_admin) vive en la
