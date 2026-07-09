@@ -255,7 +255,7 @@ export default function ExerciseRow({
                 style={{
                   flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
                   letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--c-text-dim)',
-                  border: '1px solid var(--c-border-subtle)', borderRadius: '4px', padding: '2px 5px',
+                  border: '1px solid var(--c-border-subtle)', borderRadius: '6px', padding: '2px 5px',
                   whiteSpace: 'nowrap',
                 }}
               >

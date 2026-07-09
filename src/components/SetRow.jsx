@@ -148,7 +148,7 @@ export default function SetRow({
         }}
       >
         {busy ? (
-          <span className="spinner" style={{ width: '14px', height: '14px', borderTopColor: 'currentColor', borderColor: 'rgba(127,127,127,0.3)' }} />
+          <span className="spinner" style={{ width: '14px', height: '14px', borderTopColor: 'currentColor', borderColor: 'var(--c-border-subtle)' }} />
         ) : (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M20 6 9 17l-5-5" />
@@ -163,13 +163,13 @@ export default function SetRow({
         aria-label={`Quitar serie ${setNumber}`}
         style={{
           flexShrink: 0,
-          width: '28px', height: '44px',
+          width: '36px', height: '44px',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          color: 'var(--c-text-ghost)', fontSize: '14px', lineHeight: 1,
+          color: 'var(--c-text-muted)', fontSize: '14px', lineHeight: 1,
           transition: 'color 150ms var(--ease-out)',
         }}
         onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-action-text)' }}
-        onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-muted)' }}
       >
         ✕
       </button>

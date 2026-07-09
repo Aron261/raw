@@ -7,7 +7,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { hoverColor, ERROR_STYLE } from '../lib/ui'
 import { useWorkouts } from '../hooks/useWorkout'
-import { Sheet, Button } from '../components/ui'
+import { Sheet, Button, LiveRegion, UndoSnackbar } from '../components/ui'
+import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import AddExerciseModal from '../components/AddExerciseModal'
 
 /* ── Workout elapsed timer ───────────────────────────────────────────── */
@@ -104,6 +105,23 @@ function DiscardConfirmModal({ onConfirm, onCancel, busy }) {
         <Button variant="secondary" full size="lg" disabled={busy} onClick={onCancel}>
           Seguir entrenando
         </Button>
+      </div>
+    </Sheet>
+  )
+}
+
+/* ── Delete finished workout modal ──────────────────────────────────── */
+function DeleteWorkoutModal({ name, onConfirm, onCancel, busy }) {
+  return (
+    <Sheet title="Eliminar entreno" onClose={onCancel}>
+      <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
+        Se eliminará «{name}» de tu historial junto con todas sus series. Esta acción no se puede deshacer.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <Button variant="primary" full size="lg" loading={busy} disabled={busy} onClick={onConfirm}>
+          {busy ? 'Eliminando...' : 'Sí, eliminar'}
+        </Button>
+        <Button variant="secondary" full size="lg" disabled={busy} onClick={onCancel}>Cancelar</Button>
       </div>
     </Sheet>
   )
@@ -413,6 +431,12 @@ export default function ActiveWorkout() {
   const [showFinishConfirm, setShowFinishConfirm] = useState(false)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [discarding, setDiscarding] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deletingWorkout, setDeletingWorkout] = useState(false)
+
+  // Undoable mid-session exercise removal (shared primitive) — hide
+  // optimistically + 5s "Deshacer" before the row (and its sets) are dropped.
+  const exerciseDelete = useUndoableDelete(we => removeExercise(we.id))
   const [primerDismissed, setPrimerDismissed] = useState(() => {
     try { return localStorage.getItem(LOGGING_PRIMER_KEY) === 'done' } catch { return false }
   })
@@ -454,6 +478,31 @@ export default function ActiveWorkout() {
 
 
   const isFinished = !!workout?.ended_at
+
+  // Hide the exercise awaiting an undoable removal.
+  const visibleExercises = workoutExercises.filter(we => we.id !== exerciseDelete.pending?.id)
+
+  // ExerciseRow's ··· "Eliminar" routes here for the undo window.
+  const requestRemoveExercise = (weId) => {
+    const we = workoutExercises.find(w => w.id === weId)
+    if (!we) return
+    exerciseDelete.request(we, {
+      deletedMsg: `«${we.exercises?.name || 'Ejercicio'}» eliminado. Toca deshacer para recuperarlo.`,
+      restoredMsg: `«${we.exercises?.name || 'Ejercicio'}» restaurado.`,
+    })
+  }
+
+  const handleDeleteWorkout = async () => {
+    setDeletingWorkout(true)
+    try {
+      await deleteWorkout(workout.id)
+      navigate('/training', { replace: true })
+    } catch (e) {
+      console.error(e)
+      setDeletingWorkout(false)
+      setShowDeleteConfirm(false)
+    }
+  }
 
   useEffect(() => {
     if (workout && workout.name !== nameInput && !editingName) setNameInput(workout.name)
@@ -604,18 +653,20 @@ export default function ActiveWorkout() {
         </div>
 
         {/* Session progress — exercises finalized */}
-        {!isFinished && workoutExercises.length > 0 && (() => {
-          const finishedCount = workoutExercises.filter(we => doneExs.has(we.id)).length
-          const total = workoutExercises.length
+        {!isFinished && visibleExercises.length > 0 && (() => {
+          const finishedCount = visibleExercises.filter(we => doneExs.has(we.id)).length
+          const total = visibleExercises.length
           const pct = Math.round((finishedCount / total) * 100)
           const allDone = finishedCount === total
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
               <div style={{ flex: 1, height: '4px', borderRadius: '999px', background: 'var(--c-surface-2)', overflow: 'hidden' }}>
                 <div style={{
-                  width: `${pct}%`, height: '100%', borderRadius: '999px',
+                  width: '100%', height: '100%', borderRadius: '999px',
                   background: 'var(--c-success)',
-                  transition: 'width 320ms var(--ease-out)',
+                  transformOrigin: 'left center',
+                  transform: `scaleX(${pct / 100})`,
+                  transition: 'transform 320ms var(--ease-out)',
                 }} />
               </div>
               <span style={{
@@ -631,7 +682,7 @@ export default function ActiveWorkout() {
         })()}
 
         {/* Empty state */}
-        {workoutExercises.length === 0 && (
+        {visibleExercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '14px', marginBottom: '16px' }}>
             <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
               Sin ejercicios aún
@@ -645,7 +696,7 @@ export default function ActiveWorkout() {
         )}
 
         {/* First-run logging primer — teaches the loop where it happens */}
-        {!isFinished && !primerDismissed && workoutExercises.length > 0 && (
+        {!isFinished && !primerDismissed && visibleExercises.length > 0 && (
           <LoggingPrimer onDismiss={dismissPrimer} />
         )}
 
@@ -654,8 +705,8 @@ export default function ActiveWorkout() {
             the pending sublist. */}
         <div style={{ marginBottom: '8px' }}>
           {(() => {
-            const finished = workoutExercises.filter(we => doneExs.has(we.id))
-            const pending  = workoutExercises.filter(we => !doneExs.has(we.id))
+            const finished = visibleExercises.filter(we => doneExs.has(we.id))
+            const pending  = visibleExercises.filter(we => !doneExs.has(we.id))
             const display  = [...finished, ...pending]
             return display.map((we, i) => {
               const exFinished = doneExs.has(we.id)
@@ -669,7 +720,7 @@ export default function ActiveWorkout() {
                     onDeleteSet={deleteSet}
                     onUpdateSet={updateSet}
                     onUpdateUnit={updateUnit}
-                    onRemoveExercise={removeExercise}
+                    onRemoveExercise={requestRemoveExercise}
                     onSwapExercise={(!isFinished || isEditing) ? (weId) => setSwappingId(weId) : undefined}
                     onUpdateNotes={(!isFinished || isEditing) ? updateExerciseNotes : undefined}
                     completedSetIds={doneSets}
@@ -783,11 +834,7 @@ export default function ActiveWorkout() {
             )}
 
             <button
-              onClick={async () => {
-                if (!window.confirm(`¿Eliminar "${workout.name}"? Esta acción no se puede deshacer.`)) return
-                try { await deleteWorkout(workout.id); navigate('/training', { replace: true }) }
-                catch (e) { console.error(e) }
-              }}
+              onClick={() => setShowDeleteConfirm(true)}
               style={{
                 width: '100%', padding: '14px', fontSize: '10px', fontWeight: 700,
                 textTransform: 'uppercase', letterSpacing: '0.08em',
@@ -866,6 +913,19 @@ export default function ActiveWorkout() {
           onCancel={() => { setShowEditConfirm(false); setEditConfirmStep(1) }}
         />
       )}
+
+      {showDeleteConfirm && (
+        <DeleteWorkoutModal
+          name={workout.name}
+          busy={deletingWorkout}
+          onConfirm={handleDeleteWorkout}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
+
+      {/* Feedback compartido: región viva + snackbar de deshacer (quitar ejercicio) */}
+      <LiveRegion>{exerciseDelete.liveMsg}</LiveRegion>
+      <UndoSnackbar show={!!exerciseDelete.pending} message="Ejercicio eliminado" onUndo={exerciseDelete.undo} />
     </Layout>
   )
 }
