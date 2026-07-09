@@ -5,7 +5,6 @@ import { pressProps } from '../lib/ui'
 
 export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = false }) {
   const navigate = useNavigate()
-  const [deleting, setDeleting] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
 
   const { totalVolume, exerciseCount, dateStr, duration, isActive, unit } = useMemo(() => {
@@ -32,16 +31,11 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
     return { totalVolume, exerciseCount, dateStr, duration, isActive, unit }
   }, [workout])
 
-  const handleDelete = async (e) => {
+  // Delete is orchestrated by the parent (optimistic hide + undo snackbar);
+  // the card just hands over the workout and unmounts.
+  const handleDelete = (e) => {
     e.stopPropagation()
-    if (!window.confirm(`¿Eliminar "${workout.name}"? Esta acción no se puede deshacer.`)) return
-    setDeleting(true)
-    try {
-      await onDelete(workout.id)
-    } catch (err) {
-      console.error(err)
-      setDeleting(false)
-    }
+    onDelete(workout)
   }
 
   const handleDuplicate = async (e) => {
@@ -66,7 +60,7 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
           border: '1px solid var(--c-border-subtle)',
           borderRadius: '16px',
           padding: '14px 16px',
-          paddingRight: (onDelete || onDuplicate) ? '44px' : '16px', // room for action btns
+          paddingRight: (onDelete || onDuplicate) ? '52px' : '16px', // room for action btns
           display: 'block',
           width: '100%',
           transition: `transform 160ms var(--ease-out), border-color 150ms var(--ease-out)`,
@@ -128,49 +122,49 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
         </div>
       </button>
 
-      {/* Action buttons — sit outside the main button to avoid nesting */}
-      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px', padding: '8px 8px' }}>
+      {/* Action buttons — sit outside the main button to avoid nesting.
+          Delete is hidden while Live so an in-progress session can't be
+          dropped from the list. */}
+      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '6px 4px' }}>
         {onDuplicate && (
           <button
             onClick={handleDuplicate}
             disabled={duplicating}
             aria-label="Duplicar entreno"
             style={{
-              color: 'var(--c-text-ghost)',
-              fontSize: '13px',
-              lineHeight: 1,
-              padding: '5px',
+              color: 'var(--c-text-muted)',
+              minWidth: '44px', minHeight: '44px',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               transition: `color 150ms var(--ease-out)`,
             }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--c-text-secondary)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
           >
             {duplicating
-              ? <span className="spinner" style={{ width: '11px', height: '11px' }} />
+              ? <span className="spinner" style={{ width: '13px', height: '13px' }} />
               : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" />
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
               )}
           </button>
         )}
-        {onDelete && (
+        {onDelete && !isActive && (
           <button
             onClick={handleDelete}
-            disabled={deleting}
             aria-label="Eliminar entreno"
             style={{
-              color: 'var(--c-text-ghost)',
-              fontSize: '13px',
-              lineHeight: 1,
-              padding: '5px',
+              color: 'var(--c-text-muted)',
+              fontSize: '15px', lineHeight: 1,
+              minWidth: '44px', minHeight: '44px',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               transition: `color 150ms var(--ease-out)`,
             }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
           >
-            {deleting ? <span className="spinner" style={{ width: '11px', height: '11px' }} /> : '✕'}
+            ✕
           </button>
         )}
       </div>
