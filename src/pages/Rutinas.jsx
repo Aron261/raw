@@ -6,7 +6,8 @@ import { useWorkouts } from '../hooks/useWorkout'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { generateRecommendedRoutine, generateSingleDayRoutine, FOCUS_TO_MUSCLES } from '../lib/cycleGenerator'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
-import { Sheet, Button } from '../components/ui'
+import { Sheet, Button, LiveRegion, UndoSnackbar } from '../components/ui'
+import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import CycleMuscleDistribution from '../components/CycleMuscleDistribution'
 
 // ── Constantes ────────────────────────────────────────────────────────────
@@ -73,6 +74,38 @@ function AssignedBadge() {
   )
 }
 
+// ── Card action buttons — >=44px touch height, text-sized width ────────────
+const cardPillStyle = (accent) => ({
+  minHeight: '44px', padding: '0 12px', borderRadius: '8px',
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
+  color: accent ? 'var(--c-accent)' : 'var(--c-text-dim)',
+  border: `1px solid ${accent ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
+  background: 'transparent',
+  transition: 'background 150ms var(--ease-out), color 150ms var(--ease-out), border-color 150ms var(--ease-out)',
+})
+const cardPillHover = (accent) => ({
+  onMouseEnter: e => {
+    if (accent) e.currentTarget.style.background = 'var(--c-accent-dim)'
+    else { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }
+  },
+  onMouseLeave: e => {
+    if (accent) e.currentTarget.style.background = 'transparent'
+    else { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }
+  },
+})
+// ✕ delete — 44px target, legible rest color (not ghost), accent on hover.
+const cardIconBtnStyle = {
+  minWidth: '44px', minHeight: '44px',
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  color: 'var(--c-text-muted)', fontSize: '14px', lineHeight: 1,
+  background: 'transparent', transition: 'color 150ms var(--ease-out)',
+}
+const cardIconBtnHover = {
+  onMouseEnter: e => { e.currentTarget.style.color = 'var(--c-accent)' },
+  onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-muted)' },
+}
+
 // ── Card: ciclo activo ────────────────────────────────────────────────────
 const REFRESH_CYCLE_WEEKS = 12  // suggest refreshing a cycle after this long
 
@@ -108,7 +141,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit }) {
         {activeLabel}
       </p>
 
-      <RoutineMeta routine={routine} style={{ marginBottom: shouldRefresh ? '12px' : '12px' }} />
+      <RoutineMeta routine={routine} style={{ marginBottom: '12px' }} />
 
       {/* Refresh recommendation after a long run on the same cycle */}
       {shouldRefresh && (
@@ -168,7 +201,6 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit }) {
 
 // ── Card: ciclo guardado ──────────────────────────────────────────────────
 function CycleCard({ routine, onActivate, onDelete, onEdit }) {
-  const [confirmDelete, setConfirmDelete] = useState(false)
   return (
     <div style={{
       padding: '14px 16px',
@@ -177,41 +209,20 @@ function CycleCard({ routine, onActivate, onDelete, onEdit }) {
       borderRadius: '14px',
       marginBottom: '6px',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {routine.name}
         </p>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            onClick={onEdit}
-            style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', border: '1px solid var(--c-border-subtle)', padding: '4px 10px', borderRadius: '8px', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
-          >
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, marginRight: '-6px' }}>
+          <button onClick={onEdit} aria-label={`Editar ${routine.name}`} style={cardPillStyle(false)} {...cardPillHover(false)}>
             Editar
           </button>
-          <button
-            onClick={onActivate}
-            style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', border: '1px solid var(--c-accent-border)', padding: '4px 10px', borderRadius: '8px', transition: 'background 150ms var(--ease-out)' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
+          <button onClick={onActivate} aria-label={`Activar ${routine.name}`} style={cardPillStyle(true)} {...cardPillHover(true)}>
             Activar
           </button>
-          {confirmDelete ? (
-            <button onClick={onDelete} style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Confirmar
-            </button>
-          ) : (
-            <button
-              onClick={() => setConfirmDelete(true)}
-              style={{ color: 'var(--c-text-ghost)', fontSize: '12px', lineHeight: 1, padding: '2px 6px', transition: 'color 150ms var(--ease-out)' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)'; setConfirmDelete(false) }}
-            >
-              ✕
-            </button>
-          )}
+          <button onClick={onDelete} aria-label={`Eliminar ${routine.name}`} style={cardIconBtnStyle} {...cardIconBtnHover}>
+            ✕
+          </button>
         </div>
       </div>
       <RoutineMeta routine={routine} />
@@ -221,7 +232,6 @@ function CycleCard({ routine, onActivate, onDelete, onEdit }) {
 
 // ── Card: rutina de un día ─────────────────────────────────────────────────
 function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onEdit }) {
-  const [confirmDelete, setConfirmDelete] = useState(false)
   const day = (routine.routine_days || [])[0]
   const exCount = day ? (day.routine_day_exercises || []).filter(e => e.exercise_name?.trim()).length : 0
   const canStart = day && hasExercises && !starting
@@ -234,33 +244,30 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onE
       borderRadius: '14px',
       marginBottom: '6px',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {routine.name}
         </p>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            onClick={onEdit}
-            style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', border: '1px solid var(--c-border-subtle)', padding: '4px 10px', borderRadius: '8px', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
-          >
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, marginRight: '-6px' }}>
+          <button onClick={onEdit} aria-label={`Editar ${routine.name}`} style={cardPillStyle(false)} {...cardPillHover(false)}>
             Editar
           </button>
           {day && (
             <button
               onClick={canStart ? onStart : undefined}
               disabled={!canStart}
+              aria-label={hasExercises ? `Empezar ${routine.name}` : `${routine.name}: sin ejercicios`}
               title={!hasExercises ? 'Este entreno no tiene ejercicios todavía' : undefined}
               style={{
+                minHeight: '44px', padding: '0 12px', borderRadius: '8px',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
                 color: canStart ? 'var(--c-accent)' : 'var(--c-text-ghost)',
-                fontSize: '9px', fontWeight: 800,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
                 border: `1px solid ${canStart ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
-                padding: '4px 10px', borderRadius: '8px',
+                background: 'transparent',
                 cursor: canStart ? 'pointer' : 'default',
-                transition: 'background 150ms var(--ease-out)',
                 opacity: starting ? 0.6 : 1,
+                transition: 'background 150ms var(--ease-out)',
               }}
               onMouseEnter={e => { if (canStart) e.currentTarget.style.background = 'var(--c-accent-dim)' }}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -268,20 +275,9 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onE
               {starting ? 'Creando...' : !hasExercises ? 'Sin ejercicios' : 'Empezar'}
             </button>
           )}
-          {confirmDelete ? (
-            <button onClick={onDelete} style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Confirmar
-            </button>
-          ) : (
-            <button
-              onClick={() => setConfirmDelete(true)}
-              style={{ color: 'var(--c-text-ghost)', fontSize: '12px', lineHeight: 1, padding: '2px 6px', transition: 'color 150ms var(--ease-out)' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)'; setConfirmDelete(false) }}
-            >
-              ✕
-            </button>
-          )}
+          <button onClick={onDelete} aria-label={`Eliminar ${routine.name}`} style={cardIconBtnStyle} {...cardIconBtnHover}>
+            ✕
+          </button>
         </div>
       </div>
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -850,9 +846,9 @@ function CreateCycleModal({ onClose, onCreate }) {
             {days.length > 1 && (
               <button
                 onClick={() => removeDay(idx)}
-                style={{ color: 'var(--c-text-ghost)', fontSize: '12px', flexShrink: 0, transition: 'color 150ms var(--ease-out)' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+                aria-label={`Quitar día ${idx + 1}`}
+                style={{ ...cardIconBtnStyle, flexShrink: 0 }}
+                {...cardIconBtnHover}
               >
                 ✕
               </button>
@@ -1154,9 +1150,14 @@ export default function Rutinas() {
   const [actionError, setActionError] = useState(null)
   const [startingId, setStartingId] = useState(null)
 
+  // Undoable delete (shared primitive) — hide optimistically, commit after a
+  // grace window, announce to screen readers. Reused for all status announces.
+  const routineDelete = useUndoableDelete(r => deleteRoutine(r.id))
+  const pendingId = routineDelete.pending?.id
+
   const activeCycle    = activeRoutine?.type === 'cycle' ? activeRoutine : null
-  const savedCycles    = routines.filter(r => r.type === 'cycle' && !r.is_active)
-  const singleDayItems = routines.filter(r => r.type === 'single_day')
+  const savedCycles    = routines.filter(r => r.type === 'cycle' && !r.is_active && r.id !== pendingId)
+  const singleDayItems = routines.filter(r => r.type === 'single_day' && r.id !== pendingId)
 
   // Weeks the active cycle has been in use — measured from the first workout
   // logged under it (0 if none yet).
@@ -1172,17 +1173,25 @@ export default function Rutinas() {
   const handleDeactivate = async () => {
     if (!activeCycle) return
     setActionError(null)
-    try { await setActiveRoutine(null) } catch (e) { setActionError(e.message) }
+    try { await setActiveRoutine(null); routineDelete.setLiveMsg('Ciclo desactivado.') } catch (e) { setActionError(e.message) }
   }
 
-  const handleActivate = async (id) => {
+  const handleActivate = async (routine) => {
     setActionError(null)
-    try { await setActiveRoutine(id) } catch (e) { setActionError(e.message) }
+    try { await setActiveRoutine(routine.id); routineDelete.setLiveMsg(`Ciclo «${routine.name}» activado.`) } catch (e) { setActionError(e.message) }
   }
 
-  const handleDelete = async (id) => {
-    setActionError(null)
-    try { await deleteRoutine(id) } catch (e) { setActionError(e.message) }
+  // Undoable delete: hide optimistically + snackbar; commit after the window.
+  const requestDelete = (routine) => routineDelete.request(routine, {
+    deletedMsg: `«${routine.name}» eliminada. Toca deshacer para recuperarla.`,
+    restoredMsg: `«${routine.name}» restaurada.`,
+  })
+
+  // Crear rutina + anuncio para lectores de pantalla.
+  const handleCreateRoutine = async (data) => {
+    const row = await createRoutine(data)
+    routineDelete.setLiveMsg(`Rutina «${data.name}» creada.`)
+    return row
   }
 
   const handleStartSingleDay = async (routine) => {
@@ -1231,12 +1240,15 @@ export default function Rutinas() {
           <div style={{ ...ERROR_STYLE, marginBottom: '16px' }}>{error || actionError}</div>
         )}
 
-        {/* Loading skeleton */}
+        {/* Loading skeleton — foreshadows section label + routine cards */}
         {loading && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {[...Array(3)].map((_, i) => (
-              <div key={i} style={{ height: '72px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px', opacity: 1 - i * 0.25 }} />
-            ))}
+          <div aria-hidden="true">
+            <div className="skeleton" style={{ height: '9px', width: '96px', borderRadius: '6px', marginBottom: '12px' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="skeleton" style={{ height: '68px', borderRadius: '14px', opacity: 1 - i * 0.18 }} />
+              ))}
+            </div>
           </div>
         )}
 
@@ -1258,7 +1270,7 @@ export default function Rutinas() {
                   Ciclos guardados
                 </p>
                 {savedCycles.map(r => (
-                  <CycleCard key={r.id} routine={r} onActivate={() => handleActivate(r.id)} onDelete={() => handleDelete(r.id)} onEdit={() => navigate(`/rutina/${r.id}`)} />
+                  <CycleCard key={r.id} routine={r} onActivate={() => handleActivate(r)} onDelete={() => requestDelete(r)} onEdit={() => navigate(`/rutina/${r.id}`)} />
                 ))}
               </section>
             )}
@@ -1274,7 +1286,7 @@ export default function Rutinas() {
                   return (
                     <SingleDayCard
                       key={r.id} routine={r} hasExercises={hasExercises}
-                      onDelete={() => handleDelete(r.id)}
+                      onDelete={() => requestDelete(r)}
                       onStart={() => handleStartSingleDay(r)}
                       starting={startingId === r.id}
                       onEdit={() => navigate(`/rutina/${r.id}`)}
@@ -1314,12 +1326,16 @@ export default function Rutinas() {
           onSelectFromWorkoutsCycle={() => setModal('from-cycle')}
         />
       )}
-      {modal === 'cycle'        && <CreateCycleModal onClose={close} onCreate={createRoutine} />}
-      {modal === 'single'       && <CreateSingleDayModal onClose={close} onCreate={createRoutine} />}
-      {modal === 'rec-cycle'    && <RecommendedCycleModal onClose={close} onCreate={createRoutine} />}
-      {modal === 'rec-single'   && <RecommendedSingleDayModal onClose={close} onCreate={createRoutine} />}
-      {modal === 'from-workout' && <FromWorkoutModal onClose={close} onCreate={createRoutine} workouts={workouts} />}
-      {modal === 'from-cycle'   && <FromWorkoutsCycleModal onClose={close} onCreate={createRoutine} workouts={workouts} />}
+      {modal === 'cycle'        && <CreateCycleModal onClose={close} onCreate={handleCreateRoutine} />}
+      {modal === 'single'       && <CreateSingleDayModal onClose={close} onCreate={handleCreateRoutine} />}
+      {modal === 'rec-cycle'    && <RecommendedCycleModal onClose={close} onCreate={handleCreateRoutine} />}
+      {modal === 'rec-single'   && <RecommendedSingleDayModal onClose={close} onCreate={handleCreateRoutine} />}
+      {modal === 'from-workout' && <FromWorkoutModal onClose={close} onCreate={handleCreateRoutine} workouts={workouts} />}
+      {modal === 'from-cycle'   && <FromWorkoutsCycleModal onClose={close} onCreate={handleCreateRoutine} workouts={workouts} />}
+
+      {/* Feedback compartido: región viva + snackbar de deshacer */}
+      <LiveRegion>{routineDelete.liveMsg}</LiveRegion>
+      <UndoSnackbar show={!!routineDelete.pending} message="Rutina eliminada" onUndo={routineDelete.undo} />
     </Layout>
   )
 }
