@@ -38,11 +38,17 @@ create policy "Participant sends as self"
     )
   );
 
--- Actualizar (marcar leído): cualquiera de los participantes
-create policy "Participants update messages"
+-- Actualizar (marcar leído): solo el receptor (no el emisor), y a nivel de
+-- privilegios solo la columna read_at es actualizable — el body de un mensaje
+-- nunca se puede editar vía API.
+drop policy if exists "Participants update messages" on messages;
+create policy "Recipient marks messages read"
   on messages for update
-  using (auth.uid() = trainer_id or auth.uid() = client_id)
-  with check (auth.uid() = trainer_id or auth.uid() = client_id);
+  using ((auth.uid() = trainer_id or auth.uid() = client_id) and sender_id <> auth.uid())
+  with check ((auth.uid() = trainer_id or auth.uid() = client_id) and sender_id <> auth.uid());
+
+revoke update on table messages from anon, authenticated;
+grant update (read_at) on table messages to authenticated;
 
 -- Candado beta consistente con el resto
 create policy "Beta gate" on messages as restrictive for all using (public.is_beta_approved());
