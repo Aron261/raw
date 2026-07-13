@@ -4,18 +4,13 @@ import Layout from '../components/Layout'
 import { useRoutines } from '../hooks/useRoutines'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
-import { generateRecommendedRoutine, generateSingleDayRoutine, FOCUS_TO_MUSCLES } from '../lib/cycleGenerator'
+import RecommendedPlanWizard from '../components/RecommendedPlanWizard'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button, LiveRegion, UndoSnackbar } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import CycleMuscleDistribution from '../components/CycleMuscleDistribution'
 
 // ── Constantes ────────────────────────────────────────────────────────────
-const GOALS_CYCLE      = ['Hipertrofia', 'Fuerza', 'Fuerza-Hipertrofia', 'Recomposición']
-const GOALS_SINGLE_DAY = ['Hipertrofia', 'Fuerza', 'Pump / accesorios', 'Recuperación ligera']
-const LEVELS           = ['Principiante', 'Intermedio', 'Avanzado']
-const DAYS_OPTIONS     = [3, 4, 5, 6]
-const FOCUS_OPTIONS    = Object.keys(FOCUS_TO_MUSCLES)
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 function typeLabel(type) {
@@ -930,211 +925,6 @@ function CreateSingleDayModal({ onClose, onCreate }) {
   )
 }
 
-// ── Modal: generar ciclo recomendado (wizard) ─────────────────────────────
-function RecommendedCycleModal({ onClose, onCreate }) {
-  const [step, setStep]           = useState(0)
-  const [goal, setGoal]           = useState('')
-  const [level, setLevel]         = useState('')
-  const [daysPerWeek, setDays]    = useState(null)
-  const [saving, setSaving]       = useState(false)
-  const [localError, setLocalError] = useState(null)
-
-  const steps = [
-    { title: 'Objetivo',         options: GOALS_CYCLE,              value: goal,       onSelect: v => { setGoal(v); setStep(1) } },
-    { title: 'Nivel',            options: LEVELS,                   value: level,      onSelect: v => { setLevel(v); setStep(2) } },
-    { title: 'Días por semana',  options: DAYS_OPTIONS.map(String), value: daysPerWeek ? String(daysPerWeek) : '', onSelect: v => { setDays(parseInt(v, 10)); setStep(3) } },
-  ]
-
-  const handleGenerate = async () => {
-    setSaving(true)
-    setLocalError(null)
-    try {
-      const plan = generateRecommendedRoutine({ goal, level, daysPerWeek, dailyTimeMinutes: 60, durationWeeks: 1, splitChoice: null, prioritizedGroups: [] })
-      const days = plan.map((dayPlan, i) => ({
-        day_name: dayPlan.dayName,
-        day_order: i,
-        focus: (dayPlan.muscleGroups || []).join(', '),
-        exercises: (dayPlan.exercises || []).map((ex, j) => ({
-          exercise_name: ex.exerciseName,
-          exercise_order: j,
-          sets: ex.sets,
-          reps: `${ex.repsMin}-${ex.repsMax}`,
-          notes: ex.suggestedWeight ? `~${ex.suggestedWeight} ${ex.unit}` : null,
-        })),
-      }))
-      await onCreate({ name: `${goal} — ${level} (${daysPerWeek}d)`, type: 'cycle', source: 'recommended', goal, level, days_per_week: daysPerWeek, days })
-      onClose()
-    } catch (e) {
-      setLocalError(e.message)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const currentStep = steps[step]
-
-  return (
-    <Sheet title="Ciclo recomendado" subtitle={step < 3 ? `Paso ${step + 1} de 3 — ${currentStep?.title}` : undefined} onClose={onClose}>
-      {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
-
-      {step < 3 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {currentStep.options.map(opt => (
-            <button
-              key={opt}
-              onClick={() => currentStep.onSelect(opt)}
-              style={{
-                width: '100%', padding: '14px 16px', textAlign: 'left',
-                background: currentStep.value === opt ? 'var(--c-accent-dim)' : 'var(--c-surface)',
-                border: `1px solid ${currentStep.value === opt ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
-                borderRadius: '12px',
-                color: currentStep.value === opt ? 'var(--c-accent)' : 'var(--c-text)',
-                fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em',
-                transition: 'background 150ms var(--ease-out), border-color 150ms var(--ease-out)',
-              }}
-              {...pressProps(0.98)}
-            >
-              {opt}
-            </button>
-          ))}
-          {step > 0 && (
-            <button onClick={() => setStep(s => s - 1)} style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '8px', textAlign: 'center' }}>
-              Atrás
-            </button>
-          )}
-        </div>
-      )}
-
-      {step === 3 && (
-        <div>
-          <div style={{ padding: '16px', background: 'var(--c-surface)', borderRadius: '14px', marginBottom: '20px' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>Resumen</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>Objetivo: {goal}</p>
-              <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>Nivel: {level}</p>
-              <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>Días por semana: {daysPerWeek}</p>
-            </div>
-          </div>
-          <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', marginBottom: '16px' }}>
-            El algoritmo generará un plan semanal completo con ejercicios, series y repeticiones.
-          </p>
-          <Button variant="primary" full size="lg" loading={saving} disabled={saving} onClick={handleGenerate} style={{ marginBottom: '10px' }}>
-            {saving ? 'Generando...' : 'Generar y guardar ciclo'}
-          </Button>
-          <button onClick={() => setStep(2)} style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', width: '100%', display: 'block' }}>
-            Atrás
-          </button>
-        </div>
-      )}
-    </Sheet>
-  )
-}
-
-// ── Modal: generar rutina de un día recomendada (wizard) ──────────────────
-function RecommendedSingleDayModal({ onClose, onCreate }) {
-  const [step, setStep]             = useState(0)
-  const [focus, setFocusVal]        = useState('')
-  const [time, setTime]             = useState(null)
-  const [goal, setGoal]             = useState('')
-  const [saving, setSaving]         = useState(false)
-  const [localError, setLocalError] = useState(null)
-
-  const steps = [
-    { title: '¿Qué quieres entrenar?', options: FOCUS_OPTIONS,            value: focus, onSelect: v => { setFocusVal(v); setStep(1) } },
-    { title: '¿Cuánto tiempo tienes?', options: ['30', '45', '60', '75'], value: time ? String(time) : '', onSelect: v => { setTime(parseInt(v, 10)); setStep(2) } },
-    { title: 'Objetivo',               options: GOALS_SINGLE_DAY,         value: goal,  onSelect: v => { setGoal(v); setStep(3) } },
-  ]
-
-  const handleGenerate = async () => {
-    setSaving(true)
-    setLocalError(null)
-    try {
-      const dayPlan = generateSingleDayRoutine({ focus, dailyTimeMinutes: time, goal, level: 'Intermedio' })
-      await onCreate({
-        name: `${focus} — ${goal} (${time} min)`,
-        type: 'single_day',
-        source: 'recommended',
-        is_active: false,
-        days: [{
-          day_name: dayPlan.dayName,
-          day_order: 0,
-          focus: (dayPlan.muscleGroups || []).join(', '),
-          exercises: dayPlan.exercises.map((ex, j) => ({
-            exercise_name: ex.exerciseName,
-            exercise_order: j,
-            sets: ex.sets,
-            reps: `${ex.repsMin}-${ex.repsMax}`,
-            notes: ex.suggestedWeight ? `~${ex.suggestedWeight} ${ex.unit}` : null,
-          })),
-        }],
-      })
-      onClose()
-    } catch (e) {
-      setLocalError(e.message)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const currentStep = steps[step]
-
-  return (
-    <Sheet title="Rutina recomendada" subtitle={step < 3 ? `Paso ${step + 1} de 3 — ${currentStep?.title}` : undefined} onClose={onClose} maxHeight="85dvh">
-      {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
-
-      {step < 3 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {currentStep.options.map(opt => (
-            <button
-              key={opt}
-              onClick={() => currentStep.onSelect(opt)}
-              style={{
-                width: '100%', padding: '14px 16px', textAlign: 'left',
-                background: currentStep.value === opt ? 'var(--c-accent-dim)' : 'var(--c-surface)',
-                border: `1px solid ${currentStep.value === opt ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
-                borderRadius: '12px',
-                color: currentStep.value === opt ? 'var(--c-accent)' : 'var(--c-text)',
-                fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em',
-                transition: 'background 150ms var(--ease-out), border-color 150ms var(--ease-out)',
-              }}
-              {...pressProps(0.98)}
-            >
-              {opt}{step === 1 ? ' min' : ''}
-            </button>
-          ))}
-          {step > 0 && (
-            <button onClick={() => setStep(s => s - 1)} style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '8px', textAlign: 'center' }}>
-              Atrás
-            </button>
-          )}
-        </div>
-      )}
-
-      {step === 3 && (
-        <div>
-          <div style={{ padding: '16px', background: 'var(--c-surface)', borderRadius: '14px', marginBottom: '20px' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>Resumen</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>Enfoque: {focus}</p>
-              <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>Tiempo: {time} min</p>
-              <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>Objetivo: {goal}</p>
-            </div>
-          </div>
-          <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', marginBottom: '16px' }}>
-            RAW generará los ejercicios, series y repeticiones adaptados a tu selección.
-          </p>
-          <Button variant="primary" full size="lg" loading={saving} disabled={saving} onClick={handleGenerate} style={{ marginBottom: '10px' }}>
-            {saving ? 'Generando...' : 'Generar rutina'}
-          </Button>
-          <button onClick={() => setStep(2)} style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', width: '100%', display: 'block' }}>
-            Atrás
-          </button>
-        </div>
-      )}
-    </Sheet>
-  )
-}
-
 // ── Página principal ───────────────────────────────────────────────────────
 export default function Rutinas() {
   const navigate = useNavigate()
@@ -1328,8 +1118,8 @@ export default function Rutinas() {
       )}
       {modal === 'cycle'        && <CreateCycleModal onClose={close} onCreate={handleCreateRoutine} />}
       {modal === 'single'       && <CreateSingleDayModal onClose={close} onCreate={handleCreateRoutine} />}
-      {modal === 'rec-cycle'    && <RecommendedCycleModal onClose={close} onCreate={handleCreateRoutine} />}
-      {modal === 'rec-single'   && <RecommendedSingleDayModal onClose={close} onCreate={handleCreateRoutine} />}
+      {modal === 'rec-cycle'    && <RecommendedPlanWizard mode="cycle" onClose={close} onCreate={handleCreateRoutine} />}
+      {modal === 'rec-single'   && <RecommendedPlanWizard mode="single_day" onClose={close} onCreate={handleCreateRoutine} />}
       {modal === 'from-workout' && <FromWorkoutModal onClose={close} onCreate={handleCreateRoutine} workouts={workouts} />}
       {modal === 'from-cycle'   && <FromWorkoutsCycleModal onClose={close} onCreate={handleCreateRoutine} workouts={workouts} />}
 

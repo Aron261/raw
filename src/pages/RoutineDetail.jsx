@@ -21,7 +21,8 @@ function ExerciseRowEditor({ exercise, onUpdate, onRemove }) {
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 0', borderTop: '1px solid var(--c-border-subtle)' }}>
+    <div style={{ padding: '10px 0', borderTop: '1px solid var(--c-border-subtle)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {exercise.exercise_name}
       </span>
@@ -51,6 +52,12 @@ function ExerciseRowEditor({ exercise, onUpdate, onRemove }) {
       >
         ✕
       </button>
+    </div>
+    {exercise.notes && (
+      <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', lineHeight: 1.5, marginTop: '4px' }}>
+        {exercise.notes}
+      </p>
+    )}
     </div>
   )
 }
@@ -187,6 +194,17 @@ export default function RoutineDetail() {
           style={{ width: '100%', fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', padding: '8px 10px', marginBottom: '20px', background: 'transparent', border: '1px solid transparent' }}
           onFocus={e => { e.currentTarget.style.border = '1px solid var(--c-border-subtle)'; e.currentTarget.style.background = 'var(--c-surface)' }}
         />
+
+        {routine.description && (
+          <details style={{ marginBottom: '20px', marginTop: '-8px' }}>
+            <summary style={{ ...eyebrow, cursor: 'pointer', listStyle: 'none' }}>
+              Por qué este plan ›
+            </summary>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.6, whiteSpace: 'pre-line', marginTop: '8px', padding: '12px 14px', background: 'var(--c-surface)', borderRadius: '12px' }}>
+              {routine.description}
+            </p>
+          </details>
+        )}
 
         {error && (
           <div style={{ background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)', color: 'var(--c-action-text)', fontSize: '12px', padding: '10px 12px', borderRadius: '10px', marginBottom: '14px' }}>

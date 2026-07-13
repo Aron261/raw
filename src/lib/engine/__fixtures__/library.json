@@ -1,0 +1,3243 @@
+[
+ {
+  "id": "press-de-banca-con-barra",
+  "name": "Press de banca con barra",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Tríceps",
+   "Hombro"
+  ],
+  "equipment": [
+   "barra",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_plano",
+  "best_rep_min": 5,
+  "best_rep_max": 10,
+  "coaching_notes": "Escápulas retraídas y pies firmes; baja la barra con control al pecho medio.",
+  "is_active": true
+ },
+ {
+  "id": "press-de-banca-con-mancuernas",
+  "name": "Press de banca con mancuernas",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Tríceps",
+   "Hombro"
+  ],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_plano",
+  "best_rep_min": 6,
+  "best_rep_max": 12,
+  "coaching_notes": "Mayor rango que con barra; no choques las mancuernas arriba.",
+  "is_active": true
+ },
+ {
+  "id": "press-de-banca-en-smith",
+  "name": "Press de banca en Smith",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Tríceps",
+   "Hombro"
+  ],
+  "equipment": [
+   "smith",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_plano",
+  "best_rep_min": 6,
+  "best_rep_max": 12,
+  "coaching_notes": "Coloca el banco para que la barra baje al pecho medio; trayectoria guiada, ideal para acercarte al fallo.",
+  "is_active": true
+ },
+ {
+  "id": "press-inclinado-con-barra",
+  "name": "Press inclinado con barra",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "incline_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro",
+   "Tríceps"
+  ],
+  "equipment": [
+   "barra",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_inclinado",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Banco a 30-45 grados; énfasis en pecho superior.",
+  "is_active": true
+ },
+ {
+  "id": "press-inclinado-con-mancuernas",
+  "name": "Press inclinado con mancuernas",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "incline_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro",
+   "Tríceps"
+  ],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_inclinado",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Baja profundo con control; el estiramiento del pecho superior es la parte valiosa.",
+  "is_active": true
+ },
+ {
+  "id": "press-inclinado-en-smith",
+  "name": "Press inclinado en Smith",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "incline_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro",
+   "Tríceps"
+  ],
+  "equipment": [
+   "smith",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_inclinado",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Guiado y estable; útil para progresar cargas en inclinado sin banquero.",
+  "is_active": true
+ },
+ {
+  "id": "press-declinado-con-barra",
+  "name": "Press declinado con barra",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Tríceps"
+  ],
+  "equipment": [
+   "barra",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_declinado",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Recorrido corto y fuerte; énfasis en pecho inferior.",
+  "is_active": true
+ },
+ {
+  "id": "press-declinado-con-mancuernas",
+  "name": "Press declinado con mancuernas",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Tríceps"
+  ],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_declinado",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Controla la bajada; no rebotes en el pecho.",
+  "is_active": true
+ },
+ {
+  "id": "aperturas-con-mancuernas-plano",
+  "name": "Aperturas con mancuernas plano",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "chest_iso",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "aperturas_cruce",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Codos semiflexionados fijos; abre hasta sentir el estiramiento, sin dolor de hombro.",
+  "is_active": true
+ },
+ {
+  "id": "aperturas-inclinadas-con-mancuernas",
+  "name": "Aperturas inclinadas con mancuernas",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "chest_iso",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "aperturas_cruce",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "En banco inclinado; el pecho superior trabaja más en el estiramiento.",
+  "is_active": true
+ },
+ {
+  "id": "crossover-en-polea-alta",
+  "name": "Crossover en polea alta",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "chest_iso",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "aperturas_cruce",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Cruza abajo y aprieta un segundo; tensión constante del cable.",
+  "is_active": true
+ },
+ {
+  "id": "crossover-en-polea-baja",
+  "name": "Crossover en polea baja",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "chest_iso",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "aperturas_cruce",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "De abajo hacia arriba; énfasis en pecho superior.",
+  "is_active": true
+ },
+ {
+  "id": "crossover-en-polea-media",
+  "name": "Crossover en polea media",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "chest_iso",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "aperturas_cruce",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Poleas a la altura del pecho; activación media y uniforme.",
+  "is_active": true
+ },
+ {
+  "id": "press-en-m-quina-pecho",
+  "name": "Press en máquina pecho",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Tríceps",
+   "Hombro"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_plano",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Ajusta el asiento para que las manos queden a la altura del pecho.",
+  "is_active": true
+ },
+ {
+  "id": "press-en-m-quina-inclinado",
+  "name": "Press en máquina inclinado",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "incline_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro",
+   "Tríceps"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_inclinado",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Empuja sin bloquear codos del todo; mantén la tensión.",
+  "is_active": true
+ },
+ {
+  "id": "pec-deck-mariposa",
+  "name": "Pec deck / Mariposa",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "chest_iso",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "aperturas_cruce",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Codos semiflexionados; junta y aprieta un segundo al centro.",
+  "is_active": true
+ },
+ {
+  "id": "fondos-en-paralelas",
+  "name": "Fondos en paralelas",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "dip",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Tríceps",
+   "Hombro"
+  ],
+  "equipment": [
+   "peso_corporal",
+   "barra_dominadas"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "reps",
+  "substitution_group": "fondos",
+  "best_rep_min": 6,
+  "best_rep_max": 12,
+  "coaching_notes": "Inclina el torso hacia delante para cargar el pecho; baja hasta estirar sin dolor.",
+  "is_active": true
+ },
+ {
+  "id": "flexiones",
+  "name": "Flexiones",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Tríceps",
+   "Hombro",
+   "Core"
+  ],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "reps",
+  "substitution_group": "press_plano",
+  "best_rep_min": 8,
+  "best_rep_max": 20,
+  "coaching_notes": "Cuerpo en línea recta; el core no se hunde.",
+  "is_active": true
+ },
+ {
+  "id": "flexiones-inclinadas",
+  "name": "Flexiones inclinadas",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "incline_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Hombro",
+   "Tríceps",
+   "Core"
+  ],
+  "equipment": [
+   "peso_corporal",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "reps",
+  "substitution_group": "press_inclinado",
+  "best_rep_min": 8,
+  "best_rep_max": 20,
+  "coaching_notes": "Pies elevados; más carga en pecho superior y hombro.",
+  "is_active": true
+ },
+ {
+  "id": "flexiones-declinadas",
+  "name": "Flexiones declinadas",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Tríceps",
+   "Hombro"
+  ],
+  "equipment": [
+   "peso_corporal",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "reps",
+  "substitution_group": "press_plano",
+  "best_rep_min": 10,
+  "best_rep_max": 20,
+  "coaching_notes": "Manos elevadas; versión más accesible, ideal para acumular reps limpias.",
+  "is_active": true
+ },
+ {
+  "id": "flexiones-diamante",
+  "name": "Flexiones diamante",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Tríceps"
+  ],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "reps",
+  "substitution_group": "press_cerrado",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Manos juntas bajo el pecho; codos pegados al torso.",
+  "is_active": true
+ },
+ {
+  "id": "pull-over-en-polea",
+  "name": "Pull-over en polea",
+  "muscle_group": "Pecho",
+  "category": "push",
+  "movement_pattern": "chest_iso",
+  "primary_muscles": [
+   "Pecho"
+  ],
+  "secondary_muscles": [
+   "Espalda"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "pullover_pecho",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Brazos casi rectos; lleva el cable en arco amplio sintiendo el estiramiento del pecho.",
+  "is_active": true
+ },
+ {
+  "id": "dominadas-agarre-prono",
+  "name": "Dominadas agarre prono",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "vertical_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "peso_corporal",
+   "barra_dominadas"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "reps",
+  "substitution_group": "dominadas",
+  "best_rep_min": 5,
+  "best_rep_max": 12,
+  "coaching_notes": "Inicia bajando las escápulas; pecho hacia la barra, sin balanceo.",
+  "is_active": true
+ },
+ {
+  "id": "dominadas-agarre-supino",
+  "name": "Dominadas agarre supino",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "vertical_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "peso_corporal",
+   "barra_dominadas"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "reps",
+  "substitution_group": "dominadas",
+  "best_rep_min": 5,
+  "best_rep_max": 12,
+  "coaching_notes": "Agarre supino: más bíceps; controla la bajada completa.",
+  "is_active": true
+ },
+ {
+  "id": "jal-n-al-pecho-en-polea-alta",
+  "name": "Jalón al pecho en polea alta",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "vertical_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "jalon_vertical",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Lleva la barra a la clavícula con el pecho alto; no te recuestes en exceso.",
+  "is_active": true
+ },
+ {
+  "id": "jal-n-al-pecho-agarre-cerrado",
+  "name": "Jalón al pecho agarre cerrado",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "vertical_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "jalon_vertical",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Agarre neutro cerrado; codos hacia las costillas.",
+  "is_active": true
+ },
+ {
+  "id": "jal-n-en-polea-alta-agarre-supino",
+  "name": "Jalón en polea alta agarre supino",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "vertical_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "jalon_vertical",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Palmas hacia ti; el bíceps ayuda más, buen puente hacia las dominadas.",
+  "is_active": true
+ },
+ {
+  "id": "remo-con-barra",
+  "name": "Remo con barra",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "horizontal_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps",
+   "Hombro"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "remo_horizontal",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Torso a 45 grados y espalda neutra; jala hacia el abdomen, no al pecho.",
+  "is_active": true
+ },
+ {
+  "id": "remo-con-mancuerna-unilateral",
+  "name": "Remo con mancuerna unilateral",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "horizontal_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "remo_horizontal",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Rodilla y mano en el banco; jala con el codo pegado, sin rotar el torso.",
+  "is_active": true
+ },
+ {
+  "id": "remo-en-m-quina",
+  "name": "Remo en máquina",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "horizontal_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "remo_horizontal",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Pecho apoyado; elimina el impulso y aísla el jalón.",
+  "is_active": true
+ },
+ {
+  "id": "remo-en-polea-baja",
+  "name": "Remo en polea baja",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "horizontal_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "remo_horizontal",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Torso erguido y estable; lleva el agarre al ombligo.",
+  "is_active": true
+ },
+ {
+  "id": "remo-en-polea-baja-agarre-ancho",
+  "name": "Remo en polea baja agarre ancho",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "horizontal_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps",
+   "Hombro"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "remo_horizontal",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Agarre ancho: codos más abiertos, más espalda alta.",
+  "is_active": true
+ },
+ {
+  "id": "remo-t-bar",
+  "name": "Remo T-bar",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "horizontal_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "remo_horizontal",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Cadera atrás, espalda neutra; carga pesado sin perder la postura.",
+  "is_active": true
+ },
+ {
+  "id": "remo-t-bar-con-pecho-apoyado",
+  "name": "Remo T-bar con pecho apoyado",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "horizontal_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "remo_horizontal",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "El apoyo del pecho quita la fatiga lumbar; concéntrate en juntar las escápulas.",
+  "is_active": true
+ },
+ {
+  "id": "remo-en-smith",
+  "name": "Remo en Smith",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "horizontal_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps"
+  ],
+  "equipment": [
+   "smith"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "remo_horizontal",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Trayectoria fija; mantén el ángulo del torso constante toda la serie.",
+  "is_active": true
+ },
+ {
+  "id": "remo-invertido",
+  "name": "Remo invertido",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "horizontal_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Bíceps",
+   "Core"
+  ],
+  "equipment": [
+   "peso_corporal",
+   "barra"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "reps",
+  "substitution_group": "remo_horizontal",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Cuerpo en tabla bajo la barra; pecho a la barra en cada rep.",
+  "is_active": true
+ },
+ {
+  "id": "pullover-en-polea-alta",
+  "name": "Pullover en polea alta",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "vertical_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Tríceps"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "pullover_dorsal",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Brazos casi rectos; siente el dorsal tirando desde arriba.",
+  "is_active": true
+ },
+ {
+  "id": "straight-arm-pulldown",
+  "name": "Straight-arm pulldown",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "vertical_pull",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Tríceps"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "pullover_dorsal",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Empuja el cable hacia el muslo con brazos rectos; aísla el dorsal.",
+  "is_active": true
+ },
+ {
+  "id": "face-pull-en-polea",
+  "name": "Face pull en polea",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "rear_delt",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "face_pull",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Jala la cuerda hacia la cara con codos altos; salud de hombro en cada plan.",
+  "is_active": true
+ },
+ {
+  "id": "encogimientos-con-barra",
+  "name": "Encogimientos con barra",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "shrug",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "encogimientos",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Sube los hombros recto hacia las orejas; pausa arriba, sin rotar.",
+  "is_active": true
+ },
+ {
+  "id": "encogimientos-con-mancuernas",
+  "name": "Encogimientos con mancuernas",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "shrug",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "encogimientos",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Brazos relajados a los lados; solo suben los hombros.",
+  "is_active": true
+ },
+ {
+  "id": "encogimientos-en-m-quina",
+  "name": "Encogimientos en máquina",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "shrug",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "encogimientos",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Recorrido guiado; aprieta el trapecio un segundo arriba.",
+  "is_active": true
+ },
+ {
+  "id": "hiperextensiones-en-banco",
+  "name": "Hiperextensiones en banco",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "back_extension",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Glúteo",
+   "Hamstrings"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "extension_lumbar",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Sube hasta la línea del cuerpo, sin hiperextender; aprieta el glúteo arriba.",
+  "is_active": true
+ },
+ {
+  "id": "buenos-d-as",
+  "name": "Buenos días",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "hinge",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Hamstrings",
+   "Glúteo"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Avanzado",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "extension_lumbar",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Barra apoyada como en sentadilla; bisagra de cadera con espalda rígida. Técnica primero, carga después.",
+  "is_active": true
+ },
+ {
+  "id": "superman",
+  "name": "Superman",
+  "muscle_group": "Espalda",
+  "category": "pull",
+  "movement_pattern": "back_extension",
+  "primary_muscles": [
+   "Espalda"
+  ],
+  "secondary_muscles": [
+   "Glúteo"
+  ],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "extension_lumbar",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Eleva brazos y piernas a la vez; pausa de un segundo arriba.",
+  "is_active": true
+ },
+ {
+  "id": "press-militar-con-barra-de-pie",
+  "name": "Press militar con barra de pie",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "vertical_push",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [
+   "Tríceps",
+   "Core"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_vertical",
+  "best_rep_min": 5,
+  "best_rep_max": 10,
+  "coaching_notes": "Glúteo y core firmes; empuja la cabeza a través al bloquear, sin arquear la lumbar.",
+  "is_active": true
+ },
+ {
+  "id": "press-militar-con-barra-sentado",
+  "name": "Press militar con barra sentado",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "vertical_push",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [
+   "Tríceps"
+  ],
+  "equipment": [
+   "barra",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_vertical",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Respaldo casi vertical; baja la barra a la barbilla con control.",
+  "is_active": true
+ },
+ {
+  "id": "press-militar-con-mancuernas-de-pie",
+  "name": "Press militar con mancuernas de pie",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "vertical_push",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [
+   "Tríceps",
+   "Core"
+  ],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_vertical",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "De pie exige más core; sube las mancuernas en línea, no hacia delante.",
+  "is_active": true
+ },
+ {
+  "id": "press-militar-con-mancuernas-sentado",
+  "name": "Press militar con mancuernas sentado",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "vertical_push",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [
+   "Tríceps"
+  ],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_vertical",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Codos ligeramente adelante del cuerpo, no en cruz.",
+  "is_active": true
+ },
+ {
+  "id": "press-en-m-quina-de-hombro",
+  "name": "Press en máquina de hombro",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "vertical_push",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [
+   "Tríceps"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_vertical",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Ajusta el asiento para que las manos partan a la altura de las orejas.",
+  "is_active": true
+ },
+ {
+  "id": "press-en-smith-hombro",
+  "name": "Press en Smith hombro",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "vertical_push",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [
+   "Tríceps"
+  ],
+  "equipment": [
+   "smith",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_vertical",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Coloca el banco para que la barra baje justo delante de la cara.",
+  "is_active": true
+ },
+ {
+  "id": "press-landmine",
+  "name": "Press landmine",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "vertical_push",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [
+   "Pecho",
+   "Tríceps",
+   "Core"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_vertical",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Empuje en diagonal, amable con el hombro; aprieta el glúteo para no compensar.",
+  "is_active": true
+ },
+ {
+  "id": "elevaciones-laterales-con-mancuernas",
+  "name": "Elevaciones laterales con mancuernas",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "lateral_raise",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "elevacion_lateral",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Sube hasta la altura del hombro con codo suave; sin impulso del torso.",
+  "is_active": true
+ },
+ {
+  "id": "elevaciones-laterales-en-polea-baja",
+  "name": "Elevaciones laterales en polea baja",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "lateral_raise",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "elevacion_lateral",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "El cable mantiene tensión abajo, donde la mancuerna no trabaja.",
+  "is_active": true
+ },
+ {
+  "id": "elevaciones-laterales-en-m-quina",
+  "name": "Elevaciones laterales en máquina",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "lateral_raise",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "elevacion_lateral",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Guiada: perfecta para llegar cerca del fallo con seguridad.",
+  "is_active": true
+ },
+ {
+  "id": "elevaciones-frontales-con-barra",
+  "name": "Elevaciones frontales con barra",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "front_raise",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "elevacion_frontal",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Sube a la altura de los ojos; baja lento.",
+  "is_active": true
+ },
+ {
+  "id": "elevaciones-frontales-con-mancuernas",
+  "name": "Elevaciones frontales con mancuernas",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "front_raise",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "elevacion_frontal",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Alterna brazos si el torso empieza a balancearse.",
+  "is_active": true
+ },
+ {
+  "id": "elevaciones-frontales-en-polea-baja",
+  "name": "Elevaciones frontales en polea baja",
+  "muscle_group": "Hombro",
+  "category": "push",
+  "movement_pattern": "front_raise",
+  "primary_muscles": [
+   "Hombro"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "elevacion_frontal",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Tensión constante; no dejes caer el cable entre reps.",
+  "is_active": true
+ },
+ {
+  "id": "sentadilla-con-barra",
+  "name": "Sentadilla con barra",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "squat",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Glúteo",
+   "Core"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "sentadilla_bilateral",
+  "best_rep_min": 5,
+  "best_rep_max": 10,
+  "coaching_notes": "Profundidad según tu movilidad; rodillas en línea con los pies y core firme.",
+  "is_active": true
+ },
+ {
+  "id": "sentadilla-frontal",
+  "name": "Sentadilla frontal",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "squat",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Core",
+   "Glúteo"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Avanzado",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "sentadilla_bilateral",
+  "best_rep_min": 5,
+  "best_rep_max": 8,
+  "coaching_notes": "Codos altos y torso vertical; castiga más el cuádriceps y exige movilidad.",
+  "is_active": true
+ },
+ {
+  "id": "sentadilla-en-smith",
+  "name": "Sentadilla en Smith",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "squat",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Glúteo"
+  ],
+  "equipment": [
+   "smith"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "sentadilla_bilateral",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Pies un paso adelante de la barra; la máquina estabiliza, tú empujas.",
+  "is_active": true
+ },
+ {
+  "id": "sentadilla-goblet",
+  "name": "Sentadilla goblet",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "squat",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Glúteo",
+   "Core"
+  ],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "sentadilla_bilateral",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Mancuerna al pecho; ideal para aprender el patrón de sentadilla.",
+  "is_active": true
+ },
+ {
+  "id": "sentadilla-hack-con-barra",
+  "name": "Sentadilla hack con barra",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "squat",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Glúteo"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Avanzado",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "sentadilla_bilateral",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Barra por detrás de las piernas; torso muy vertical.",
+  "is_active": true
+ },
+ {
+  "id": "hack-squat-en-m-quina",
+  "name": "Hack squat en máquina",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "squat",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Glúteo"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "sentadilla_bilateral",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Espalda pegada al respaldo; baja profundo, el rango es lo que la hace valiosa.",
+  "is_active": true
+ },
+ {
+  "id": "prensa-de-pierna",
+  "name": "Prensa de pierna",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "squat",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Glúteo"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "prensa_pierna",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "No bloquees las rodillas arriba; baja hasta donde la lumbar no se despegue.",
+  "is_active": true
+ },
+ {
+  "id": "prensa-de-pierna-unilateral",
+  "name": "Prensa de pierna unilateral",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "squat",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Glúteo"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "prensa_pierna",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Una pierna a la vez: corrige asimetrías de fuerza.",
+  "is_active": true
+ },
+ {
+  "id": "zancada-con-barra",
+  "name": "Zancada con barra",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "lunge",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Glúteo",
+   "Core"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "zancada_unilateral",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Paso largo y torso erguido; la rodilla trasera baja casi al suelo.",
+  "is_active": true
+ },
+ {
+  "id": "zancada-con-mancuernas",
+  "name": "Zancada con mancuernas",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "lunge",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Glúteo"
+  ],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "zancada_unilateral",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Mancuernas a los lados; empuja con el talón delantero.",
+  "is_active": true
+ },
+ {
+  "id": "extensi-n-de-cu-driceps-en-m-quina",
+  "name": "Extensión de cuádriceps en máquina",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "quad_iso",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "extension_cuadriceps",
+  "best_rep_min": 10,
+  "best_rep_max": 20,
+  "coaching_notes": "Extiende del todo y aguanta un segundo arriba; baja lento.",
+  "is_active": true
+ },
+ {
+  "id": "extensi-n-de-cu-driceps-unilateral",
+  "name": "Extensión de cuádriceps unilateral",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "quad_iso",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "extension_cuadriceps",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Unilateral: iguala la fuerza entre piernas.",
+  "is_active": true
+ },
+ {
+  "id": "sissy-squat",
+  "name": "Sissy squat",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "quad_iso",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [
+   "Core"
+  ],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Avanzado",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "extension_cuadriceps",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Rodillas adelante y torso atrás en línea; estiramiento brutal del cuádriceps.",
+  "is_active": true
+ },
+ {
+  "id": "aducci-n-en-m-quina",
+  "name": "Aducción en máquina",
+  "muscle_group": "Cuádriceps",
+  "category": "legs",
+  "movement_pattern": "adduction",
+  "primary_muscles": [
+   "Cuádriceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "aduccion",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Cierra con control y resiste la apertura; no uses rebote.",
+  "is_active": true
+ },
+ {
+  "id": "peso-muerto-rumano",
+  "name": "Peso muerto rumano",
+  "muscle_group": "Hamstrings",
+  "category": "legs",
+  "movement_pattern": "hinge",
+  "primary_muscles": [
+   "Hamstrings"
+  ],
+  "secondary_muscles": [
+   "Glúteo",
+   "Espalda"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "bisagra_cadera",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Cadera atrás con espalda neutra; baja hasta sentir el estiramiento, no más.",
+  "is_active": true
+ },
+ {
+  "id": "peso-muerto-piernas-r-gidas",
+  "name": "Peso muerto piernas rígidas",
+  "muscle_group": "Hamstrings",
+  "category": "legs",
+  "movement_pattern": "hinge",
+  "primary_muscles": [
+   "Hamstrings"
+  ],
+  "secondary_muscles": [
+   "Glúteo",
+   "Espalda"
+  ],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Avanzado",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "bisagra_cadera",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Piernas casi rectas: más estiramiento y más demanda lumbar; modera la carga.",
+  "is_active": true
+ },
+ {
+  "id": "curl-femoral-tumbado",
+  "name": "Curl femoral tumbado",
+  "muscle_group": "Hamstrings",
+  "category": "legs",
+  "movement_pattern": "leg_curl_iso",
+  "primary_muscles": [
+   "Hamstrings"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_femoral",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Cadera pegada al banco; sube rápido, baja en 2-3 segundos.",
+  "is_active": true
+ },
+ {
+  "id": "curl-femoral-sentado",
+  "name": "Curl femoral sentado",
+  "muscle_group": "Hamstrings",
+  "category": "legs",
+  "movement_pattern": "leg_curl_iso",
+  "primary_muscles": [
+   "Hamstrings"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_femoral",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "El sentado trabaja el femoral en más estiramiento: prioridad si puedes elegir.",
+  "is_active": true
+ },
+ {
+  "id": "curl-femoral-de-pie",
+  "name": "Curl femoral de pie",
+  "muscle_group": "Hamstrings",
+  "category": "legs",
+  "movement_pattern": "leg_curl_iso",
+  "primary_muscles": [
+   "Hamstrings"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_femoral",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Una pierna a la vez, sin arquear la lumbar.",
+  "is_active": true
+ },
+ {
+  "id": "nordic-curl",
+  "name": "Nordic curl",
+  "muscle_group": "Hamstrings",
+  "category": "legs",
+  "movement_pattern": "leg_curl_iso",
+  "primary_muscles": [
+   "Hamstrings"
+  ],
+  "secondary_muscles": [
+   "Glúteo",
+   "Core"
+  ],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Avanzado",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "curl_femoral",
+  "best_rep_min": 5,
+  "best_rep_max": 10,
+  "coaching_notes": "Baja lo más lento posible; empuja con las manos para volver si hace falta.",
+  "is_active": true
+ },
+ {
+  "id": "hip-thrust-con-barra",
+  "name": "Hip thrust con barra",
+  "muscle_group": "Glúteo",
+  "category": "legs",
+  "movement_pattern": "hip_extension",
+  "primary_muscles": [
+   "Glúteo"
+  ],
+  "secondary_muscles": [
+   "Hamstrings"
+  ],
+  "equipment": [
+   "barra",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "empuje_cadera",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Barbilla al pecho y costillas abajo; pausa arriba apretando el glúteo.",
+  "is_active": true
+ },
+ {
+  "id": "hip-thrust-en-m-quina",
+  "name": "Hip thrust en máquina",
+  "muscle_group": "Glúteo",
+  "category": "legs",
+  "movement_pattern": "hip_extension",
+  "primary_muscles": [
+   "Glúteo"
+  ],
+  "secondary_muscles": [
+   "Hamstrings"
+  ],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "empuje_cadera",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Montaje rápido y estable; ideal para progresar carga sin preparar barra.",
+  "is_active": true
+ },
+ {
+  "id": "glute-bridge",
+  "name": "Glute bridge",
+  "muscle_group": "Glúteo",
+  "category": "legs",
+  "movement_pattern": "hip_extension",
+  "primary_muscles": [
+   "Glúteo"
+  ],
+  "secondary_muscles": [
+   "Hamstrings"
+  ],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "empuje_cadera",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Talones cerca del glúteo; sube la cadera hasta la línea del cuerpo.",
+  "is_active": true
+ },
+ {
+  "id": "zancada-b-lgara",
+  "name": "Zancada búlgara",
+  "muscle_group": "Glúteo",
+  "category": "legs",
+  "movement_pattern": "lunge",
+  "primary_muscles": [
+   "Glúteo"
+  ],
+  "secondary_muscles": [
+   "Cuádriceps",
+   "Core"
+  ],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "zancada_unilateral",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Pie trasero en el banco; torso ligeramente inclinado carga más el glúteo.",
+  "is_active": true
+ },
+ {
+  "id": "zancada-inversa",
+  "name": "Zancada inversa",
+  "muscle_group": "Glúteo",
+  "category": "legs",
+  "movement_pattern": "lunge",
+  "primary_muscles": [
+   "Glúteo"
+  ],
+  "secondary_muscles": [
+   "Cuádriceps"
+  ],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "zancada_unilateral",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "El paso hacia atrás es más amable con la rodilla; empuja con el talón delantero.",
+  "is_active": true
+ },
+ {
+  "id": "step-up-con-mancuernas",
+  "name": "Step-up con mancuernas",
+  "muscle_group": "Glúteo",
+  "category": "legs",
+  "movement_pattern": "lunge",
+  "primary_muscles": [
+   "Glúteo"
+  ],
+  "secondary_muscles": [
+   "Cuádriceps"
+  ],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "zancada_unilateral",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Sube empujando con la pierna del banco, no impulsándote con la de abajo.",
+  "is_active": true
+ },
+ {
+  "id": "patada-de-gl-teo-en-polea",
+  "name": "Patada de glúteo en polea",
+  "muscle_group": "Glúteo",
+  "category": "legs",
+  "movement_pattern": "hip_extension",
+  "primary_muscles": [
+   "Glúteo"
+  ],
+  "secondary_muscles": [
+   "Hamstrings"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "patada_gluteo",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Patada atrás con la cadera, no con la lumbar; aprieta un segundo al final.",
+  "is_active": true
+ },
+ {
+  "id": "abducci-n-en-m-quina",
+  "name": "Abducción en máquina",
+  "muscle_group": "Glúteo",
+  "category": "legs",
+  "movement_pattern": "abduction",
+  "primary_muscles": [
+   "Glúteo"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "abduccion",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Inclínate ligeramente adelante para enfocar el glúteo medio.",
+  "is_active": true
+ },
+ {
+  "id": "elevaci-n-de-talones-de-pie",
+  "name": "Elevación de talones de pie",
+  "muscle_group": "Gemelos",
+  "category": "legs",
+  "movement_pattern": "calf_raise",
+  "primary_muscles": [
+   "Gemelos"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "gemelos_pie",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Pausa de 1-2 segundos abajo en estiramiento; sube alto sin rebotar. Con máquina o mancuerna si necesitas carga.",
+  "is_active": true
+ },
+ {
+  "id": "elevaci-n-de-talones-en-prensa",
+  "name": "Elevación de talones en prensa",
+  "muscle_group": "Gemelos",
+  "category": "legs",
+  "movement_pattern": "calf_raise",
+  "primary_muscles": [
+   "Gemelos"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "gemelos_pie",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Rango completo en la prensa; controla la bajada.",
+  "is_active": true
+ },
+ {
+  "id": "elevaci-n-de-talones-sentado",
+  "name": "Elevación de talones sentado",
+  "muscle_group": "Gemelos",
+  "category": "legs",
+  "movement_pattern": "calf_raise",
+  "primary_muscles": [
+   "Gemelos"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "gemelos_sentado",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Sentado trabaja el sóleo; tolera más repeticiones.",
+  "is_active": true
+ },
+ {
+  "id": "curl-con-barra-recta",
+  "name": "Curl con barra recta",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_biceps_barra",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Codos pegados al torso; sin balanceo de cadera.",
+  "is_active": true
+ },
+ {
+  "id": "curl-con-barra-ez",
+  "name": "Curl con barra EZ",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "barra"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_biceps_barra",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "El agarre en W cuida las muñecas; misma regla, codos quietos.",
+  "is_active": true
+ },
+ {
+  "id": "curl-con-mancuernas-de-pie",
+  "name": "Curl con mancuernas de pie",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_biceps_mancuerna",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Supina la muñeca al subir; baja en 2-3 segundos.",
+  "is_active": true
+ },
+ {
+  "id": "curl-con-mancuernas-sentado",
+  "name": "Curl con mancuernas sentado",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_biceps_mancuerna",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Sentado elimina el impulso; el bíceps hace todo el trabajo.",
+  "is_active": true
+ },
+ {
+  "id": "curl-inclinado-con-mancuernas",
+  "name": "Curl inclinado con mancuernas",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_biceps_mancuerna",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "El respaldo inclinado estira el bíceps abajo: el mejor rango de todos los curls.",
+  "is_active": true
+ },
+ {
+  "id": "curl-martillo",
+  "name": "Curl martillo",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_martillo",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Agarre neutro: braquial y antebrazo; suele permitir algo más de peso.",
+  "is_active": true
+ },
+ {
+  "id": "curl-predicador-con-barra-ez",
+  "name": "Curl predicador con barra EZ",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "barra",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_predicador",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "El banco fija el brazo: cero trampa; no extiendas del todo con mucha carga.",
+  "is_active": true
+ },
+ {
+  "id": "curl-predicador-con-mancuerna",
+  "name": "Curl predicador con mancuerna",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_predicador",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Un brazo a la vez; controla especialmente la bajada.",
+  "is_active": true
+ },
+ {
+  "id": "curl-en-m-quina",
+  "name": "Curl en máquina",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "maquina"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_predicador",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Guiado y estable; perfecto para las últimas series al fallo.",
+  "is_active": true
+ },
+ {
+  "id": "curl-en-polea-baja",
+  "name": "Curl en polea baja",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_polea",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Tensión constante en todo el recorrido, también abajo.",
+  "is_active": true
+ },
+ {
+  "id": "curl-en-polea-alta",
+  "name": "Curl en polea alta",
+  "muscle_group": "Bíceps",
+  "category": "pull",
+  "movement_pattern": "curl",
+  "primary_muscles": [
+   "Bíceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "curl_polea",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Brazos en cruz a la altura del hombro; pico de contracción brutal.",
+  "is_active": true
+ },
+ {
+  "id": "extensi-n-en-polea-alta-con-cuerda",
+  "name": "Extensión en polea alta con cuerda",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "triceps_extension",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "ext_triceps_polea",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Codos fijos al costado; abre la cuerda al final para contraer más.",
+  "is_active": true
+ },
+ {
+  "id": "extensi-n-en-polea-alta-con-barra",
+  "name": "Extensión en polea alta con barra",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "triceps_extension",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "ext_triceps_polea",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "La barra permite algo más de carga que la cuerda; codos quietos.",
+  "is_active": true
+ },
+ {
+  "id": "extensi-n-en-polea-baja",
+  "name": "Extensión en polea baja",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "triceps_extension",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "ext_triceps_polea",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Por encima de la cabeza: trabaja la cabeza larga en estiramiento.",
+  "is_active": true
+ },
+ {
+  "id": "extensi-n-unilateral-en-polea",
+  "name": "Extensión unilateral en polea",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "triceps_extension",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "ext_triceps_polea",
+  "best_rep_min": 12,
+  "best_rep_max": 15,
+  "coaching_notes": "Un brazo a la vez; útil para igualar fuerza entre lados.",
+  "is_active": true
+ },
+ {
+  "id": "katanas-en-polea-baja",
+  "name": "Katanas en polea baja",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "triceps_extension",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "ext_triceps_polea",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Desde polea baja por detrás de la cabeza; gran estiramiento de la cabeza larga.",
+  "is_active": true
+ },
+ {
+  "id": "press-cerrado-con-barra",
+  "name": "Press cerrado con barra",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [
+   "Pecho",
+   "Hombro"
+  ],
+  "equipment": [
+   "barra",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_cerrado",
+  "best_rep_min": 6,
+  "best_rep_max": 10,
+  "coaching_notes": "Agarre al ancho de hombros, codos pegados; el press pesado del tríceps.",
+  "is_active": true
+ },
+ {
+  "id": "press-cerrado-en-smith",
+  "name": "Press cerrado en Smith",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "horizontal_push",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [
+   "Pecho",
+   "Hombro"
+  ],
+  "equipment": [
+   "smith",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "weight_reps",
+  "substitution_group": "press_cerrado",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Trayectoria guiada; codos cerca del torso al bajar.",
+  "is_active": true
+ },
+ {
+  "id": "press-franc-s-con-barra-ez-tumbado",
+  "name": "Press francés con barra EZ tumbado",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "triceps_extension",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "barra",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "frances_skull",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Baja la barra a la frente o detrás; codos apuntando al techo.",
+  "is_active": true
+ },
+ {
+  "id": "press-franc-s-con-mancuerna-tumbado",
+  "name": "Press francés con mancuerna tumbado",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "triceps_extension",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "frances_skull",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Una mancuerna con ambas manos o una por brazo; controla el recorrido.",
+  "is_active": true
+ },
+ {
+  "id": "press-franc-s-con-mancuernas-sentado",
+  "name": "Press francés con mancuernas sentado",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "triceps_extension",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "frances_skull",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Por encima de la cabeza sentado; la cabeza larga trabaja en máximo estiramiento.",
+  "is_active": true
+ },
+ {
+  "id": "skull-crusher-con-barra-ez",
+  "name": "Skull crusher con barra EZ",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "triceps_extension",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "barra",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "frances_skull",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Codos quietos apuntando al techo; si duelen, cambia a polea.",
+  "is_active": true
+ },
+ {
+  "id": "skull-crusher-con-mancuernas",
+  "name": "Skull crusher con mancuernas",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "triceps_extension",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "frances_skull",
+  "best_rep_min": 8,
+  "best_rep_max": 12,
+  "coaching_notes": "Agarre neutro, más amable con el codo que la barra.",
+  "is_active": true
+ },
+ {
+  "id": "fondos-en-banco",
+  "name": "Fondos en banco",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "dip",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [
+   "Pecho",
+   "Hombro"
+  ],
+  "equipment": [
+   "banco"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "reps",
+  "substitution_group": "fondos_triceps",
+  "best_rep_min": 10,
+  "best_rep_max": 20,
+  "coaching_notes": "Cadera cerca del banco y hombros abajo; si molesta el hombro, reduce el rango.",
+  "is_active": true
+ },
+ {
+  "id": "fondos-en-paralelas-tr-ceps",
+  "name": "Fondos en paralelas tríceps",
+  "muscle_group": "Tríceps",
+  "category": "push",
+  "movement_pattern": "dip",
+  "primary_muscles": [
+   "Tríceps"
+  ],
+  "secondary_muscles": [
+   "Pecho",
+   "Hombro"
+  ],
+  "equipment": [
+   "peso_corporal",
+   "barra_dominadas"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": true,
+  "tracking_type": "reps",
+  "substitution_group": "fondos_triceps",
+  "best_rep_min": 6,
+  "best_rep_max": 12,
+  "coaching_notes": "Torso vertical y codos pegados para cargar el tríceps.",
+  "is_active": true
+ },
+ {
+  "id": "plancha-frontal",
+  "name": "Plancha frontal",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_anti_extension",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "time",
+  "substitution_group": "plancha",
+  "best_rep_min": 20,
+  "best_rep_max": 60,
+  "coaching_notes": "Glúteo apretado y lumbar neutra; no dejes caer la cadera.",
+  "is_active": true
+ },
+ {
+  "id": "plancha-lateral",
+  "name": "Plancha lateral",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_anti_extension",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "time",
+  "substitution_group": "plancha",
+  "best_rep_min": 20,
+  "best_rep_max": 45,
+  "coaching_notes": "Cuerpo en línea de lado; la cadera no se hunde.",
+  "is_active": true
+ },
+ {
+  "id": "plancha-con-elevaci-n-de-brazo",
+  "name": "Plancha con elevación de brazo",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_anti_extension",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "time",
+  "substitution_group": "plancha",
+  "best_rep_min": 20,
+  "best_rep_max": 45,
+  "coaching_notes": "Extiende el brazo sin rotar la cadera; el reto es no moverse.",
+  "is_active": true
+ },
+ {
+  "id": "dead-bug",
+  "name": "Dead bug",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_anti_extension",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "core_control",
+  "best_rep_min": 10,
+  "best_rep_max": 16,
+  "coaching_notes": "Lumbar pegada al suelo mientras bajas brazo y pierna contrarios.",
+  "is_active": true
+ },
+ {
+  "id": "bird-dog",
+  "name": "Bird dog",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_anti_extension",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Glúteo"
+  ],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "core_control",
+  "best_rep_min": 10,
+  "best_rep_max": 16,
+  "coaching_notes": "Extiende brazo y pierna contrarios sin arquear la lumbar.",
+  "is_active": true
+ },
+ {
+  "id": "ab-wheel",
+  "name": "Ab wheel",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_anti_extension",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "rueda_abs"
+  ],
+  "difficulty": "Avanzado",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "ab_rollout",
+  "best_rep_min": 6,
+  "best_rep_max": 12,
+  "coaching_notes": "Rueda hasta donde controles la lumbar; empieza desde rodillas.",
+  "is_active": true
+ },
+ {
+  "id": "hollow-body-hold",
+  "name": "Hollow body hold",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_anti_extension",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "time",
+  "substitution_group": "core_control",
+  "best_rep_min": 20,
+  "best_rep_max": 45,
+  "coaching_notes": "Lumbar presionada contra el suelo; brazos y piernas estirados.",
+  "is_active": true
+ },
+ {
+  "id": "dragon-flag",
+  "name": "Dragon flag",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_flexion",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "peso_corporal",
+   "banco"
+  ],
+  "difficulty": "Avanzado",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "elevacion_piernas",
+  "best_rep_min": 5,
+  "best_rep_max": 10,
+  "coaching_notes": "Baja el cuerpo recto lo más lento posible; ejercicio de control total.",
+  "is_active": true
+ },
+ {
+  "id": "mountain-climbers",
+  "name": "Mountain climbers",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_anti_extension",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "plancha",
+  "best_rep_min": 20,
+  "best_rep_max": 40,
+  "coaching_notes": "Cadera baja y estable; alterna rodillas al pecho con ritmo.",
+  "is_active": true
+ },
+ {
+  "id": "crunch-tradicional",
+  "name": "Crunch tradicional",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_flexion",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "crunch",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Despega solo la parte alta de la espalda; exhala al subir.",
+  "is_active": true
+ },
+ {
+  "id": "crunch-inverso",
+  "name": "Crunch inverso",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_flexion",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "elevacion_piernas",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Lleva las rodillas al pecho despegando la cadera del suelo.",
+  "is_active": true
+ },
+ {
+  "id": "crunch-en-polea",
+  "name": "Crunch en polea",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_flexion",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "crunch",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "De rodillas frente a la polea; flexiona el torso, no jales con los brazos. El crunch con carga progresiva.",
+  "is_active": true
+ },
+ {
+  "id": "sit-up",
+  "name": "Sit-up",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_flexion",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "crunch",
+  "best_rep_min": 12,
+  "best_rep_max": 20,
+  "coaching_notes": "Sube completo con control; si tira la cadera, vuelve al crunch.",
+  "is_active": true
+ },
+ {
+  "id": "elevaci-n-de-piernas-tumbado",
+  "name": "Elevación de piernas tumbado",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_flexion",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "elevacion_piernas",
+  "best_rep_min": 10,
+  "best_rep_max": 20,
+  "coaching_notes": "Lumbar pegada al suelo; baja las piernas solo hasta donde la mantengas.",
+  "is_active": true
+ },
+ {
+  "id": "elevaci-n-de-piernas-en-barra",
+  "name": "Elevación de piernas en barra",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_flexion",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Espalda"
+  ],
+  "equipment": [
+   "barra_dominadas"
+  ],
+  "difficulty": "Intermedio",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "elevacion_piernas",
+  "best_rep_min": 8,
+  "best_rep_max": 15,
+  "coaching_notes": "Piernas rectas hasta la horizontal sin balancearte.",
+  "is_active": true
+ },
+ {
+  "id": "rodillas-al-pecho-en-barra",
+  "name": "Rodillas al pecho en barra",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_flexion",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Espalda"
+  ],
+  "equipment": [
+   "barra_dominadas"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "elevacion_piernas",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Rodillas al pecho con control; progresión hacia piernas rectas.",
+  "is_active": true
+ },
+ {
+  "id": "russian-twist",
+  "name": "Russian twist",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_rotation",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "peso_corporal"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "reps",
+  "substitution_group": "rotacion",
+  "best_rep_min": 16,
+  "best_rep_max": 30,
+  "coaching_notes": "Rota el torso, no solo los brazos; añade peso cuando sea fácil.",
+  "is_active": true
+ },
+ {
+  "id": "woodchop-en-polea-alta",
+  "name": "Woodchop en polea alta",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_rotation",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "rotacion",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "De arriba hacia abajo en diagonal; gira desde la cadera con brazos firmes.",
+  "is_active": true
+ },
+ {
+  "id": "woodchop-en-polea-baja",
+  "name": "Woodchop en polea baja",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_rotation",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Hombro"
+  ],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "rotacion",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "De abajo hacia arriba; el movimiento nace del core, no de los brazos.",
+  "is_active": true
+ },
+ {
+  "id": "pallof-press",
+  "name": "Pallof press",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_rotation",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [],
+  "equipment": [
+   "polea"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": false,
+  "tracking_type": "weight_reps",
+  "substitution_group": "antirotacion",
+  "best_rep_min": 10,
+  "best_rep_max": 15,
+  "coaching_notes": "Extiende los brazos y resiste el giro; anti-rotación pura.",
+  "is_active": true
+ },
+ {
+  "id": "farmer-carry",
+  "name": "Farmer carry",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_carry",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Espalda",
+   "Hombro"
+  ],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "time",
+  "substitution_group": "cargas",
+  "best_rep_min": 30,
+  "best_rep_max": 60,
+  "coaching_notes": "Camina erguido con carga pesada a ambos lados; hombros atrás.",
+  "is_active": true
+ },
+ {
+  "id": "suitcase-carry",
+  "name": "Suitcase carry",
+  "muscle_group": "Core",
+  "category": "core",
+  "movement_pattern": "core_carry",
+  "primary_muscles": [
+   "Core"
+  ],
+  "secondary_muscles": [
+   "Espalda",
+   "Hombro"
+  ],
+  "equipment": [
+   "mancuerna"
+  ],
+  "difficulty": "Principiante",
+  "is_compound": true,
+  "tracking_type": "time",
+  "substitution_group": "cargas",
+  "best_rep_min": 30,
+  "best_rep_max": 60,
+  "coaching_notes": "Carga a un solo lado sin inclinarte; el core resiste la flexión lateral.",
+  "is_active": true
+ }
+]

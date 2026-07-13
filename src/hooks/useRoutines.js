@@ -59,7 +59,7 @@ export function useRoutines(targetUserId = null) {
         routine_days (
           id, day_name, day_order, focus,
           routine_day_exercises (
-            id, exercise_name, exercise_order, sets, reps, notes
+            id, exercise_name, exercise_order, sets, reps, rest_seconds, notes
           )
         )
       `)
@@ -92,12 +92,12 @@ export function useRoutines(targetUserId = null) {
     if (!ownerId) throw new Error('Usuario no autenticado')
     setError(null)
     try {
-      const { name, type = 'cycle', source = 'manual', goal, level, days_per_week, days = [] } = data
+      const { name, description = null, type = 'cycle', source = 'manual', goal, level, days_per_week, days = [] } = data
 
       // 1. Insertar la rutina principal
       const { data: routineRow, error: routineErr } = await supabase
         .from('routines')
-        .insert({ user_id: ownerId, assigned_by: assignedBy, name, type, source, goal, level, days_per_week })
+        .insert({ user_id: ownerId, assigned_by: assignedBy, name, description, type, source, goal, level, days_per_week })
         .select()
         .single()
 
@@ -127,6 +127,7 @@ export function useRoutines(targetUserId = null) {
             exercise_order: ex.exercise_order ?? i,
             sets: ex.sets || null,
             reps: ex.reps || null,
+            rest_seconds: ex.rest_seconds || null,
             notes: ex.notes || null,
           }))
 
