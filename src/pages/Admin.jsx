@@ -5,6 +5,7 @@ import { useAdmin } from '../hooks/useAdmin'
 import { useProfile } from '../hooks/useProfile'
 import { useTheme } from '../hooks/useTheme'
 import { ERROR_STYLE } from '../lib/ui'
+import { Toast } from '../components/ui'
 
 const CHART = {
   'slate-light': { bar: '#3E5C76', axis: '#565C64' },
@@ -65,13 +66,13 @@ function MiniChart({ data, color, axis }) {
 }
 
 // ── User management row ──────────────────────────────────────────────────────
-function UserRow({ u, onSetBeta, onSetAdmin, onDelete }) {
+function UserRow({ u, onSetBeta, onSetAdmin, onDelete, onError }) {
   const [busy, setBusy] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
 
   const wrap = (fn) => async () => {
     setBusy(true)
-    try { await fn() } catch (e) { alert(e.message || 'Error') } finally { setBusy(false) }
+    try { await fn() } catch (e) { onError(e.message || 'Error') } finally { setBusy(false) }
   }
 
   const chip = (on, label) => (
@@ -131,6 +132,7 @@ export default function Admin() {
   const cc = CHART[`${palette}-${resolved}`] || CHART['slate-light']
   const { profile, loading: profileLoading } = useProfile()
   const { overview, users, loading, error, refetch, setBeta, setAdmin, deleteUser } = useAdmin()
+  const [toast, setToast] = useState('')
 
   // Gate: espera a que el perfil cargue; si no es admin, fuera.
   if (profileLoading) {
@@ -257,7 +259,7 @@ export default function Admin() {
                   </thead>
                   <tbody>
                     {users.map(u => (
-                      <UserRow key={u.id} u={u} onSetBeta={setBeta} onSetAdmin={setAdmin} onDelete={deleteUser} />
+                      <UserRow key={u.id} u={u} onSetBeta={setBeta} onSetAdmin={setAdmin} onDelete={deleteUser} onError={setToast} />
                     ))}
                   </tbody>
                 </table>
@@ -266,6 +268,8 @@ export default function Admin() {
           </div>
         )}
       </div>
+
+      <Toast message={toast} onDismiss={() => setToast('')} />
     </div>
   )
 }

@@ -53,7 +53,7 @@ Other sections are single-screen with a back-to-menu header; the global "+ Empez
 
 ## Accessibility & Inclusion
 
-- Target **WCAG 2.1 AA**. Body text ≥4.5:1; large/numeric display ≥3:1. The red accent (`#FF2D2D`) must clear contrast against both white surfaces and any tinted state — verify, don't assume.
+- Target **WCAG 2.1 AA**. Body text ≥4.5:1; large/numeric display ≥3:1. The action accent (steel in Slate, pink in Riso) must clear contrast against both surfaces and any tinted state — verify, don't assume.
 - **Designed for hostile conditions**: bright gym lighting and outdoor sun, one-handed use, sweaty or gloved fingers. Tap targets ≥44px; never rely on hover; never rely on color alone to signal PR vs. regular set (pair with label/icon).
 - Honor `prefers-reduced-motion` — progress and PR feedback must read instantly without animation.
 - Spanish-first copy; keep strings translatable and avoid idioms that don't localize.

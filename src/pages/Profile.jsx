@@ -301,9 +301,7 @@ function BodyWeightSheet({ unit, onClose }) {
       </div>
 
       {loading && (
-        <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', textAlign: 'center', padding: '24px 0' }} className="animate-pulse">
-          Cargando...
-        </p>
+        <div className="skeleton" aria-hidden="true" style={{ height: '160px', marginBottom: '20px' }} />
       )}
 
       {/* Chart */}

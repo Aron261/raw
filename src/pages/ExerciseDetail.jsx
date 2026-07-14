@@ -117,10 +117,13 @@ export default function ExerciseDetail() {
         )}
 
         {loading && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '64px 0' }}>
-            <span style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }} className="animate-pulse">
-              Cargando...
-            </span>
+          <div aria-hidden="true">
+            <div className="skeleton" style={{ height: '180px', marginBottom: '32px' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {[0, 1, 2].map(i => (
+                <div key={i} className="skeleton" style={{ height: '64px', borderRadius: '14px' }} />
+              ))}
+            </div>
           </div>
         )}
 

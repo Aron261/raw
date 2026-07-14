@@ -38,6 +38,10 @@ export default function SetRow({
   // and fires their onBlur. This flag tells blur to stand down so we don't
   // create the same set twice (blur + click both saving).
   const committing = useRef(false)
+  // Enter walks the row: reps → weight → ✓, so a set can be logged without
+  // leaving the keyboard.
+  const weightRef = useRef(null)
+  const checkRef = useRef(null)
 
   // Re-sync when the backing set changes (refetch, "igual que la vez pasada")
   useEffect(() => {
@@ -67,6 +71,8 @@ export default function SetRow({
     try {
       await onSave(setNumber, reps, weight, markDone)
       setSaveError(false)
+      // A short tap confirms the set landed — the most-repeated action in the app.
+      if (markDone) { try { navigator.vibrate?.(10) } catch {} }
     } catch (e) {
       console.error(e)
       pendingMarkDone.current = markDone
@@ -129,10 +135,12 @@ export default function SetRow({
         value={reps}
         onChange={e => setReps(e.target.value)}
         onBlur={handleBlur}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); weightRef.current?.focus() } }}
         className="input-field set-input"
         style={{ ...inputStyle(52), ...(saveError ? errorBorder : null) }}
         placeholder={repsHint}
         min="1"
+        enterKeyHint="next"
         aria-label={`Reps serie ${setNumber}`}
         aria-invalid={saveError || undefined}
       />
@@ -140,16 +148,19 @@ export default function SetRow({
       <span style={times}>×</span>
 
       <input
+        ref={weightRef}
         type="number"
         inputMode="decimal"
         value={weight}
         onChange={e => setWeight(e.target.value)}
         onBlur={handleBlur}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); checkRef.current?.focus() } }}
         className="input-field set-input"
         style={{ ...inputStyle(64), ...(saveError ? errorBorder : null) }}
         placeholder={previousSet ? String(previousSet.weight) : 'peso'}
         min="0"
         step="2.5"
+        enterKeyHint="done"
         aria-label={`Peso serie ${setNumber}`}
         aria-invalid={saveError || undefined}
       />
@@ -162,6 +173,7 @@ export default function SetRow({
 
       {/* ✓ — commit + done toggle. Becomes a retry control after a failed save. */}
       <button
+        ref={checkRef}
         onPointerDown={() => { committing.current = true }}
         onClick={toggleDone}
         disabled={!filled && !done && !saveError}
