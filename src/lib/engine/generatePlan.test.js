@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { generatePlan } from './generatePlan'
+import { generatePlan, getSwapAlternatives, swapExercise } from './generatePlan'
 import { analyzeHistory } from './history'
 import { GOALS, LEVELS, TIME_OPTIONS, VOLUME_TARGETS, SETS_PER_DAY } from './volume'
 import { FOCUS_OPTIONS } from './templates'
@@ -218,6 +218,53 @@ describe('single day', () => {
       expect(plan.days[0].exercises.length).toBeGreaterThanOrEqual(3)
       expect(plan.title).toContain(focus)
     }
+  })
+})
+
+describe('cambiar ejercicio (swap)', () => {
+  it('ofrece alternativas de la misma familia primero, sin repetir el día', () => {
+    const plan = gen({ daysPerWeek: 4 })
+    const day = plan.days[0]
+    const target = day.exercises[0]
+    const alts = getSwapAlternatives(target, {
+      library, level: 'Intermedio', equipment: 'full',
+      excludeNames: day.exercises.map(e => e.name),
+    })
+    expect(alts.length).toBeGreaterThan(0)
+    const dayNames = new Set(day.exercises.map(e => e.name))
+    for (const alt of alts) {
+      expect(dayNames.has(alt.name)).toBe(false)
+      expect(alt.muscle_group).toBe(target.muscleGroup)
+    }
+    const current = library.find(e => e.name === target.name)
+    expect(alts[0].substitution_group).toBe(current.substitution_group)
+  })
+
+  it('respeta el equipo del usuario en las alternativas', () => {
+    const equipment = ['mancuerna', 'banco', 'peso_corporal']
+    const plan = gen({ daysPerWeek: 4, equipment })
+    const target = plan.days[0].exercises[0]
+    const alts = getSwapAlternatives(target, { library, level: 'Intermedio', equipment, excludeNames: [] })
+    for (const alt of alts) {
+      expect(alt.equipment.every(t => equipment.includes(t)), alt.name).toBe(true)
+    }
+  })
+
+  it('swapExercise re-dosifica reps para el nuevo ejercicio y conserva series/rol', () => {
+    const plan = gen({ daysPerWeek: 4, goal: 'Fuerza' })
+    const target = plan.days[0].exercises[0]
+    const alts = getSwapAlternatives(target, { library, level: 'Intermedio', equipment: 'full', excludeNames: plan.days[0].exercises.map(e => e.name) })
+    const next = swapExercise(plan, 0, 0, alts[0], { goal: 'Fuerza', level: 'Intermedio', library })
+
+    expect(plan.days[0].exercises[0].name).toBe(target.name) // inmutable
+    const swapped = next.days[0].exercises[0]
+    expect(swapped.name).toBe(alts[0].name)
+    expect(swapped.sets).toBe(target.sets)
+    expect(swapped.role).toBe(target.role)
+    expect(swapped.repsMin).toBeGreaterThanOrEqual(Math.min(alts[0].best_rep_min, 8))
+    expect(swapped.repsMax).toBeLessThanOrEqual(alts[0].best_rep_max)
+    expect(swapped.note).toContain(String(swapped.sets))
+    expect(next.edited).toBe(true)
   })
 })
 

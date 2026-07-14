@@ -59,6 +59,9 @@ function scoreCandidate(ex, slot, ctx) {
   // Ajuste rol ↔ tipo de ejercicio
   if (slot.role === 'primary' || slot.role === 'secondary') {
     score += ex.is_compound ? 2 : -2
+    // Los pesados de la sesión deben permitir carga progresiva: barra/máquina
+    // antes que variantes de peso corporal.
+    if (ex.tracking_type !== 'weight_reps') score -= 1.5
   } else if (slot.role === 'isolation' || slot.role === 'core') {
     score += ex.is_compound ? -1 : 1
   } else {
@@ -181,6 +184,110 @@ function resolveReps(ex, role, goal) {
   return { repsMin: min, repsMax: max, repsUnit: 'reps' }
 }
 
+// ── Construcción de un PlanExercise (compartido por generador y swaps) ──────
+
+function buildPlanExercise(ex, { role, sets, goal, level, history, libraryByName }) {
+  const goalP = GOAL_PARAMS[goal] ?? GOAL_PARAMS.Hipertrofia
+  const rir = RIR_TARGET[level]?.[goal] ?? '1-2'
+  const reps = resolveReps(ex, role, goal)
+
+  let suggestedWeight = null
+  let unit = null
+  let weightIsEstimate = false
+  if (ex.tracking_type === 'weight_reps' && history) {
+    const best = findBest1RM(ex, history, libraryByName)
+    if (best) {
+      suggestedWeight = roundToNearest2_5(best.value * (goalP.intensityMin / 100))
+      unit = best.unit
+      weightIsEstimate = best.isEstimate
+    }
+  }
+
+  const planEx = {
+    libraryId: ex.id,
+    name: ex.name,
+    muscleGroup: ex.muscle_group,
+    pattern: ex.movement_pattern,
+    role,
+    sets,
+    ...reps,
+    rir,
+    restSeconds: REST_SECONDS[role]?.[goal] ?? 90,
+    suggestedWeight,
+    unit,
+    weightIsEstimate,
+    isFamiliar: Boolean(history?.familiarity?.[ex.name]),
+    coachingNote: ex.coaching_notes || '',
+  }
+  planEx.note = exerciseNote(planEx)
+  return planEx
+}
+
+// ── Alternativas para cambiar un ejercicio del preview ──────────────────────
+
+/**
+ * Ejercicios similares al dado, mejores primero: misma familia de sustitución,
+ * luego mismo patrón + grupo, luego mismo grupo. Respeta equipo y nivel y
+ * excluye los nombres ya usados en el día.
+ * @returns {import('./types').LibraryExercise[]}
+ */
+export function getSwapAlternatives(planEx, { library, level, equipment, excludeNames = [], limit = 6 }) {
+  const current = library.find(e => e.name === planEx.name)
+  if (!current) return []
+  const excluded = new Set([...excludeNames, planEx.name])
+
+  // Solo alternativas del MISMO grupo muscular: hay familias de sustitución
+  // que cruzan grupos (ej. press_cerrado: Pecho y Tríceps) y cambiar de grupo
+  // rompería el balance del día.
+  const usable = library.filter(ex =>
+    ex.is_active !== false &&
+    !excluded.has(ex.name) &&
+    ex.muscle_group === current.muscle_group &&
+    LEVEL_RANK[ex.difficulty] <= LEVEL_RANK[level] + 1 &&
+    (!Array.isArray(equipment) || ex.equipment.every(tok => equipment.includes(tok)))
+  )
+
+  const tier = (ex) => {
+    if (ex.substitution_group === current.substitution_group) return 0
+    if (ex.movement_pattern === current.movement_pattern && ex.muscle_group === current.muscle_group) return 1
+    if (ex.muscle_group === current.muscle_group) return 2
+    return 3
+  }
+
+  return usable
+    .map(ex => ({ ex, t: tier(ex) }))
+    .filter(x => x.t < 3)
+    .sort((a, b) => a.t - b.t || a.ex.name.localeCompare(b.ex.name))
+    .slice(0, limit)
+    .map(x => x.ex)
+}
+
+/**
+ * Reemplaza un ejercicio del plan por otro de la librería, re-dosificando
+ * reps/RIR/descanso/peso para el nuevo ejercicio (mismas series y rol).
+ * Devuelve un plan nuevo; no muta el original.
+ */
+export function swapExercise(plan, dayIndex, exIndex, newLibraryEx, { goal, level, history = null, library = [] }) {
+  const libraryByName = {}
+  for (const ex of library) libraryByName[ex.name] = ex
+
+  const target = plan.days[dayIndex]?.exercises[exIndex]
+  if (!target) return plan
+
+  const replacement = buildPlanExercise(newLibraryEx, {
+    role: target.role, sets: target.sets, goal, level, history, libraryByName,
+  })
+
+  const days = plan.days.map((day, di) => {
+    if (di !== dayIndex) return day
+    const exercises = day.exercises.map((ex, ei) => (ei === exIndex ? replacement : ex))
+    const groups = [...new Set(exercises.map(e => e.muscleGroup))]
+    return { ...day, exercises, focus: groups.join(', ') }
+  })
+
+  return { ...plan, days, edited: true }
+}
+
 // ── Generador principal ──────────────────────────────────────────────────────
 
 /**
@@ -213,8 +320,6 @@ export function generatePlan(input) {
   }
 
   const budget = SETS_PER_DAY[sessionMinutes]?.[level] ?? SETS_PER_DAY[60].Intermedio
-  const goalP = GOAL_PARAMS[goal] ?? GOAL_PARAMS.Hipertrofia
-  const rir = RIR_TARGET[level]?.[goal] ?? '1-2'
   const effectiveHistory = useHistory ? history : null
 
   const weekSubCount = new Map()
@@ -251,38 +356,9 @@ export function generatePlan(input) {
         if (sec) weeklyVolume[sec] = (weeklyVolume[sec] || 0) + sets * 0.5
       }
 
-      const reps = resolveReps(ex, slot.role, goal)
-
-      let suggestedWeight = null
-      let unit = null
-      let weightIsEstimate = false
-      if (ex.tracking_type === 'weight_reps' && effectiveHistory) {
-        const best = findBest1RM(ex, effectiveHistory, libraryByName)
-        if (best) {
-          suggestedWeight = roundToNearest2_5(best.value * (goalP.intensityMin / 100))
-          unit = best.unit
-          weightIsEstimate = best.isEstimate
-        }
-      }
-
-      const planEx = {
-        libraryId: ex.id,
-        name: ex.name,
-        muscleGroup: ex.muscle_group,
-        pattern: ex.movement_pattern,
-        role: slot.role,
-        sets,
-        ...reps,
-        rir,
-        restSeconds: REST_SECONDS[slot.role]?.[goal] ?? 90,
-        suggestedWeight,
-        unit,
-        weightIsEstimate,
-        isFamiliar: Boolean(effectiveHistory?.familiarity?.[ex.name]),
-        coachingNote: ex.coaching_notes || '',
-      }
-      planEx.note = exerciseNote(planEx)
-      exercises.push(planEx)
+      exercises.push(buildPlanExercise(ex, {
+        role: slot.role, sets, goal, level, history: effectiveHistory, libraryByName,
+      }))
     }
 
     const estMinutes = Math.round(

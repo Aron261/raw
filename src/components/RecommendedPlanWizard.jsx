@@ -8,8 +8,8 @@ import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { useProfile } from '../hooks/useProfile'
 import { useGenerationContext } from '../hooks/useGenerationContext'
 import {
-  generatePlan, hashInputs, GOALS, LEVELS, TIME_OPTIONS,
-  FOCUS_OPTIONS, SPLIT_5D_OPTIONS,
+  generatePlan, getSwapAlternatives, swapExercise, hashInputs,
+  GOALS, LEVELS, TIME_OPTIONS, FOCUS_OPTIONS, SPLIT_5D_OPTIONS,
 } from '../lib/engine'
 import { MUSCLE_GROUPS } from '../lib/muscleGroups'
 
@@ -99,7 +99,10 @@ function BackLink({ onClick }) {
 
 // ── Preview ─────────────────────────────────────────────────────────────────
 
-function PlanPreview({ plan, notesVisible = true }) {
+function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
+  // Fila con el selector de alternativas abierto: 'dayIdx-exIdx' | null
+  const [swapOpen, setSwapOpen] = useState(null)
+
   return (
     <div>
       <div style={{ padding: '14px 16px', background: 'var(--c-surface)', borderRadius: '14px', marginBottom: '14px' }}>
@@ -128,23 +131,70 @@ function PlanPreview({ plan, notesVisible = true }) {
             </div>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '10.5px', lineHeight: 1.5, marginBottom: '10px' }}>{day.rationale}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-              {day.exercises.map((ex, j) => (
-                <div key={j} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'baseline' }}>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 600 }}>
-                      {ex.name}
-                      {ex.isFamiliar && <span style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, marginLeft: '6px', textTransform: 'uppercase' }}>Habitual</span>}
-                    </p>
-                    <p style={{ color: 'var(--c-text-dim)', fontSize: '9.5px' }}>
-                      RIR {ex.rir} · descanso {ex.restSeconds >= 60 ? `${Math.round(ex.restSeconds / 60 * 10) / 10} min` : `${ex.restSeconds} s`}
-                      {ex.suggestedWeight != null && ` · ~${ex.suggestedWeight} ${ex.unit}${ex.weightIsEstimate ? ' (est.)' : ''}`}
-                    </p>
+              {day.exercises.map((ex, j) => {
+                const rowKey = `${i}-${j}`
+                const isOpen = swapOpen === rowKey
+                const alternatives = isOpen && getAlternatives ? getAlternatives(i, ex) : []
+                return (
+                  <div key={j}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'baseline' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 600 }}>
+                          {ex.name}
+                          {ex.isFamiliar && <span style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, marginLeft: '6px', textTransform: 'uppercase' }}>Habitual</span>}
+                        </p>
+                        <p style={{ color: 'var(--c-text-dim)', fontSize: '9.5px' }}>
+                          RIR {ex.rir} · descanso {ex.restSeconds >= 60 ? `${Math.round(ex.restSeconds / 60 * 10) / 10} min` : `${ex.restSeconds} s`}
+                          {ex.suggestedWeight != null && ` · ~${ex.suggestedWeight} ${ex.unit}${ex.weightIsEstimate ? ' (est.)' : ''}`}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', flexShrink: 0 }}>
+                        <span style={{ color: 'var(--c-text)', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                          {ex.sets}×{ex.repsMin}-{ex.repsMax}{ex.repsUnit === 'seg' ? '"' : ''}
+                        </span>
+                        {onSwap && (
+                          <button
+                            onClick={() => setSwapOpen(isOpen ? null : rowKey)}
+                            aria-label={`Cambiar ${ex.name} por uno similar`}
+                            aria-expanded={isOpen}
+                            style={{
+                              color: isOpen ? 'var(--c-accent)' : 'var(--c-text-dim)',
+                              fontSize: '13px', padding: '2px 4px', lineHeight: 1,
+                            }}
+                            {...pressProps(0.9)}
+                          >
+                            ⇄
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {isOpen && (
+                      <div style={{ margin: '8px 0 4px', padding: '10px 12px', background: 'var(--c-bg)', borderRadius: '10px', border: '1px solid var(--c-border-subtle)' }}>
+                        <p style={{ ...MONO_LABEL, marginBottom: '8px' }}>Cambiar por</p>
+                        {alternatives.length === 0 ? (
+                          <p style={{ color: 'var(--c-text-dim)', fontSize: '10.5px' }}>No hay alternativas con tu equipo y nivel.</p>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {alternatives.map(alt => (
+                              <button
+                                key={alt.id}
+                                onClick={() => { onSwap(i, j, alt); setSwapOpen(null) }}
+                                style={{ textAlign: 'left', padding: '7px 10px', borderRadius: '8px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', color: 'var(--c-text)', fontSize: '11.5px', fontWeight: 600 }}
+                                {...pressProps(0.98)}
+                              >
+                                {alt.name}
+                                <span style={{ color: 'var(--c-text-dim)', fontWeight: 500, fontSize: '9.5px' }}>
+                                  {' '}· {alt.is_compound ? 'compuesto' : 'aislamiento'}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <span style={{ color: 'var(--c-text)', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
-                    {ex.sets}×{ex.repsMin}-{ex.repsMax}{ex.repsUnit === 'seg' ? '"' : ''}
-                  </span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         ))}
@@ -230,15 +280,38 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
     if (stepKey === 'preview' && seed == null) setSeed(hashInputs(input))
   }, [stepKey, seed, input])
 
-  const plan = useMemo(() => {
+  const [genError, setGenError] = useState(null)
+  const generatedPlan = useMemo(() => {
     if (stepKey !== 'preview' || seed == null || library.length === 0) return null
     try {
       return generatePlan({ ...input, seed })
     } catch (e) {
       console.error('Error generating plan:', e)
+      setGenError(e.message || 'Error inesperado')
       return null
     }
   }, [stepKey, seed, input, library])
+
+  // Cambios manuales del usuario sobre el plan generado (swaps). Se descartan
+  // al regenerar (nueva semilla).
+  const [editedPlan, setEditedPlan] = useState(null)
+  useEffect(() => { setEditedPlan(null) }, [seed])
+  const plan = editedPlan ?? generatedPlan
+
+  const handleSwap = (dayIndex, exIndex, libEx) => {
+    if (!plan) return
+    setEditedPlan(swapExercise(plan, dayIndex, exIndex, libEx, {
+      goal: input.goal, level: input.level,
+      history: input.useHistory ? history : null, library,
+    }))
+  }
+
+  const getAlternatives = (dayIndex, ex) => getSwapAlternatives(ex, {
+    library,
+    level: input.level,
+    equipment: input.equipment,
+    excludeNames: plan ? plan.days[dayIndex].exercises.map(e => e.name) : [],
+  })
 
   const next = () => setStep(s => Math.min(s + 1, steps.length - 1))
   const back = () => { setLocalError(null); setStep(s => Math.max(s - 1, 0)) }
@@ -468,13 +541,9 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
 
       {stepKey === 'preview' && (
         <div>
-          {(ctxLoading || !plan) ? (
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', padding: '20px 0', textAlign: 'center' }}>
-              Generando plan…
-            </p>
-          ) : (
+          {plan ? (
             <>
-              <PlanPreview plan={plan} />
+              <PlanPreview plan={plan} getAlternatives={getAlternatives} onSwap={handleSwap} />
               <div style={{ display: 'flex', gap: '10px', marginTop: '18px' }}>
                 <Button variant="secondary" full onClick={() => setSeed(s => (s ?? 0) + 1)}>
                   Regenerar
@@ -484,6 +553,19 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
                 </Button>
               </div>
             </>
+          ) : (ctxLoading || seed == null) ? (
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', padding: '20px 0', textAlign: 'center' }}>
+              Generando plan…
+            </p>
+          ) : (
+            <div style={{ padding: '10px 0' }}>
+              <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>
+                No se pudo generar el plan{genError ? `: ${genError}` : ''}. Inténtalo de nuevo.
+              </div>
+              <Button variant="secondary" full onClick={() => { setGenError(null); setSeed(s => (s ?? 0) + 1) }}>
+                Reintentar
+              </Button>
+            </div>
           )}
           <BackLink onClick={back} />
         </div>

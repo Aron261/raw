@@ -1,4 +1,4 @@
-export { generatePlan } from './generatePlan'
+export { generatePlan, getSwapAlternatives, swapExercise } from './generatePlan'
 export { analyzeHistory } from './history'
 export { hashInputs } from './prng'
 export { GOALS, LEVELS, TIME_OPTIONS } from './volume'
