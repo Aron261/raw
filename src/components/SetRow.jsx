@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import PRBadge from './PRBadge'
 import { calc1RM } from '../hooks/useWorkout'
+import { useOnlineStatus } from '../hooks/useOnlineStatus'
 
 /*
  * One planned set row. A row may be backed by a saved set (`set`) or be an
@@ -26,6 +27,13 @@ export default function SetRow({
   const [reps, setReps] = useState(set ? String(set.reps) : '')
   const [weight, setWeight] = useState(set ? String(set.weight) : '')
   const [busy, setBusy] = useState(false)
+  // A save that failed (network/server). We keep the typed values, flag the row,
+  // and offer a retry — nothing is lost silently. `pendingMarkDone` remembers
+  // whether the failed attempt was also marking the set done, so a retry
+  // reproduces the same intent.
+  const [saveError, setSaveError] = useState(false)
+  const pendingMarkDone = useRef(false)
+  const online = useOnlineStatus()
   // When ✓ / ✕ is the element being pressed, it steals focus from the inputs
   // and fires their onBlur. This flag tells blur to stand down so we don't
   // create the same set twice (blur + click both saving).
@@ -52,12 +60,33 @@ export default function SetRow({
   const persist = async (markDone) => {
     if (!filled) return
     const unchanged = set && String(set.reps) === reps && String(set.weight) === weight
-    if (unchanged && !markDone) return
+    // A prior failure means the server never got these values — retry even if
+    // they match the last-known set.
+    if (unchanged && !markDone && !saveError) return
     setBusy(true)
-    try { await onSave(setNumber, reps, weight, markDone) }
-    catch (e) { console.error(e) }
-    finally { setBusy(false) }
+    try {
+      await onSave(setNumber, reps, weight, markDone)
+      setSaveError(false)
+    } catch (e) {
+      console.error(e)
+      pendingMarkDone.current = markDone
+      setSaveError(true)
+    } finally {
+      setBusy(false)
+    }
   }
+
+  const retry = () => { if (!busy) persist(pendingMarkDone.current) }
+
+  // Auto-retry a failed save once we come back online.
+  const wasOffline = useRef(false)
+  useEffect(() => {
+    if (!online) { wasOffline.current = true; return }
+    if (wasOffline.current && saveError && !busy) {
+      wasOffline.current = false
+      retry()
+    }
+  }, [online, saveError])
 
   const handleBlur = () => {
     if (readOnly || committing.current) { committing.current = false; return }
@@ -67,6 +96,7 @@ export default function SetRow({
   const toggleDone = async () => {
     committing.current = false
     if (readOnly || busy) return
+    if (saveError) { retry(); return }
     if (done && set) { onToggleDone(set.id, false); return }
     await persist(true)
   }
@@ -89,6 +119,7 @@ export default function SetRow({
   }
 
   return (
+    <>
     <div style={rowStyle(done)}>
       <span style={numStyle}>{setNumber}</span>
 
@@ -99,10 +130,11 @@ export default function SetRow({
         onChange={e => setReps(e.target.value)}
         onBlur={handleBlur}
         className="input-field set-input"
-        style={inputStyle(52)}
+        style={{ ...inputStyle(52), ...(saveError ? errorBorder : null) }}
         placeholder={repsHint}
         min="1"
         aria-label={`Reps serie ${setNumber}`}
+        aria-invalid={saveError || undefined}
       />
 
       <span style={times}>×</span>
@@ -114,11 +146,12 @@ export default function SetRow({
         onChange={e => setWeight(e.target.value)}
         onBlur={handleBlur}
         className="input-field set-input"
-        style={inputStyle(64)}
+        style={{ ...inputStyle(64), ...(saveError ? errorBorder : null) }}
         placeholder={previousSet ? String(previousSet.weight) : 'peso'}
         min="0"
         step="2.5"
         aria-label={`Peso serie ${setNumber}`}
+        aria-invalid={saveError || undefined}
       />
 
       <span style={unitStyle}>{unit}</span>
@@ -127,28 +160,43 @@ export default function SetRow({
 
       {isPR && filled && <PRBadge small />}
 
-      {/* ✓ — commit + done toggle */}
+      {/* ✓ — commit + done toggle. Becomes a retry control after a failed save. */}
       <button
         onPointerDown={() => { committing.current = true }}
         onClick={toggleDone}
-        disabled={!filled && !done}
-        aria-label={done ? `Deshacer serie ${setNumber}` : `Completar serie ${setNumber}`}
-        aria-pressed={done}
+        disabled={!filled && !done && !saveError}
+        aria-label={
+          saveError ? `Reintentar guardar serie ${setNumber}`
+            : done ? `Deshacer serie ${setNumber}`
+            : `Completar serie ${setNumber}`
+        }
+        aria-pressed={saveError ? undefined : done}
         style={{
           flexShrink: 0,
           width: '44px', height: '44px',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           borderRadius: '10px',
-          background: done ? 'var(--c-success)' : 'transparent',
-          border: `1.5px solid ${done ? 'var(--c-success)' : (filled ? 'var(--c-border)' : 'var(--c-border-subtle)')}`,
-          color: done ? '#fff' : (filled ? 'var(--c-text-dim)' : 'var(--c-text-ghost)'),
-          opacity: (!filled && !done) ? 0.5 : 1,
-          cursor: (!filled && !done) ? 'default' : 'pointer',
+          background: done && !saveError ? 'var(--c-success)' : 'transparent',
+          border: `1.5px solid ${
+            saveError ? 'var(--c-action)'
+              : done ? 'var(--c-success)'
+              : (filled ? 'var(--c-border)' : 'var(--c-border-subtle)')
+          }`,
+          color: saveError ? 'var(--c-action-text)'
+            : done ? '#fff'
+            : (filled ? 'var(--c-text-dim)' : 'var(--c-text-ghost)'),
+          opacity: (!filled && !done && !saveError) ? 0.5 : 1,
+          cursor: (!filled && !done && !saveError) ? 'default' : 'pointer',
           transition: 'background 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms',
         }}
       >
         {busy ? (
           <span className="spinner" style={{ width: '14px', height: '14px', borderTopColor: 'currentColor', borderColor: 'var(--c-border-subtle)' }} />
+        ) : saveError ? (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+            <path d="M21 3v6h-6" />
+          </svg>
         ) : (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M20 6 9 17l-5-5" />
@@ -174,6 +222,14 @@ export default function SetRow({
         ✕
       </button>
     </div>
+
+    {saveError && (
+      <div role="alert" style={errorCaptionStyle}>
+        <span>{online ? 'No se guardó' : 'Sin conexión · no se guardó'}</span>
+        <button onClick={retry} style={retryLinkStyle}>Reintentar</button>
+      </div>
+    )}
+    </>
   )
 }
 
@@ -222,3 +278,21 @@ const staticVal = (w) => ({
 const times = { color: 'var(--c-text-ghost)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }
 const unitStyle = { color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, flexShrink: 0 }
 const rmStyle = { color: 'var(--c-text-ghost)', fontSize: '11px', fontWeight: 600, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }
+
+const errorBorder = { borderColor: 'var(--c-action)' }
+
+const errorCaptionStyle = {
+  display: 'flex', alignItems: 'center', gap: '8px',
+  padding: '2px 0 8px 26px',
+  fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
+  textTransform: 'uppercase', letterSpacing: '0.06em',
+  color: 'var(--c-action-text)',
+}
+
+const retryLinkStyle = {
+  color: 'var(--c-action-text)',
+  fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
+  textTransform: 'uppercase', letterSpacing: '0.06em',
+  textDecoration: 'underline', textUnderlineOffset: '2px',
+  padding: '4px 2px',
+}

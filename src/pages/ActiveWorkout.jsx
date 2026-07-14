@@ -9,6 +9,7 @@ import { hoverColor, ERROR_STYLE } from '../lib/ui'
 import { useWorkouts } from '../hooks/useWorkout'
 import { Sheet, Button, LiveRegion, UndoSnackbar } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
+import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import AddExerciseModal from '../components/AddExerciseModal'
 
 /* ── Workout elapsed timer ───────────────────────────────────────────── */
@@ -412,6 +413,7 @@ export default function ActiveWorkout() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { deleteWorkout } = useWorkouts()
+  const online = useOnlineStatus()
 
   const {
     workout, workoutExercises, loading, error,
@@ -617,6 +619,29 @@ export default function ActiveWorkout() {
             )}
           </div>
         </div>
+
+        {/* Offline notice — saves are held locally and retried on reconnect */}
+        {!online && (
+          <div
+            role="status"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
+              borderRadius: '10px', padding: '8px 12px', marginBottom: '16px',
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--c-action)', flexShrink: 0 }}
+            />
+            <span style={{
+              fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
+              textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)',
+            }}>
+              Sin conexión — los cambios se guardarán al reconectar
+            </span>
+          </div>
+        )}
 
         {/* Workout name */}
         <div style={{ marginBottom: '20px' }}>
