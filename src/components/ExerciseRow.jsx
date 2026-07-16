@@ -6,6 +6,7 @@ import SetRow from './SetRow'
 import PRBadge from './PRBadge'
 import { calc1RM, useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
+import { useExerciseLang } from '../hooks/useExerciseLang'
 
 // Rest between sets: the routine's prescription wins, then the lifter's own
 // per-exercise choice (localStorage — a device preference, not history), then 90s.
@@ -37,6 +38,7 @@ export default function ExerciseRow({
 }) {
   const { user } = useAuth()
   const reduce = useReducedMotion()
+  const { label: exLabel } = useExerciseLang()
   const storageKey = `raw_ex_expanded_${workoutExercise.id}`
   // During a live workout exercises start collapsed (open the one you're on);
   // when reviewing a finished workout they default open for scanning.
@@ -205,7 +207,7 @@ export default function ExerciseRow({
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {exercise?.name}
+              {exLabel(exercise)}
             </p>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 600, marginTop: '2px' }}>
               {sets.length} {sets.length === 1 ? 'serie' : 'series'}
@@ -259,7 +261,7 @@ export default function ExerciseRow({
             style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left', minWidth: 0 }}
           >
             <span style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {exercise?.name}
+              {exLabel(exercise)}
             </span>
 
             {sets.length > 0 ? (

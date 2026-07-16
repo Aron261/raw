@@ -1,5 +1,6 @@
 import { useAuth } from './useAuth'
 import { supabase } from '../lib/supabase'
+import { getOrCreateExerciseId } from '../lib/exercises'
 
 // Lightweight hook para iniciar un entreno desde una rutina (ciclo o single_day).
 // No hace fetchWorkouts — solo crea el workout y retorna el objeto creado.
@@ -40,23 +41,16 @@ export function useStartRoutineWorkout() {
       const ex = exercises[i]
       if (!ex.exercise_name?.trim()) continue
 
-      // Upsert exercise por nombre — safe por unique(user_id, name)
-      const { data: exRow, error: exErr } = await supabase
-        .from('exercises')
-        .upsert(
-          { user_id: user.id, name: ex.exercise_name.trim() },
-          { onConflict: 'user_id,name' }
-        )
-        .select()
-        .single()
-
-      if (exErr) throw exErr
+      // Resolución canónica: el nombre escrito en la rutina cae sobre el
+      // ejercicio que ya tiene la historia de ese movimiento.
+      const exerciseId = await getOrCreateExerciseId(ex.exercise_name)
+      if (!exerciseId) continue
 
       const { error: weErr } = await supabase
         .from('workout_exercises')
         .insert({
           workout_id: workout.id,
-          exercise_id: exRow.id,
+          exercise_id: exerciseId,
           sort_order: ex.exercise_order ?? i,
           unit: 'lb', // default; el usuario puede cambiarlo durante el entreno
         })

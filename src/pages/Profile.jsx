@@ -454,7 +454,46 @@ function ThemeSection() {
           )
         })}
       </div>
+
+      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '16px 0 10px' }}>
+        Nombre de los ejercicios
+      </p>
+      <ExerciseLangPicker cell={cell} />
+      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '8px' }}>
+        Solo cambia cómo se llaman. Tu historial y tus récords son los mismos en cualquier idioma.
+      </p>
     </section>
+  )
+}
+
+// Idioma de los nombres de ejercicio. La identidad vive en la librería, así que
+// esto no toca historial ni PRs — solo elige las palabras.
+function ExerciseLangPicker({ cell }) {
+  const { profile, saveProfile, saving } = useProfile()
+  const lang = profile?.exercise_lang === 'en' ? 'en' : 'es'
+  const opts = [
+    { value: 'es', label: 'Español', sub: 'Press de banca' },
+    { value: 'en', label: 'English',  sub: 'Bench Press' },
+  ]
+  return (
+    <div role="group" aria-label="Idioma de los ejercicios" style={{ display: 'flex', gap: '8px', opacity: saving ? 0.6 : 1 }}>
+      {opts.map(o => {
+        const active = lang === o.value
+        return (
+          <button
+            key={o.value}
+            type="button"
+            disabled={saving}
+            onClick={() => { if (!active) saveProfile({ exercise_lang: o.value }) }}
+            aria-pressed={active}
+            style={cell(active)}
+          >
+            {o.label}
+            <span style={{ fontSize: '9px', fontWeight: 500, color: 'var(--c-text-muted)' }}>{o.sub}</span>
+          </button>
+        )
+      })}
+    </div>
   )
 }
 

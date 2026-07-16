@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { useCachedResource } from '../lib/swr'
+import { getOrCreateExerciseId } from '../lib/exercises'
 
 // Calcula el siguiente día de un ciclo activo dado el historial de entrenos.
 // Ignora workouts sin routine_id o routine_day_id (entrenos libres).
@@ -287,11 +288,13 @@ export function useRoutines(targetUserId = null) {
       const cleanName = (name || '').trim()
       if (!cleanName) return
 
-      // Clasificación en la tabla propia de ejercicios (no bloquea si falla)
-      if (ownerId) {
-        const payload = { user_id: ownerId, name: cleanName }
-        if (muscleGroup) payload.muscle_group = muscleGroup
-        await supabase.from('exercises').upsert(payload, { onConflict: 'user_id,name' })
+      // Clasificación en la tabla propia de ejercicios (no bloquea si falla).
+      // Solo para la rutina propia: el resolutor canónico crea sobre auth.uid(),
+      // así que un entrenador editando la rutina de un cliente no puede — ni
+      // debe — sembrar ejercicios en la cuenta del cliente desde aquí. Ese
+      // ejercicio se creará, ya canónico, cuando el cliente empiece el entreno.
+      if (ownerId && ownerId === user?.id) {
+        try { await getOrCreateExerciseId(cleanName, muscleGroup) } catch { /* best-effort */ }
       }
 
       // Orden = cantidad actual de ejercicios en ese día (conteo fresco en DB)

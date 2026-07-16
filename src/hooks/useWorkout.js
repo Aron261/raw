@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { useCachedResource } from '../lib/swr'
+import { getOrCreateExerciseId, resolveExerciseIds as resolveExerciseIdsCanonical } from '../lib/exercises'
 
 // Calculate estimated 1RM using Epley formula
 export const calc1RM = (weight, reps) => {
@@ -46,7 +47,7 @@ export function useWorkouts() {
           id,
           exercise_id,
           unit,
-          exercises ( name ),
+          exercises ( id, name, library_id, library:exercises_library ( name, name_en ) ),
           sets ( reps, weight )
         )
       `)
@@ -101,17 +102,10 @@ export function useWorkouts() {
   }
 
   // Resolve a list of exercise names to their ids for this user, creating any
-  // that don't exist yet — in one batched upsert instead of N round-trips.
-  const resolveExerciseIds = async (names) => {
-    const unique = [...new Set(names.filter(Boolean).map(n => n))]
-    if (unique.length === 0) return {}
-    const { data, error: err } = await supabase
-      .from('exercises')
-      .upsert(unique.map(name => ({ user_id: user.id, name })), { onConflict: 'user_id,name' })
-      .select('id, name')
-    if (err) throw err
-    return Object.fromEntries((data || []).map(e => [e.name, e.id]))
-  }
+  // that don't exist yet. Goes through the canonical resolver so a routine
+  // written as "Bench Press" reuses the same exercise — and the same PR
+  // history — as one written "Press de banca con barra".
+  const resolveExerciseIds = (names) => resolveExerciseIdsCanonical(names)
 
   const deleteWorkout = async (id) => {
     setError(null)
@@ -227,7 +221,7 @@ export function useActiveWorkout(workoutId) {
         .from('workout_exercises')
         .select(`
           id, sort_order, unit, notes,
-          exercises ( id, name ),
+          exercises ( id, name, library_id, library:exercises_library ( name, name_en ) ),
           sets ( id, set_number, reps, weight, created_at )
         `)
         .eq('workout_id', workoutId)
@@ -300,18 +294,10 @@ export function useActiveWorkout(workoutId) {
   // muscleGroup (optional): set on the user's exercises row so custom exercises
   // get classified. Only written when provided, never nulling an existing value.
   const addExercise = async (exerciseName, muscleGroup = null) => {
-    const name = exerciseName.trim()
-
-    // Upsert exercise (unique per user+name)
-    const payload = { user_id: user.id, name }
-    if (muscleGroup) payload.muscle_group = muscleGroup
-    const { data: exerciseData, error: exError } = await supabase
-      .from('exercises')
-      .upsert(payload, { onConflict: 'user_id,name' })
-      .select()
-      .single()
-
-    if (exError) throw exError
+    // Canonical resolution: whatever spelling was typed lands on the one
+    // exercise that already holds this movement's history.
+    const exerciseId = await getOrCreateExerciseId(exerciseName, muscleGroup)
+    if (!exerciseId) return
 
     // Determine next sort order
     const nextOrder = workoutExercises.length
@@ -320,7 +306,7 @@ export function useActiveWorkout(workoutId) {
       .from('workout_exercises')
       .insert({
         workout_id: workoutId,
-        exercise_id: exerciseData.id,
+        exercise_id: exerciseId,
         sort_order: nextOrder,
         unit: 'lb'
       })
@@ -426,20 +412,13 @@ export function useActiveWorkout(workoutId) {
   const replaceExercise = async (workoutExerciseId, newExerciseName, muscleGroup = null) => {
     const name = newExerciseName.trim()
 
-    // Upsert the new exercise for this user
-    const payload = { user_id: user.id, name }
-    if (muscleGroup) payload.muscle_group = muscleGroup
-    const { data: ex, error: exErr } = await supabase
-      .from('exercises')
-      .upsert(payload, { onConflict: 'user_id,name' })
-      .select()
-      .single()
-    if (exErr) throw exErr
+    const exerciseId = await getOrCreateExerciseId(name, muscleGroup)
+    if (!exerciseId) return
 
     // Point this workout_exercise to the new exercise — routine is untouched
     const { error: weErr } = await supabase
       .from('workout_exercises')
-      .update({ exercise_id: ex.id })
+      .update({ exercise_id: exerciseId })
       .eq('id', workoutExerciseId)
     if (weErr) throw weErr
 
