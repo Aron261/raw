@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { animate, useReducedMotion } from 'motion/react'
 import PRBadge from './PRBadge'
 import { calc1RM } from '../hooks/useWorkout'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
@@ -34,6 +35,7 @@ export default function SetRow({
   const [saveError, setSaveError] = useState(false)
   const pendingMarkDone = useRef(false)
   const online = useOnlineStatus()
+  const reduce = useReducedMotion()
   // When ✓ / ✕ is the element being pressed, it steals focus from the inputs
   // and fires their onBlur. This flag tells blur to stand down so we don't
   // create the same set twice (blur + click both saving).
@@ -71,8 +73,14 @@ export default function SetRow({
     try {
       await onSave(setNumber, reps, weight, markDone)
       setSaveError(false)
-      // A short tap confirms the set landed — the most-repeated action in the app.
-      if (markDone) { try { navigator.vibrate?.(10) } catch {} }
+      // A short tap + a spring pop confirm the set landed, on the same frame —
+      // the most-repeated action in the app, so it earns real feedback.
+      if (markDone) {
+        try { navigator.vibrate?.(10) } catch {}
+        if (checkRef.current && !reduce) {
+          animate(checkRef.current, { scale: [1, 1.24, 1] }, { duration: 0.34, ease: [0.34, 1.56, 0.64, 1] })
+        }
+      }
     } catch (e) {
       console.error(e)
       pendingMarkDone.current = markDone

@@ -1,7 +1,8 @@
 import { forwardRef } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
 
-// The single button primitive for Raw. Token-driven, theme-aware, press-scale
-// + focus-ring built in. Variants map to the design-system roles.
+// The single button primitive for Raw. Token-driven, theme-aware, spring
+// press-scale + focus-ring built in. Variants map to the design-system roles.
 const VARIANTS = {
   primary:   { background: 'var(--c-action)',  color: 'var(--c-on-action)', border: '1px solid transparent' },
   secondary: { background: 'var(--c-surface-2)', color: 'var(--c-text)',     border: '1px solid var(--c-border)' },
@@ -15,21 +16,26 @@ const SIZES = {
   lg: { padding: '16px',      fontSize: '14px' },
 }
 
+// A quick, lively press — springs in on touch-down, settles with a hint of
+// bounce on release. One value, every button in the app.
+const PRESS = { type: 'spring', bounce: 0.32, duration: 0.3 }
+
 const Button = forwardRef(function Button(
   { variant = 'primary', size = 'md', full = false, loading = false, disabled = false,
-    leftIcon = null, children, style, onPointerDown, onPointerUp, onPointerLeave, ...rest },
+    leftIcon = null, children, style, ...rest },
   ref,
 ) {
+  const reduce = useReducedMotion()
   const v = VARIANTS[variant] || VARIANTS.primary
   const s = SIZES[size] || SIZES.md
   const isOff = disabled || loading
 
-  const press = (scale) => (e) => { if (!isOff) e.currentTarget.style.transform = `scale(${scale})` }
-
   return (
-    <button
+    <motion.button
       ref={ref}
       disabled={isOff}
+      whileTap={isOff || reduce ? undefined : { scale: 0.96 }}
+      transition={PRESS}
       style={{
         ...v, ...s,
         width: full ? '100%' : undefined,
@@ -38,19 +44,16 @@ const Button = forwardRef(function Button(
         borderRadius: 'var(--r-md)',
         cursor: isOff ? 'default' : 'pointer',
         opacity: disabled ? 0.4 : 1,
-        transition: 'transform 160ms var(--ease-out), opacity 160ms var(--ease-out)',
+        transition: 'opacity 160ms var(--ease-out)',
         ...style,
       }}
-      onPointerDown={(e) => { press(0.97)(e); onPointerDown?.(e) }}
-      onPointerUp={(e) => { press(1)(e); onPointerUp?.(e) }}
-      onPointerLeave={(e) => { press(1)(e); onPointerLeave?.(e) }}
       {...rest}
     >
       {loading
         ? <span className="spinner" style={{ borderTopColor: 'currentColor', borderColor: 'rgba(127,127,127,0.25)' }} />
         : leftIcon}
       {children}
-    </button>
+    </motion.button>
   )
 })
 

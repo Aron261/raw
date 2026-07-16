@@ -141,10 +141,19 @@ export default function BottomNav({ onStart }) {
         background: 'var(--c-bg-glass)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderTop: '1px solid var(--c-border-subtle)',
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
+      {/* Scroll-edge fade — content dissolves into the glass instead of meeting
+          a hard 1px divider (Apple: scroll edge effects, not dividers). */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute', left: 0, right: 0, top: '-24px', height: '24px',
+          background: 'linear-gradient(to top, var(--c-bg-glass), transparent)',
+          pointerEvents: 'none',
+        }}
+      />
       <div style={{
         display: 'flex', alignItems: 'center',
         maxWidth: '480px', margin: '0 auto',

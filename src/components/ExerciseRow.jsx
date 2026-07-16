@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
+import { motion, useReducedMotion } from 'motion/react'
 import SetRow from './SetRow'
 import PRBadge from './PRBadge'
 import { calc1RM, useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWorkout'
@@ -27,6 +28,7 @@ export default function ExerciseRow({
   readOnly = false,
 }) {
   const { user } = useAuth()
+  const reduce = useReducedMotion()
   const storageKey = `raw_ex_expanded_${workoutExercise.id}`
   // During a live workout exercises start collapsed (open the one you're on);
   // when reviewing a finished workout they default open for scanning.
@@ -312,12 +314,15 @@ export default function ExerciseRow({
               </button>
 
               {showMenu && menuPos && createPortal(
-                <div
+                <motion.div
                   ref={menuPanelRef}
                   role="menu"
-                  className="fade-in"
+                  initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+                  animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+                  transition={reduce ? { duration: 0.15 } : { type: 'spring', bounce: 0.28, duration: 0.32 }}
                   style={{
                     position: 'fixed', top: `${menuPos.top}px`, right: `${menuPos.right}px`, zIndex: 90,
+                    transformOrigin: 'top right',
                     background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: '10px',
                     boxShadow: '0 8px 24px rgba(0,0,0,0.18)', minWidth: '184px', overflow: 'hidden',
                   }}
@@ -353,7 +358,7 @@ export default function ExerciseRow({
                   <MenuItem color="var(--c-action-text)" onClick={() => { onRemoveExercise(workoutExercise.id); setShowMenu(false) }}>
                     Eliminar ejercicio
                   </MenuItem>
-                </div>,
+                </motion.div>,
                 document.body
               )}
             </div>
