@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } fr
 import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import ExerciseRow from '../components/ExerciseRow'
+import RestTimerPill from '../components/RestTimerPill'
 import { useActiveWorkout, useExercisePR, calc1RM, calcVolume } from '../hooks/useWorkout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -226,6 +227,7 @@ function ExerciseHistorySheet({ exercise, userId, onClose }) {
 /* ── Session summary (on finish) ────────────────────────────────────── */
 function SessionSummary({ workout, workoutExercises, userId, onClose }) {
   const [prIds, setPrIds] = useState(null) // Set<exercise_id> beating a prior best; null = loading
+  const [prevBests, setPrevBests] = useState({}) // exercise_id → best 1RM before this session
 
   const allSets = workoutExercises.flatMap(we => (we.sets || []).map(s => ({ ...s, unit: we.unit })))
   const totalVolume = Math.round(calcVolume(allSets))
@@ -271,7 +273,7 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
           const prev = prevBest[e.exerciseId] || 0
           if (e.exerciseId && prev > 0 && e.best1RM > prev) prs.add(e.exerciseId)
         }
-        if (!cancelled) setPrIds(prs)
+        if (!cancelled) { setPrIds(prs); setPrevBests(prevBest) }
       } catch { if (!cancelled) setPrIds(new Set()) }
     }
     run()
@@ -307,17 +309,31 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
         </div>
       )}
 
-      {/* Per-exercise recap */}
+      {/* Per-exercise recap — honest comparison vs. the best before today:
+          ▲ beat it · = matched it · ▼ fell short. Glyph + label, never color alone. */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '38vh', overflowY: 'auto', marginBottom: '16px' }}>
         {perExercise.map((e, i) => {
           const isPR = prIds?.has(e.exerciseId)
+          const prev = prevBests[e.exerciseId] || 0
+          const delta = prev > 0 && e.best1RM > 0 ? Math.round(e.best1RM - prev) : null
           return (
             <div key={e.exerciseId || i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 2px', borderBottom: '1px solid var(--c-border-subtle)' }}>
               <span style={{ flex: 1, minWidth: 0, fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {e.name}
               </span>
-              {isPR && (
+              {isPR ? (
                 <span style={{ flexShrink: 0, background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '2px 6px', borderRadius: '2px' }}>PR</span>
+              ) : delta !== null && (
+                <span
+                  aria-label={delta > 0 ? `Superaste tu 1RM anterior por ${delta}` : delta === 0 ? 'Igualaste tu 1RM anterior' : `Por debajo de tu 1RM anterior por ${-delta}`}
+                  style={{
+                    flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
+                    letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums',
+                    color: delta > 0 ? 'var(--c-success)' : delta === 0 ? 'var(--c-text-muted)' : 'var(--c-text-dim)',
+                  }}
+                >
+                  {delta > 0 ? `▲ +${delta}` : delta === 0 ? '= igual' : `▼ ${delta}`}
+                </span>
               )}
               <span style={{ flexShrink: 0, fontSize: '12px', fontWeight: 700, color: 'var(--c-text-dim)', fontVariantNumeric: 'tabular-nums' }}>
                 {e.count} ser{e.topSet ? <> · {e.topSet.reps}×{e.topSet.weight}{e.unit}</> : ''}
@@ -468,6 +484,21 @@ export default function ActiveWorkout() {
       if (nextDone) next.add(setId); else next.delete(setId)
       return next
     })
+  }, [])
+
+  // Rest timer — armed each time a set is marked done. `id` keys the pill so a
+  // new set restarts it cleanly; +30 only moves the deadline.
+  const [rest, setRest] = useState(null) // { endsAt, total, id } | null
+  const startRest = useCallback((seconds) => {
+    if (!(seconds > 0)) return
+    setRest({ endsAt: Date.now() + seconds * 1000, total: seconds, id: Date.now() })
+  }, [])
+  const extendRest = useCallback((seconds) => {
+    setRest(r => r ? { ...r, endsAt: r.endsAt + seconds * 1000, total: r.total + seconds } : r)
+  }, [])
+  // Ignore a stale dismissal arriving after a newer rest replaced this one.
+  const dismissRest = useCallback((restId) => {
+    setRest(r => (r && r.id !== restId ? r : null))
   }, [])
 
   const toggleExerciseFinish = useCallback((weId, nextFinished) => {
@@ -753,6 +784,7 @@ export default function ActiveWorkout() {
                     isExerciseFinished={exFinished}
                     onToggleFinish={toggleExerciseFinish}
                     onShowHistory={setHistoryExercise}
+                    onRestStart={!isFinished ? startRest : undefined}
                     onMove={(!isFinished || isEditing) ? moveExercise : undefined}
                     canMoveUp={!exFinished && pIdx > 0}
                     canMoveDown={!exFinished && pIdx < pending.length - 1}
@@ -945,6 +977,19 @@ export default function ActiveWorkout() {
           busy={deletingWorkout}
           onConfirm={handleDeleteWorkout}
           onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
+
+      {/* Rest pill — floats above the sticky actions while resting. Keyed per
+          rest so each one mounts fresh; the pill animates its own exit. */}
+      {rest && !isFinished && (
+        <RestTimerPill
+          key={rest.id}
+          restId={rest.id}
+          endsAt={rest.endsAt}
+          total={rest.total}
+          onExtend={extendRest}
+          onDismiss={dismissRest}
         />
       )}
 

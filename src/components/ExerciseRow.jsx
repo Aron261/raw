@@ -1,10 +1,17 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, useReducedMotion } from 'motion/react'
+import { SPRING_POP, FADE } from '../lib/motion'
 import SetRow from './SetRow'
 import PRBadge from './PRBadge'
 import { calc1RM, useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
+
+// Rest between sets: the routine's prescription wins, then the lifter's own
+// per-exercise choice (localStorage — a device preference, not history), then 90s.
+const REST_PRESETS = [60, 90, 120, 180, 240]
+const DEFAULT_REST = 90
+const fmtRest = (secs) => `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`
 
 export default function ExerciseRow({
   workoutExercise,
@@ -22,6 +29,7 @@ export default function ExerciseRow({
   isExerciseFinished = false,
   onToggleFinish,             // (workoutExerciseId, nextFinished) => void
   onShowHistory,              // (exercise) => void   [optional]
+  onRestStart,                // (seconds) => void — start the rest pill  [optional]
   onMove,                     // (workoutExerciseId, 'up' | 'down') => void  [optional]
   canMoveUp = false,
   canMoveDown = false,
@@ -70,6 +78,20 @@ export default function ExerciseRow({
   // as a guide — the lifter can still add or remove rows freely.
   const targetSets = workoutExercise.target_sets || null
   const targetReps = workoutExercise.target_reps || null
+
+  const restKey = `raw_rest_secs_${exercise?.id}`
+  const [restSecs, setRestSecs] = useState(() => {
+    try {
+      const saved = parseInt(localStorage.getItem(restKey), 10)
+      if (saved > 0) return saved
+    } catch {}
+    return workoutExercise.target_rest || DEFAULT_REST
+  })
+  const cycleRest = () => setRestSecs(s => {
+    const next = REST_PRESETS[(REST_PRESETS.indexOf(s) + 1) % REST_PRESETS.length]
+    try { localStorage.setItem(restKey, String(next)) } catch {}
+    return next
+  })
 
   // Number of rows to show: at least the saved sets. Before anything's logged
   // we lay out the routine's prescribed set count (so the plan appears exactly
@@ -148,7 +170,10 @@ export default function ExerciseRow({
       try { id = (await p)?.id }
       finally { creating.current.delete(setNumber) }
     }
-    if (markDone && id) onToggleSetDone(id, true)
+    if (markDone && id) {
+      onToggleSetDone(id, true)
+      onRestStart?.(restSecs)
+    }
   }
 
   const removeRow = async (setNumber, setId) => {
@@ -319,7 +344,7 @@ export default function ExerciseRow({
                   role="menu"
                   initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
                   animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1 }}
-                  transition={reduce ? { duration: 0.15 } : { type: 'spring', bounce: 0.28, duration: 0.32 }}
+                  transition={reduce ? FADE : SPRING_POP}
                   style={{
                     position: 'fixed', top: `${menuPos.top}px`, right: `${menuPos.right}px`, zIndex: 90,
                     transformOrigin: 'top right',
@@ -330,6 +355,13 @@ export default function ExerciseRow({
                   {onShowHistory && (
                     <MenuItem onClick={() => { onShowHistory(exercise); setShowMenu(false) }}>
                       Ver historial
+                    </MenuItem>
+                  )}
+                  {/* Cycles presets in place — the menu stays open so the
+                      lifter can tap through to the duration they want. */}
+                  {onRestStart && (
+                    <MenuItem onClick={cycleRest}>
+                      Descanso · <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--c-data)' }}>{fmtRest(restSecs)}</span>
                     </MenuItem>
                   )}
                   {onMove && canMoveUp && (

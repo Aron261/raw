@@ -245,11 +245,11 @@ export function useActiveWorkout(workoutId) {
         try {
           const { data: planned } = await supabase
             .from('routine_day_exercises')
-            .select('exercise_name, sets, reps')
+            .select('exercise_name, sets, reps, rest_seconds')
             .eq('routine_day_id', workoutData.routine_day_id)
           for (const p of (planned || [])) {
             const key = (p.exercise_name || '').trim().toLowerCase()
-            if (key) planByName[key] = { sets: p.sets, reps: p.reps }
+            if (key) planByName[key] = { sets: p.sets, reps: p.reps, rest: p.rest_seconds }
           }
         } catch { /* no guide — fall back to previous-session defaults */ }
       }
@@ -261,6 +261,7 @@ export function useActiveWorkout(workoutId) {
           ...we,
           target_sets: plan?.sets ?? null,
           target_reps: plan?.reps ?? null,
+          target_rest: plan?.rest ?? null,
           sets: [...(we.sets || [])].sort((a, b) => a.set_number - b.set_number),
         }
       })

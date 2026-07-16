@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { animate, useReducedMotion } from 'motion/react'
+import { EASE_POP_KEYFRAMES, POP_DURATION } from '../lib/motion'
 import PRBadge from './PRBadge'
 import { calc1RM } from '../hooks/useWorkout'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
@@ -78,7 +79,7 @@ export default function SetRow({
       if (markDone) {
         try { navigator.vibrate?.(10) } catch {}
         if (checkRef.current && !reduce) {
-          animate(checkRef.current, { scale: [1, 1.24, 1] }, { duration: 0.34, ease: [0.34, 1.56, 0.64, 1] })
+          animate(checkRef.current, { scale: [1, 1.24, 1] }, { duration: POP_DURATION, ease: EASE_POP_KEYFRAMES })
         }
       }
     } catch (e) {

@@ -1,5 +1,6 @@
 import { forwardRef } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
+import { SPRING_PRESS } from '../../lib/motion'
 
 // The single button primitive for Raw. Token-driven, theme-aware, spring
 // press-scale + focus-ring built in. Variants map to the design-system roles.
@@ -16,10 +17,6 @@ const SIZES = {
   lg: { padding: '16px',      fontSize: '14px' },
 }
 
-// A quick, lively press — springs in on touch-down, settles with a hint of
-// bounce on release. One value, every button in the app.
-const PRESS = { type: 'spring', bounce: 0.32, duration: 0.3 }
-
 const Button = forwardRef(function Button(
   { variant = 'primary', size = 'md', full = false, loading = false, disabled = false,
     leftIcon = null, children, style, ...rest },
@@ -35,7 +32,7 @@ const Button = forwardRef(function Button(
       ref={ref}
       disabled={isOff}
       whileTap={isOff || reduce ? undefined : { scale: 0.96 }}
-      transition={PRESS}
+      transition={SPRING_PRESS}
       style={{
         ...v, ...s,
         width: full ? '100%' : undefined,

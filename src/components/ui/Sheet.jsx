@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useCallback, useId } from 'react'
 import { motion, useMotionValue, useMotionValueEvent, useDragControls, useReducedMotion, animate } from 'motion/react'
+import { SPRING_ENTER, SPRING_SETTLE, SPRING_DISMISS } from '../../lib/motion'
 
 // The single bottom-sheet shell for Raw. Scrim + grab handle + optional header,
 // safe-area aware, scrollable.
@@ -17,9 +18,23 @@ import { motion, useMotionValue, useMotionValueEvent, useDragControls, useReduce
 // Reduced motion: entrance/exit become opacity cross-fades and drag is disabled.
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
-const ENTER = { type: 'spring', bounce: 0.18, duration: 0.42 }
-const SETTLE = { type: 'spring', bounce: 0.12, duration: 0.4 }
-const DISMISS = { type: 'spring', bounce: 0, duration: 0.3 }
+
+// Body scroll lock, reference-counted: Layout mounts every screen twice (the
+// mobile tree + the display:none desktop tree), so two Sheet instances lock
+// at once — a plain save/restore lets the second instance capture "hidden" as
+// the value to restore and strands the page unscrollable. Only the first lock
+// saves, only the last unlock restores.
+let bodyLocks = 0
+let bodyPrevOverflow = ''
+const lockBody = () => {
+  if (++bodyLocks === 1) {
+    bodyPrevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+  }
+}
+const unlockBody = () => {
+  if (bodyLocks > 0 && --bodyLocks === 0) document.body.style.overflow = bodyPrevOverflow
+}
 
 export default function Sheet({ title, subtitle, onClose, children, maxHeight = '90dvh', headerRight = null }) {
   const panelRef = useRef(null)
@@ -49,27 +64,42 @@ export default function Sheet({ title, subtitle, onClose, children, maxHeight = 
       animate(opacity, 1, { duration: 0.2 })
     } else {
       y.set(h)
-      animate(y, 0, ENTER)
+      animate(y, 0, SPRING_ENTER)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // The dismiss animation is cosmetic; the actual close always fires on a
+  // wall-clock deadline so a stalled animation can never strand the sheet.
   const close = useCallback(() => {
     if (closing.current) return
     closing.current = true
+    let fired = false
+    const fire = () => { if (!fired) { fired = true; onClose?.() } }
     if (reduce) {
       animate(scrim, 0, { duration: 0.18 })
-      animate(opacity, 0, { duration: 0.18 }).finished.then(() => onClose?.())
+      animate(opacity, 0, { duration: 0.18 }).finished.then(fire)
+      setTimeout(fire, 240)
     } else {
-      animate(y, panelH.current, DISMISS).finished.then(() => onClose?.())
+      animate(y, panelH.current, SPRING_DISMISS).finished.then(fire)
+      setTimeout(fire, 380)
     }
   }, [onClose, reduce, y, scrim, opacity])
 
-  // Focus trap, Escape-to-close, body scroll lock, focus restore.
+  // Mount-only: initial focus, body scroll lock, focus restore on unmount.
+  useEffect(() => {
+    const previouslyFocused = document.activeElement
+    panelRef.current?.focus()
+    lockBody()
+    return () => {
+      unlockBody()
+      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus()
+    }
+  }, [])
+
+  // Focus trap + Escape-to-close (re-binds when `close` changes).
   useEffect(() => {
     const panel = panelRef.current
-    const previouslyFocused = document.activeElement
-    panel?.focus()
 
     const focusableItems = () =>
       Array.from(
@@ -94,14 +124,7 @@ export default function Sheet({ title, subtitle, onClose, children, maxHeight = 
     }
 
     document.addEventListener('keydown', onKeyDown)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = prevOverflow
-      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus()
-    }
+    return () => document.removeEventListener('keydown', onKeyDown)
   }, [close])
 
   return (
@@ -128,7 +151,7 @@ export default function Sheet({ title, subtitle, onClose, children, maxHeight = 
         dragElastic={{ top: 0.14, bottom: 0 }}
         onDragEnd={(e, info) => {
           if (info.velocity.y > 600 || info.offset.y > panelH.current * 0.3) close()
-          else animate(y, 0, SETTLE)
+          else animate(y, 0, SPRING_SETTLE)
         }}
         style={{
           position: 'relative', zIndex: 1, y, opacity,
