@@ -5,7 +5,6 @@ import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useNutritionDay, useNutritionTargets, toLocalISODate, DEFAULT_TARGETS } from '../hooks/useNutrition'
-import { useSupplements } from '../hooks/useSupplements'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 
 // ── Date helpers ─────────────────────────────────────────────────────────
@@ -15,20 +14,6 @@ function getMondayOfWeek(date = new Date()) {
   d.setDate(d.getDate() - diff)
   d.setHours(0, 0, 0, 0)
   return d
-}
-
-const dateStr = (() => {
-  const s = new Date().toLocaleDateString('es-CO', {
-    weekday: 'long', month: 'long', day: 'numeric',
-  })
-  return s.charAt(0).toUpperCase() + s.slice(1)
-})()
-
-function getGreeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Buenos días'
-  if (h < 19) return 'Buenas tardes'
-  return 'Buenas noches'
 }
 
 // ── Section row ──────────────────────────────────────────────────────────
@@ -128,14 +113,12 @@ export default function Hub() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { profile } = useProfile()
-  const firstName = profile?.name?.split(' ')[0] || ''
   const isTrainer = !!profile?.is_trainer
 
   // Datos de un vistazo por sección — todos cacheados (SWR), carga silenciosa.
   const { workouts, loading: workoutsLoading } = useWorkouts()
   const { totals } = useNutritionDay(toLocalISODate())
   const { targets } = useNutritionTargets()
-  const { active: activeSupps, takenCount } = useSupplements()
   const { counts: unreadMap } = useUnreadCounts()
 
   const activeWorkout = useMemo(() => workouts.find(w => !w.ended_at) || null, [workouts])
@@ -166,10 +149,6 @@ export default function Hub() {
     ? `${kcalToday.toLocaleString('es-CO')} / ${kcalTarget.toLocaleString('es-CO')} kcal hoy`
     : 'Registra tu primera comida'
 
-  const longevitySub = activeSupps.length > 0
-    ? `${takenCount}/${activeSupps.length} suplementos hoy`
-    : 'Arma tu stack'
-
   const coachSub = unread > 0
     ? `${unread} ${unread === 1 ? 'mensaje sin leer' : 'mensajes sin leer'}`
     : 'Tus clientes'
@@ -177,11 +156,9 @@ export default function Hub() {
   const profileSub = profile?.name || user?.email || 'Ajustes y cuenta'
 
   const rows = [
-    { title: 'Entreno',    sub: trainingSub,  to: '/training',  live: !!activeWorkout, subTone: activeWorkout ? 'action' : 'muted' },
+    { title: 'Entreno',    sub: trainingSub,  to: '/',  live: !!activeWorkout, subTone: activeWorkout ? 'action' : 'muted' },
     { title: 'Nutrición',  sub: nutritionSub, to: '/nutrition' },
-    { title: 'Longevidad', sub: longevitySub, to: '/longevity' },
     ...(isTrainer ? [{ title: 'Coach', sub: coachSub, to: '/coach', subTone: unread > 0 ? 'action' : 'muted' }] : []),
-    { title: 'Social',     sub: 'Próximamente', to: '/social', soon: true },
     { title: 'Perfil',     sub: profileSub, to: '/profile', kind: 'profile', initial: (profile?.name || user?.email || '?').charAt(0).toUpperCase() },
   ]
 
@@ -189,13 +166,11 @@ export default function Hub() {
     <Layout>
       <div className="w-full px-5 pt-10 pb-10 max-w-[480px] mx-auto md:max-w-[640px] md:px-8 md:py-12">
 
-        {/* ── Header ── */}
+        {/* ── Header — el saludo y la fecha viven en Hoy, la portada. Aquí solo
+            hace falta decir dónde estás: esto es un índice, no un recibimiento. ── */}
         <div className="fade-in" style={{ marginBottom: '28px' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-data)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
-            {dateStr}
-          </p>
           <h1 className="text-[30px] md:text-[36px]" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
-            {getGreeting()}{firstName ? `, ${firstName}` : ''}
+            Menú
           </h1>
         </div>
 

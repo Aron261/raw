@@ -3,22 +3,25 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import BottomNav from './BottomNav'
 import Sidebar from './Sidebar'
 import WorkoutPickerModal from './WorkoutPickerModal'
+import QuickAddSheet from './QuickAddSheet'
 import { StartFab } from './ui'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useRoutines } from '../hooks/useRoutines'
 import { sectionFor } from '../lib/sections'
 
-// WorkoutStarter: lógica del picker global — vive en Layout para que el
-// botón + del nav funcione desde cualquier pantalla.
+// QuickAdd: the universal "+" — vive en Layout para que el botón del nav
+// funcione desde cualquier pantalla. "Empezar entreno" delega en el picker
+// que ya existía; el resto de opciones navegan o resuelven en el propio sheet.
 function WorkoutStarter({ children }) {
   const navigate = useNavigate()
   const { createWorkout, createWorkoutFromCycleDay } = useWorkouts()
   const { routines, activeRoutine } = useRoutines()
 
+  const [showQuickAdd, setShowQuickAdd] = useState(false)
   const [showPicker, setShowPicker] = useState(false)
   const [starting, setStarting] = useState(false)
 
-  const openPicker = () => setShowPicker(true)
+  const openQuickAdd = () => setShowQuickAdd(true)
 
   const run = async (fn) => {
     setShowPicker(false)
@@ -46,7 +49,13 @@ function WorkoutStarter({ children }) {
 
   return (
     <>
-      {children(openPicker, starting)}
+      {children(openQuickAdd, starting)}
+      {showQuickAdd && (
+        <QuickAddSheet
+          onClose={() => setShowQuickAdd(false)}
+          onStartWorkout={() => { setShowQuickAdd(false); setShowPicker(true) }}
+        />
+      )}
       {showPicker && (
         <WorkoutPickerModal
           routines={routines}
@@ -62,25 +71,25 @@ function WorkoutStarter({ children }) {
   )
 }
 
-// El acceso a Perfil vive como fila en el menú del hub (Hub.jsx) y en el
-// sidebar de escritorio; ya no hay avatar flotante.
+// El acceso a Perfil vive como fila en el menú (Hub.jsx) y en el sidebar de
+// escritorio; ya no hay avatar flotante.
 export default function Layout({ children, hideNav = false }) {
   const { pathname } = useLocation()
   const section = sectionFor(pathname)
-  // Solo la sección Entreno tiene barra de tabs; el hub usa el FAB de inicio.
+  // Solo la sección Entreno (Hoy incluido) tiene barra de tabs; las demás
+  // secciones navegan desde el Menú y sus propios headers.
   const hasTabs = section === 'training'
 
   return (
     <WorkoutStarter>
-      {(openPicker, _starting) => (
+      {(openQuickAdd, _starting) => (
         <>
           {/* ── Mobile (< md) ──────────────────────────────────────────── */}
           <div className="md:hidden min-h-dvh bg-background flex flex-col">
             <main className={`flex-1 flex flex-col ${!hideNav && hasTabs ? 'pb-20' : 'pb-8'}`}>
               {children}
             </main>
-            {!hideNav && <BottomNav onStart={openPicker} />}
-            {!hideNav && section === 'hub' && <StartFab onClick={openPicker} offset={20} />}
+            {!hideNav && <BottomNav onStart={openQuickAdd} />}
           </div>
 
           {/* ── Desktop (≥ md) ─────────────────────────────────────────── */}
@@ -89,7 +98,7 @@ export default function Layout({ children, hideNav = false }) {
             <main className="flex-1 overflow-y-auto" style={{ minHeight: '100dvh' }}>
               {children}
             </main>
-            {!hideNav && <StartFab onClick={openPicker} />}
+            {!hideNav && <StartFab onClick={openQuickAdd} />}
           </div>
         </>
       )}

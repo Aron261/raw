@@ -104,7 +104,7 @@ function StartAction({ onClick }) {
     <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <button
         onClick={onClick}
-        aria-label="Empezar entreno"
+        aria-label="Agregar"
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           width: '48px', height: '48px', borderRadius: '16px',
@@ -126,10 +126,10 @@ function StartAction({ onClick }) {
 }
 
 // ── Nav ───────────────────────────────────────────────────────────────
-// The tab bar belongs to the Training section. The hub and the other
-// sections (Nutrición, Longevidad, Social, Coach, Perfil) navigate from
-// the hub menu + back headers, so the bar stays out of their way.
-// Training: Menú | Inicio | [START] | Historial | Rutinas
+// The tab bar belongs to the Training section — home ("Hoy") included. The
+// other sections (Nutrición, Coach, Perfil) navigate from the Menú index +
+// back headers, so the bar stays out of their way.
+// Menú | Hoy | [+] | Progreso | Rutinas
 export default function BottomNav({ onStart }) {
   const { pathname } = useLocation()
   if (sectionFor(pathname) !== 'training') return null
@@ -159,11 +159,11 @@ export default function BottomNav({ onStart }) {
         maxWidth: '480px', margin: '0 auto',
         height: '60px', padding: '0 4px',
       }}>
-        <TabItem to="/"         label="Menú"      Icon={MenuIcon}    exact />
-        <TabItem to="/training" label="Inicio"    Icon={BarbellIcon} />
+        <TabItem to="/menu"     label="Menú"     Icon={MenuIcon} />
+        <TabItem to="/"         label="Hoy"      Icon={BarbellIcon} exact />
         <StartAction onClick={onStart} />
-        <TabItem to="/history"  label="Historial" Icon={HistoryIcon} />
-        <TabItem to="/rutinas"  label="Rutinas"   Icon={ProgramaIcon} />
+        <TabItem to="/progreso" label="Progreso" Icon={HistoryIcon} />
+        <TabItem to="/rutinas"  label="Rutinas"  Icon={ProgramaIcon} />
       </div>
     </nav>
   )

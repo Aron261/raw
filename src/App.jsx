@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigationType, useParams } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useNavigationType, useParams } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
 import { AuthContext, useAuthProvider } from './hooks/useAuth'
 import { useBetaGate } from './hooks/useBetaGate'
+import { useWorkouts } from './hooks/useWorkout'
 
 // Route-level code splitting: each screen is its own chunk so the initial load
 // only ships the shell + whatever route the user landed on. Recharts and other
@@ -13,11 +14,10 @@ const ResetPassword  = lazy(() => import('./pages/ResetPassword'))
 const Hub            = lazy(() => import('./pages/Hub'))
 const Training       = lazy(() => import('./pages/Training'))
 const Nutrition      = lazy(() => import('./pages/Nutrition'))
-const Longevity      = lazy(() => import('./pages/Longevity'))
 const Social         = lazy(() => import('./pages/Social'))
 const ActiveWorkout  = lazy(() => import('./pages/ActiveWorkout'))
 const ExerciseDetail = lazy(() => import('./pages/ExerciseDetail'))
-const History        = lazy(() => import('./pages/History'))
+const Progreso       = lazy(() => import('./pages/Progreso'))
 const Stats          = lazy(() => import('./pages/Stats'))
 const ExerciseManager = lazy(() => import('./pages/ExerciseManager'))
 const Profile        = lazy(() => import('./pages/Profile'))
@@ -82,6 +82,24 @@ function R({ auth, element }) {
   return <RequireAuth auth={auth}>{element}</RequireAuth>
 }
 
+// Home ("Hoy") with a cold-launch gate: the first time the app resolves the
+// workout list in this session, an in-progress workout pulls you straight
+// into it — the gym case. Navigating home afterwards never re-triggers it.
+let launchChecked = false
+function HomeGate() {
+  const navigate = useNavigate()
+  const { workouts, loading } = useWorkouts()
+
+  useEffect(() => {
+    if (launchChecked || loading) return
+    launchChecked = true
+    const active = workouts.find(w => !w.ended_at)
+    if (active) navigate(`/workout/${active.id}`)
+  }, [loading, workouts, navigate])
+
+  return <Training />
+}
+
 // Coach viewing a client's stats — same window, read-only, scoped to the client.
 function ClientStats() {
   const { id } = useParams()
@@ -125,20 +143,21 @@ function AppWithAuth() {
               de recuperación, fuera del gate de beta. */}
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Protected — hub */}
-          <Route path="/"           element={<R auth={auth} element={<Hub />} />} />
+          {/* Protected — home ("Hoy") + Menú index */}
+          <Route path="/"           element={<R auth={auth} element={<HomeGate />} />} />
+          <Route path="/menu"       element={<R auth={auth} element={<Hub />} />} />
 
           {/* Entreno */}
-          <Route path="/training"   element={<R auth={auth} element={<Training />} />} />
-          <Route path="/history"    element={<R auth={auth} element={<History />} />} />
-          <Route path="/stats"      element={<R auth={auth} element={<Stats />} />} />
+          <Route path="/training"   element={<Navigate to="/" replace />} />
+          <Route path="/progreso"   element={<R auth={auth} element={<Progreso />} />} />
+          <Route path="/history"    element={<Navigate to="/progreso" replace />} />
+          <Route path="/stats"      element={<Navigate to="/progreso?tab=stats" replace />} />
           <Route path="/ejercicios" element={<R auth={auth} element={<ExerciseManager />} />} />
           <Route path="/rutinas"    element={<R auth={auth} element={<Rutinas />} />} />
           <Route path="/rutina/:id" element={<R auth={auth} element={<RoutineDetail />} />} />
 
-          {/* Nutrición · Longevidad · Social */}
+          {/* Nutrición · Social */}
           <Route path="/nutrition"  element={<R auth={auth} element={<Nutrition />} />} />
-          <Route path="/longevity"  element={<R auth={auth} element={<Longevity />} />} />
           <Route path="/social"     element={<R auth={auth} element={<Social />} />} />
 
           <Route path="/profile"    element={<R auth={auth} element={<Profile />} />} />

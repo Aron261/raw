@@ -529,7 +529,7 @@ export default function ActiveWorkout() {
     setDeletingWorkout(true)
     try {
       await deleteWorkout(workout.id)
-      navigate('/training', { replace: true })
+      navigate('/', { replace: true })
     } catch (e) {
       console.error(e)
       setDeletingWorkout(false)
@@ -574,7 +574,7 @@ export default function ActiveWorkout() {
     try {
       await deleteWorkout(workout.id)
       try { localStorage.removeItem(`raw_done_sets_${id}`); localStorage.removeItem(`raw_done_ex_${id}`) } catch {}
-      navigate('/training', { replace: true })
+      navigate('/', { replace: true })
     } catch (err) {
       setFinishError(err.message)
       setDiscarding(false)
@@ -593,7 +593,7 @@ export default function ActiveWorkout() {
   }
 
   // Prefer explicit home navigation over navigate(-1) — safer when arriving via direct URL
-  const handleBack = () => navigate('/training')
+  const handleBack = () => navigate('/')
 
   if (loading) {
     return (
@@ -933,7 +933,7 @@ export default function ActiveWorkout() {
           workout={workout}
           workoutExercises={workoutExercises}
           userId={user?.id}
-          onClose={() => navigate('/training', { replace: true })}
+          onClose={() => navigate('/', { replace: true })}
         />
       )}
 

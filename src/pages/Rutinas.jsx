@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { useRoutines } from '../hooks/useRoutines'
 import { useWorkouts } from '../hooks/useWorkout'
@@ -928,6 +928,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
 // ── Página principal ───────────────────────────────────────────────────────
 export default function Rutinas() {
   const navigate = useNavigate()
+  const location = useLocation()
   const {
     routines, activeRoutine, loading, error,
     createRoutine, deleteRoutine, setActiveRoutine,
@@ -936,7 +937,8 @@ export default function Rutinas() {
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
 
   // modal: null | 'type' | 'cycle' | 'single' | 'rec-cycle' | 'rec-single' | 'from-workout' | 'from-cycle'
-  const [modal, setModal]           = useState(null)
+  // Arriving from the "+" quick-add opens the creation flow straight away.
+  const [modal, setModal]           = useState(location.state?.create ? 'type' : null)
   const [actionError, setActionError] = useState(null)
   const [startingId, setStartingId] = useState(null)
 

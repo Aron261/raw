@@ -1,82 +1,65 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
+import { useCachedResource, mutateCache } from '../lib/swr'
 
+// Body-weight log. Backed by the shared SWR cache so every mount of this hook
+// sees the same list: logging a weight from the "+" quick-add updates the home
+// chip and the Profile sheet at once, without a refetch or a reload.
+//
+// `logs` is oldest → newest (the chart reads it in that order); `latestLog` is
+// the entry to show when you want "today's weight".
 export function useBodyWeight() {
   const { user } = useAuth()
-  const [logs, setLogs] = useState([])
-  const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
-  const [error, setError] = useState(null)
 
-  const fetchLogs = useCallback(async () => {
-    if (!user?.id) return
-    setLoading(true)
-    setError(null)
-    try {
-      const { data, error: fetchErr } = await supabase
-        .from('body_weight_logs')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('logged_at', { ascending: true })
+  const key = user?.id ? `body-weight:${user.id}` : null
 
-      if (fetchErr) throw fetchErr
-      setLogs(data || [])
-    } catch (err) {
-      console.error('Error fetching weight logs:', err)
-      setError(err.message || 'Error inesperado')
-    } finally {
-      setLoading(false)
-    }
-  }, [user?.id])
+  const fetcher = async () => {
+    const { data, error } = await supabase
+      .from('body_weight_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('logged_at', { ascending: true })
+    if (error) throw error
+    return data || []
+  }
 
-  useEffect(() => {
-    fetchLogs()
-  }, [fetchLogs])
+  const { data, loading, error, refetch } = useCachedResource(key, fetcher)
+  const logs = data || []
 
-  // Add a new weight entry
   const addLog = useCallback(async (weight, unit = 'kg', note = null) => {
     if (!user?.id || !weight) return null
     setAdding(true)
-    setError(null)
     try {
-      const { data, error: insertErr } = await supabase
+      const { data: row, error: insertErr } = await supabase
         .from('body_weight_logs')
         .insert({ user_id: user.id, weight: parseFloat(weight), unit, note })
         .select()
         .single()
-
       if (insertErr) throw insertErr
-      // Optimistic: append and re-sort
-      setLogs(prev => [...prev, data].sort((a, b) => new Date(a.logged_at) - new Date(b.logged_at)))
-      return data
+      mutateCache(key, prev =>
+        [...(prev || []), row].sort((a, b) => new Date(a.logged_at) - new Date(b.logged_at))
+      )
+      return row
     } catch (err) {
       console.error('Error adding weight log:', err)
-      setError(err.message || 'Error inesperado')
       return null
     } finally {
       setAdding(false)
     }
-  }, [user?.id])
+  }, [user?.id, key])
 
-  // Delete an entry
   const deleteLog = useCallback(async (id) => {
-    setError(null)
     try {
-      const { error: deleteErr } = await supabase
-        .from('body_weight_logs')
-        .delete()
-        .eq('id', id)
-
+      const { error: deleteErr } = await supabase.from('body_weight_logs').delete().eq('id', id)
       if (deleteErr) throw deleteErr
-      setLogs(prev => prev.filter(l => l.id !== id))
+      mutateCache(key, prev => (prev || []).filter(l => l.id !== id))
     } catch (err) {
       console.error('Error deleting weight log:', err)
-      setError(err.message || 'Error inesperado')
     }
-  }, [])
+  }, [key])
 
-  // Latest weight entry
   const latestLog = logs.length > 0 ? logs[logs.length - 1] : null
 
   // Chart-ready data (last 30 entries)
@@ -87,5 +70,10 @@ export function useBodyWeight() {
     id: log.id,
   }))
 
-  return { logs, chartData, latestLog, loading, adding, error, addLog, deleteLog, refetch: fetchLogs }
+  return {
+    logs, chartData, latestLog,
+    loading, adding,
+    error: error ? (error.message || 'Error inesperado') : null,
+    addLog, deleteLog, refetch,
+  }
 }

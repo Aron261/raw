@@ -20,14 +20,6 @@ function BarbellIcon() {
   )
 }
 
-function HistoryIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-    </svg>
-  )
-}
-
 function ProgressIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -52,25 +44,6 @@ function NutritionIcon() {
       <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
       <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
       <line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" />
-    </svg>
-  )
-}
-
-function LongevityIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-    </svg>
-  )
-}
-
-function SocialIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   )
 }
@@ -189,18 +162,15 @@ export default function Sidebar() {
 
       {/* Nav — hub + sections */}
       <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: '1px', overflowY: 'auto' }}>
-        <NavItem to="/" label="Menú" Icon={MenuIcon} exact />
+        <NavItem to="/menu" label="Menú" Icon={MenuIcon} />
 
         <GroupLabel>Entreno</GroupLabel>
-        <NavItem to="/training" label="Inicio"        Icon={BarbellIcon} />
-        <NavItem to="/history"  label="Historial"     Icon={HistoryIcon} />
-        <NavItem to="/rutinas"  label="Rutinas"       Icon={RoutinesIcon} />
-        <NavItem to="/stats"    label="Estadísticas"  Icon={ProgressIcon} />
+        <NavItem to="/"         label="Hoy"      Icon={BarbellIcon} exact />
+        <NavItem to="/progreso" label="Progreso" Icon={ProgressIcon} />
+        <NavItem to="/rutinas"  label="Rutinas"  Icon={RoutinesIcon} />
 
         <GroupLabel>Vida</GroupLabel>
         <NavItem to="/nutrition" label="Nutrición"  Icon={NutritionIcon} />
-        <NavItem to="/longevity" label="Longevidad" Icon={LongevityIcon} />
-        <NavItem to="/social"    label="Social"     Icon={SocialIcon} />
 
         {profile?.is_trainer && (
           <>

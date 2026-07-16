@@ -5,6 +5,9 @@ import {
 } from 'recharts'
 import Layout from '../components/Layout'
 import { useWorkouts } from '../hooks/useWorkout'
+import { useProfile } from '../hooks/useProfile'
+import { useNutritionDay, useNutritionTargets, toLocalISODate, DEFAULT_TARGETS } from '../hooks/useNutrition'
+import { useBodyWeight } from '../hooks/useBodyWeight'
 import { useGoals } from '../hooks/useGoals'
 import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
@@ -41,6 +44,13 @@ const dateStr = (() => {
   })
   return s.charAt(0).toUpperCase() + s.slice(1)
 })()
+
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Buenos días'
+  if (h < 19) return 'Buenas tardes'
+  return 'Buenas noches'
+}
 
 // ── Format volume ─────────────────────────────────────────────────────────
 function formatVolume(v) {
@@ -349,11 +359,53 @@ function getDayHighlightType() {
   return dayOfYear % 4
 }
 
-// ── Training (home de la sección Entreno) ────────────────────────────────
+// ── Today chip — un dato de hoy que vive en otra sección ─────────────────
+function TodayChip({ label, value, hint, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        flex: 1, minWidth: 0, textAlign: 'left',
+        display: 'flex', flexDirection: 'column', gap: '4px',
+        background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+        borderRadius: '12px', padding: '11px 12px', minHeight: '44px',
+        cursor: 'pointer', transition: 'border-color 150ms var(--ease-out)',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-border)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+    >
+      <span style={{
+        fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px',
+        fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
+      }}>
+        {label}
+      </span>
+      <span style={{
+        color: hint ? 'var(--c-text-muted)' : 'var(--c-text)',
+        fontSize: hint ? '11px' : '15px',
+        fontWeight: hint ? 500 : 800,
+        letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {hint || value}
+      </span>
+    </button>
+  )
+}
+
+// ── Hoy — la portada de la app ───────────────────────────────────────────
+// El estado de hoy arriba (entreno en curso / entreno de hoy), los números de
+// la semana en medio y la señal ganada (PR) al lado. Nutrición y peso apare-
+// cen como una línea de hoy: son de otras secciones, pero son de hoy.
 export default function Training() {
   const navigate = useNavigate()
   const { workouts, loading, error, createWorkout, fetchWorkouts } = useWorkouts()
   const { goals, createGoal, deleteGoal } = useGoals()
+  const { profile } = useProfile()
+  const firstName = profile?.name?.split(' ')[0] || ''
+  const { totals: nutritionTotals } = useNutritionDay(toLocalISODate())
+  const { targets: nutritionTargets } = useNutritionTargets()
+  const { latestLog: latestWeight } = useBodyWeight()
 
   const [showGoalModal, setShowGoalModal] = useState(false)
   const [startingWorkout, setStartingWorkout] = useState(false)
@@ -369,6 +421,9 @@ export default function Training() {
   const { trainers } = useInvites()
   const { resolved, palette } = useTheme()
   const chartColors = CHART_COLORS[`${palette}-${resolved}`] || CHART_COLORS['slate-light']
+
+  const kcalToday = Math.round(nutritionTotals?.kcal || 0)
+  const kcalTarget = nutritionTargets?.kcal || DEFAULT_TARGETS.kcal
 
   // Mapa id_entrenador → nombre, para mostrar quién asignó cada rutina.
   const trainerNameById = Object.fromEntries(
@@ -727,25 +782,25 @@ export default function Training() {
     <Layout>
       <div className="w-full px-4 pt-10 pb-10 max-w-[480px] mx-auto md:max-w-none md:px-8 md:py-8">
 
-        {/* ── Header ── */}
+        {/* ── Header — esta es la portada de la app: la fecha y el saludo,
+            no un título de sección. ── */}
         <div className="fade-in flex items-start mb-6 md:mb-8">
           <div>
             {/* Fecha — eyebrow mono en azul (dato) */}
             <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-data)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
               {dateStr}
             </p>
-            {/* Título de sección — el saludo vive en el menú */}
-            <h1 className="font-display" style={{ color: 'var(--c-text)', fontSize: '34px', lineHeight: 0.95 }}>
-              Entreno
+            <h1 className="text-[30px] md:text-[36px]" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
+              {getGreeting()}{firstName ? `, ${firstName}` : ''}
             </h1>
-            {/* Acceso a estadísticas — chip tappable, legible */}
+            {/* Acceso a progreso — chip tappable, legible */}
             <button
-              onClick={() => navigate('/stats')}
+              onClick={() => navigate('/progreso')}
               style={{ marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '999px', padding: '7px 14px', fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', transition: 'background 150ms, border-color 150ms' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-action-dim)'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'var(--c-surface)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
             >
-              Estadísticas <span aria-hidden="true" style={{ fontSize: '13px' }}>→</span>
+              Progreso <span aria-hidden="true" style={{ fontSize: '13px' }}>→</span>
             </button>
           </div>
         </div>
@@ -963,6 +1018,23 @@ export default function Training() {
                     </p>
                   </div>
                 ))}
+              </div>
+
+              {/* ── Hoy: nutrición + peso ── Viven en otras secciones, pero son
+                  datos de hoy, así que la portada los declara y lleva allí. */}
+              <div style={{ display: 'flex', alignItems: 'stretch', gap: '8px', marginTop: '20px' }}>
+                <TodayChip
+                  label="kcal hoy"
+                  value={kcalToday > 0 ? `${kcalToday.toLocaleString('es-CO')} / ${kcalTarget.toLocaleString('es-CO')}` : '—'}
+                  hint={kcalToday > 0 ? null : 'Registra tu comida'}
+                  onClick={() => navigate('/nutrition')}
+                />
+                <TodayChip
+                  label="peso corporal"
+                  value={latestWeight ? `${latestWeight.weight} ${latestWeight.unit}` : '—'}
+                  hint={latestWeight ? null : 'Aún sin registrar'}
+                  onClick={() => navigate('/profile')}
+                />
               </div>
             </div>
 

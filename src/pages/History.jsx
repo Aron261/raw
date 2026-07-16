@@ -8,7 +8,9 @@ import { useWorkouts, calc1RM, calcVolume } from '../hooks/useWorkout'
 
 const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : v.toLocaleString())
 
-export default function History() {
+// Standalone page by default; `embedded` renders just the content (no Layout,
+// no page title) for composition inside Progreso.
+export default function History({ embedded = false }) {
   const navigate = useNavigate()
   const { workouts, loading, error, fetchWorkouts, deleteWorkout, duplicateWorkout } = useWorkouts()
 
@@ -57,15 +59,16 @@ export default function History() {
     return acc
   }, [workouts, workoutDelete.pending?.id])
 
-  return (
-    <Layout>
-      <div className="fade-in px-4 max-w-lg mx-auto w-full">
+  const content = (
+    <>
         {/* Header */}
-        <div className="pt-10 pb-6">
-          <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '30px', letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1.02 }}>
-            Historial
-          </h1>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
+        <div className={embedded ? 'pb-4' : 'pt-10 pb-6'}>
+          {!embedded && (
+            <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '30px', letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1.02 }}>
+              Historial
+            </h1>
+          )}
+          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: embedded ? 0 : '6px' }}>
             {visibleWorkouts.length} {visibleWorkouts.length === 1 ? 'entreno registrado' : 'entrenos registrados'}
           </p>
         </div>
@@ -104,7 +107,7 @@ export default function History() {
               Cada sesión que registres aparece aquí, agrupada por mes.
             </p>
             <button
-              onClick={() => navigate('/training')}
+              onClick={() => navigate('/')}
               style={{ marginTop: '16px', background: 'var(--c-accent)', color: 'var(--c-on-action)', border: 'none', borderRadius: '12px', padding: '11px 20px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}
             >
               Empezar un entreno
@@ -142,11 +145,20 @@ export default function History() {
             ))}
           </div>
         )}
-      </div>
 
       {/* Feedback compartido: región viva + snackbar de deshacer */}
       <LiveRegion>{workoutDelete.liveMsg}</LiveRegion>
       <UndoSnackbar show={!!workoutDelete.pending} message="Entreno eliminado" onUndo={workoutDelete.undo} />
+    </>
+  )
+
+  if (embedded) return content
+
+  return (
+    <Layout>
+      <div className="fade-in px-4 max-w-lg mx-auto w-full">
+        {content}
+      </div>
     </Layout>
   )
 }

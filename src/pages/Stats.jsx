@@ -107,7 +107,8 @@ function ReorderList({ order, enabled, onToggle, onReorder }) {
 
 // Stats window. Own view by default; a coach passes a client's userId + readOnly
 // to see the same window for that client (read-only, no customize/classify).
-export default function Stats({ userId = null, readOnly = false }) {
+// `embedded` renders just the modules (no Layout, no title) inside Progreso.
+export default function Stats({ userId = null, readOnly = false, embedded = false }) {
   const navigate = useNavigate()
   const { data, loading, error, refetch } = useStats(userId)
   const { enabled, order, toggle, setOrder } = useStatPrefs()
@@ -120,22 +121,25 @@ export default function Stats({ userId = null, readOnly = false }) {
     return order.map(id => BY_ID[id]).filter(m => m && enabled.has(m.id))
   }, [readOnly, order, enabled])
 
-  return (
-    <Layout>
-      <div style={{ padding: '0 16px', maxWidth: '480px', margin: '0 auto', width: '100%' }}>
-
+  const content = (
+    <>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '40px', paddingBottom: '8px' }}>
-          <button
-            onClick={() => navigate(-1)}
-            style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}
-            aria-label="Volver"
-          >
-            ←
-          </button>
-          <h1 style={{ flex: 1, fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
-            Estadísticas
-          </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: embedded ? 0 : '40px', paddingBottom: '8px' }}>
+          {!embedded && (
+            <button
+              onClick={() => navigate(-1)}
+              style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}
+              aria-label="Volver"
+            >
+              ←
+            </button>
+          )}
+          {!embedded && (
+            <h1 style={{ flex: 1, fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
+              Estadísticas
+            </h1>
+          )}
+          {embedded && <span style={{ flex: 1 }} />}
           {!readOnly && (
             <button
               onClick={() => setCustomizing(true)}
@@ -216,7 +220,6 @@ export default function Stats({ userId = null, readOnly = false }) {
             )}
           </div>
         )}
-      </div>
 
       {/* Customize sheet — own view only */}
       {!readOnly && customizing && (
@@ -228,6 +231,16 @@ export default function Stats({ userId = null, readOnly = false }) {
           <ReorderList order={order} enabled={enabled} onToggle={toggle} onReorder={setOrder} />
         </Sheet>
       )}
+    </>
+  )
+
+  if (embedded) return content
+
+  return (
+    <Layout>
+      <div style={{ padding: '0 16px', maxWidth: '480px', margin: '0 auto', width: '100%' }}>
+        {content}
+      </div>
     </Layout>
   )
 }
