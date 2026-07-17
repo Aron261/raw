@@ -129,34 +129,6 @@ function DeleteWorkoutModal({ name, onConfirm, onCancel, busy }) {
   )
 }
 
-/* ── Edit Confirm Modal ─────────────────────────────────────────────── */
-function EditConfirmModal({ step, onFirstConfirm, onSecondConfirm, onCancel }) {
-  return (
-    <Sheet title={step === 1 ? 'Editar entreno finalizado' : 'Confirmar edición'} onClose={onCancel}>
-      {step === 1 ? (
-        <>
-          <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
-            Vas a editar un entreno que ya fue registrado. Esto modifica tu historial.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <Button variant="secondary" full size="lg" onClick={onFirstConfirm}>Entiendo, continuar</Button>
-            <Button variant="ghost" full size="lg" onClick={onCancel}>Cancelar</Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
-            ¿Estás seguro? Los cambios se guardan inmediatamente.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <Button variant="primary" full size="lg" onClick={onSecondConfirm}>Sí, editar</Button>
-            <Button variant="secondary" full size="lg" onClick={onCancel}>Cancelar</Button>
-          </div>
-        </>
-      )}
-    </Sheet>
-  )
-}
 
 /* ── Exercise history sheet ─────────────────────────────────────────── */
 function ExerciseHistorySheet({ exercise, userId, onClose }) {
@@ -462,9 +434,10 @@ export default function ActiveWorkout() {
     setPrimerDismissed(true)
     try { localStorage.setItem(LOGGING_PRIMER_KEY, 'done') } catch {}
   }
+  // Editing a finished workout used to be a two-step confirmation. Editing is
+  // reversible — you can just fix the number back — so the walls cost more than
+  // they protected. The banner below states the stakes instead.
   const [isEditing, setIsEditing] = useState(false)
-  const [showEditConfirm, setShowEditConfirm] = useState(false)
-  const [editConfirmStep, setEditConfirmStep] = useState(1)
   const nameRef = useRef(null)
 
   // Per-set completion + finished exercises — persisted locally per workout so
@@ -644,12 +617,33 @@ export default function ActiveWorkout() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {!isFinished && workout.started_at && <WorkoutTimer startedAt={workout.started_at} />}
             {isFinished && (
-              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                Finalizado
+              <span style={{ fontFamily: 'var(--font-mono)', color: isEditing ? 'var(--c-action-text)' : 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                {isEditing ? 'Editando' : 'Finalizado'}
               </span>
             )}
           </div>
         </div>
+
+        {/* Editing a logged session — say so plainly and continuously, instead
+            of asking twice at the door and then going quiet. */}
+        {isFinished && isEditing && (
+          <div
+            role="status"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
+              borderRadius: '10px', padding: '8px 12px', marginBottom: '16px',
+            }}
+          >
+            <span aria-hidden="true" style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--c-action)', flexShrink: 0 }} />
+            <span style={{
+              fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
+              textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)',
+            }}>
+              Estás editando tu historial — los cambios se guardan solos
+            </span>
+          </div>
+        )}
 
         {/* Offline notice — saves are held locally and retried on reconnect */}
         {!online && (
@@ -866,7 +860,7 @@ export default function ActiveWorkout() {
 
             {!isEditing ? (
               <button
-                onClick={() => { setEditConfirmStep(1); setShowEditConfirm(true) }}
+                onClick={() => setIsEditing(true)}
                 style={{
                   width: '100%', padding: '14px', fontSize: '10px', fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: '0.08em',
@@ -959,15 +953,6 @@ export default function ActiveWorkout() {
           busy={discarding}
           onConfirm={handleDiscard}
           onCancel={() => setShowDiscardConfirm(false)}
-        />
-      )}
-
-      {showEditConfirm && (
-        <EditConfirmModal
-          step={editConfirmStep}
-          onFirstConfirm={() => setEditConfirmStep(2)}
-          onSecondConfirm={() => { setIsEditing(true); setShowEditConfirm(false); setEditConfirmStep(1) }}
-          onCancel={() => { setShowEditConfirm(false); setEditConfirmStep(1) }}
         />
       )}
 

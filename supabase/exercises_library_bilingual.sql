@@ -268,6 +268,16 @@ begin
   end loop;
 end $$;
 
+-- Rename EVERY linked exercise to its canonical name, not just merge survivors.
+-- A solo linked row left under its typed name ("Squat") together with the
+-- routine rename below is exactly what lets pre-deploy old code (which upserts
+-- by name) re-create a split "Sentadilla con barra" — the name and the
+-- identity must agree everywhere.
+update exercises e
+   set name = l.name
+  from exercises_library l
+ where e.library_id = l.id and e.name <> l.name;
+
 -- Routines address exercises by text name; re-point any name a merge retired.
 update routine_day_exercises rde
    set exercise_name = l.name

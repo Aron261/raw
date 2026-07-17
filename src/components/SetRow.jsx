@@ -20,6 +20,7 @@ export default function SetRow({
   allTimeBest1RM,
   previousSet = null,   // { reps, weight } from the last session — shown as the ghost placeholder
   targetReps = null,    // routine's prescribed reps (e.g. "8-12") — reps hint when there's no prior set
+  prefillToken = 0,     // bump to copy `previousSet` into this row's inputs
   done = false,
   readOnly = false,
   onSave,        // (setNumber, reps, weight, markDone) => Promise
@@ -46,11 +47,23 @@ export default function SetRow({
   const weightRef = useRef(null)
   const checkRef = useRef(null)
 
-  // Re-sync when the backing set changes (refetch, "igual que la vez pasada")
+  // Re-sync when the backing set changes (refetch, edit from elsewhere).
   useEffect(() => {
     setReps(set ? String(set.reps) : '')
     setWeight(set ? String(set.weight) : '')
   }, [set?.id, set?.reps, set?.weight])
+
+  // "Repetir la vez pasada": copy last session's numbers into this row. Only
+  // fills empty slots — a logged set is history and is never overwritten — and
+  // only fills the inputs. The lifter still commits with ✓, so nothing is
+  // recorded that they didn't look at.
+  const firstPrefill = useRef(true)
+  useEffect(() => {
+    if (firstPrefill.current) { firstPrefill.current = false; return }
+    if (set || !previousSet) return
+    setReps(String(previousSet.reps))
+    setWeight(String(previousSet.weight))
+  }, [prefillToken])
 
   const filled = reps !== '' && weight !== ''
   // The reps box is narrow; only hint the routine target inside it when it's a

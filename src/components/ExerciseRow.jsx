@@ -89,6 +89,11 @@ export default function ExerciseRow({
     } catch {}
     return workoutExercise.target_rest || DEFAULT_REST
   })
+  // Bumping this copies last session's reps × weight into every empty slot.
+  // The ghost placeholders already show those numbers; this saves retyping
+  // them set after set, which is most of what logging actually is.
+  const [prefillToken, setPrefillToken] = useState(0)
+
   const cycleRest = () => setRestSecs(s => {
     const next = REST_PRESETS[(REST_PRESETS.indexOf(s) + 1) % REST_PRESETS.length]
     try { localStorage.setItem(restKey, String(next)) } catch {}
@@ -354,6 +359,11 @@ export default function ExerciseRow({
                     boxShadow: '0 8px 24px rgba(0,0,0,0.18)', minWidth: '184px', overflow: 'hidden',
                   }}
                 >
+                  {previousSets.length > 0 && (
+                    <MenuItem onClick={() => { setPrefillToken(t => t + 1); setExpanded(true); setShowMenu(false) }}>
+                      Repetir la vez pasada
+                    </MenuItem>
+                  )}
                   {onShowHistory && (
                     <MenuItem onClick={() => { onShowHistory(exercise); setShowMenu(false) }}>
                       Ver historial
@@ -414,6 +424,7 @@ export default function ExerciseRow({
                     allTimeBest1RM={allTimeBestWeight}
                     previousSet={previousSets[i] || null}
                     targetReps={targetReps}
+                    prefillToken={prefillToken}
                     done={set ? !!completedSetIds?.has(set.id) : false}
                     onSave={saveRow}
                     onToggleDone={onToggleSetDone}
