@@ -2,15 +2,18 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { isLegacyGroup, guessLegGroup } from '../lib/muscleGroups'
+import { exerciseLabel } from '../lib/exercises'
 
 // The user's exercises with their effective muscle-group classification.
 // Precedence: own exercises.muscle_group → library → unclassified.
+// The library is reached through library_id, not by name: a linked exercise
+// may still be stored under whatever the lifter originally typed ("Bench
+// Press"), so matching on the name would miss its classification.
 // `needsAttention` = unclassified OR tagged with a legacy group (e.g. "Pierna"
 // after the leg split) — both should be re-assigned in the exercise manager.
-export function useExerciseGroups() {
+export function useExerciseGroups(lang = 'es') {
   const { user } = useAuth()
   const [rows, setRows] = useState([])
-  const [libGroups, setLibGroups] = useState({})
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
@@ -18,21 +21,10 @@ export function useExerciseGroups() {
     setLoading(true)
     const { data: own } = await supabase
       .from('exercises')
-      .select('id, name, muscle_group')
+      .select('id, name, muscle_group, library_id, library:exercises_library ( name, name_en, muscle_group )')
       .eq('user_id', user.id)
       .order('name')
-    const list = own || []
-    const names = [...new Set(list.map(e => e.name))]
-    const lib = {}
-    if (names.length > 0) {
-      const { data } = await supabase
-        .from('exercises_library')
-        .select('name, muscle_group')
-        .in('name', names)
-      ;(data || []).forEach(e => { lib[e.name] = e.muscle_group })
-    }
-    setRows(list)
-    setLibGroups(lib)
+    setRows(own || [])
     setLoading(false)
   }, [user?.id])
 
@@ -40,13 +32,13 @@ export function useExerciseGroups() {
 
   const exercises = rows.map(e => {
     const ownGroup = e.muscle_group || null
-    const libGroup = libGroups[e.name] || null
+    const libGroup = e.library?.muscle_group || null
     const effective = ownGroup || libGroup || null
     const isLegacy = isLegacyGroup(effective)
     const isUnclassified = !effective
     return {
       id: e.id,
-      name: e.name,
+      name: exerciseLabel(e, lang),
       ownGroup,
       libGroup,
       effective,
