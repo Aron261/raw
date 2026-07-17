@@ -47,10 +47,28 @@ export default function SetRow({
   const weightRef = useRef(null)
   const checkRef = useRef(null)
 
+  // A synchronous mirror of the current reps/weight. State drives rendering;
+  // this ref drives saving — a debounced save reads it so it always sees the
+  // latest values, even across rapid taps within one tick where React state
+  // closures would lag a step behind. Every edit path updates both.
+  const valuesRef = useRef({ reps, weight })
+  const setRepsV = (v) => { valuesRef.current = { ...valuesRef.current, reps: v }; setReps(v) }
+  const setWeightV = (v) => { valuesRef.current = { ...valuesRef.current, weight: v }; setWeight(v) }
+
+  // Weight steppers: one plate's worth per tap — 2.5 kg (1.25/side) or 5 lb
+  // (2.5/side), the smallest change most gyms actually stock. Faster than the
+  // OS number pad for the common "same ± one plate" case; the pad stays for
+  // arbitrary entry. Computes from the ref so rapid taps accumulate exactly.
+  const stepBy = unit === 'lb' ? 5 : 2.5
+  const bumpWeight = (delta) => {
+    const next = Math.max(0, Math.round(((parseFloat(valuesRef.current.weight) || 0) + delta) * 100) / 100)
+    setWeightV(String(next))
+  }
+
   // Re-sync when the backing set changes (refetch, edit from elsewhere).
   useEffect(() => {
-    setReps(set ? String(set.reps) : '')
-    setWeight(set ? String(set.weight) : '')
+    setRepsV(set ? String(set.reps) : '')
+    setWeightV(set ? String(set.weight) : '')
   }, [set?.id, set?.reps, set?.weight])
 
   // "Repetir la vez pasada": copy last session's numbers into this row. Only
@@ -61,8 +79,8 @@ export default function SetRow({
   useEffect(() => {
     if (firstPrefill.current) { firstPrefill.current = false; return }
     if (set || !previousSet) return
-    setReps(String(previousSet.reps))
-    setWeight(String(previousSet.weight))
+    setRepsV(String(previousSet.reps))
+    setWeightV(String(previousSet.weight))
   }, [prefillToken])
 
   const filled = reps !== '' && weight !== ''
@@ -77,15 +95,17 @@ export default function SetRow({
     return { set1RM: rm, isPR: rm > 0 && allTimeBest1RM > 0 && rm >= allTimeBest1RM }
   }, [weight, reps, allTimeBest1RM])
 
-  const persist = async (markDone) => {
-    if (!filled) return
-    const unchanged = set && String(set.reps) === reps && String(set.weight) === weight
+  // Values default to the live state (typing/✓ path) but can be passed
+  // explicitly by the debounced stepper save, which reads them from valuesRef.
+  const persist = async (markDone, r = reps, w = weight) => {
+    if (r === '' || w === '') return
+    const unchanged = set && String(set.reps) === r && String(set.weight) === w
     // A prior failure means the server never got these values — retry even if
     // they match the last-known set.
     if (unchanged && !markDone && !saveError) return
     setBusy(true)
     try {
-      await onSave(setNumber, reps, weight, markDone)
+      await onSave(setNumber, r, w, markDone)
       setSaveError(false)
       // A short tap + a spring pop confirm the set landed, on the same frame —
       // the most-repeated action in the app, so it earns real feedback.
@@ -106,6 +126,12 @@ export default function SetRow({
 
   const retry = () => { if (!busy) persist(pendingMarkDone.current) }
 
+  // Steppers save through this ref, not the closure live at pointer-up: a tap's
+  // state hasn't flushed yet when onHoldEnd fires. The ref always points at the
+  // current render's persist, and the value comes from valuesRef explicitly.
+  const persistRef = useRef(persist)
+  persistRef.current = persist
+
   // Auto-retry a failed save once we come back online.
   const wasOffline = useRef(false)
   useEffect(() => {
@@ -119,6 +145,18 @@ export default function SetRow({
   const handleBlur = () => {
     if (readOnly || committing.current) { committing.current = false; return }
     persist(false)
+  }
+
+  // After a stepper interaction settles, save like a blur — the value shown is
+  // the value stored, same contract as typing. `committing` stood the input's
+  // own blur down so this is the single save.
+  // Save on release, reading the accumulated value straight from valuesRef so
+  // it never lags behind rapid taps. A hold fires this once (on release); each
+  // discrete tap fires it too, and the `unchanged` guard drops redundant writes.
+  const commitStep = () => {
+    committing.current = false
+    const { reps: r, weight: w } = valuesRef.current
+    persistRef.current(false, r, w)
   }
 
   const toggleDone = async () => {
@@ -155,7 +193,7 @@ export default function SetRow({
         type="number"
         inputMode="numeric"
         value={reps}
-        onChange={e => setReps(e.target.value)}
+        onChange={e => setRepsV(e.target.value)}
         onBlur={handleBlur}
         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); weightRef.current?.focus() } }}
         className="input-field set-input"
@@ -174,7 +212,7 @@ export default function SetRow({
         type="number"
         inputMode="decimal"
         value={weight}
-        onChange={e => setWeight(e.target.value)}
+        onChange={e => setWeightV(e.target.value)}
         onBlur={handleBlur}
         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); checkRef.current?.focus() } }}
         className="input-field set-input"
@@ -186,6 +224,13 @@ export default function SetRow({
         aria-label={`Peso serie ${setNumber}`}
         aria-invalid={saveError || undefined}
       />
+
+      {/* Weight steppers — one plate per tap, hold to repeat. Stacked so the
+          pair costs one narrow column on a crowded row. */}
+      <div style={{ display: 'flex', flexDirection: 'column', flexShrink: 0, width: '30px', height: '44px', gap: '2px' }}>
+        <StepButton dir={1}  ariaLabel={`Subir peso serie ${setNumber} ${stepBy}`}  onHoldStart={() => { committing.current = true }} onStep={() => bumpWeight(stepBy)}  onHoldEnd={commitStep} />
+        <StepButton dir={-1} ariaLabel={`Bajar peso serie ${setNumber} ${stepBy}`} onHoldStart={() => { committing.current = true }} onStep={() => bumpWeight(-stepBy)} onHoldEnd={commitStep} />
+      </div>
 
       <span style={unitStyle}>{unit}</span>
 
@@ -264,6 +309,44 @@ export default function SetRow({
       </div>
     )}
     </>
+  )
+}
+
+/* ── Weight stepper ──────────────────────────────────────────────────── */
+// One step on tap; press-and-hold to repeat (400ms before the first repeat,
+// then every 90ms). Never focuses, so it doesn't summon the keyboard.
+function StepButton({ dir, ariaLabel, onHoldStart, onStep, onHoldEnd }) {
+  const timer = useRef(null)
+  const stop = () => { if (timer.current) { clearTimeout(timer.current); timer.current = null; onHoldEnd() } }
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+
+  const start = (e) => {
+    e.preventDefault() // don't steal focus from the inputs / summon the keyboard
+    onHoldStart()
+    onStep()
+    const tick = () => { onStep(); timer.current = setTimeout(tick, 90) }
+    timer.current = setTimeout(tick, 400)
+  }
+
+  return (
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      onPointerDown={start}
+      onPointerUp={stop}
+      onPointerLeave={stop}
+      onPointerCancel={stop}
+      style={{
+        flex: 1, width: '30px',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
+        borderRadius: '6px', color: 'var(--c-text-dim)',
+        fontSize: '15px', fontWeight: 700, lineHeight: 1, touchAction: 'none', cursor: 'pointer',
+        WebkitUserSelect: 'none', userSelect: 'none',
+      }}
+    >
+      {dir > 0 ? '+' : '−'}
+    </button>
   )
 }
 

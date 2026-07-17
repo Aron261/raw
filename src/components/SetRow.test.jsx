@@ -1,0 +1,70 @@
+// @vitest-environment jsdom
+// Weight steppers: rapid taps must accumulate exactly and each release must
+// save the current value — the bug the browser harness couldn't pin down
+// (its re-renders raced the synthetic events). Here the render is controlled,
+// so the logic is deterministic.
+
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+
+vi.mock('../hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }))
+vi.mock('motion/react', () => ({ animate: () => {}, useReducedMotion: () => true }))
+vi.mock('../hooks/useWorkout', () => ({ calc1RM: (w, r) => (r ? Math.round(w * (1 + r / 30)) : w) }))
+
+import SetRow from './SetRow'
+
+afterEach(cleanup)
+
+function renderRow(props = {}) {
+  const onSave = vi.fn().mockResolvedValue(undefined)
+  render(
+    <SetRow
+      set={{ id: 's1', reps: 8, weight: 10 }}
+      setNumber={1}
+      unit="lb"
+      allTimeBest1RM={0}
+      onSave={onSave}
+      onToggleDone={() => {}}
+      onRemove={() => {}}
+      {...props}
+    />,
+  )
+  return { onSave }
+}
+
+const tap = (btn) => { fireEvent.pointerDown(btn); fireEvent.pointerUp(btn) }
+const lastWeight = (onSave) => onSave.mock.calls.at(-1)[2]
+
+describe('SetRow weight steppers', () => {
+  it('three rapid + taps accumulate and the last save carries the final value', async () => {
+    const { onSave } = renderRow()
+    const up = screen.getByLabelText('Subir peso serie 1 5') // lb → step 5
+    tap(up); tap(up); tap(up) // 10 → 15 → 20 → 25
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(lastWeight(onSave)).toBe('25')
+    // reps preserved, not marked done
+    expect(onSave.mock.calls.at(-1)).toEqual([1, '8', '25', false])
+  })
+
+  it('− steps down and never below zero', async () => {
+    const { onSave } = renderRow({ set: { id: 's1', reps: 8, weight: 5 } })
+    const down = screen.getByLabelText('Bajar peso serie 1 5')
+    tap(down) // 5 → 0
+    tap(down) // clamps at 0
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(lastWeight(onSave)).toBe('0')
+  })
+
+  it('uses a 2.5 step in kg', async () => {
+    const { onSave } = renderRow({ unit: 'kg', set: { id: 's1', reps: 8, weight: 20 } })
+    const up = screen.getByLabelText('Subir peso serie 1 2.5')
+    tap(up); tap(up) // 20 → 22.5 → 25
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(lastWeight(onSave)).toBe('25')
+  })
+
+  it('has no steppers in read-only mode', () => {
+    renderRow({ readOnly: true })
+    expect(screen.queryByLabelText('Subir peso serie 1 5')).toBeNull()
+  })
+})
