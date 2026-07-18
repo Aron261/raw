@@ -474,13 +474,22 @@ export default function ActiveWorkout() {
     setRest(r => (r && r.id !== restId ? r : null))
   }, [])
 
+  // Auto-advance: finishing an exercise expands the next one still to do, so
+  // the lifter never hunts for where they are. Keyed by a token so re-finishing
+  // the same next exercise re-fires. Only opens — never force-collapses one the
+  // lifter chose to keep open.
+  const [autoExpand, setAutoExpand] = useState(null) // { id, token } | null
   const toggleExerciseFinish = useCallback((weId, nextFinished) => {
     setDoneExs(prev => {
       const next = new Set(prev)
       if (nextFinished) next.add(weId); else next.delete(weId)
+      if (nextFinished) {
+        const nextPending = workoutExercises.find(we => we.id !== weId && !next.has(we.id))
+        if (nextPending) setAutoExpand({ id: nextPending.id, token: Date.now() })
+      }
       return next
     })
-  }, [])
+  }, [workoutExercises])
 
 
   const isFinished = !!workout?.ended_at
@@ -779,6 +788,7 @@ export default function ActiveWorkout() {
                     onToggleFinish={toggleExerciseFinish}
                     onShowHistory={setHistoryExercise}
                     onRestStart={!isFinished ? startRest : undefined}
+                    autoExpandToken={autoExpand?.id === we.id ? autoExpand.token : null}
                     onMove={(!isFinished || isEditing) ? moveExercise : undefined}
                     canMoveUp={!exFinished && pIdx > 0}
                     canMoveDown={!exFinished && pIdx < pending.length - 1}

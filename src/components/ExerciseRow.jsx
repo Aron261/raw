@@ -31,6 +31,7 @@ export default function ExerciseRow({
   onToggleFinish,             // (workoutExerciseId, nextFinished) => void
   onShowHistory,              // (exercise) => void   [optional]
   onRestStart,                // (seconds) => void — start the rest pill  [optional]
+  autoExpandToken = null,     // bump to auto-open this row (next-up after a finish)
   onMove,                     // (workoutExerciseId, 'up' | 'down') => void  [optional]
   canMoveUp = false,
   canMoveDown = false,
@@ -55,6 +56,16 @@ export default function ExerciseRow({
   const menuRef = useRef(null)                    // wrapper around the ··· trigger
   const menuPanelRef = useRef(null)               // the portalled panel
   const triggerRef = useRef(null)                 // the ··· button
+
+  // Auto-advance: when finishing the previous exercise names this one as next,
+  // open it (and remember it, like a manual expand). Skip the initial mount.
+  const firstAutoExpand = useRef(true)
+  useEffect(() => {
+    if (firstAutoExpand.current) { firstAutoExpand.current = false; return }
+    if (autoExpandToken == null) return
+    setExpanded(true)
+    try { localStorage.setItem(storageKey, 'true') } catch {}
+  }, [autoExpandToken])
 
   // Open the menu anchored to the trigger. The panel is portalled to <body>,
   // so it escapes the card's overflow:hidden and the row's transform stacking
