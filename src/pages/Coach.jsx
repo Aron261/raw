@@ -2,9 +2,68 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { useTrainer } from '../hooks/useTrainer'
+import { useCoachFeed } from '../hooks/useCoachFeed'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button } from '../components/ui'
+
+// "hace 2 h" / "ayer" / "hace 3 d" — a coach scans by recency, not calendar.
+function relativeDate(iso) {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+  if (mins < 60) return mins <= 1 ? 'ahora' : `hace ${mins} min`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `hace ${hrs} h`
+  const days = Math.floor(hrs / 24)
+  if (days === 1) return 'ayer'
+  if (days < 7) return `hace ${days} d`
+  return new Date(iso).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
+}
+
+const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : v.toLocaleString('es-CO'))
+
+// ── Feed row: one client workout ───────────────────────────────────────────
+function FeedRow({ item, onOpen }) {
+  return (
+    <button
+      onClick={onOpen}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '12px', width: '100%', textAlign: 'left',
+        padding: '12px 14px', background: 'var(--c-surface)',
+        border: '1px solid var(--c-border-subtle)', borderRadius: '12px', marginBottom: '6px',
+        minHeight: '44px', cursor: 'pointer', transition: 'border-color 150ms var(--ease-out)',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-border)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+    >
+      <div style={{
+        width: '34px', height: '34px', borderRadius: '50%', flexShrink: 0,
+        background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'var(--c-action-text)', fontSize: '13px', fontWeight: 900,
+      }}>
+        {item.clientName.charAt(0).toUpperCase()}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {item.clientName}
+          </span>
+          {item.isPR && (
+            <span style={{ flexShrink: 0, background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '2px 5px', borderRadius: '2px' }}>
+              PR
+            </span>
+          )}
+        </div>
+        <span style={{ display: 'block', color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {item.name} · {item.volume > 0 ? `${fmtVol(item.volume)} kg` : `${item.exerciseCount} ej.`}
+        </span>
+      </div>
+      <span style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', letterSpacing: '0.02em' }}>
+        {relativeDate(item.startedAt)}
+      </span>
+    </button>
+  )
+}
 
 // Badge rojo con la cantidad de mensajes sin leer
 function UnreadBadge({ count }) {
@@ -224,6 +283,7 @@ export default function Coach() {
   }
 
   const activeClients = clients.filter(c => c.status === 'active')
+  const { feed, loading: feedLoading } = useCoachFeed(activeClients)
 
   return (
     <Layout>
@@ -290,6 +350,30 @@ export default function Coach() {
               <div key={i} style={{ height: '70px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px', opacity: 1 - i * 0.25 }} />
             ))}
           </div>
+        )}
+
+        {/* Actividad reciente — qué han entrenado los clientes, lo más nuevo
+            arriba, con el PR marcado. La razón de ser del panel: actuar, no
+            solo mirar una lista. */}
+        {!loading && activeClients.length > 0 && (feedLoading || feed.length > 0) && (
+          <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '30ms' }}>
+            <p style={SECTION_LABEL}>Actividad reciente</p>
+            {feedLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} style={{ height: '58px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', opacity: 1 - i * 0.25 }} />
+                ))}
+              </div>
+            ) : (
+              feed.slice(0, 12).map(item => (
+                <FeedRow
+                  key={item.workoutId}
+                  item={item}
+                  onOpen={() => navigate(`/coach/cliente/${item.clientId}`)}
+                />
+              ))
+            )}
+          </section>
         )}
 
         {/* Lista de clientes */}
