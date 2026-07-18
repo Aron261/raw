@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import ExerciseRow from '../components/ExerciseRow'
 import RestTimerPill from '../components/RestTimerPill'
-import { useActiveWorkout, useExercisePR, calc1RM, calcVolume } from '../hooks/useWorkout'
+import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } from '../hooks/useWorkout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { hoverColor, ERROR_STYLE } from '../lib/ui'
@@ -402,6 +402,7 @@ export default function ActiveWorkout() {
   const { user } = useAuth()
   const { deleteWorkout } = useWorkouts()
   const online = useOnlineStatus()
+  const unsynced = useOutboxCount(id)
 
   const {
     workout, workoutExercises, loading, error,
@@ -654,8 +655,9 @@ export default function ActiveWorkout() {
           </div>
         )}
 
-        {/* Offline notice — saves are held locally and retried on reconnect */}
-        {!online && (
+        {/* Sync status — one quiet line. Offline, or online with a backlog
+            still draining: say how many sets are waiting. Silent when synced. */}
+        {(!online || unsynced > 0) && (
           <div
             role="status"
             style={{
@@ -666,13 +668,16 @@ export default function ActiveWorkout() {
           >
             <span
               aria-hidden="true"
+              className={online ? 'live-dot' : undefined}
               style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--c-action)', flexShrink: 0 }}
             />
             <span style={{
               fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
               textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)',
             }}>
-              Sin conexión — los cambios se guardarán al reconectar
+              {unsynced > 0
+                ? `${unsynced} ${unsynced === 1 ? 'serie sin sincronizar' : 'series sin sincronizar'}${online ? ' — sincronizando' : ''}`
+                : 'Sin conexión — tus series se guardan y se sincronizan al reconectar'}
             </span>
           </div>
         )}

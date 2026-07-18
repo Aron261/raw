@@ -1,8 +1,32 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { useCachedResource } from '../lib/swr'
 import { getOrCreateExerciseId, resolveExerciseIds as resolveExerciseIdsCanonical } from '../lib/exercises'
+import { outbox } from '../lib/outbox'
+
+// How many set writes are still queued (unsynced) for a workout — drives the
+// "N series sin sincronizar" indicator. Re-reads whenever the outbox changes.
+export function useOutboxCount(workoutId) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    let alive = true
+    const refresh = async () => { const c = await outbox.count(workoutId); if (alive) setCount(c) }
+    refresh()
+    return outbox.subscribe(refresh)
+  }, [workoutId])
+  return count
+}
+
+// sets.id is uuid — the client-generated id must be a real v4 uuid so an
+// offline-created set inserts cleanly once it syncs.
+const newSetId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+}
 
 // Calculate estimated 1RM using Epley formula
 export const calc1RM = (weight, reps) => {
@@ -282,12 +306,18 @@ export function useActiveWorkout(workoutId) {
   }
 
   const finishWorkout = async () => {
+    // Flush queued sets before closing the workout, so what's finished on the
+    // server is what the lifter actually logged. Ops are idempotent, so this
+    // is safe even if the background loop drains at the same time.
+    const res = await outbox.drain(syncHandlers)
+    if (res.remaining > 0) throw new Error('Quedan series sin sincronizar. Reconéctate para finalizar.')
+    const endedAt = new Date().toISOString()
     const { error: err } = await supabase
       .from('workouts')
-      .update({ ended_at: new Date().toISOString() })
+      .update({ ended_at: endedAt })
       .eq('id', workoutId)
     if (err) throw err
-    setWorkout(prev => ({ ...prev, ended_at: new Date().toISOString() }))
+    setWorkout(prev => ({ ...prev, ended_at: endedAt }))
   }
 
   // Add exercise to workout (creates exercise if not exists, then adds workout_exercise)
@@ -326,42 +356,109 @@ export function useActiveWorkout(workoutId) {
     )
   }
 
+  // ── Offline-first set writes ──────────────────────────────────────────
+  // Sets are written optimistically to local state and queued in the outbox;
+  // a background loop drains the queue to the server when online. The optimistic
+  // set carries a client-generated id that IS its server id (sets.id accepts an
+  // explicit uuid), so the row never changes identity across a sync — the
+  // done-state map, keyed by set id, stays valid, and a set edited before its
+  // create syncs coalesces onto one write.
+  const syncing = useRef(false)
+
+  const syncHandlers = {
+    'set.upsert': async (op) => {
+      const { error } = await supabase.from('sets').upsert(op.data, { onConflict: 'id' })
+      if (error) throw error
+    },
+    'set.delete': async (op) => {
+      const { error } = await supabase.from('sets').delete().eq('id', op.data.id)
+      if (error) throw error
+    },
+  }
+
+  const sync = useCallback(async () => {
+    if (syncing.current) return
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return
+    syncing.current = true
+    try {
+      const res = await outbox.drain(syncHandlers)
+      // A clean drain means the server now matches local state; reconcile once
+      // to pick up server-authoritative fields (created_at, ordering).
+      if (res.remaining === 0 && (await outbox.count(workoutId)) === 0) {
+        await fetchWorkout()
+      }
+    } catch { /* stay queued; a later trigger retries */ }
+    finally { syncing.current = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workoutId, fetchWorkout])
+
+  // Drain on mount and whenever the connection returns.
+  useEffect(() => {
+    sync()
+    const onOnline = () => sync()
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
+  }, [sync])
+
+  const applyLocalSet = (workoutExerciseId, row) => {
+    setWorkoutExercises(prev => prev.map(we => {
+      if (we.id !== workoutExerciseId) return we
+      const has = (we.sets || []).some(s => s.id === row.id)
+      const sets = has
+        ? we.sets.map(s => (s.id === row.id ? { ...s, ...row } : s))
+        : [...(we.sets || []), row].sort((a, b) => a.set_number - b.set_number)
+      return { ...we, sets }
+    }))
+  }
+
   const addSet = async (workoutExerciseId, reps, weight, setNumber = null) => {
     const we = workoutExercises.find(w => w.id === workoutExerciseId)
     const nextSetNumber = setNumber ?? (we?.sets?.length || 0) + 1
-
-    const { data, error: err } = await supabase
-      .from('sets')
-      .insert({
-        workout_exercise_id: workoutExerciseId,
-        set_number: nextSetNumber,
-        reps: parseInt(reps, 10) || 0,
-        weight: parseFloat(weight) || 0
-      })
-      .select()
-      .single()
-
-    if (err) throw err
-    await fetchWorkout()
-    return data
+    const row = {
+      id: newSetId(),
+      workout_exercise_id: workoutExerciseId,
+      set_number: nextSetNumber,
+      reps: parseInt(reps, 10) || 0,
+      weight: parseFloat(weight) || 0,
+    }
+    applyLocalSet(workoutExerciseId, { ...row, created_at: new Date().toISOString() })
+    await outbox.enqueue({ kind: 'set.upsert', workoutId, dedupeKey: row.id, data: row })
+    sync()
+    return { id: row.id }
   }
 
   const updateSet = async (setId, updates) => {
-    const { error: err } = await supabase
-      .from('sets')
-      .update(updates)
-      .eq('id', setId)
-    if (err) throw err
-    await fetchWorkout()
+    // Rebuild the full row so the queued upsert is self-contained (idempotent by id).
+    let full = null
+    setWorkoutExercises(prev => prev.map(we => {
+      const idx = (we.sets || []).findIndex(s => s.id === setId)
+      if (idx === -1) return we
+      const merged = { ...we.sets[idx], ...updates }
+      full = {
+        id: setId,
+        workout_exercise_id: we.id,
+        set_number: merged.set_number,
+        reps: parseInt(merged.reps, 10) || 0,
+        weight: parseFloat(merged.weight) || 0,
+      }
+      const sets = we.sets.map(s => (s.id === setId ? merged : s))
+      return { ...we, sets }
+    }))
+    if (!full) return
+    await outbox.enqueue({ kind: 'set.upsert', workoutId, dedupeKey: setId, data: full })
+    sync()
   }
 
   const deleteSet = async (setId) => {
-    const { error: err } = await supabase
-      .from('sets')
-      .delete()
-      .eq('id', setId)
-    if (err) throw err
-    await fetchWorkout()
+    setWorkoutExercises(prev => prev.map(we => ({
+      ...we, sets: (we.sets || []).filter(s => s.id !== setId),
+    })))
+    // If the create never synced, cancel it instead of create-then-delete.
+    const hadPending = await outbox.removeByDedupe('set.upsert', setId)
+    if (!hadPending) {
+      await outbox.enqueue({ kind: 'set.delete', workoutId, dedupeKey: setId, data: { id: setId } })
+    }
+    sync()
   }
 
   // Move an exercise up/down in the workout, reindexing sort_order so the
