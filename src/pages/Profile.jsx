@@ -497,6 +497,136 @@ function ExerciseLangPicker({ cell }) {
   )
 }
 
+// ── Conectar con Claude (MCP) ───────────────────────────────────────────
+// La URL del conector NO es la de la Edge Function: se sirve desde nuestro
+// dominio porque el descubrimiento OAuth necesita la raíz del origen.
+// Ver supabase/functions/mcp/auth.ts y los rewrites de vercel.json.
+const MCP_URL = 'https://raw-red.vercel.app/mcp'
+
+const CAN_DO = [
+  'Leer tus entrenos, series y progreso',
+  'Crear y editar rutinas y ciclos',
+  'Crear objetivos y registrar comidas o peso',
+]
+
+const CANNOT_DO = [
+  'Registrar o cambiar entrenos y series',
+  'Cambiar tu perfil o tus objetivos de macros',
+  'Ver datos de otras personas',
+]
+
+export function ClaudeSection() {
+  const [copied, setCopied] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(MCP_URL)
+    } catch {
+      // Safari sin permiso de portapapeles: al menos se ve la URL en pantalla.
+      return
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <section style={CARD}>
+      <p style={SECTION_TITLE}>Conectar con Claude</p>
+
+      <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.55, marginBottom: '14px' }}>
+        Conecta RAW a tu cuenta de Claude y planifica desde el chat: pídele un ciclo
+        y aparece aquí, en tus rutinas. Tus datos siguen siendo tuyos y puedes
+        desconectarlo cuando quieras.
+      </p>
+
+      {/* URL del conector + copiar */}
+      <label style={LABEL}>URL del conector</label>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch', marginBottom: '16px' }}>
+        <code
+          style={{
+            flex: 1, minWidth: 0, background: 'var(--c-surface-2)',
+            border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+            padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '11px',
+            color: 'var(--c-text-secondary)', overflowX: 'auto', whiteSpace: 'nowrap',
+          }}
+        >
+          {MCP_URL}
+        </code>
+        <button
+          type="button"
+          onClick={copy}
+          style={{
+            flexShrink: 0, border: '1px solid var(--c-accent-border)', borderRadius: '10px',
+            padding: '0 14px', background: 'transparent', color: 'var(--c-accent)',
+            fontSize: '10px', fontWeight: 800, textTransform: 'uppercase',
+            letterSpacing: '0.06em', cursor: 'pointer',
+          }}
+        >
+          {copied ? 'Copiada' : 'Copiar'}
+        </button>
+      </div>
+
+      {/* Pasos */}
+      <ol style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+        {[
+          'En Claude, entra en Ajustes › Conectores.',
+          'Elige "Añadir conector personalizado" y pega la URL.',
+          'Inicia sesión con esta misma cuenta de RAW y autoriza.',
+        ].map((t, i) => (
+          <li key={t} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <span style={{
+              flexShrink: 0, width: '18px', height: '18px', borderRadius: '50%',
+              background: 'var(--c-surface-2)', color: 'var(--c-text-dim)',
+              fontSize: '10px', fontWeight: 800, display: 'flex',
+              alignItems: 'center', justifyContent: 'center', marginTop: '1px',
+            }}>
+              {i + 1}
+            </span>
+            <span style={{ color: 'var(--c-text-secondary)', fontSize: '12px', lineHeight: 1.5 }}>{t}</span>
+          </li>
+        ))}
+      </ol>
+
+      {/* Qué puede y qué no — plegable para no cargar la pantalla */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        style={{
+          background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+          color: 'var(--c-accent)', fontSize: '11px', fontWeight: 700,
+        }}
+      >
+        {open ? 'Ocultar permisos' : '¿Qué puede hacer Claude?'}
+      </button>
+
+      {open && (
+        <div className="fade-in" style={{ marginTop: '12px' }}>
+          {[['Puede', CAN_DO, '✓', 'var(--c-accent)'],
+            ['No puede', CANNOT_DO, '✕', 'var(--c-text-muted)']].map(([title, items, mark, color]) => (
+            <div key={title} style={{ marginBottom: '12px' }}>
+              <p style={{ ...LABEL, marginBottom: '6px' }}>{title}</p>
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                {items.map(t => (
+                  <li key={t} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                    <span aria-hidden="true" style={{ color, fontSize: '11px', lineHeight: 1.5, flexShrink: 0 }}>{mark}</span>
+                    <span style={{ color: 'var(--c-text-secondary)', fontSize: '12px', lineHeight: 1.5 }}>{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5 }}>
+            Todo lo que Claude cambie queda registrado y se puede deshacer. Los permisos
+            de administrador y el borrado de cuenta solo se hacen desde esta app.
+          </p>
+        </div>
+      )}
+    </section>
+  )
+}
+
 // ── Trainer / coach section ─────────────────────────────────────────────
 function TrainerSection() {
   const navigate = useNavigate()
@@ -1007,6 +1137,9 @@ export default function Profile() {
 
           {/* ── Entrenador ── */}
           <TrainerSection />
+
+          {/* ── Conectar con Claude ── */}
+          <ClaudeSection />
 
           {/* ── Apariencia ── */}
           <ThemeSection />
