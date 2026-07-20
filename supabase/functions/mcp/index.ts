@@ -69,7 +69,7 @@ async function handleMessage(msg: any, req: Request): Promise<unknown | null> {
         'Datos de entrenamiento de RAW para esta persona usuaria.',
         'Puedes leer todo: entrenos, series, progreso, nutrición y perfil.',
         'Solo puedes escribir rutinas y ciclos, objetivos, comidas y peso corporal.',
-        'No puedes registrar entrenos ni series (eso se hace en la app), ni cambiar el perfil o los objetivos de macros.',
+        'No puedes registrar entrenos ni series (eso se hace en la app), ni cambiar el perfil o los objetivos de macros, ni conceder permisos de administrador.',
         'Antes de crear o editar una rutina, busca los ejercicios con search_exercise_library: guardar un nombre que no está en la biblioteca rompe el seguimiento del progreso. Si un término es ambiguo ("sentadillas"), pregunta cuál variante quiere.',
         'Después de escribir una rutina, revisa el campo "normalized" y comenta cualquier nombre que se haya guardado distinto.',
       ].join(' '),
@@ -114,7 +114,10 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
 
   // Metadatos de recurso protegido: así el cliente MCP sabe dónde autenticarse.
-  if (url.pathname.endsWith('/.well-known/oauth-protected-resource')) {
+  // includes() y no endsWith(): la forma canónica de RFC 9728 lleva la ruta del
+  // recurso DESPUÉS del .well-known, así que la petición puede llegar como
+  // /.well-known/oauth-protected-resource/mcp.
+  if (url.pathname.includes('/.well-known/oauth-protected-resource')) {
     return json(protectedResourceMetadata())
   }
 

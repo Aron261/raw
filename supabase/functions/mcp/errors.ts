@@ -38,7 +38,7 @@ export function toSpanish(err: unknown): string {
     'Demasiados días', 'Demasiados ejercicios', 'Un ejercicio no tiene nombre',
     'Rutina no encontrada', 'Solo los ciclos pueden marcarse como activos',
     'No autorizado', 'Cambio no encontrado', 'Ese cambio ya se deshizo',
-    'Revisión no encontrada',
+    'Revisión no encontrada', 'solo puede hacerse desde la app RAW',
   ]
   for (const m of ours) if (e.message?.includes(m)) return e.message
 

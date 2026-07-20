@@ -21,8 +21,23 @@ import { createClient, type SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY')!
 
-// URL pública de esta función, usada en los metadatos OAuth.
-export const RESOURCE_URL = `${SUPABASE_URL}/functions/v1/mcp`
+// URL pública del conector: NO es la URL de la función, es la del dominio
+// propio, que hace de proxy (ver rewrites en vercel.json).
+//
+// Por qué el rodeo: el descubrimiento OAuth (RFC 9728) manda buscar los
+// metadatos del recurso en la RAÍZ del origen, en
+// /.well-known/oauth-protected-resource/<ruta-del-recurso>. En *.supabase.co
+// esa ruta la contesta el gateway con 401 y nunca llega hasta aquí, así que el
+// cliente no descubre el servidor de autorización y falla al registrarse
+// ("no se pudo registrar con el servicio de inicio de sesión"). En nuestro
+// dominio sí controlamos la raíz del origen.
+//
+// Este valor tiene que coincidir EXACTAMENTE con la URL que el cliente pidió,
+// o rechazará los metadatos por no corresponder con el recurso.
+export const RESOURCE_URL = 'https://raw-red.vercel.app/mcp'
+
+// El servidor de autorización sigue siendo Supabase. Sus metadatos sí se
+// descubren bien: /.well-known/oauth-authorization-server/auth/v1 responde 200.
 export const AUTH_SERVER  = `${SUPABASE_URL}/auth/v1`
 
 export class Unauthorized extends Error {}
@@ -59,8 +74,10 @@ export async function authenticate(req: Request) {
 // "no se pudo conectar". Por eso esta función se despliega con verify_jwt
 // desactivado: el 401 por defecto de la plataforma no incluye la cabecera.
 
+// Se apunta a la forma canónica de RFC 9728: los metadatos van en la raíz del
+// origen con la ruta del recurso insertada después, no colgando del recurso.
 export const WWW_AUTHENTICATE =
-  `Bearer resource_metadata="${RESOURCE_URL}/.well-known/oauth-protected-resource"`
+  'Bearer resource_metadata="https://raw-red.vercel.app/.well-known/oauth-protected-resource/mcp"'
 
 export function protectedResourceMetadata() {
   return {
