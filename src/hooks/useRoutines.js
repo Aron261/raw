@@ -87,61 +87,66 @@ export function useRoutines(targetUserId = null) {
   const fetchRoutines = refetch
   const error = (loadError ? (loadError.message || 'Error inesperado') : null) || mutError
 
-  // Crear rutina completa con días y ejercicios en cascada
+  // Crear rutina completa con días y ejercicios, en una sola transacción.
   // data: { name, type, goal?, level?, days_per_week?, days?: [{ day_name, day_order, focus?, exercises?: [...] }] }
+  //
+  // Todo el trabajo lo hace create_routine_tree (supabase/routine_tree.sql):
+  // antes esto eran tres etapas sin transacción y un fallo a mitad dejaba un
+  // ciclo a medio construir. La RPC además canonicaliza los nombres de
+  // ejercicio contra la biblioteca, que es lo que mantiene sano el cruce
+  // plan↔entreno de useWorkout.js.
+  //
+  // Devuelve la rutina creada con un campo extra `normalized`: la lista de
+  // nombres tal como se guardaron, con sugerencias cuando el nombre era
+  // ambiguo (p. ej. "sentadillas" → varias variantes de la biblioteca).
   const createRoutine = async (data) => {
     if (!ownerId) throw new Error('Usuario no autenticado')
     setError(null)
     try {
       const { name, description = null, type = 'cycle', source = 'manual', goal, level, days_per_week, days = [] } = data
 
-      // 1. Insertar la rutina principal
-      const { data: routineRow, error: routineErr } = await supabase
-        .from('routines')
-        .insert({ user_id: ownerId, assigned_by: assignedBy, name, description, type, source, goal, level, days_per_week })
-        .select()
-        .single()
-
-      if (routineErr) throw routineErr
-
-      // 2. Insertar días en cascada
-      for (const day of days) {
-        const { data: dayRow, error: dayErr } = await supabase
-          .from('routine_days')
-          .insert({
-            routine_id: routineRow.id,
-            day_name: day.day_name,
-            day_order: day.day_order,
-            focus: day.focus || null,
-          })
-          .select()
-          .single()
-
-        if (dayErr) throw dayErr
-
-        // 3. Insertar ejercicios dentro del día
-        const exercises = day.exercises || []
-        if (exercises.length > 0) {
-          const exerciseRows = exercises.map((ex, i) => ({
-            routine_day_id: dayRow.id,
+      const payload = {
+        name,
+        description,
+        type,
+        source,
+        goal: goal ?? null,
+        level: level ?? null,
+        days_per_week: days_per_week ?? null,
+        // El orden de días y ejercicios lo asigna la RPC por posición en el array.
+        days: days.map(d => ({
+          day_name: d.day_name,
+          focus: d.focus || null,
+          exercises: (d.exercises || []).map(ex => ({
             exercise_name: ex.exercise_name,
-            exercise_order: ex.exercise_order ?? i,
-            sets: ex.sets || null,
-            reps: ex.reps || null,
-            rest_seconds: ex.rest_seconds || null,
-            notes: ex.notes || null,
-          }))
-
-          const { error: exErr } = await supabase
-            .from('routine_day_exercises')
-            .insert(exerciseRows)
-
-          if (exErr) throw exErr
-        }
+            sets: ex.sets ?? null,
+            reps: ex.reps ?? null,
+            rest_seconds: ex.rest_seconds ?? null,
+            notes: ex.notes ?? null,
+            muscle_group: ex.muscle_group ?? null,
+          })),
+        })),
       }
+      // Solo se manda user_id cuando un entrenador escribe sobre un cliente;
+      // la RPC deriva assigned_by de auth.uid() y RLS decide si puede.
+      if (targetUserId) payload.user_id = ownerId
+
+      const { data: result, error: rpcErr } = await supabase
+        .rpc('create_routine_tree', { p: payload })
+
+      if (rpcErr) throw rpcErr
 
       await fetchRoutines()
-      return routineRow
+
+      return {
+        id: result.routine_id,
+        user_id: ownerId,
+        assigned_by: assignedBy,
+        name, description, type, source, goal, level, days_per_week,
+        is_active: false,
+        // Nombres tal como quedaron guardados, con sugerencias si eran ambiguos.
+        normalized: result.normalized || [],
+      }
     } catch (err) {
       console.error('Error creating routine:', err)
       setError(err.message || 'Error inesperado')
@@ -190,12 +195,15 @@ export function useRoutines(targetUserId = null) {
   // Marcar una rutina como activa (desactiva la actual primero).
   // Llamar con id = null para solo desactivar sin activar ninguna.
   // Solo los ciclos (type = 'cycle') pueden marcarse como activos.
-  // Siempre filtra por pk (id) + user_id — nunca bulk update por user_id solo
-  // para evitar comportamiento ambiguo en Supabase v2 con columnas uuid.
+  //
+  // Ambos updates ocurren dentro de set_active_routine (supabase/routine_tree.sql),
+  // en una sola transacción: así el índice routines_one_active_per_user nunca ve
+  // el estado intermedio y un fallo a medias no deja al usuario sin ciclo activo.
+  // Las reglas se validan además en la base de datos; la comprobación de aquí
+  // solo sirve para dar feedback inmediato sin ida y vuelta.
   const setActiveRoutine = async (id) => {
     if (!ownerId) return
 
-    // Validar que solo los ciclos pueden activarse
     if (id) {
       const target = routines.find(r => r.id === id)
       if (!target) throw new Error('Rutina no encontrada.')
@@ -204,27 +212,12 @@ export function useRoutines(targetUserId = null) {
 
     setError(null)
     try {
-      // 1. Desactivar la rutina actualmente activa (si existe), por su id específico
-      if (activeRoutine?.id) {
-        const { error: deactivateErr } = await supabase
-          .from('routines')
-          .update({ is_active: false, updated_at: new Date().toISOString() })
-          .eq('id', activeRoutine.id)
-          .eq('user_id', ownerId)
+      const { error: rpcErr } = await supabase.rpc('set_active_routine', {
+        p_routine_id: id ?? null,
+        p_user_id: ownerId,
+      })
 
-        if (deactivateErr) throw deactivateErr
-      }
-
-      // 2. Activar la seleccionada (se omite si id es null)
-      if (id) {
-        const { error: activateErr } = await supabase
-          .from('routines')
-          .update({ is_active: true, updated_at: new Date().toISOString() })
-          .eq('id', id)
-          .eq('user_id', ownerId)
-
-        if (activateErr) throw activateErr
-      }
+      if (rpcErr) throw rpcErr
 
       await fetchRoutines()
     } catch (err) {
