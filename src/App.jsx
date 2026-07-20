@@ -27,6 +27,7 @@ const Coach          = lazy(() => import('./pages/Coach'))
 const ClientDetail   = lazy(() => import('./pages/ClientDetail'))
 const Chat           = lazy(() => import('./pages/Chat'))
 const Admin          = lazy(() => import('./pages/Admin'))
+const OAuthConsent   = lazy(() => import('./pages/OAuthConsent'))
 
 // Native-feel scrolling: jump to top when navigating to a new screen, and
 // restore the previous position when going back/forward (POP). Pairs with the
@@ -142,6 +143,13 @@ function AppWithAuth() {
           {/* Password recovery landing (email link) — solo requiere la sesión
               de recuperación, fuera del gate de beta. */}
           <Route path="/reset-password" element={<ResetPassword />} />
+
+          {/* Autorización OAuth: conectar la cuenta a una app externa (Claude).
+              Va FUERA de RequireAuth a propósito — RequireAuth renderiza
+              <BetaGate /> en el sitio en vez de navegar, y eso perdería el
+              authorization_id de la URL. La página gestiona sesión y beta
+              por su cuenta conservando los parámetros. */}
+          <Route path="/oauth/consent" element={<OAuthConsent />} />
 
           {/* Protected — home ("Hoy") + Menú index */}
           <Route path="/"           element={<R auth={auth} element={<HomeGate />} />} />

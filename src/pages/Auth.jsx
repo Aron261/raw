@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { ERROR_STYLE, pressProps } from '../lib/ui'
@@ -8,7 +8,14 @@ import { Button, Logo } from '../components/ui'
 export default function Auth() {
   const { signIn, signUp, sendPasswordReset } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { prompt, install, isInstalled, isIOS } = useInstallPrompt()
+
+  // A dónde ir tras entrar. Lo usa /oauth/consent para volver al flujo de
+  // autorización en vez de caer en la home. Solo se aceptan rutas internas
+  // ("/algo"): un redirect a otro dominio sería un vector de phishing.
+  const raw = searchParams.get('redirect')
+  const redirectTo = raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : '/'
 
   // mode: 'login' | 'signup' | 'reset'
   const [mode, setMode] = useState('login')
@@ -30,13 +37,13 @@ export default function Auth() {
         setMessage('Si el email existe, te enviamos un enlace para restablecer tu contraseña. Revisa tu bandeja.')
       } else if (mode === 'login') {
         await signIn(email, password)
-        navigate('/', { replace: true })
+        navigate(redirectTo, { replace: true })
       } else {
         const { data } = await signUp(email, password)
         if (data?.user?.identities?.length === 0) {
           setError('Este email ya está registrado. Inicia sesión.')
         } else if (data?.session) {
-          navigate('/', { replace: true })
+          navigate(redirectTo, { replace: true })
         } else {
           setMessage('Cuenta creada. Revisa tu email para confirmar y luego inicia sesión.')
           setMode('login')
