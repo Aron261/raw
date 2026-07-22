@@ -2,15 +2,6 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 
-function MenuIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  )
-}
-
 function BarbellIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -160,12 +151,10 @@ export default function Sidebar() {
 
       <div style={{ height: '1px', background: 'var(--c-border-subtle)', margin: '0 16px' }} />
 
-      {/* Nav — hub + sections */}
+      {/* Nav — sections (el índice "Menú" se fusionó con Inicio) */}
       <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: '1px', overflowY: 'auto' }}>
-        <NavItem to="/menu" label="Menú" Icon={MenuIcon} />
-
         <GroupLabel>Entreno</GroupLabel>
-        <NavItem to="/"         label="Hoy"      Icon={BarbellIcon} exact />
+        <NavItem to="/"         label="Inicio"   Icon={BarbellIcon} exact />
         <NavItem to="/progreso" label="Progreso" Icon={ProgressIcon} />
         <NavItem to="/rutinas"  label="Rutinas"  Icon={RoutinesIcon} />
 

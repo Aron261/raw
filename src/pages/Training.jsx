@@ -13,9 +13,14 @@ import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { useInvites } from '../hooks/useInvites'
 import { useTheme } from '../hooks/useTheme'
+import { useSchedule } from '../hooks/useSchedule'
+import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { ERROR_STYLE } from '../lib/ui'
 import { Sheet, Field, Button, LiveRegion, UndoSnackbar } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
+import Calendar from '../components/calendar/Calendar'
+import DaySheet from '../components/calendar/DaySheet'
+import { computeStreak, KINDS } from '../lib/calendar'
 
 // Chart colors must be literal hex — CSS vars don't resolve in recharts SVG attrs.
 const CHART_COLORS = {
@@ -393,6 +398,38 @@ function TodayChip({ label, value, hint, onClick }) {
   )
 }
 
+// ── Section chip — el índice de secciones, absorbido en la portada ───────
+// El Menú era una pantalla aparte que solo servía para elegir sección. Aquí
+// vive como una fila de accesos con un dato vivo debajo: mismo destino, sin
+// una pantalla intermedia que solo era una lista.
+function SectionChip({ title, sub, to, live, onNavigate }) {
+  return (
+    <button
+      onClick={() => onNavigate(to)}
+      style={{
+        flex: '1 1 30%', minWidth: '104px', textAlign: 'left',
+        display: 'flex', flexDirection: 'column', gap: '3px',
+        background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+        borderRadius: '12px', padding: '11px 12px', minHeight: '58px',
+        cursor: 'pointer', transition: 'border-color 150ms var(--ease-out)',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-border)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+    >
+      <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em' }}>
+        {live && <span className="live-dot" aria-hidden="true" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--c-action)', flexShrink: 0 }} />}
+        {title}
+      </span>
+      <span style={{
+        fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 600,
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {sub}
+      </span>
+    </button>
+  )
+}
+
 // ── Hoy — la portada de la app ───────────────────────────────────────────
 // El estado de hoy arriba (entreno en curso / entreno de hoy), los números de
 // la semana en medio y la señal ganada (PR) al lado. Nutrición y peso apare-
@@ -407,6 +444,10 @@ export default function Training() {
   const { targets: nutritionTargets } = useNutritionTargets()
   const { latestLog: latestWeight } = useBodyWeight()
 
+  const { sessions, createSession, updateSession, deleteSession } = useSchedule()
+  const { counts: unreadMap } = useUnreadCounts()
+
+  const [selectedDay, setSelectedDay] = useState(null)
   const [showGoalModal, setShowGoalModal] = useState(false)
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
@@ -620,6 +661,53 @@ export default function Training() {
 
     return { count: thisWeekWorkouts.length, weekVolume: Math.round(weekVolume), chartData, thisMonth, weekPR }
   }, [workouts])
+
+  // ── Calendario: racha y próximo plan ──────────────────────────────────
+  // La racha cuenta semanas seguidas entrenadas (no días): es la señal honesta
+  // de constancia en fuerza, donde no se entrena todos los días.
+  const streak = useMemo(() => computeStreak(workouts), [workouts])
+
+  const todayISO = toLocalISODate()
+  const nextPlanned = useMemo(
+    () => sessions
+      .filter(s => s.date >= todayISO && s.status === 'planned')
+      .sort((a, b) => a.date.localeCompare(b.date))[0] || null,
+    [sessions, todayISO]
+  )
+
+  // Entrenos y planes del día abierto en la hoja.
+  const selectedISO = selectedDay ? toLocalISODate(selectedDay) : null
+  const dayWorkouts = useMemo(
+    () => !selectedISO ? [] : workouts.filter(
+      w => w.ended_at && toLocalISODate(new Date(w.started_at)) === selectedISO
+    ),
+    [workouts, selectedISO]
+  )
+  const daySessions = useMemo(
+    () => !selectedISO ? [] : sessions.filter(s => s.date === selectedISO),
+    [sessions, selectedISO]
+  )
+
+  // ── Índice de secciones (antes la pantalla Menú) ──────────────────────
+  const unread = useMemo(
+    () => Object.values(unreadMap || {}).reduce((a, b) => a + b, 0),
+    [unreadMap]
+  )
+  const sectionRows = [
+    {
+      title: 'Nutrición',
+      to: '/nutrition',
+      sub: kcalToday > 0
+        ? `${kcalToday.toLocaleString('es-CO')} / ${kcalTarget.toLocaleString('es-CO')} kcal`
+        : 'Registra tu comida',
+    },
+    { title: 'Rutinas',  to: '/rutinas',  sub: activeCycle?.name || 'Sin ciclo activo' },
+    { title: 'Progreso', to: '/progreso', sub: 'Historial y stats' },
+    ...(profile?.is_trainer
+      ? [{ title: 'Coach', to: '/coach', sub: unread > 0 ? `${unread} sin leer` : 'Tus clientes', live: unread > 0 }]
+      : []),
+    { title: 'Perfil',   to: '/profile',  sub: profile?.name || 'Ajustes y cuenta' },
+  ]
 
   // ── Progreso de metas ─────────────────────────────────────────────────
   // Hide any goal awaiting an undoable delete so it vanishes optimistically.
@@ -923,6 +1011,49 @@ export default function Training() {
               </button>
             )}
           </div>
+        )}
+
+        {/* ── Calendario — lo planeado y lo hecho sobre la misma rejilla ── */}
+        {!loading && !error && (
+          <section className="fade-in" style={{ marginBottom: '20px', animationDelay: '30ms' }}>
+            <Calendar
+              workouts={workouts}
+              sessions={sessions}
+              routines={routines}
+              onSelectDay={setSelectedDay}
+            />
+
+            {/* Dos datos con los que se juega: constancia y lo que viene. */}
+            <div style={{ display: 'flex', alignItems: 'stretch', gap: '8px', marginTop: '10px' }}>
+              <TodayChip
+                label="racha"
+                value={streak > 0 ? `${streak} ${streak === 1 ? 'semana' : 'semanas'}` : '—'}
+                hint={streak > 0 ? null : 'Entrena esta semana'}
+                onClick={() => navigate('/progreso')}
+              />
+              <TodayChip
+                label="próximo"
+                value={nextPlanned ? (nextPlanned.title || KINDS[nextPlanned.kind]?.label || '—') : '—'}
+                hint={nextPlanned ? null : 'Toca un día para planear'}
+                onClick={() => setSelectedDay(
+                  nextPlanned ? new Date(`${nextPlanned.date}T00:00:00`) : new Date()
+                )}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* ── Índice de secciones — antes una pantalla aparte (Menú) ── */}
+        {!loading && !error && (
+          <nav
+            aria-label="Secciones"
+            className="fade-in"
+            style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '28px', animationDelay: '50ms' }}
+          >
+            {sectionRows.map(r => (
+              <SectionChip key={r.title} {...r} onNavigate={navigate} />
+            ))}
+          </nav>
         )}
 
         {/* ── Rutinas de un día asignadas por el entrenador ── */}
@@ -1256,6 +1387,20 @@ export default function Training() {
         )}
 
       </div>
+
+      {/* ── Hoja del día del calendario ── */}
+      {selectedDay && (
+        <DaySheet
+          date={selectedDay}
+          workouts={dayWorkouts}
+          sessions={daySessions}
+          routines={routines}
+          onCreate={createSession}
+          onUpdate={updateSession}
+          onDelete={deleteSession}
+          onClose={() => setSelectedDay(null)}
+        />
+      )}
 
       {/* ── Modal nueva meta ── */}
       {showGoalModal && (

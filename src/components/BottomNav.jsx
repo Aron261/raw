@@ -2,13 +2,12 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { sectionFor } from '../lib/sections'
 
 // ── Icons ──────────────────────────────────────────────────────────────
-function MenuIcon() {
+function EjerciciosIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1.5" />
-      <rect x="14" y="3" width="7" height="7" rx="1.5" />
-      <rect x="3" y="14" width="7" height="7" rx="1.5" />
-      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      <path d="M4 6h16" />
+      <path d="M4 12h16" />
+      <path d="M4 18h10" />
     </svg>
   )
 }
@@ -126,10 +125,15 @@ function StartAction({ onClick }) {
 }
 
 // ── Nav ───────────────────────────────────────────────────────────────
-// The tab bar belongs to the Training section — home ("Hoy") included. The
-// other sections (Nutrición, Coach, Perfil) navigate from the Menú index +
-// back headers, so the bar stays out of their way.
-// Menú | Hoy | [+] | Progreso | Rutinas
+// The tab bar belongs to the Training section — home ("Inicio") included. The
+// remaining sections (Nutrición, Coach) navigate from the section chips on the
+// home page + back headers, so the bar stays out of their way.
+//
+// "Menú" is gone: the home page absorbed that index, so a tab pointing at it
+// would just be a second route to the screen you're already on.
+// Inicio | Progreso | [+] | Rutinas | Ejercicios
+// (todas dentro de la sección Entreno, para que la barra no desaparezca al
+// tocar una pestaña; Nutrición · Coach · Perfil viven en los chips de Inicio)
 export default function BottomNav({ onStart }) {
   const { pathname } = useLocation()
   if (sectionFor(pathname) !== 'training') return null
@@ -159,11 +163,11 @@ export default function BottomNav({ onStart }) {
         maxWidth: '480px', margin: '0 auto',
         height: '60px', padding: '0 4px',
       }}>
-        <TabItem to="/menu"     label="Menú"     Icon={MenuIcon} />
-        <TabItem to="/"         label="Hoy"      Icon={BarbellIcon} exact />
-        <StartAction onClick={onStart} />
+        <TabItem to="/"         label="Inicio"   Icon={BarbellIcon} exact />
         <TabItem to="/progreso" label="Progreso" Icon={HistoryIcon} />
+        <StartAction onClick={onStart} />
         <TabItem to="/rutinas"  label="Rutinas"  Icon={ProgramaIcon} />
+        <TabItem to="/ejercicios" label="Ejercicios" Icon={EjerciciosIcon} />
       </div>
     </nav>
   )

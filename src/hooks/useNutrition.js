@@ -4,12 +4,9 @@ import { useAuth } from './useAuth'
 import { useCachedResource, mutateCache } from '../lib/swr'
 
 // Fecha local YYYY-MM-DD — una comida a las 11pm es de hoy, no de mañana UTC.
-export function toLocalISODate(d = new Date()) {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
+// La implementación vive en lib/calendar.js (módulo puro); se reexporta aquí
+// porque es de donde la importan las pantallas desde siempre.
+export { toLocalISODate } from '../lib/calendar'
 
 export const MEALS = [
   { id: 'desayuno', label: 'Desayuno' },

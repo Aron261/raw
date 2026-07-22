@@ -11,7 +11,6 @@ import { useWorkouts } from './hooks/useWorkout'
 const BetaGate       = lazy(() => import('./pages/BetaGate'))
 const Auth           = lazy(() => import('./pages/Auth'))
 const ResetPassword  = lazy(() => import('./pages/ResetPassword'))
-const Hub            = lazy(() => import('./pages/Hub'))
 const Training       = lazy(() => import('./pages/Training'))
 const Nutrition      = lazy(() => import('./pages/Nutrition'))
 const Social         = lazy(() => import('./pages/Social'))
@@ -151,9 +150,11 @@ function AppWithAuth() {
               por su cuenta conservando los parámetros. */}
           <Route path="/oauth/consent" element={<OAuthConsent />} />
 
-          {/* Protected — home ("Hoy") + Menú index */}
+          {/* Protected — home ("Inicio"): calendario + portada. El antiguo
+              índice /menu se fusionó aquí (sus secciones son ahora chips en la
+              portada), así que la ruta sobrevive solo como redirección. */}
           <Route path="/"           element={<R auth={auth} element={<HomeGate />} />} />
-          <Route path="/menu"       element={<R auth={auth} element={<Hub />} />} />
+          <Route path="/menu"       element={<Navigate to="/" replace />} />
 
           {/* Entreno */}
           <Route path="/training"   element={<Navigate to="/" replace />} />
