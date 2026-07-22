@@ -71,7 +71,7 @@ function WorkoutStarter({ children }) {
   )
 }
 
-// El acceso a Perfil vive como fila en el menú (Hub.jsx) y en el sidebar de
+// El acceso a Perfil vive como chip en la portada (Inicio) y en el sidebar de
 // escritorio; ya no hay avatar flotante.
 export default function Layout({ children, hideNav = false }) {
   const { pathname } = useLocation()

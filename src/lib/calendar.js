@@ -11,7 +11,7 @@ export function toLocalISODate(d = new Date()) {
 }
 
 // Lunes 00:00 de la semana de `date`. La app trabaja semana Lunes→Domingo
-// (getMondayOfWeek en Hub/Training), así que la racha y las franjas usan lo mismo.
+// (getMondayOfWeek en Training), así que la racha y las franjas usan lo mismo.
 export function mondayOf(date) {
   const d = new Date(date)
   const diff = (d.getDay() + 6) % 7

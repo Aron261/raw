@@ -13,14 +13,23 @@ export function useBetaGate() {
   const [redeeming, setRedeeming] = useState(false)
   const [error, setError] = useState(null)
 
+  // Depende del id, no del objeto `user`. supabase-js emite un objeto nuevo en
+  // cada evento de sesión (TOKEN_REFRESHED, etc.) aunque sea la misma persona;
+  // con el objeto como dependencia, cada refresco de token volvía a poner
+  // loading = true, y RequireAuth cambia los hijos por <Splash /> mientras
+  // tanto. Eso DESMONTA la pantalla: el calendario perdía el mes que mirabas
+  // y cerraba la hoja del día a medio llenar. La aprobación de beta no cambia
+  // porque se renueve un token; solo cuando cambia la persona.
+  const userId = user?.id ?? null
+
   const checkApproval = useCallback(async () => {
-    if (!user) { setLoading(false); return }
+    if (!userId) { setLoading(false); return }
     setLoading(true)
     try {
       const { data, error: err } = await supabase
         .from('profiles')
         .select('beta_approved')
-        .eq('id', user.id)
+        .eq('id', userId)
         .maybeSingle()
       if (err) throw err
       setApproved(!!data?.beta_approved)
@@ -31,7 +40,7 @@ export function useBetaGate() {
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [userId])
 
   useEffect(() => { checkApproval() }, [checkApproval])
 
