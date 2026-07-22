@@ -10,8 +10,10 @@
 -- its library row via library_id. Names become labels; ids become identity.
 -- Custom exercises keep library_id null — they are their own canon.
 --
--- Apply order matters: the uniqueness guarantee in §6 can only be created once
--- existing duplicates have been merged (§5).
+-- Apply order matters, within this file and across it: the uniqueness
+-- guarantee in §6 can only be created once existing duplicates have been
+-- merged (§5), and §9 filters on exercises_library.is_active, added by
+-- exercises_library_coaching_migration.sql — apply that file first.
 
 -- ── 1. Library: English name + aliases ──────────────────────────────────
 alter table exercises_library add column if not exists name_en text;
@@ -347,3 +349,108 @@ end $$;
 -- history or PRs.
 alter table profiles add column if not exists exercise_lang text not null default 'es'
   check (exercise_lang in ('es','en'));
+
+-- ── 9. Suggestions for what no alias could resolve ──────────────────────
+-- §5 links every name the canon recognises. What stays unlinked are the
+-- judgement calls: whether a "Chest Supported Row" is a machine row or a
+-- chest-supported T-bar row is the lifter's to answer, not a score's.
+-- Trigram similarity against the Spanish name, the English name and the
+-- aliases, best first. Deliberately a suggestion and never an auto-link:
+-- similarity happily scores "Deadlift" → "Peso muerto rumano" at 0.50, and
+-- those are different lifts. A score is evidence, not a decision.
+--
+-- pg_trgm lives in extensions, not public, so similarity() is schema-qualified.
+create extension if not exists pg_trgm with schema extensions;
+
+create or replace function suggest_library_matches(p_name text, p_limit integer default 5)
+returns table(library_id uuid, name text, name_en text, muscle_group text, score real)
+language sql
+stable
+parallel safe
+set search_path = public, extensions
+as $$
+  select l.id, l.name, l.name_en, l.muscle_group,
+         greatest(
+           extensions.similarity(exercise_norm(l.name), exercise_norm(p_name)),
+           coalesce(extensions.similarity(exercise_norm(l.name_en), exercise_norm(p_name)), 0),
+           coalesce((select max(extensions.similarity(exercise_norm(a), exercise_norm(p_name)))
+                       from unnest(l.aliases) a), 0)
+         ) as score
+  from exercises_library l
+  where l.is_active is not false
+  order by score desc, l.name
+  limit p_limit
+$$;
+
+-- ── 10. Adopting a library identity ─────────────────────────────────────
+-- The runtime counterpart of the one-time merge in §5, with the same rule:
+-- when the lifter already holds an exercise for that library row, the row
+-- carrying more logged sets survives and absorbs the other's history. Every
+-- merge goes to exercise_merge_log so a wrong mapping can be undone by hand.
+-- security invoker on purpose — RLS on exercises is the boundary, and every
+-- read here is already scoped to auth.uid().
+create or replace function merge_exercise_into_library(p_exercise_id uuid, p_library_id uuid)
+returns uuid
+language plpgsql
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_mine record;
+  v_other record;
+  v_survivor uuid;
+  v_victim uuid;
+  v_victim_name text;
+  v_survivor_name text;
+  v_lib_name text;
+  v_moved uuid[];
+begin
+  if v_uid is null then raise exception 'not authenticated'; end if;
+
+  select e.id, e.name, e.library_id,
+         (select count(*) from sets s join workout_exercises we on s.workout_exercise_id = we.id
+           where we.exercise_id = e.id) as sets
+    into v_mine
+    from exercises e where e.id = p_exercise_id and e.user_id = v_uid;
+  if v_mine.id is null then raise exception 'exercise not found'; end if;
+
+  select name into v_lib_name from exercises_library where id = p_library_id;
+  if v_lib_name is null then raise exception 'library entry not found'; end if;
+
+  select e.id, e.name,
+         (select count(*) from sets s join workout_exercises we on s.workout_exercise_id = we.id
+           where we.exercise_id = e.id) as sets
+    into v_other
+    from exercises e
+   where e.user_id = v_uid and e.library_id = p_library_id and e.id <> p_exercise_id
+   limit 1;
+
+  -- Nothing to merge with: just adopt the identity and the canonical name.
+  if v_other.id is null then
+    update exercises set library_id = p_library_id, name = v_lib_name where id = p_exercise_id;
+    return p_exercise_id;
+  end if;
+
+  -- Merge. The row with more logged sets carries the history forward.
+  if v_mine.sets >= v_other.sets then
+    v_survivor := v_mine.id; v_survivor_name := v_mine.name;
+    v_victim := v_other.id;  v_victim_name := v_other.name;
+  else
+    v_survivor := v_other.id; v_survivor_name := v_other.name;
+    v_victim := v_mine.id;    v_victim_name := v_mine.name;
+  end if;
+
+  select coalesce(array_agg(id), '{}') into v_moved
+    from workout_exercises where exercise_id = v_victim;
+
+  update workout_exercises set exercise_id = v_survivor where exercise_id = v_victim;
+
+  insert into exercise_merge_log (user_id, library_id, survivor_id, survivor_name_before,
+    survivor_name_after, absorbed_id, absorbed_name, moved_workout_exercise_ids)
+  values (v_uid, p_library_id, v_survivor, v_survivor_name, v_lib_name, v_victim, v_victim_name, v_moved);
+
+  delete from exercises where id = v_victim;
+  update exercises set library_id = p_library_id, name = v_lib_name where id = v_survivor;
+
+  return v_survivor;
+end $$;
