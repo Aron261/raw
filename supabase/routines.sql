@@ -6,7 +6,9 @@
 -- source: origen de la rutina   → 'manual'        (creada a mano por el usuario)
 --                                  'recommended'   (generada por el algoritmo de RAW)
 --                                  'from_workout'  (convertida desde un entreno registrado)
---                                  'shared'        (guardada desde el enlace de otra persona)
+--                                  'shared'        (copia del plan de otra persona: la asignó
+--                                                   un entrenador desde su propia rutina, o se
+--                                                   guardó desde un enlace compartido)
 --
 -- Reglas de producto:
 --   - Solo los ciclos (type = 'cycle') pueden tener is_active = true.
