@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import AddExerciseModal from '../components/AddExerciseModal'
+import ShareRoutineSheet from '../components/ShareRoutineSheet'
 import { useRoutines } from '../hooks/useRoutines'
 import { useAuth } from '../hooks/useAuth'
 
@@ -146,6 +147,7 @@ export default function RoutineDetail() {
 
   const routine = routines.find(r => r.id === id)
   const [addingToDay, setAddingToDay] = useState(null)
+  const [sharing, setSharing] = useState(false)
   const [name, setName] = useState(null) // lazy-init once routine loads
 
   const displayName = name ?? routine?.name ?? ''
@@ -182,7 +184,23 @@ export default function RoutineDetail() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '40px', paddingBottom: '4px' }}>
           <button onClick={() => navigate('/rutinas')} style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }} aria-label="Volver">←</button>
-          <p style={eyebrow}>{routine.type === 'cycle' ? 'Editar ciclo' : 'Editar rutina'}</p>
+          <p style={{ ...eyebrow, flex: 1, minWidth: 0 }}>{routine.type === 'cycle' ? 'Editar ciclo' : 'Editar rutina'}</p>
+          <button
+            onClick={() => setSharing(true)}
+            aria-label={`Compartir ${routine.name}`}
+            style={{
+              flexShrink: 0, minHeight: '44px', padding: '0 12px', marginRight: '-8px',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800,
+              textTransform: 'uppercase', letterSpacing: '0.06em',
+              border: '1px solid var(--c-accent-border)', borderRadius: '8px',
+              background: 'transparent', transition: 'background 150ms var(--ease-out)',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            Compartir
+          </button>
         </div>
 
         <input
@@ -238,6 +256,8 @@ export default function RoutineDetail() {
           + Agregar día
         </button>
       </div>
+
+      {sharing && <ShareRoutineSheet routine={routine} onClose={() => setSharing(false)} />}
 
       {addingToDay && (
         <AddExerciseModal

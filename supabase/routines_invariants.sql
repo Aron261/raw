@@ -7,7 +7,9 @@
 --
 -- Reglas que se hacen cumplir aquí:
 --   1. type   ∈ ('cycle','single_day')
---   2. source ∈ ('manual','recommended','from_workout')
+--   2. source ∈ ('manual','recommended','from_workout','shared')
+--      ('shared' se añadió con routine_shares.sql; ese archivo recrea el CHECK
+--       para las instalaciones que ya tenían la versión de tres valores)
 --   3. Solo los ciclos pueden estar activos.
 --   4. Solo un ciclo activo por usuario.
 --
@@ -50,7 +52,7 @@ do $$
 begin
   if not exists (select 1 from pg_constraint where conname = 'routines_source_chk') then
     alter table routines add constraint routines_source_chk
-      check (source in ('manual','recommended','from_workout'));
+      check (source in ('manual','recommended','from_workout','shared'));
   end if;
 end $$;
 
