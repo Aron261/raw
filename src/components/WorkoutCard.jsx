@@ -82,7 +82,7 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
             <span style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
-              color: 'var(--c-accent)', fontSize: '9px', fontWeight: 900,
+              color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 900,
               letterSpacing: '0.1em', textTransform: 'uppercase',
               padding: '3px 7px', borderRadius: '6px',
             }}>
@@ -161,7 +161,7 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               transition: `color 150ms var(--ease-out)`,
             }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
           >
             ✕

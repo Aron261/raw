@@ -80,7 +80,7 @@ function UserRow({ u, onSetBeta, onSetAdmin, onDelete, onError }) {
       fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em',
       padding: '2px 7px', borderRadius: '999px',
       background: on ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
-      color: on ? 'var(--c-accent)' : 'var(--c-text-ghost)',
+      color: on ? 'var(--c-action-text)' : 'var(--c-text-ghost)',
       border: `1px solid ${on ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
     }}>{label}</span>
   )

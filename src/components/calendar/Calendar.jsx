@@ -42,7 +42,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
             aria-hidden="true"
             style={{
               textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
-              letterSpacing: '0.06em', color: 'var(--c-text-ghost)', paddingBottom: '4px',
+              letterSpacing: '0.06em', color: 'var(--c-text-muted)', paddingBottom: '4px',
             }}
           >
             {d}
@@ -94,7 +94,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
                 fontFamily: 'var(--font-mono)', fontSize: '12px',
                 fontWeight: isToday ? 800 : 600,
                 fontVariantNumeric: 'tabular-nums',
-                color: isToday ? 'var(--c-accent)' : 'var(--c-text-dim)',
+                color: isToday ? 'var(--c-action-text)' : 'var(--c-text-dim)',
                 lineHeight: 1,
               }}>
                 {date.getDate()}
@@ -103,7 +103,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', minHeight: '8px', flexWrap: 'wrap' }}>
                 {shown.map(d => <Dot key={d.key} color={d.color} filled={d.filled} />)}
                 {extra > 0 && (
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '8px', color: 'var(--c-text-ghost)', lineHeight: 1 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--c-text-muted)', lineHeight: 1 }}>
                     +{extra}
                   </span>
                 )}
@@ -140,7 +140,7 @@ function DayChip({ color, filled, label, detail, struck }) {
       </span>
       {detail && (
         <span style={{
-          display: 'block', fontFamily: 'var(--font-mono)', fontSize: '8px',
+          display: 'block', fontFamily: 'var(--font-mono)', fontSize: '9px',
           color: 'var(--c-text-muted)', lineHeight: 1.3, marginTop: '1px',
         }}>
           {detail}
@@ -204,16 +204,16 @@ function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, da
               {/* Cabecera de la columna: día y número */}
               <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
                 <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: '8px', fontWeight: 700,
+                  fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: '0.04em',
-                  color: isToday ? 'var(--c-accent)' : 'var(--c-text-ghost)',
+                  color: isToday ? 'var(--c-action-text)' : 'var(--c-text-muted)',
                 }}>
                   {DAY_ABBR[i]}
                 </span>
                 <span style={{
                   fontFamily: 'var(--font-sans)', fontSize: '15px', fontWeight: 900,
                   letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', lineHeight: 1.2,
-                  color: isToday ? 'var(--c-accent)' : 'var(--c-text)',
+                  color: isToday ? 'var(--c-action-text)' : 'var(--c-text)',
                 }}>
                   {date.getDate()}
                 </span>
@@ -353,7 +353,7 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
               onClick={goToday}
               style={{
                 marginTop: '6px', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-accent)', background: 'transparent',
+                textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)', background: 'transparent',
               }}
             >
               Ir a hoy
@@ -381,11 +381,11 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
 
       {/* Leyenda — mínima, solo lo que aparece en la rejilla */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--c-border-subtle)' }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-ghost)' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-muted)' }}>
           <Dot color={DONE_COLOR} filled /> Hecho
         </span>
         {['strength', 'cardio', 'mobility', 'deload'].map(k => (
-          <span key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-ghost)' }}>
+          <span key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-muted)' }}>
             <Dot color={KINDS[k].color} /> {KINDS[k].label}
           </span>
         ))}

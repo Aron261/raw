@@ -60,7 +60,7 @@ function RoutineMeta({ routine, style = {} }) {
 function AssignedBadge() {
   return (
     <span style={{
-      background: 'var(--c-accent-dim)', color: 'var(--c-accent)',
+      background: 'var(--c-accent-dim)', color: 'var(--c-action-text)',
       fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
       padding: '2px 7px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
     }}>
@@ -74,7 +74,7 @@ const cardPillStyle = (accent) => ({
   minHeight: '44px', padding: '0 12px', borderRadius: '8px',
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
-  color: accent ? 'var(--c-accent)' : 'var(--c-text-dim)',
+  color: accent ? 'var(--c-action-text)' : 'var(--c-text-dim)',
   border: `1px solid ${accent ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
   background: 'transparent',
   transition: 'background 150ms var(--ease-out), color 150ms var(--ease-out), border-color 150ms var(--ease-out)',
@@ -97,7 +97,7 @@ const cardIconBtnStyle = {
   background: 'transparent', transition: 'color 150ms var(--ease-out)',
 }
 const cardIconBtnHover = {
-  onMouseEnter: e => { e.currentTarget.style.color = 'var(--c-accent)' },
+  onMouseEnter: e => { e.currentTarget.style.color = 'var(--c-action-text)' },
   onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-muted)' },
 }
 
@@ -123,7 +123,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit }) {
           {routine.name}
         </p>
         <span style={{
-          background: 'var(--c-accent-dim)', color: 'var(--c-accent)',
+          background: 'var(--c-accent-dim)', color: 'var(--c-action-text)',
           fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em',
           padding: '3px 8px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
         }}>
@@ -175,7 +175,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit }) {
       <div style={{ display: 'flex', gap: '8px' }}>
         <button
           onClick={onEdit}
-          style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '6px 12px', borderRadius: '8px', transition: 'background 150ms var(--ease-out)' }}
+          style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '6px 12px', borderRadius: '8px', transition: 'background 150ms var(--ease-out)' }}
           onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
@@ -257,7 +257,7 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onE
                 minHeight: '44px', padding: '0 12px', borderRadius: '8px',
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
-                color: canStart ? 'var(--c-accent)' : 'var(--c-text-ghost)',
+                color: canStart ? 'var(--c-action-text)' : 'var(--c-text-ghost)',
                 border: `1px solid ${canStart ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
                 background: 'transparent',
                 cursor: canStart ? 'pointer' : 'default',
@@ -819,7 +819,7 @@ function CreateCycleModal({ onClose, onCreate }) {
           </p>
           <button
             onClick={addDay}
-            style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+            style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
           >
             + Agregar día
           </button>

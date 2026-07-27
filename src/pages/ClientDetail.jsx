@@ -74,10 +74,10 @@ function NutritionSection({ clientId, clientName, onOpenLog }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
         <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Nutrición</p>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => setShowPlan(true)} style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <button onClick={() => setShowPlan(true)} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             {hasCustomTargets ? 'Editar plan' : '+ Plan'}
           </button>
-          <button onClick={onOpenLog} style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <button onClick={onOpenLog} style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Registro →
           </button>
         </div>
@@ -238,7 +238,7 @@ function BuildRoutineModal({ clientName, initialType, onClose, onCreate }) {
               flex: 1, padding: '10px', borderRadius: '10px', fontSize: '11px', fontWeight: 700,
               border: `1px solid ${type === opt.v ? 'var(--c-accent)' : 'var(--c-border)'}`,
               background: type === opt.v ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
-              color: type === opt.v ? 'var(--c-accent)' : 'var(--c-text-dim)',
+              color: type === opt.v ? 'var(--c-action-text)' : 'var(--c-text-dim)',
             }}
           >
             {opt.l}
@@ -264,7 +264,7 @@ function BuildRoutineModal({ clientName, initialType, onClose, onCreate }) {
             <p style={{ ...MINI_LABEL, marginBottom: 0 }}>{isCycle ? `Día ${di + 1}` : 'Entrenamiento'}</p>
             {isCycle && days.length > 1 && (
               <button onClick={() => removeDay(di)} style={{ color: 'var(--c-text-ghost)', fontSize: '11px', fontWeight: 700 }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                 onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}>
                 Quitar día
               </button>
@@ -303,7 +303,7 @@ function BuildRoutineModal({ clientName, initialType, onClose, onCreate }) {
                 {day.exercises.length > 1 && (
                   <button onClick={() => removeExercise(di, ei)} aria-label="Quitar ejercicio"
                     style={{ color: 'var(--c-text-ghost)', fontSize: '13px', padding: '2px 4px', flexShrink: 0 }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                     onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}>
                     ✕
                   </button>
@@ -337,7 +337,7 @@ function BuildRoutineModal({ clientName, initialType, onClose, onCreate }) {
 
           <button
             onClick={() => addExercise(di)}
-            style={{ color: 'var(--c-accent)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}
+            style={{ color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}
           >
             + Agregar ejercicio
           </button>
@@ -417,7 +417,7 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
               flex: 1, padding: '10px', borderRadius: '10px', fontSize: '11px', fontWeight: 700,
               border: `1px solid ${type === opt.v ? 'var(--c-accent)' : 'var(--c-border)'}`,
               background: type === opt.v ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
-              color: type === opt.v ? 'var(--c-accent)' : 'var(--c-text-dim)',
+              color: type === opt.v ? 'var(--c-action-text)' : 'var(--c-text-dim)',
             }}
           >
             {opt.l}
@@ -524,7 +524,7 @@ export default function ClientDetail() {
             onClick={() => navigate(`/chat/${clientId}`)}
             style={{
               flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px',
-              background: 'var(--c-accent-dim)', color: 'var(--c-accent)',
+              background: 'var(--c-accent-dim)', color: 'var(--c-action-text)',
               border: '1px solid var(--c-accent-border)', borderRadius: '10px',
               padding: '8px 12px', fontSize: '11px', fontWeight: 800,
               textTransform: 'uppercase', letterSpacing: '0.04em',
@@ -563,7 +563,7 @@ export default function ClientDetail() {
             <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Progreso</p>
             <button
               onClick={() => navigate(`/coach/cliente/${clientId}/stats`)}
-              style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+              style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
             >
               Estadísticas →
             </button>
@@ -618,8 +618,8 @@ export default function ClientDetail() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Rutinas</p>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => setModal('cycle')} style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Ciclo</button>
-              <button onClick={() => setModal('single')} style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Día</button>
+              <button onClick={() => setModal('cycle')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Ciclo</button>
+              <button onClick={() => setModal('single')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Día</button>
             </div>
           </div>
 
@@ -641,7 +641,7 @@ export default function ClientDetail() {
                             {r.type === 'cycle' ? 'Ciclo' : 'Día'} · {(r.routine_days || []).length} {(r.routine_days || []).length === 1 ? 'día' : 'días'} · {exCount} ejercicios
                           </span>
                           {r.is_active && (
-                            <span style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>· Activo</span>
+                            <span style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>· Activo</span>
                           )}
                           {r.assigned_by && (
                             <span style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700 }}>· Asignada por ti</span>
@@ -650,12 +650,12 @@ export default function ClientDetail() {
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
                         {r.type === 'cycle' && !r.is_active && (
-                          <button onClick={() => run(() => setActiveRoutine(r.id))} style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '4px 9px', borderRadius: '8px' }}>
+                          <button onClick={() => run(() => setActiveRoutine(r.id))} style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '4px 9px', borderRadius: '8px' }}>
                             Activar
                           </button>
                         )}
                         <button onClick={() => run(() => deleteRoutine(r.id))} aria-label="Eliminar" style={{ color: 'var(--c-text-ghost)', fontSize: '12px', padding: '2px 4px' }}
-                          onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                          onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                           onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}>
                           ✕
                         </button>
@@ -672,7 +672,7 @@ export default function ClientDetail() {
         <section className="fade-in" style={{ marginBottom: '40px', animationDelay: '80ms' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Metas</p>
-            <button onClick={() => setModal('goal')} style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Meta</button>
+            <button onClick={() => setModal('goal')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Meta</button>
           </div>
 
           {goalsLoading ? (
@@ -691,7 +691,7 @@ export default function ClientDetail() {
                     </p>
                   </div>
                   <button onClick={() => run(() => deleteGoal(g.id))} aria-label="Eliminar" style={{ color: 'var(--c-text-ghost)', fontSize: '12px', padding: '2px 4px' }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                     onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}>
                     ✕
                   </button>

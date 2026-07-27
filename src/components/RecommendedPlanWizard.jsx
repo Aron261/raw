@@ -54,7 +54,7 @@ function OptionButton({ selected, onClick, children, sub }) {
         background: selected ? 'var(--c-accent-dim)' : 'var(--c-surface)',
         border: `1px solid ${selected ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
         borderRadius: '12px',
-        color: selected ? 'var(--c-accent)' : 'var(--c-text)',
+        color: selected ? 'var(--c-action-text)' : 'var(--c-text)',
         fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em',
         transition: 'background 150ms var(--ease-out), border-color 150ms var(--ease-out)',
       }}
@@ -79,7 +79,7 @@ function Pill({ selected, onClick, children, hint }) {
         padding: '8px 12px', borderRadius: '999px',
         background: selected ? 'var(--c-accent-dim)' : 'var(--c-surface)',
         border: `1px solid ${selected ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
-        color: selected ? 'var(--c-accent)' : 'var(--c-text)',
+        color: selected ? 'var(--c-action-text)' : 'var(--c-text)',
         fontSize: '11px', fontWeight: 700,
       }}
       {...pressProps(0.96)}
@@ -141,7 +141,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
                       <div style={{ minWidth: 0 }}>
                         <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 600 }}>
                           {ex.name}
-                          {ex.isFamiliar && <span style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, marginLeft: '6px', textTransform: 'uppercase' }}>Habitual</span>}
+                          {ex.isFamiliar && <span style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, marginLeft: '6px', textTransform: 'uppercase' }}>Habitual</span>}
                         </p>
                         <p style={{ color: 'var(--c-text-dim)', fontSize: '9.5px' }}>
                           RIR {ex.rir} · descanso {ex.restSeconds >= 60 ? `${Math.round(ex.restSeconds / 60 * 10) / 10} min` : `${ex.restSeconds} s`}
@@ -158,7 +158,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
                             aria-label={`Cambiar ${ex.name} por uno similar`}
                             aria-expanded={isOpen}
                             style={{
-                              color: isOpen ? 'var(--c-accent)' : 'var(--c-text-dim)',
+                              color: isOpen ? 'var(--c-action-text)' : 'var(--c-text-dim)',
                               fontSize: '13px', padding: '2px 4px', lineHeight: 1,
                             }}
                             {...pressProps(0.9)}

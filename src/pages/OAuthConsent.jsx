@@ -176,7 +176,7 @@ export default function OAuthConsent() {
   return (
     <Shell>
       <h1 style={H1}>
-        Conectar RAW con <span style={{ color: 'var(--c-accent)' }}>{clientName}</span>
+        Conectar RAW con <span style={{ color: 'var(--c-action-text)' }}>{clientName}</span>
       </h1>
       <p style={P}>
         Le darás acceso a tus datos de entrenamiento para que puedas planificar desde ahí.

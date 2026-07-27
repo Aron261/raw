@@ -57,7 +57,7 @@ function PillGroup({ options, value, onChange }) {
               fontSize: '12px', fontWeight: 700,
               border: `1px solid ${selected ? 'var(--c-accent)' : 'var(--c-border)'}`,
               background: selected ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
-              color: selected ? 'var(--c-accent)' : 'var(--c-text-dim)',
+              color: selected ? 'var(--c-action-text)' : 'var(--c-text-dim)',
               transition: 'all 150ms var(--ease-out)', cursor: 'pointer',
             }}
           >
@@ -345,7 +345,7 @@ function BodyWeightSheet({ unit, onClose }) {
                 <button
                   type="button" onClick={() => deleteLog(log.id)} aria-label="Eliminar"
                   style={{ color: 'var(--c-text-ghost)', fontSize: '12px', marginLeft: '12px', padding: '2px 6px' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                   onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
                 >
                   ✕
@@ -389,7 +389,7 @@ function BodyWeightSummary({ unit, onOpen }) {
             <span style={{ color: 'var(--c-text-ghost)', fontSize: '13px', fontWeight: 600 }}>Sin registros aún</span>
           )}
         </div>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-accent)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           {latestLog ? 'Ver historial' : 'Registrar'} ›
         </span>
       </button>
@@ -558,7 +558,7 @@ export function ClaudeSection() {
           onClick={copy}
           style={{
             flexShrink: 0, border: '1px solid var(--c-accent-border)', borderRadius: '10px',
-            padding: '0 14px', background: 'transparent', color: 'var(--c-accent)',
+            padding: '0 14px', background: 'transparent', color: 'var(--c-action-text)',
             fontSize: '10px', fontWeight: 800, textTransform: 'uppercase',
             letterSpacing: '0.06em', cursor: 'pointer',
           }}
@@ -595,7 +595,7 @@ export function ClaudeSection() {
         aria-expanded={open}
         style={{
           background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
-          color: 'var(--c-accent)', fontSize: '11px', fontWeight: 700,
+          color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700,
         }}
       >
         {open ? 'Ocultar permisos' : '¿Qué puede hacer Claude?'}
@@ -603,7 +603,7 @@ export function ClaudeSection() {
 
       {open && (
         <div className="fade-in" style={{ marginTop: '12px' }}>
-          {[['Puede', CAN_DO, '✓', 'var(--c-accent)'],
+          {[['Puede', CAN_DO, '✓', 'var(--c-action-text)'],
             ['No puede', CANNOT_DO, '✕', 'var(--c-text-muted)']].map(([title, items, mark, color]) => (
             <div key={title} style={{ marginBottom: '12px' }}>
               <p style={{ ...LABEL, marginBottom: '6px' }}>{title}</p>
@@ -752,7 +752,7 @@ function TrainerSection() {
                   <button
                     type="button"
                     onClick={() => navigate(`/chat/${t.trainerId}`)}
-                    style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                    style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}
                   >
                     Chat
                   </button>
@@ -760,7 +760,7 @@ function TrainerSection() {
                     type="button"
                     onClick={() => removeTrainer(t.linkId)}
                     style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                     onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-dim)'}
                   >
                     Quitar
@@ -1087,7 +1087,7 @@ export default function Profile() {
               <span style={{ color: charsSummary ? 'var(--c-text)' : 'var(--c-text-ghost)', fontSize: '13px', fontWeight: 600, lineHeight: 1.5 }}>
                 {charsSummary || 'Añade tus datos'}
               </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-accent)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0, marginLeft: '12px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0, marginLeft: '12px' }}>
                 Editar ›
               </span>
             </button>
@@ -1158,7 +1158,7 @@ export default function Profile() {
                 <span style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, display: 'block' }}>Panel de administración</span>
                 <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '2px', display: 'block' }}>Estado de la app, usuarios y actividad</span>
               </span>
-              <span style={{ color: 'var(--c-accent)', fontSize: '13px', fontWeight: 800 }}>›</span>
+              <span style={{ color: 'var(--c-action-text)', fontSize: '13px', fontWeight: 800 }}>›</span>
             </button>
           )}
 
@@ -1177,7 +1177,7 @@ export default function Profile() {
               padding: '10px 20px', background: 'transparent',
               transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-accent)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-action-text)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
           >
             Cerrar sesión

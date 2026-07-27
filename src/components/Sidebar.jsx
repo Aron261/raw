@@ -68,7 +68,7 @@ function NavItem({ to, label, Icon, exact }) {
     >
       {({ isActive }) => (
         <>
-          <span style={{ color: isActive ? 'var(--c-accent)' : 'inherit', flexShrink: 0 }}>
+          <span style={{ color: isActive ? 'var(--c-action-text)' : 'inherit', flexShrink: 0 }}>
             <Icon />
           </span>
           {label}
@@ -127,7 +127,7 @@ export default function Sidebar() {
             fontSize: '24px',
             fontWeight: 900,
             letterSpacing: '-0.04em',
-            color: 'var(--c-accent)',
+            color: 'var(--c-action-text)',
             lineHeight: 1,
             userSelect: 'none',
           }}
@@ -222,7 +222,7 @@ export default function Sidebar() {
             width: '100%',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.color = 'var(--c-accent)'
+            e.currentTarget.style.color = 'var(--c-action-text)'
             e.currentTarget.style.borderColor = 'var(--c-accent)'
           }}
           onMouseLeave={e => {

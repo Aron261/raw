@@ -67,7 +67,7 @@ export default function AllLiftsModule({ data, readOnly = false }) {
           }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: 'block', fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>
+            <span style={{ display: 'block', fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>
               ▲ Más fuerte
             </span>
             <span style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
@@ -116,7 +116,7 @@ export default function AllLiftsModule({ data, readOnly = false }) {
           onClick={() => setExpanded(v => !v)}
           style={{
             marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '5px',
-            fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '11px', fontWeight: 700,
+            fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: '0.06em',
           }}
         >

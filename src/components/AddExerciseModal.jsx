@@ -175,7 +175,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                 width: '100%',
                 textAlign: 'left',
                 padding: '11px 10px',
-                color: 'var(--c-accent)',
+                color: 'var(--c-action-text)',
                 fontSize: '12px',
                 fontWeight: 800,
                 textTransform: 'uppercase',

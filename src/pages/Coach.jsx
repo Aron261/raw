@@ -177,7 +177,7 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
                       onClick={() => onDelete(inv.id)}
                       aria-label="Eliminar código"
                       style={{ color: 'var(--c-text-ghost)', fontSize: '13px', lineHeight: 1, padding: '2px 4px' }}
-                      onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+                      onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                       onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
                     >
                       ✕
@@ -236,7 +236,7 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
         <button
           onClick={() => onChat(client.clientId)}
           aria-label="Chat"
-          style={{ color: 'var(--c-accent)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '5px 10px', borderRadius: '8px' }}
+          style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '5px 10px', borderRadius: '8px' }}
           onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
@@ -245,7 +245,7 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
         {confirm ? (
           <button
             onClick={() => onRevoke(client.linkId)}
-            style={{ color: 'var(--c-accent)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+            style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}
           >
             Confirmar
           </button>
@@ -255,7 +255,7 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
             onMouseLeave={() => setConfirm(false)}
             aria-label="Revocar cliente"
             style={{ color: 'var(--c-text-ghost)', fontSize: '13px', lineHeight: 1, padding: '4px 6px', transition: 'color 150ms var(--ease-out)' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
           >
             ✕
           </button>
@@ -321,7 +321,7 @@ export default function Coach() {
               Activa el modo entrenador
             </p>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5 }}>
-              Ve a tu <button onClick={() => navigate('/profile')} style={{ color: 'var(--c-accent)', fontWeight: 700 }}>perfil</button> y
+              Ve a tu <button onClick={() => navigate('/profile')} style={{ color: 'var(--c-action-text)', fontWeight: 700 }}>perfil</button> y
               activa «Soy entrenador» para empezar a invitar clientes.
             </p>
           </div>

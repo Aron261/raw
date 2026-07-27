@@ -396,7 +396,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
               style={{
                 flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
                 textTransform: 'uppercase', letterSpacing: '0.08em',
-                color: 'var(--c-accent)', border: '1px solid var(--c-accent-border)',
+                color: 'var(--c-action-text)', border: '1px solid var(--c-accent-border)',
                 borderRadius: '999px', padding: '7px 14px', background: 'transparent',
               }}
             >
@@ -412,7 +412,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
                 style={{
                   fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: '0.08em',
-                  color: 'var(--c-accent)', border: '1px solid var(--c-accent-border)',
+                  color: 'var(--c-action-text)', border: '1px solid var(--c-accent-border)',
                   borderRadius: '999px', padding: '7px 14px', background: 'transparent',
                 }}
               >
@@ -438,7 +438,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             {!isToday && (
               <button
                 onClick={() => setDateISO(today)}
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-accent)', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-action-text)', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}
               >
                 Volver a hoy
               </button>
@@ -459,7 +459,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             <span>{readOnly ? 'No pudimos cargar sus comidas.' : 'No pudimos cargar tus comidas.'}</span>
             <button
               onClick={refetch}
-              style={{ flexShrink: 0, color: 'var(--c-accent)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-accent-border)', borderRadius: '8px', padding: '6px 12px', background: 'transparent' }}
+              style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-accent-border)', borderRadius: '8px', padding: '6px 12px', background: 'transparent' }}
             >
               Reintentar
             </button>
@@ -500,7 +500,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           {!readOnly && !hasCustomTargets && (
             <button
               onClick={() => setSheet('targets')}
-              style={{ display: 'inline-block', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-accent)', background: 'transparent', border: 'none', padding: 0, margin: '-8px 0 18px', cursor: 'pointer' }}
+              style={{ display: 'inline-block', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)', background: 'transparent', border: 'none', padding: 0, margin: '-8px 0 18px', cursor: 'pointer' }}
             >
               Meta por defecto · fija la tuya →
             </button>
@@ -565,7 +565,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
                         <button
                           onClick={() => setSheet({ meal: m.id })}
                           aria-label={`Agregar a ${m.label}`}
-                          style={{ color: 'var(--c-accent)', fontSize: '22px', fontWeight: 300, lineHeight: 1, minWidth: '44px', minHeight: '44px', margin: '-12px -12px -12px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                          style={{ color: 'var(--c-action-text)', fontSize: '22px', fontWeight: 300, lineHeight: 1, minWidth: '44px', minHeight: '44px', margin: '-12px -12px -12px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                         >
                           +
                         </button>

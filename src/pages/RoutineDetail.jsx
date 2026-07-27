@@ -46,7 +46,7 @@ function ExerciseRowEditor({ exercise, onUpdate, onRemove }) {
       <button
         onClick={onRemove}
         style={{ flexShrink: 0, color: 'var(--c-text-ghost)', fontSize: '13px', padding: '4px', transition: 'color 150ms' }}
-        onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+        onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
         onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
         aria-label="Quitar ejercicio"
       >
@@ -91,7 +91,7 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
           <button
             onClick={onRemoveDay}
             style={{ flexShrink: 0, color: 'var(--c-text-ghost)', fontSize: '13px', padding: '4px', transition: 'color 150ms' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
             aria-label="Eliminar día"
           >
@@ -122,7 +122,7 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
         style={{
           marginTop: '10px', width: '100%', padding: '10px',
           background: 'transparent', border: '1px dashed var(--c-border)', borderRadius: '10px',
-          color: 'var(--c-accent)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em',
+          color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em',
           transition: 'background 150ms, border-color 150ms',
         }}
         onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}

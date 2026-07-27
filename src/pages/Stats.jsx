@@ -147,7 +147,7 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
                 flexShrink: 0,
                 fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
                 textTransform: 'uppercase', letterSpacing: '0.08em',
-                color: 'var(--c-accent)', padding: '4px 6px',
+                color: 'var(--c-action-text)', padding: '4px 6px',
               }}
             >
               Personalizar
@@ -206,7 +206,7 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
                 </p>
                 <button
                   onClick={() => setCustomizing(true)}
-                  style={{ background: 'transparent', color: 'var(--c-accent)', border: '1px solid var(--c-action-border)', borderRadius: '8px', padding: '8px 14px', fontSize: '11px', fontWeight: 700 }}
+                  style={{ background: 'transparent', color: 'var(--c-action-text)', border: '1px solid var(--c-action-border)', borderRadius: '8px', padding: '8px 14px', fontSize: '11px', fontWeight: 700 }}
                 >
                   Elegir qué ver
                 </button>

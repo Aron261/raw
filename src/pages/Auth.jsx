@@ -146,7 +146,7 @@ export default function Auth() {
                   Agrega RAW a tu pantalla de inicio
                 </p>
               </div>
-              <span style={{ color: 'var(--c-accent)', fontSize: '18px', marginLeft: '12px' }}>↓</span>
+              <span style={{ color: 'var(--c-action-text)', fontSize: '18px', marginLeft: '12px' }}>↓</span>
             </button>
           )}
 

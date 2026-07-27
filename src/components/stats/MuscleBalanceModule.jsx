@@ -77,7 +77,7 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
         onClick={() => navigate('/ejercicios')}
         style={{
           marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '5px',
-          fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '11px', fontWeight: 700,
+          fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700,
           textTransform: 'uppercase', letterSpacing: '0.06em',
         }}
       >
