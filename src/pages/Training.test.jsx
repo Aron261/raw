@@ -105,10 +105,18 @@ describe('Inicio — sin redundancias', () => {
     expect(within(resumen).queryByText(/^Progreso$/)).toBeNull()
   })
 
-  it('deja un solo acceso a Perfil y a Nutrición desde la portada', () => {
+  it('no duplica en la portada lo que ya es pestaña: Perfil', () => {
+    // Perfil pasó a ser la pestaña de la izquierda en la barra inferior, así que
+    // el avatar que llevaba allí desde la cabecera sobra — es el mismo destino
+    // dos veces en la misma pantalla.
     state.workouts = [workout]
     render(<Training />)
-    expect(screen.getAllByRole('button', { name: /perfil y ajustes/i })).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: /perfil y ajustes/i })).toBeNull()
+  })
+
+  it('deja un solo acceso a Nutrición desde la portada', () => {
+    state.workouts = [workout]
+    render(<Training />)
     expect(screen.getAllByText(/kcal hoy/i)).toHaveLength(1)
   })
 

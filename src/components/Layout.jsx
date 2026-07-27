@@ -7,7 +7,7 @@ import QuickAddSheet from './QuickAddSheet'
 import { StartFab } from './ui'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useRoutines } from '../hooks/useRoutines'
-import { sectionFor } from '../lib/sections'
+import { hasTabBar } from '../lib/sections'
 
 // QuickAdd: the universal "+" — vive en Layout para que el botón del nav
 // funcione desde cualquier pantalla. "Empezar entreno" delega en el picker
@@ -75,10 +75,9 @@ function WorkoutStarter({ children }) {
 // escritorio; ya no hay avatar flotante.
 export default function Layout({ children, hideNav = false }) {
   const { pathname } = useLocation()
-  const section = sectionFor(pathname)
-  // Solo la sección Entreno (Hoy incluido) tiene barra de tabs; las demás
-  // secciones navegan desde el Menú y sus propios headers.
-  const hasTabs = section === 'training'
+  // Las pantallas con pestaña (y las que cuelgan de ellas) reservan sitio para
+  // la barra; Nutrición, Coach y Social navegan desde Inicio y sus cabeceras.
+  const hasTabs = hasTabBar(pathname)
 
   return (
     <WorkoutStarter>

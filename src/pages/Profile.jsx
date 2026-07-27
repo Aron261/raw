@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
@@ -12,7 +12,7 @@ import { useInvites } from '../hooks/useInvites'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { useTheme } from '../hooks/useTheme'
 import { ERROR_STYLE } from '../lib/ui'
-import { Button, Sheet } from '../components/ui'
+import { Button, Sheet, UnitToggle } from '../components/ui'
 
 // Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
 const PROFILE_CHART = {
@@ -39,6 +39,81 @@ const SECTION_TITLE = {
 const CARD = {
   background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
   borderRadius: '16px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+}
+
+// ── Disclosure ───────────────────────────────────────────────────────────
+// El perfil era una pila de tarjetas todas abiertas: había que pasar por encima
+// del tema, del entrenador y del conector para llegar a la cuenta. Ahora cada
+// apartado es una línea con su resumen, y se abre el que hagas falta. Se pueden
+// abrir varios a la vez a propósito — cerrar uno para ver otro es una pelea que
+// nadie pidió.
+function Disclosure({ title, summary, open, onToggle, children }) {
+  return (
+    <section style={{ ...CARD, padding: 0, overflow: 'hidden' }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+          width: '100%', textAlign: 'left', cursor: 'pointer',
+          padding: '16px 20px', minHeight: '44px', background: 'transparent',
+        }}
+      >
+        <span style={{ minWidth: 0 }}>
+          <span style={{ display: 'block', color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em' }}>
+            {title}
+          </span>
+          {summary && (
+            <span style={{
+              display: 'block', color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '3px',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {summary}
+            </span>
+          )}
+        </span>
+        <span
+          aria-hidden="true"
+          style={{
+            flexShrink: 0, color: 'var(--c-text-dim)', fontSize: '15px', lineHeight: 1,
+            transform: open ? 'rotate(90deg)' : 'none',
+            transition: 'transform 180ms var(--ease-out)',
+          }}
+        >
+          ›
+        </span>
+      </button>
+
+      {open && (
+        <div className="fade-in" style={{ padding: '0 20px 20px', borderTop: '1px solid var(--c-border-subtle)', paddingTop: '18px' }}>
+          {children}
+        </div>
+      )}
+    </section>
+  )
+}
+
+// Una fila que lleva a otra pantalla desde dentro de un apartado.
+function LinkRow({ label, hint, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+        width: '100%', textAlign: 'left', cursor: 'pointer', minHeight: '44px',
+        background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
+        borderRadius: '12px', padding: '12px 14px',
+      }}
+    >
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: 'block', color: 'var(--c-text)', fontSize: '13px', fontWeight: 700 }}>{label}</span>
+        {hint && <span style={{ display: 'block', color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '2px', lineHeight: 1.4 }}>{hint}</span>}
+      </span>
+      <span aria-hidden="true" style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '13px', fontWeight: 800 }}>›</span>
+    </button>
+  )
 }
 
 // ── Pill selector (radio group) ────────────────────────────────────────
@@ -81,23 +156,7 @@ function NumberWithUnit({ value, unit, onValueChange, onUnitChange, units, place
         className="input-field"
         style={{ flex: 1 }}
       />
-      <div style={{ display: 'flex', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
-        {units.map(u => (
-          <button
-            key={u}
-            type="button"
-            onClick={() => onUnitChange(u)}
-            style={{
-              padding: '0 14px', fontSize: '11px', fontWeight: 700,
-              background: unit === u ? 'var(--c-accent)' : 'transparent',
-              color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
-              transition: 'all 150ms var(--ease-out)', height: '100%',
-            }}
-          >
-            {u}
-          </button>
-        ))}
-      </div>
+      <UnitToggle value={unit} units={units} onChange={onUnitChange} />
     </div>
   )
 }
@@ -364,8 +423,7 @@ function BodyWeightSummary({ unit, onOpen }) {
   const { latestLog, loading } = useBodyWeight()
 
   return (
-    <section style={CARD}>
-      <p style={SECTION_TITLE}>Peso corporal</p>
+    <>
       <button
         type="button"
         onClick={onOpen}
@@ -393,7 +451,7 @@ function BodyWeightSummary({ unit, onOpen }) {
           {latestLog ? 'Ver historial' : 'Registrar'} ›
         </span>
       </button>
-    </section>
+    </>
   )
 }
 
@@ -418,8 +476,7 @@ function ThemeSection() {
     fontSize: '11px', fontWeight: 700, transition: 'all 150ms var(--ease-out)',
   })
   return (
-    <section style={CARD}>
-      <p style={SECTION_TITLE}>Apariencia</p>
+    <>
       <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
         Tema
       </p>
@@ -462,7 +519,7 @@ function ThemeSection() {
       <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '8px' }}>
         Solo cambia cómo se llaman. Tu historial y tus récords son los mismos en cualquier idioma.
       </p>
-    </section>
+    </>
   )
 }
 
@@ -531,8 +588,7 @@ export function ClaudeSection() {
   }
 
   return (
-    <section style={CARD}>
-      <p style={SECTION_TITLE}>Conectar con Claude</p>
+    <>
 
       <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.55, marginBottom: '14px' }}>
         Conecta RAW a tu cuenta de Claude y planifica desde el chat: pídele un ciclo
@@ -623,7 +679,7 @@ export function ClaudeSection() {
           </p>
         </div>
       )}
-    </section>
+    </>
   )
 }
 
@@ -658,8 +714,7 @@ function TrainerSection() {
   }
 
   return (
-    <section style={CARD}>
-      <p style={SECTION_TITLE}>Entrenador</p>
+    <>
 
       {(localError || trainerError || inviteError) && (
         <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError || trainerError || inviteError}</div>
@@ -771,7 +826,7 @@ function TrainerSection() {
           </div>
         </div>
       )}
-    </section>
+    </>
   )
 }
 
@@ -931,8 +986,7 @@ function DeleteAccountSheet({ onClose }) {
 function AccountSection({ email }) {
   const [sheet, setSheet] = useState(null)   // 'password' | 'email' | 'delete' | null
   return (
-    <section style={CARD}>
-      <p style={SECTION_TITLE}>Cuenta</p>
+    <>
       <AccountRow label="Cambiar contraseña" onClick={() => setSheet('password')} isFirst />
       <AccountRow label="Cambiar email" hint={email} onClick={() => setSheet('email')} />
       <AccountRow label="Eliminar cuenta" hint="Permanente" danger onClick={() => setSheet('delete')} />
@@ -940,7 +994,7 @@ function AccountSection({ email }) {
       {sheet === 'password' && <ChangePasswordSheet onClose={() => setSheet(null)} />}
       {sheet === 'email' && <ChangeEmailSheet currentEmail={email} onClose={() => setSheet(null)} />}
       {sheet === 'delete' && <DeleteAccountSheet onClose={() => setSheet(null)} />}
-    </section>
+    </>
   )
 }
 
@@ -949,6 +1003,7 @@ export default function Profile() {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const { profile, loading, saving, saveError, saveSuccess, saveProfile, age } = useProfile()
+  const { preference: themePreference, palette: themePalette } = useTheme()
 
   const handleSignOut = async () => {
     await signOut()
@@ -957,6 +1012,21 @@ export default function Profile() {
 
   // sheet: null | 'characteristics' | 'weight'
   const [sheet, setSheet] = useState(null)
+
+  // Apartados abiertos. Se entra con todo cerrado; `?s=<id>` abre uno concreto
+  // para que un enlace de fuera (el chip de peso en Inicio) caiga donde debe y
+  // no en una lista de títulos que hay que volver a abrir a mano.
+  const [params] = useSearchParams()
+  const [open, setOpen] = useState(() => {
+    const s = params.get('s')
+    return new Set(s ? [s] : [])
+  })
+  const isOpen = (id) => open.has(id)
+  const toggle = (id) => setOpen(prev => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
 
   // Local form state — mirrors profile fields
   const [form, setForm] = useState({
@@ -1016,6 +1086,14 @@ export default function Profile() {
     form.level,
   ].filter(Boolean).join(' · ')
 
+  const trainingSummary = [
+    form.goal,
+    form.days_per_week ? `${form.days_per_week} ${form.days_per_week === 1 ? 'día' : 'días'}/semana` : null,
+  ].filter(Boolean).join(' · ') || 'Objetivo, frecuencia y ejercicios'
+
+  const MODE_LABEL = { auto: 'Auto', light: 'Claro', dark: 'Oscuro' }
+  const appearanceSummary = `${MODE_LABEL[themePreference] || 'Auto'} · ${themePalette === 'riso' ? 'Vibrante' : 'Sobrio'}`
+
   if (loading) {
     return (
       <Layout>
@@ -1067,37 +1145,50 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Sections — una columna en móvil; en pantallas anchas dos: lo que se
-            edita a menudo (datos, entrenamiento, peso) a la izquierda y la
-            configuración (entrenador, apariencia, cuenta) a la derecha. */}
-        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start">
-          <div className="flex flex-col gap-6 min-w-0">
+        {/* Apartados — todos cerrados de entrada. El perfil se lee de un
+            vistazo (cinco líneas con su resumen) y se abre solo lo que hace
+            falta tocar. Una columna: con todo plegado, dos columnas dejarían
+            media pantalla vacía. */}
+        <div className="flex flex-col gap-3">
 
-          {/* ── Mis características (summary → sheet) ── */}
-          <section style={CARD}>
-            <p style={SECTION_TITLE}>Mis características</p>
-            <button
-              type="button"
-              onClick={() => setSheet('characteristics')}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: '100%', textAlign: 'left', cursor: 'pointer',
-              }}
-            >
-              <span style={{ color: charsSummary ? 'var(--c-text)' : 'var(--c-text-ghost)', fontSize: '13px', fontWeight: 600, lineHeight: 1.5 }}>
-                {charsSummary || 'Añade tus datos'}
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0, marginLeft: '12px' }}>
-                Editar ›
-              </span>
-            </button>
-          </section>
+          {/* ── Mis características (incluye el peso corporal) ── */}
+          <Disclosure
+            title="Mis características"
+            summary={charsSummary || 'Añade tus datos'}
+            open={isOpen('caracteristicas')}
+            onToggle={() => toggle('caracteristicas')}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <button
+                type="button"
+                onClick={() => setSheet('characteristics')}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  width: '100%', textAlign: 'left', cursor: 'pointer', minHeight: '44px',
+                }}
+              >
+                <span style={{ color: charsSummary ? 'var(--c-text)' : 'var(--c-text-ghost)', fontSize: '13px', fontWeight: 600, lineHeight: 1.5 }}>
+                  {charsSummary || 'Nombre, fecha de nacimiento, sexo, altura y nivel'}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0, marginLeft: '12px' }}>
+                  Editar ›
+                </span>
+              </button>
 
-          {/* ── Entrenamiento (inline) ── */}
-          <form onSubmit={saveTraining}>
-            <section style={CARD}>
-              <p style={SECTION_TITLE}>Entrenamiento</p>
+              <div style={{ borderTop: '1px solid var(--c-border-subtle)', paddingTop: '16px' }}>
+                <BodyWeightSummary unit={weightUnit} onOpen={() => setSheet('weight')} />
+              </div>
+            </div>
+          </Disclosure>
 
+          {/* ── Entrenamiento — objetivo, frecuencia, ejercicios y entrenador ── */}
+          <Disclosure
+            title="Entrenamiento"
+            summary={trainingSummary}
+            open={isOpen('entrenamiento')}
+            onToggle={() => toggle('entrenamiento')}
+          >
+            <form onSubmit={saveTraining}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div>
                   <label style={LABEL}>Objetivo principal</label>
@@ -1125,65 +1216,91 @@ export default function Profile() {
               >
                 {saving ? 'Guardando...' : saveSuccess ? '✓ Guardado' : 'Guardar'}
               </Button>
-            </section>
-          </form>
+            </form>
 
-          {/* ── Peso corporal (collapsed → sheet) ── */}
-          <BodyWeightSummary unit={weightUnit} onOpen={() => setSheet('weight')} />
+            {/* La biblioteca de ejercicios se gestiona aquí dentro; ya no ocupa
+                una pestaña de la barra inferior, donde competía con Inicio. */}
+            <div style={{ borderTop: '1px solid var(--c-border-subtle)', marginTop: '20px', paddingTop: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <LinkRow
+                label="Mis ejercicios"
+                hint="Clasifica por grupo muscular y vincula los que no reconoció"
+                onClick={() => navigate('/ejercicios')}
+              />
+            </div>
 
-          </div>{/* /col 1 */}
-
-          <div className="flex flex-col gap-6 min-w-0">
-
-          {/* ── Entrenador ── */}
-          <TrainerSection />
-
-          {/* ── Conectar con Claude ── */}
-          <ClaudeSection />
+            {/* Entrenador — la otra mitad de "entrenar": con quién. */}
+            <div style={{ borderTop: '1px solid var(--c-border-subtle)', marginTop: '18px', paddingTop: '18px' }}>
+              <TrainerSection />
+            </div>
+          </Disclosure>
 
           {/* ── Apariencia ── */}
-          <ThemeSection />
+          <Disclosure
+            title="Apariencia"
+            summary={appearanceSummary}
+            open={isOpen('apariencia')}
+            onToggle={() => toggle('apariencia')}
+          >
+            <ThemeSection />
+          </Disclosure>
 
-          {/* ── Acceso admin (solo administradores) ── */}
+          {/* ── Cuenta (incluye el conector de Claude) ── */}
+          <Disclosure
+            title="Cuenta"
+            summary={user?.email}
+            open={isOpen('cuenta')}
+            onToggle={() => toggle('cuenta')}
+          >
+            <AccountSection email={user?.email} />
+
+            <div style={{ borderTop: '1px solid var(--c-border-subtle)', marginTop: '18px', paddingTop: '18px' }}>
+              <ClaudeSection />
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--c-border-subtle)', marginTop: '18px', paddingTop: '18px', display: 'flex', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                style={{
+                  color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700,
+                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                  border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+                  padding: '10px 20px', background: 'transparent', minHeight: '44px',
+                  transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-action-text)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          </Disclosure>
+
+          {/* ── Panel de administración — solo administradores ── */}
           {profile?.is_admin && (
-            <button
-              type="button"
-              onClick={() => navigate('/admin')}
-              style={{
-                ...CARD, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: '100%', textAlign: 'left', cursor: 'pointer',
-              }}
-            >
-              <span>
-                <span style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, display: 'block' }}>Panel de administración</span>
-                <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '2px', display: 'block' }}>Estado de la app, usuarios y actividad</span>
-              </span>
-              <span style={{ color: 'var(--c-action-text)', fontSize: '13px', fontWeight: 800 }}>›</span>
-            </button>
+            <section style={{ ...CARD, padding: 0, overflow: 'hidden' }}>
+              <button
+                type="button"
+                onClick={() => navigate('/admin')}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+                  width: '100%', textAlign: 'left', cursor: 'pointer',
+                  padding: '16px 20px', minHeight: '44px', background: 'transparent',
+                }}
+              >
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: 'block', color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em' }}>
+                    Panel de administración
+                  </span>
+                  <span style={{ display: 'block', color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '3px' }}>
+                    Estado de la app, usuarios y actividad
+                  </span>
+                </span>
+                <span aria-hidden="true" style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '15px', fontWeight: 800 }}>›</span>
+              </button>
+            </section>
           )}
 
-          {/* ── Cuenta (contraseña · email · eliminar) ── */}
-          <AccountSection email={user?.email} />
-
-          {/* ── Cerrar sesión ── */}
-          <button
-            type="button"
-            onClick={handleSignOut}
-            style={{
-              alignSelf: 'center', marginTop: '4px',
-              color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.08em',
-              border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
-              padding: '10px 20px', background: 'transparent',
-              transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-action-text)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
-          >
-            Cerrar sesión
-          </button>
-
-          </div>{/* /col 2 */}
         </div>
       </div>
 

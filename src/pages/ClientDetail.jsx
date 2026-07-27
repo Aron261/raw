@@ -13,7 +13,7 @@ import { useDashboard } from '../hooks/useDashboard'
 import { useNutritionTargets, useNutritionRange, toLocalISODate } from '../hooks/useNutrition'
 import { useTheme } from '../hooks/useTheme'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
-import { Sheet, Button } from '../components/ui'
+import { Sheet, Button, UnitToggle } from '../components/ui'
 
 // Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
 const CHART = {
@@ -567,15 +567,7 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
         <div style={{ display: 'flex', gap: '8px' }}>
           <input className="input-field" type="number" value={target} onChange={e => setTarget(e.target.value)} placeholder="0" style={{ flex: 1 }} />
           {type === 'exercise_weight' && (
-            <div style={{ display: 'flex', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: '10px', overflow: 'hidden' }}>
-              {['kg', 'lb'].map(u => (
-                <button key={u} onClick={() => setUnit(u)} style={{
-                  padding: '0 14px', fontSize: '11px', fontWeight: 700,
-                  background: unit === u ? 'var(--c-accent)' : 'transparent',
-                  color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
-                }}>{u}</button>
-              ))}
-            </div>
+            <UnitToggle value={unit} units={['kg', 'lb']} onChange={setUnit} />
           )}
           {type === 'days_trained' && (
             <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: '10px', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700 }}>

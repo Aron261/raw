@@ -7,6 +7,7 @@ import PRBadge from './PRBadge'
 import { calc1RM, useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
 import { useExerciseLang } from '../hooks/useExerciseLang'
+import { UnitToggle } from './ui'
 
 // Rest between sets: the routine's prescription wins, then the lifter's own
 // per-exercise choice (localStorage — a device preference, not history), then 90s.
@@ -313,30 +314,14 @@ export default function ExerciseRow({
             <span className={`chevron ${expanded ? 'open' : ''}`} style={{ marginLeft: 'auto', color: 'var(--c-text-ghost)', fontSize: '10px', flexShrink: 0 }}>▼</span>
           </button>
 
-          {/* Unit toggle */}
-          {readOnly ? (
-            <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-border)', padding: '3px 7px', borderRadius: '6px', flexShrink: 0 }}>
-              {unit}
-            </span>
-          ) : (
-            <div style={{ display: 'flex', flexShrink: 0, border: '1px solid var(--c-border)', borderRadius: '6px', overflow: 'hidden' }}>
-              {['lb', 'kg'].map(u => (
-                <button
-                  key={u}
-                  onClick={() => { if (unit !== u) onUpdateUnit(workoutExercise.id, u) }}
-                  aria-pressed={unit === u}
-                  style={{
-                    padding: '3px 8px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
-                    background: unit === u ? 'var(--c-accent)' : 'transparent',
-                    color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
-                    transition: 'background 120ms, color 120ms',
-                  }}
-                >
-                  {u}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Unit toggle — una unidad a la vez, un toque la cambia */}
+          <UnitToggle
+            value={unit}
+            units={['kg', 'lb']}
+            size="sm"
+            readOnly={readOnly}
+            onChange={u => onUpdateUnit(workoutExercise.id, u)}
+          />
 
           {/* ··· menu */}
           {!readOnly && (

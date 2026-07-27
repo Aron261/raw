@@ -1,13 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { sectionFor } from '../lib/sections'
+import { hasTabBar } from '../lib/sections'
 
 // ── Icons ──────────────────────────────────────────────────────────────
-function EjerciciosIcon() {
+function PerfilIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 6h16" />
-      <path d="M4 12h16" />
-      <path d="M4 18h10" />
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0" />
     </svg>
   )
 }
@@ -125,18 +124,20 @@ function StartAction({ onClick }) {
 }
 
 // ── Nav ───────────────────────────────────────────────────────────────
-// The tab bar belongs to the Training section — home ("Inicio") included. The
-// remaining sections (Nutrición, Coach) navigate from the section chips on the
-// home page + back headers, so the bar stays out of their way.
+// Perfil | Inicio | [+] | Progreso | Rutinas
 //
-// "Menú" is gone: the home page absorbed that index, so a tab pointing at it
-// would just be a second route to the screen you're already on.
-// Inicio | Progreso | [+] | Rutinas | Ejercicios
-// (todas dentro de la sección Entreno, para que la barra no desaparezca al
-// tocar una pestaña; Nutrición · Coach · Perfil viven en los chips de Inicio)
+// Perfil ocupa el extremo izquierdo: es a donde se va a configurar, no a
+// entrenar, así que vive en el borde y no compite con Inicio por el centro.
+//
+// "Ejercicios" ya no es pestaña. Clasificar y vincular ejercicios es
+// mantenimiento que se hace de vez en cuando, no una de las cinco cosas que
+// haces en el gimnasio; ahora se entra desde Perfil → Entrenamiento. La ruta
+// /ejercicios sigue existiendo igual.
+//
+// "Menú" desapareció antes: Inicio absorbió aquel índice.
 export default function BottomNav({ onStart }) {
   const { pathname } = useLocation()
-  if (sectionFor(pathname) !== 'training') return null
+  if (!hasTabBar(pathname)) return null
 
   return (
     <nav
@@ -164,11 +165,11 @@ export default function BottomNav({ onStart }) {
         maxWidth: '480px', margin: '0 auto',
         height: '60px', padding: '0 4px',
       }}>
+        <TabItem to="/profile"  label="Perfil"   Icon={PerfilIcon} />
         <TabItem to="/"         label="Inicio"   Icon={BarbellIcon} exact />
-        <TabItem to="/progreso" label="Progreso" Icon={HistoryIcon} />
         <StartAction onClick={onStart} />
+        <TabItem to="/progreso" label="Progreso" Icon={HistoryIcon} />
         <TabItem to="/rutinas"  label="Rutinas"  Icon={ProgramaIcon} />
-        <TabItem to="/ejercicios" label="Ejercicios" Icon={EjerciciosIcon} />
       </div>
     </nav>
   )

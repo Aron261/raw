@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sheet, Button } from './ui'
+import { Sheet, Button, UnitToggle } from './ui'
 import { useBodyWeight } from '../hooks/useBodyWeight'
 
 /*
@@ -79,23 +79,7 @@ export default function QuickAddSheet({ onClose, onStartWorkout }) {
             aria-label="Peso corporal"
             style={{ flex: 1, height: '48px', textAlign: 'center', fontSize: '18px', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}
           />
-          <div style={{ display: 'flex', flexShrink: 0, border: '1px solid var(--c-border)', borderRadius: '8px', overflow: 'hidden' }}>
-            {['kg', 'lb'].map(u => (
-              <button
-                key={u}
-                onClick={() => setUnitChoice(u)}
-                aria-pressed={unit === u}
-                style={{
-                  padding: '12px 14px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase',
-                  background: unit === u ? 'var(--c-accent)' : 'transparent',
-                  color: unit === u ? 'var(--c-on-action)' : 'var(--c-text-dim)',
-                  transition: 'background 120ms, color 120ms',
-                }}
-              >
-                {u}
-              </button>
-            ))}
-          </div>
+          <UnitToggle value={unit} units={['kg', 'lb']} onChange={setUnitChoice} />
         </div>
 
         {saveError && (

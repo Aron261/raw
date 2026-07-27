@@ -16,7 +16,7 @@ import { useTheme } from '../hooks/useTheme'
 import { useSchedule } from '../hooks/useSchedule'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { ERROR_STYLE } from '../lib/ui'
-import { Sheet, Field, Button, LiveRegion, UndoSnackbar } from '../components/ui'
+import { Sheet, Field, Button, LiveRegion, UndoSnackbar, UnitToggle } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import Calendar from '../components/calendar/Calendar'
 import DaySheet from '../components/calendar/DaySheet'
@@ -232,24 +232,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
             style={{ flex: 1 }}
           />
           {type === 'exercise_weight' && (
-            <div style={{ display: 'flex', gap: '4px' }}>
-              {['kg', 'lb'].map(u => (
-                <button
-                  key={u}
-                  onClick={() => setUnit(u)}
-                  style={{
-                    padding: '10px 14px', borderRadius: '8px',
-                    fontSize: '11px', fontWeight: 700,
-                    background: unit === u ? 'var(--c-surface-2)' : 'transparent',
-                    border: `1px solid ${unit === u ? 'var(--c-border)' : 'var(--c-border-subtle)'}`,
-                    color: unit === u ? 'var(--c-text)' : 'var(--c-text-dim)',
-                    transition: 'all 150ms',
-                  }}
-                >
-                  {u}
-                </button>
-              ))}
-            </div>
+            <UnitToggle value={unit} units={['kg', 'lb']} onChange={setUnit} />
           )}
         </div>
       </Field>
@@ -898,10 +881,9 @@ export default function Training() {
       <div className="w-full px-4 pt-10 pb-10 max-w-[480px] mx-auto md:max-w-none md:px-8 md:py-8">
 
         {/* ── Header — esta es la portada de la app: la fecha y el saludo,
-            no un título de sección. El avatar es el acceso a Perfil, igual que
-            en el sidebar de escritorio; ya no hay chip de Progreso porque esa
-            sección tiene pestaña propia en la barra inferior. ── */}
-        <div className="fade-in flex items-start justify-between gap-4 mb-6 md:mb-8">
+            no un título de sección. Ni Progreso ni Perfil tienen acceso aquí:
+            los dos son pestaña de la barra inferior. ── */}
+        <div className="fade-in flex items-start mb-6 md:mb-8">
           <div style={{ minWidth: 0 }}>
             {/* Fecha — eyebrow mono en azul (dato) */}
             <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-data)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
@@ -911,20 +893,6 @@ export default function Training() {
               {getGreeting()}{firstName ? `, ${firstName}` : ''}
             </h1>
           </div>
-          <button
-            onClick={() => navigate('/profile')}
-            aria-label="Perfil y ajustes"
-            title="Perfil y ajustes"
-            className="md:hidden"
-            style={{
-              width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
-              color: 'var(--c-action-text)', fontSize: '18px', fontWeight: 900, letterSpacing: '-0.02em',
-            }}
-          >
-            {(profile?.name || '?').charAt(0).toUpperCase()}
-          </button>
         </div>
 
         {/* ── Loading skeleton — mismo orden que el contenido real: CTA ·
@@ -1117,7 +1085,7 @@ export default function Training() {
                 label="peso corporal"
                 value={latestWeight ? `${latestWeight.weight} ${latestWeight.unit}` : '—'}
                 hint={latestWeight ? null : 'Aún sin registrar'}
-                onClick={() => navigate('/profile')}
+                onClick={() => navigate('/profile?s=caracteristicas')}
               />
               {profile?.is_trainer && (
                 <Chip
