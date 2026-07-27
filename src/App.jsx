@@ -27,6 +27,7 @@ const ClientDetail   = lazy(() => import('./pages/ClientDetail'))
 const Chat           = lazy(() => import('./pages/Chat'))
 const Admin          = lazy(() => import('./pages/Admin'))
 const OAuthConsent   = lazy(() => import('./pages/OAuthConsent'))
+const SharedRoutine  = lazy(() => import('./pages/SharedRoutine'))
 
 // Native-feel scrolling: jump to top when navigating to a new screen, and
 // restore the previous position when going back/forward (POP). Pairs with the
@@ -149,6 +150,11 @@ function AppWithAuth() {
               authorization_id de la URL. La página gestiona sesión y beta
               por su cuenta conservando los parámetros. */}
           <Route path="/oauth/consent" element={<OAuthConsent />} />
+
+          {/* Rutina compartida por enlace. Pública a propósito: quien la recibe
+              suele no tener cuenta, y ver el plan no expone nada más que el
+              plan (supabase/routine_shares.sql). Guardarla sí exige sesión. */}
+          <Route path="/r/:token" element={<SharedRoutine />} />
 
           {/* Protected — home ("Inicio"): calendario + portada. El antiguo
               índice /menu se fusionó aquí (sus secciones son ahora chips en la

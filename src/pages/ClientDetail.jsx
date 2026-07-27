@@ -153,14 +153,62 @@ function emptyDay() {
   return { day_name: '', focus: '', exercises: [emptyExercise()] }
 }
 
-function BuildRoutineModal({ clientName, initialType, onClose, onCreate }) {
+// Una rutina propia (como la entrega useRoutines) → el estado del constructor.
+// Los campos numéricos viajan como texto porque son valores de <input>.
+function routineToBuilderDays(routine) {
+  const days = (routine.routine_days || []).map(d => ({
+    day_name: d.day_name || '',
+    focus: d.focus || '',
+    exercises: (d.routine_day_exercises || []).map(ex => ({
+      exercise_name: ex.exercise_name || '',
+      sets: ex.sets == null ? '' : String(ex.sets),
+      reps: ex.reps || '',
+      notes: ex.notes || '',
+    })),
+  }))
+  // El constructor asume al menos un día con al menos un ejercicio editable.
+  return days.length ? days.map(d => ({ ...d, exercises: d.exercises.length ? d.exercises : [emptyExercise()] })) : [emptyDay()]
+}
+
+function routineSummary(routine) {
+  const days = (routine.routine_days || []).length
+  const ex = (routine.routine_days || []).reduce((n, d) => n + (d.routine_day_exercises || []).length, 0)
+  return `${routine.type === 'cycle' ? 'Ciclo' : 'Día'} · ${days} ${days === 1 ? 'día' : 'días'} · ${ex} ejercicios`
+}
+
+// Constructor de la rutina del cliente.
+//
+// Empezar de cero está bien para un plan a medida, pero un entrenador rara vez
+// escribe desde cero: ya tiene sus ciclos hechos y quiere partir de uno. Por eso
+// se puede cargar una rutina PROPIA dentro del constructor —no asignarla de
+// golpe— y ajustarla al cliente antes de guardar. Lo que se guarda es una copia
+// en la cuenta del cliente: editarla aquí no toca la rutina original.
+export function BuildRoutineModal({ clientName, initialType, startPicking = false, onClose, onCreate }) {
+  // Sin argumento, useRoutines opera sobre el propio entrenador: estas son SUS
+  // rutinas, con días y ejercicios ya cargados.
+  const { routines: myRoutines, loading: loadingMine } = useRoutines()
+
   const [type, setType]   = useState(initialType)   // 'cycle' | 'single_day'
   const [name, setName]   = useState('')
   const [days, setDays]   = useState([emptyDay()])
   const [saving, setSaving] = useState(false)
   const [localError, setLocalError] = useState(null)
+  const [picking, setPicking] = useState(startPicking)
+  const [copiedFrom, setCopiedFrom] = useState(null)
 
   const isCycle = type === 'cycle'
+
+  // Carga la rutina propia en el constructor y vuelve al formulario. El tipo lo
+  // manda la rutina de origen: copiar un ciclo dentro de un formulario de "un
+  // día" lo dejaría recortado al primer día sin avisar.
+  const loadFromMine = (routine) => {
+    setType(routine.type === 'single_day' ? 'single_day' : 'cycle')
+    setName(routine.name || '')
+    setDays(routineToBuilderDays(routine))
+    setCopiedFrom(routine.name)
+    setLocalError(null)
+    setPicking(false)
+  }
 
   // — mutadores de días —
   const addDay = () => setDays(prev => [...prev, emptyDay()])
@@ -212,7 +260,9 @@ function BuildRoutineModal({ clientName, initialType, onClose, onCreate }) {
       await onCreate({
         name: name.trim(),
         type,
-        source: 'manual',
+        // Copiada de una rutina del entrenador, no escrita a mano para este
+        // cliente: la tarjeta del cliente lo dirá en vez de llamarla propia.
+        source: copiedFrom ? 'shared' : 'manual',
         is_active: false,
         days: builtDays,
       })
@@ -223,9 +273,84 @@ function BuildRoutineModal({ clientName, initialType, onClose, onCreate }) {
     }
   }
 
+  // ── Paso: elegir una rutina propia ──────────────────────────────────────
+  if (picking) {
+    return (
+      <Sheet
+        title="Mis rutinas"
+        subtitle={`Elige una para copiarla a ${clientName}`}
+        onClose={onClose}
+        maxHeight="88dvh"
+      >
+        {loadingMine ? (
+          <div className="skeleton" aria-hidden="true" style={{ height: '60px', borderRadius: '12px' }} />
+        ) : myRoutines.length === 0 ? (
+          <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', textAlign: 'center', padding: '28px 0' }}>
+            Todavía no tienes rutinas propias que copiar.
+          </p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {myRoutines.map(r => (
+              <button
+                key={r.id}
+                onClick={() => loadFromMine(r)}
+                style={{
+                  width: '100%', padding: '12px 14px', textAlign: 'left',
+                  background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+                  borderRadius: '12px',
+                  transition: 'background 150ms var(--ease-out), border-color 150ms var(--ease-out)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'var(--c-surface)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+                {...pressProps(0.98)}
+              >
+                <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '3px' }}>
+                  {r.name}
+                </p>
+                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px' }}>
+                  {routineSummary(r)}
+                </p>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={() => setPicking(false)}
+          style={{ width: '100%', minHeight: '44px', marginTop: '12px', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
+        >
+          Volver al constructor
+        </button>
+      </Sheet>
+    )
+  }
+
   return (
     <Sheet title="Crear rutina" subtitle={`Personalizada para ${clientName}`} onClose={onClose}>
       {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
+
+      {/* Partir de una rutina propia en vez de escribirla de cero. */}
+      <button
+        onClick={() => setPicking(true)}
+        style={{
+          width: '100%', minHeight: '44px', padding: '10px 14px', marginBottom: '16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
+          background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
+          borderRadius: '12px', textAlign: 'left',
+        }}
+        {...pressProps(0.99)}
+      >
+        <span style={{ color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          {copiedFrom ? 'Elegir otra de mis rutinas' : 'Usar una de mis rutinas'}
+        </span>
+        <span aria-hidden="true" style={{ color: 'var(--c-action-text)', fontSize: '13px', flexShrink: 0 }}>→</span>
+      </button>
+
+      {copiedFrom && (
+        <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5, marginBottom: '16px' }}>
+          Copiada de «{copiedFrom}». Ajústala para {clientName}: lo que cambies aquí no toca tu rutina.
+        </p>
+      )}
 
       {/* Tipo */}
       <p style={MINI_LABEL}>Tipo</p>
@@ -479,7 +604,7 @@ export default function ClientDetail() {
   const { resolved, palette } = useTheme()
   const cc = CHART[`${palette}-${resolved}`] || CHART['slate-light']
 
-  const [modal, setModal] = useState(null) // 'cycle' | 'single' | 'goal'
+  const [modal, setModal] = useState(null) // 'mine' | 'cycle' | 'single' | 'goal'
   const [actionError, setActionError] = useState(null)
 
   const name = profile?.name || 'Cliente'
@@ -618,6 +743,9 @@ export default function ClientDetail() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Rutinas</p>
             <div style={{ display: 'flex', gap: '10px' }}>
+              {/* La vía corta a lo que el entrenador ya tiene escrito; las otras
+                  dos siguen abriendo el constructor en blanco. */}
+              <button onClick={() => setModal('mine')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ De mis rutinas</button>
               <button onClick={() => setModal('cycle')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Ciclo</button>
               <button onClick={() => setModal('single')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Día</button>
             </div>
@@ -626,7 +754,7 @@ export default function ClientDetail() {
           {routLoading ? (
             <div style={{ height: '60px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px' }} />
           ) : routines.length === 0 ? (
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '12px 0' }}>Sin rutinas. Crea un ciclo o un día personalizado.</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '12px 0' }}>Sin rutinas. Copia una de las tuyas o crea un ciclo desde cero.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {[...cycles, ...singleDays].map(r => {
@@ -704,6 +832,7 @@ export default function ClientDetail() {
 
       {modal === 'cycle'  && <BuildRoutineModal clientName={name} initialType="cycle"      onClose={() => setModal(null)} onCreate={createRoutine} />}
       {modal === 'single' && <BuildRoutineModal clientName={name} initialType="single_day" onClose={() => setModal(null)} onCreate={createRoutine} />}
+      {modal === 'mine'   && <BuildRoutineModal clientName={name} initialType="cycle" startPicking onClose={() => setModal(null)} onCreate={createRoutine} />}
       {modal === 'goal'   && <AssignGoalModal   clientName={name}                          onClose={() => setModal(null)} onCreate={createGoal} />}
     </Layout>
   )

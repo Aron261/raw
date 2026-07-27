@@ -6,9 +6,10 @@ import { useWorkouts } from '../hooks/useWorkout'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import RecommendedPlanWizard from '../components/RecommendedPlanWizard'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
-import { Sheet, Button, LiveRegion, UndoSnackbar } from '../components/ui'
+import { Sheet, Button, LiveRegion, UndoSnackbar, Toast } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import CycleMuscleDistribution from '../components/CycleMuscleDistribution'
+import ShareRoutineSheet from '../components/ShareRoutineSheet'
 
 // ── Constantes ────────────────────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ function typeLabel(type) {
 function sourceLabel(source) {
   if (source === 'recommended')  return 'Recomendada'
   if (source === 'from_workout') return 'Desde entreno'
+  if (source === 'shared')       return 'Compartida'
   return 'Personalizada'
 }
 
@@ -104,7 +106,7 @@ const cardIconBtnHover = {
 // ── Card: ciclo activo ────────────────────────────────────────────────────
 const REFRESH_CYCLE_WEEKS = 12  // suggest refreshing a cycle after this long
 
-function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit }) {
+function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onShare }) {
   const activeLabel = weeksActive < 1
     ? 'Recién activado'
     : `Activo hace ${weeksActive} ${weeksActive === 1 ? 'semana' : 'semanas'}`
@@ -180,6 +182,14 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit }) {
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
           Editar
+        </button>
+        <button
+          onClick={onShare}
+          style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-border-subtle)', padding: '6px 12px', borderRadius: '8px', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
+          onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+        >
+          Compartir
         </button>
         <button
           onClick={onDeactivate}
@@ -941,6 +951,13 @@ export default function Rutinas() {
   const [modal, setModal]           = useState(location.state?.create ? 'type' : null)
   const [actionError, setActionError] = useState(null)
   const [startingId, setStartingId] = useState(null)
+  // Rutina cuyo enlace se está gestionando (null = hoja cerrada).
+  const [sharingRoutine, setSharingRoutine] = useState(null)
+  // Confirmación al llegar desde un enlace compartido: la copia se guarda en la
+  // pantalla pública, que desaparece antes de poder anunciar nada.
+  const [importedMsg, setImportedMsg] = useState(
+    location.state?.imported ? `«${location.state.imported}» guardada en tus rutinas.` : null
+  )
 
   // Undoable delete (shared primitive) — hide optimistically, commit after a
   // grace window, announce to screen readers. Reused for all status announces.
@@ -1051,7 +1068,13 @@ export default function Rutinas() {
                 <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
                   Ciclo activo
                 </p>
-                <ActiveCycleCard routine={activeCycle} weeksActive={cycleWeeksActive} onDeactivate={handleDeactivate} onEdit={() => navigate(`/rutina/${activeCycle.id}`)} />
+                <ActiveCycleCard
+                  routine={activeCycle}
+                  weeksActive={cycleWeeksActive}
+                  onDeactivate={handleDeactivate}
+                  onEdit={() => navigate(`/rutina/${activeCycle.id}`)}
+                  onShare={() => setSharingRoutine(activeCycle)}
+                />
                 <CycleMuscleDistribution routine={activeCycle} />
               </section>
             )}
@@ -1125,7 +1148,12 @@ export default function Rutinas() {
       {modal === 'from-workout' && <FromWorkoutModal onClose={close} onCreate={handleCreateRoutine} workouts={workouts} />}
       {modal === 'from-cycle'   && <FromWorkoutsCycleModal onClose={close} onCreate={handleCreateRoutine} workouts={workouts} />}
 
-      {/* Feedback compartido: región viva + snackbar de deshacer */}
+      {sharingRoutine && (
+        <ShareRoutineSheet routine={sharingRoutine} onClose={() => setSharingRoutine(null)} />
+      )}
+
+      {/* Feedback compartido: aviso de importación, región viva y snackbar de deshacer */}
+      <Toast message={importedMsg} onDismiss={() => setImportedMsg(null)} />
       <LiveRegion>{routineDelete.liveMsg}</LiveRegion>
       <UndoSnackbar show={!!routineDelete.pending} message="Rutina eliminada" onUndo={routineDelete.undo} />
     </Layout>
