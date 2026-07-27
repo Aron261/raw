@@ -77,7 +77,7 @@ function TabItem({ to, label, Icon, exact }) {
             transition: 'width 200ms var(--ease-out)',
           }} />
           <div style={{
-            color: isActive ? 'var(--c-accent)' : 'var(--c-text-ghost)',
+            color: isActive ? 'var(--c-action-text)' : 'var(--c-text-ghost)',
             transition: 'color 200ms var(--ease-out)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
@@ -86,7 +86,7 @@ function TabItem({ to, label, Icon, exact }) {
           <span style={{
             fontSize: '10px', fontWeight: isActive ? 700 : 600,
             textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1,
-            color: isActive ? 'var(--c-accent)' : 'var(--c-text-ghost)',
+            color: isActive ? 'var(--c-action-text)' : 'var(--c-text-ghost)',
             transition: 'color 200ms var(--ease-out)',
           }}>
             {label}
@@ -140,6 +140,7 @@ export default function BottomNav({ onStart }) {
 
   return (
     <nav
+      aria-label="Entreno"
       className="fixed bottom-0 left-0 right-0 z-50"
       style={{
         background: 'var(--c-bg-glass)',

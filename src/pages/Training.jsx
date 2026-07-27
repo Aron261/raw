@@ -20,7 +20,7 @@ import { Sheet, Field, Button, LiveRegion, UndoSnackbar } from '../components/ui
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import Calendar from '../components/calendar/Calendar'
 import DaySheet from '../components/calendar/DaySheet'
-import { computeStreak, KINDS } from '../lib/calendar'
+import { computeStreak, mondayOf, KINDS } from '../lib/calendar'
 
 // Chart colors must be literal hex — CSS vars don't resolve in recharts SVG attrs.
 const CHART_COLORS = {
@@ -30,31 +30,29 @@ const CHART_COLORS = {
   'riso-dark':   { axis: '#A2A096', bar: '#6E7BFF', today: '#FF3D86', empty: '#26271F' },
 }
 
-// ── Date helpers ─────────────────────────────────────────────────────────
-function getMondayOfWeek(date = new Date()) {
-  const d = new Date(date)
-  const day = d.getDay()
-  const diff = (day + 6) % 7
-  d.setDate(d.getDate() - diff)
-  d.setHours(0, 0, 0, 0)
-  return d
-}
-
 const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
+// Se resuelve en cada render, no al cargar el módulo: la PWA puede quedar
+// abierta toda la noche y la portada no puede seguir diciendo "ayer".
 // Sentence case: "lunes, 2 de junio" → "Lunes, 2 de junio"
-const dateStr = (() => {
+function todayLabel() {
   const s = new Date().toLocaleDateString('es-CO', {
     weekday: 'long', month: 'long', day: 'numeric',
   })
   return s.charAt(0).toUpperCase() + s.slice(1)
-})()
+}
 
 function getGreeting() {
   const h = new Date().getHours()
   if (h < 12) return 'Buenos días'
   if (h < 19) return 'Buenas tardes'
   return 'Buenas noches'
+}
+
+// 1RM estimado (Epley) — una sola definición para toda la portada.
+function calc1RM(weight, reps) {
+  if (!weight || !reps || reps <= 0) return 0
+  return Math.round(weight * (1 + reps / 30))
 }
 
 // ── Format volume ─────────────────────────────────────────────────────────
@@ -356,21 +354,16 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
   )
 }
 
-// ── Highlight rotativo (cambia cada día entre 4 tipos) ────────────────────
-function getDayHighlightType() {
-  const now = new Date()
-  const start = new Date(now.getFullYear(), 0, 0)
-  const dayOfYear = Math.floor((now - start) / (1000 * 60 * 60 * 24))
-  return dayOfYear % 4
-}
-
-// ── Today chip — un dato de hoy que vive en otra sección ─────────────────
-function TodayChip({ label, value, hint, onClick }) {
+// ── Chip — un dato vivo que además es el acceso a su sección ─────────────
+// Antes había dos componentes casi idénticos (TodayChip y SectionChip) en tres
+// filas distintas, y el resultado era un campo de cajitas iguales: justo el
+// "dashboard SaaS" que el sistema rechaza. Uno solo, una fila.
+function Chip({ label, value, hint, live, onClick }) {
   return (
     <button
       onClick={onClick}
       style={{
-        flex: 1, minWidth: 0, textAlign: 'left',
+        flex: '1 1 30%', minWidth: '96px', textAlign: 'left',
         display: 'flex', flexDirection: 'column', gap: '4px',
         background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
         borderRadius: '12px', padding: '11px 12px', minHeight: '44px',
@@ -380,9 +373,11 @@ function TodayChip({ label, value, hint, onClick }) {
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
     >
       <span style={{
+        display: 'flex', alignItems: 'center', gap: '5px',
         fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px',
         fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
       }}>
+        {live && <span className="live-dot" aria-hidden="true" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--c-action)', flexShrink: 0 }} />}
         {label}
       </span>
       <span style={{
@@ -398,35 +393,144 @@ function TodayChip({ label, value, hint, onClick }) {
   )
 }
 
-// ── Section chip — el índice de secciones, absorbido en la portada ───────
-// El Menú era una pantalla aparte que solo servía para elegir sección. Aquí
-// vive como una fila de accesos con un dato vivo debajo: mismo destino, sin
-// una pantalla intermedia que solo era una lista.
-function SectionChip({ title, sub, to, live, onNavigate }) {
+// ── Helpers visuales de metas ────────────────────────────────────────────
+function getMotivation(pct) {
+  if (pct >= 100) return 'Meta cumplida. Crea una nueva.'
+  if (pct >= 75)  return 'Ya casi. Te falta poco.'
+  if (pct >= 50)  return 'Vas por la mitad. Sigue así.'
+  if (pct >= 25)  return 'Buen arranque. Mantén el ritmo.'
+  return 'Apenas empiezas. Suma tu próximo entreno.'
+}
+
+// On-palette + AA in every theme: success green at 100%, muted otherwise.
+// (No off-system amber; the % badge and bar already encode the tier.)
+const getMotivationColor = (pct) => (pct >= 100 ? 'var(--c-success)' : 'var(--c-text-muted)')
+
+// ── Metas ────────────────────────────────────────────────────────────────
+// Vive fuera del bloque "hay entrenos": definir una meta es justo lo que hace
+// alguien que todavía no ha registrado nada, y antes estaba fuera de alcance.
+function GoalsCard({ goals, onAdd, onDelete }) {
   return (
-    <button
-      onClick={() => onNavigate(to)}
-      style={{
-        flex: '1 1 30%', minWidth: '104px', textAlign: 'left',
-        display: 'flex', flexDirection: 'column', gap: '3px',
-        background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-        borderRadius: '12px', padding: '11px 12px', minHeight: '58px',
-        cursor: 'pointer', transition: 'border-color 150ms var(--ease-out)',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-border)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
-    >
-      <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em' }}>
-        {live && <span className="live-dot" aria-hidden="true" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--c-action)', flexShrink: 0 }} />}
-        {title}
-      </span>
-      <span style={{
-        fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 600,
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-      }}>
-        {sub}
-      </span>
-    </button>
+    <div style={{
+      background: 'var(--c-surface)',
+      border: '1px solid var(--c-border-subtle)',
+      borderRadius: '16px',
+      padding: '20px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          Mis metas
+        </p>
+        <button
+          onClick={onAdd}
+          style={{
+            color: 'var(--c-action-text)', fontSize: '22px', lineHeight: 1, fontWeight: 300,
+            minWidth: '44px', minHeight: '44px', margin: '-11px -10px -11px 0',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'opacity 150ms',
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          aria-label="Agregar meta"
+          title="Agregar meta"
+        >
+          +
+        </button>
+      </div>
+
+      {goals.length === 0 ? (
+        /* Empty state humanizado */
+        <div style={{
+          background: 'var(--c-surface-2)',
+          borderRadius: '12px',
+          padding: '18px 16px',
+        }}>
+          <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
+            Todavía no tienes metas activas.
+          </p>
+          <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 400, lineHeight: 1.5, marginBottom: '14px' }}>
+            Define una meta de fuerza o frecuencia para medir tu progreso real.
+          </p>
+          <button
+            onClick={onAdd}
+            style={{
+              background: 'transparent',
+              color: 'var(--c-action-text)',
+              border: '1px solid var(--c-action-border)',
+              borderRadius: '8px',
+              padding: '8px 14px',
+              fontSize: '11px',
+              fontWeight: 700,
+              transition: 'background 150ms, border-color 150ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-action-dim)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+          >
+            Crear meta
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {goals.map(goal => (
+            <div key={goal.id}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* Goal label: sentence case, sin uppercase */}
+                  <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>
+                    {goal.label}
+                  </p>
+                  <p style={{ color: getMotivationColor(goal.pct), fontSize: '11px', fontWeight: 500 }}>
+                    {getMotivation(goal.pct)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => onDelete(goal)}
+                  style={{ color: 'var(--c-text-muted)', fontSize: '13px', minWidth: '44px', minHeight: '44px', margin: '-12px -10px -12px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 120ms' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
+                  aria-label={`Eliminar meta: ${goal.label}`}
+                  title="Eliminar meta"
+                >
+                  ✕
+                </button>
+              </div>
+              {/* Barra de progreso */}
+              <div
+                style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', marginBottom: '6px', overflow: 'hidden' }}
+                role="progressbar"
+                aria-valuenow={goal.pct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={goal.label}
+              >
+                <div style={{
+                  height: '100%',
+                  width: '100%',
+                  transformOrigin: 'left center',
+                  transform: `scaleX(${goal.pct / 100})`,
+                  background: goal.pct >= 100 ? 'var(--c-record)' : 'var(--c-action)',
+                  borderRadius: '999px',
+                  transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+                }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500 }}>
+                  {goal.type === 'days_trained'
+                    ? `${goal.current} / ${goal.target_value} días este mes`
+                    : goal.target_reps
+                      ? `${goal.current} / ${goal.target_value} ${goal.unit} × ${goal.target_reps} reps`
+                      : `${goal.current} / ${goal.target_value} ${goal.unit} (1RM est.)`
+                  }
+                </span>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: goal.pct >= 100 ? 'var(--c-success)' : 'var(--c-text-dim)' }}>
+                  {goal.pct}%
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -572,7 +676,7 @@ export default function Training() {
     const empty = { count: 0, weekVolume: 0, chartData: [], thisMonth: 0, weekPR: null }
     if (!workouts.length) return empty
 
-    const monday = getMondayOfWeek()
+    const monday = mondayOf(new Date())
 
     const thisWeekWorkouts = workouts.filter(w => w.ended_at && new Date(w.started_at) >= monday)
     const previousWorkouts = workouts.filter(w => w.ended_at && new Date(w.started_at) < monday)
@@ -616,11 +720,6 @@ export default function Training() {
         }, 0), 0)
       return { day, vol, future: false }
     })
-
-    const calc1RM = (weight, reps) => {
-      if (!weight || !reps || reps <= 0) return 0
-      return Math.round(weight * (1 + reps / 30))
-    }
 
     // Mejor 1RM histórico por ejercicio (antes de esta semana)
     const historicBest = {}
@@ -688,26 +787,11 @@ export default function Training() {
     [sessions, selectedISO]
   )
 
-  // ── Índice de secciones (antes la pantalla Menú) ──────────────────────
+  // Mensajes sin leer — el único dato de Coach que merece sitio en la portada.
   const unread = useMemo(
     () => Object.values(unreadMap || {}).reduce((a, b) => a + b, 0),
     [unreadMap]
   )
-  const sectionRows = [
-    {
-      title: 'Nutrición',
-      to: '/nutrition',
-      sub: kcalToday > 0
-        ? `${kcalToday.toLocaleString('es-CO')} / ${kcalTarget.toLocaleString('es-CO')} kcal`
-        : 'Registra tu comida',
-    },
-    { title: 'Rutinas',  to: '/rutinas',  sub: activeCycle?.name || 'Sin ciclo activo' },
-    { title: 'Progreso', to: '/progreso', sub: 'Historial y stats' },
-    ...(profile?.is_trainer
-      ? [{ title: 'Coach', to: '/coach', sub: unread > 0 ? `${unread} sin leer` : 'Tus clientes', live: unread > 0 }]
-      : []),
-    { title: 'Perfil',   to: '/profile',  sub: profile?.name || 'Ajustes y cuenta' },
-  ]
 
   // ── Progreso de metas ─────────────────────────────────────────────────
   // Hide any goal awaiting an undoable delete so it vanishes optimistically.
@@ -732,7 +816,7 @@ export default function Training() {
                 }
               } else {
                 // Modo 1RM estimado (Epley)
-                const rm = (!s.weight || !s.reps) ? 0 : Math.round(s.weight * (1 + s.reps / 30))
+                const rm = calc1RM(s.weight, s.reps)
                 if (rm > best) best = rm
               }
             })
@@ -746,23 +830,23 @@ export default function Training() {
     return { ...goal, current: 0, pct: 0 }
   })
 
-  // ── Highlight rotativo del día ────────────────────────────────────────
-  const highlightType = getDayHighlightType()
-
+  // ── Señal ganada, cuando no hay PR de la semana ───────────────────────
+  // Antes esto rotaba entre cuatro tarjetas según el día del año: la portada
+  // cambiaba de tema sola y nadie podía volver al dato que vio ayer. Ahora hay
+  // una sola pregunta con una respuesta estable — ¿en qué estás mejorando? —, y
+  // si todavía no hay dos ventanas que comparar, tu mejor lift de siempre.
   const todayHighlight = useMemo(() => {
-    if (!workouts.length) return null
-    const _calc1RM = (w, r) => (!w || !r || r <= 0) ? 0 : Math.round(w * (1 + r / 30))
     const finished = workouts.filter(w => w.ended_at)
     if (!finished.length) return null
 
-    const getBestRMMap = (list) => {
+    const bestRMMap = (list) => {
       const map = {}
       list.forEach(w => {
         ;(w.workout_exercises || []).forEach(we => {
           const name = we.exercises?.name
           if (!name) return
           ;(we.sets || []).forEach(s => {
-            const rm = _calc1RM(s.weight, s.reps)
+            const rm = calc1RM(s.weight, s.reps)
             if (!map[name] || rm > map[name].rm) map[name] = { rm, unit: we.unit }
           })
         })
@@ -770,77 +854,23 @@ export default function Training() {
       return map
     }
 
-    const fallback0 = () => {
-      const best = Object.entries(getBestRMMap(finished))
-        .map(([name, d]) => ({ name, ...d }))
-        .sort((a, b) => b.rm - a.rm)[0]
-      if (!best) return null
-      return {
-        label: 'Lift histórico',
-        title: best.name,
-        value: `${best.rm} ${best.unit}`,
-        sub: 'Tu mejor 1RM estimado de todos los tiempos.',
-      }
-    }
+    // 1) Mayor progreso: últimos 30 días contra los 30 anteriores.
+    const now = new Date()
+    const c30 = new Date(now); c30.setDate(c30.getDate() - 30)
+    const c60 = new Date(now); c60.setDate(c60.getDate() - 60)
+    const recentMap = bestRMMap(finished.filter(w => new Date(w.started_at) >= c30))
+    const prevMap = bestRMMap(finished.filter(w => {
+      const d = new Date(w.started_at)
+      return d >= c60 && d < c30
+    }))
 
-    if (highlightType === 0) return fallback0()
-
-    if (highlightType === 1) {
-      const now = new Date()
-      const thisMonth = finished.filter(w => {
-        const d = new Date(w.started_at)
-        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-      })
-      if (!thisMonth.length) return fallback0()
-      const freq = {}
-      thisMonth.forEach(w => {
-        const names = new Set((w.workout_exercises || []).map(we => we.exercises?.name).filter(Boolean))
-        names.forEach(n => { freq[n] = (freq[n] || 0) + 1 })
-      })
-      const top = Object.entries(freq).sort((a, b) => b[1] - a[1])[0]
-      if (!top) return fallback0()
-      const n = top[1]
-      return {
-        label: 'Ejercicio más frecuente',
-        title: top[0],
-        value: `${n} ${n === 1 ? 'vez' : 'veces'}`,
-        sub: `Lo entrenaste ${n} ${n === 1 ? 'vez' : 'veces'} este mes.`,
-      }
-    }
-
-    if (highlightType === 2) {
-      const withVol = finished.map(w => {
-        const vol = (w.workout_exercises || []).reduce((s, we) =>
-          s + (we.sets || []).reduce((s2, set) => s2 + (set.weight || 0) * (set.reps || 0), 0), 0)
-        return { ...w, vol: Math.round(vol) }
-      }).filter(w => w.vol > 0).sort((a, b) => b.vol - a.vol)
-      const best = withVol[0]
-      if (!best) return fallback0()
-      const date = new Date(best.started_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
-      const fmt = best.vol >= 10000 ? `${(best.vol / 1000).toFixed(1)}k kg` : `${best.vol.toLocaleString()} kg`
-      return {
-        label: 'Mejor sesión',
-        title: best.name,
-        value: fmt,
-        sub: `Volumen total el ${date}.`,
-      }
-    }
-
-    if (highlightType === 3) {
-      const now = new Date()
-      const c30 = new Date(now); c30.setDate(c30.getDate() - 30)
-      const c60 = new Date(now); c60.setDate(c60.getDate() - 60)
-      const recent = finished.filter(w => new Date(w.started_at) >= c30)
-      const prev = finished.filter(w => { const d = new Date(w.started_at); return d >= c60 && d < c30 })
-      const recentMap = getBestRMMap(recent)
-      const prevMap = getBestRMMap(prev)
-      let topGain = null
-      Object.entries(recentMap).forEach(([name, { rm }]) => {
-        if (!prevMap[name] || prevMap[name].rm === 0) return
-        const gain = ((rm - prevMap[name].rm) / prevMap[name].rm) * 100
-        if (gain > 0 && (!topGain || gain > topGain.gain)) topGain = { name, gain: Math.round(gain) }
-      })
-      if (!topGain) return fallback0()
+    let topGain = null
+    Object.entries(recentMap).forEach(([name, { rm }]) => {
+      if (!prevMap[name] || prevMap[name].rm === 0) return
+      const gain = ((rm - prevMap[name].rm) / prevMap[name].rm) * 100
+      if (gain > 0 && (!topGain || gain > topGain.gain)) topGain = { name, gain: Math.round(gain) }
+    })
+    if (topGain) {
       return {
         label: 'Mayor progreso',
         title: topGain.name,
@@ -849,21 +879,18 @@ export default function Training() {
       }
     }
 
-    return fallback0()
-  }, [workouts, highlightType])
-
-  // ── Helpers visuales ─────────────────────────────────────────────────
-  const getMotivation = (pct) => {
-    if (pct >= 100) return 'Meta cumplida. Crea una nueva.'
-    if (pct >= 75)  return 'Ya casi. Te falta poco.'
-    if (pct >= 50)  return 'Vas por la mitad. Sigue así.'
-    if (pct >= 25)  return 'Buen arranque. Mantén el ritmo.'
-    return 'Apenas empiezas. Suma tu próximo entreno.'
-  }
-
-  // On-palette + AA in every theme: success green at 100%, muted otherwise.
-  // (No off-system amber; the % badge and bar already encode the tier.)
-  const getMotivationColor = (pct) => (pct >= 100 ? 'var(--c-success)' : 'var(--c-text-muted)')
+    // 2) Sin comparación posible todavía: el mejor 1RM estimado de siempre.
+    const best = Object.entries(bestRMMap(finished))
+      .map(([name, d]) => ({ name, ...d }))
+      .sort((a, b) => b.rm - a.rm)[0]
+    if (!best) return null
+    return {
+      label: 'Mejor levantamiento',
+      title: best.name,
+      value: `${best.rm} ${best.unit}`,
+      sub: 'Tu mejor 1RM estimado de todos los tiempos.',
+    }
+  }, [workouts])
 
   // ─────────────────────────────────────────────────────────────────────
   return (
@@ -871,41 +898,56 @@ export default function Training() {
       <div className="w-full px-4 pt-10 pb-10 max-w-[480px] mx-auto md:max-w-none md:px-8 md:py-8">
 
         {/* ── Header — esta es la portada de la app: la fecha y el saludo,
-            no un título de sección. ── */}
-        <div className="fade-in flex items-start mb-6 md:mb-8">
-          <div>
+            no un título de sección. El avatar es el acceso a Perfil, igual que
+            en el sidebar de escritorio; ya no hay chip de Progreso porque esa
+            sección tiene pestaña propia en la barra inferior. ── */}
+        <div className="fade-in flex items-start justify-between gap-4 mb-6 md:mb-8">
+          <div style={{ minWidth: 0 }}>
             {/* Fecha — eyebrow mono en azul (dato) */}
             <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-data)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
-              {dateStr}
+              {todayLabel()}
             </p>
             <h1 className="text-[30px] md:text-[36px]" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
               {getGreeting()}{firstName ? `, ${firstName}` : ''}
             </h1>
-            {/* Acceso a progreso — chip tappable, legible */}
-            <button
-              onClick={() => navigate('/progreso')}
-              style={{ marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '999px', padding: '7px 14px', fontFamily: 'var(--font-mono)', color: 'var(--c-accent)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', transition: 'background 150ms, border-color 150ms' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-action-dim)'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--c-surface)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
-            >
-              Progreso <span aria-hidden="true" style={{ fontSize: '13px' }}>→</span>
-            </button>
           </div>
+          <button
+            onClick={() => navigate('/profile')}
+            aria-label="Perfil y ajustes"
+            title="Perfil y ajustes"
+            className="md:hidden"
+            style={{
+              width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
+              color: 'var(--c-action-text)', fontSize: '18px', fontWeight: 900, letterSpacing: '-0.02em',
+            }}
+          >
+            {(profile?.name || '?').charAt(0).toUpperCase()}
+          </button>
         </div>
 
-        {/* ── Loading skeleton — foreshadows CTA · resumen · gráfico ── */}
+        {/* ── Loading skeleton — mismo orden que el contenido real: CTA ·
+            resumen (2 números) · fila de chips · gráfico. Antes prometía tres
+            números y ningún chip, así que la página saltaba al cargar. ── */}
         {loading && (
           <div aria-hidden="true" style={{ marginBottom: '24px' }}>
             {/* CTA */}
             <div className="skeleton" style={{ height: '56px', borderRadius: '14px', marginBottom: '28px' }} />
-            {/* Resumen semanal: eyebrow + 3 números */}
+            {/* Resumen semanal: eyebrow + 2 números */}
             <div className="skeleton" style={{ height: '10px', width: '96px', borderRadius: '6px', marginBottom: '16px' }} />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
-              {[...Array(3)].map((_, i) => (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '20px' }}>
+              {[...Array(2)].map((_, i) => (
                 <div key={i}>
                   <div className="skeleton" style={{ height: '38px', borderRadius: '10px', marginBottom: '8px' }} />
                   <div className="skeleton" style={{ height: '8px', width: '70%', borderRadius: '6px' }} />
                 </div>
+              ))}
+            </div>
+            {/* Fila de chips */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '32px' }}>
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="skeleton" style={{ flex: 1, height: '60px', borderRadius: '12px' }} />
               ))}
             </div>
             {/* Gráfico */}
@@ -920,7 +962,7 @@ export default function Training() {
               onClick={fetchWorkouts}
               style={{
                 flexShrink: 0,
-                color: 'var(--c-accent)', fontSize: '12px', fontWeight: 700,
+                color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700,
                 border: '1px solid var(--c-accent-border)', borderRadius: '8px',
                 padding: '6px 12px', background: 'transparent',
               }}
@@ -989,71 +1031,104 @@ export default function Training() {
                 {startingWorkout ? 'Creando entreno...' : 'Empezar entreno'}
               </button>
             ) : (
-              /* Con ciclo activo: opción secundaria para entreno libre */
-              <button
-                onClick={handleStartWorkout}
-                disabled={startingWorkout}
-                style={{
-                  width: '100%',
-                  background: 'transparent',
-                  color: 'var(--c-text-dim)',
-                  border: '1px solid var(--c-border-subtle)',
-                  borderRadius: '12px',
-                  padding: '11px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  letterSpacing: '-0.01em',
-                  transition: 'opacity 150ms',
-                  opacity: startingWorkout ? 0.6 : 1,
-                }}
-              >
-                {startingWorkout ? 'Creando entreno...' : 'Empezar entreno libre'}
-              </button>
+              /* Con ciclo activo la tarjeta ya es el CTA; el entreno libre baja
+                 a enlace para no ser un tercer botón compitiendo con ella. */
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <button
+                  onClick={handleStartWorkout}
+                  disabled={startingWorkout}
+                  style={{
+                    background: 'transparent',
+                    color: 'var(--c-text-dim)',
+                    border: 'none',
+                    minHeight: '44px',
+                    padding: '0 12px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    letterSpacing: '-0.01em',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '3px',
+                    transition: 'opacity 150ms, color 150ms',
+                    opacity: startingWorkout ? 0.6 : 1,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)' }}
+                >
+                  {startingWorkout ? 'Creando entreno...' : 'Empezar entreno libre'}
+                </button>
+              </div>
             )}
           </div>
         )}
 
-        {/* ── Calendario — lo planeado y lo hecho sobre la misma rejilla ── */}
+        {/* ── Resumen — los números de la semana y la fila de un vistazo.
+            Sube por encima del calendario: en el gimnasio lo primero que se
+            busca después del CTA es "¿cómo voy?", no planear el mes. ── */}
         {!loading && !error && (
-          <section className="fade-in" style={{ marginBottom: '20px', animationDelay: '30ms' }}>
-            <Calendar
-              workouts={workouts}
-              sessions={sessions}
-              routines={routines}
-              onSelectDay={setSelectedDay}
-            />
+          <div className="fade-in" style={{ marginBottom: '28px', animationDelay: '40ms' }}>
+            {workouts.length > 0 && (
+              <>
+                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
+                  Esta semana
+                </p>
+                {/* El volumen ya no vive aquí: es el subtítulo de su propio
+                    gráfico, que muestra exactamente la misma semana. */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                  {[
+                    { value: stats.count, label: stats.count === 1 ? 'entreno' : 'entrenos' },
+                    { value: stats.thisMonth, label: 'días este mes' },
+                  ].map((s, i) => (
+                    <div key={s.label} style={{ paddingLeft: i > 0 ? '16px' : 0, borderLeft: i > 0 ? '1px solid var(--c-border-subtle)' : 'none' }}>
+                      <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '42px', letterSpacing: '-0.04em', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', marginBottom: '8px' }}>
+                        {s.value}
+                      </p>
+                      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
+                        {s.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
 
-            {/* Dos datos con los que se juega: constancia y lo que viene. */}
-            <div style={{ display: 'flex', alignItems: 'stretch', gap: '8px', marginTop: '10px' }}>
-              <TodayChip
+            {/* Una sola fila de chips. Cada uno es un dato vivo y, a la vez, la
+                entrada a la sección donde vive — Nutrición y Perfil ya no
+                necesitan una fila de accesos aparte. */}
+            <nav
+              aria-label="Resumen de hoy"
+              style={{
+                display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', gap: '8px',
+                marginTop: workouts.length > 0 ? '20px' : 0,
+              }}
+            >
+              <Chip
                 label="racha"
                 value={streak > 0 ? `${streak} ${streak === 1 ? 'semana' : 'semanas'}` : '—'}
                 hint={streak > 0 ? null : 'Entrena esta semana'}
                 onClick={() => navigate('/progreso')}
               />
-              <TodayChip
-                label="próximo"
-                value={nextPlanned ? (nextPlanned.title || KINDS[nextPlanned.kind]?.label || '—') : '—'}
-                hint={nextPlanned ? null : 'Toca un día para planear'}
-                onClick={() => setSelectedDay(
-                  nextPlanned ? new Date(`${nextPlanned.date}T00:00:00`) : new Date()
-                )}
+              <Chip
+                label="kcal hoy"
+                value={kcalToday > 0 ? `${kcalToday.toLocaleString('es-CO')} / ${kcalTarget.toLocaleString('es-CO')}` : '—'}
+                hint={kcalToday > 0 ? null : 'Registra tu comida'}
+                onClick={() => navigate('/nutrition')}
               />
-            </div>
-          </section>
-        )}
-
-        {/* ── Índice de secciones — antes una pantalla aparte (Menú) ── */}
-        {!loading && !error && (
-          <nav
-            aria-label="Secciones"
-            className="fade-in"
-            style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '28px', animationDelay: '50ms' }}
-          >
-            {sectionRows.map(r => (
-              <SectionChip key={r.title} {...r} onNavigate={navigate} />
-            ))}
-          </nav>
+              <Chip
+                label="peso corporal"
+                value={latestWeight ? `${latestWeight.weight} ${latestWeight.unit}` : '—'}
+                hint={latestWeight ? null : 'Aún sin registrar'}
+                onClick={() => navigate('/profile')}
+              />
+              {profile?.is_trainer && (
+                <Chip
+                  label="coach"
+                  live={unread > 0}
+                  value={unread > 0 ? `${unread} sin leer` : 'Tus clientes'}
+                  onClick={() => navigate('/coach')}
+                />
+              )}
+            </nav>
+          </div>
         )}
 
         {/* ── Rutinas de un día asignadas por el entrenador ── */}
@@ -1066,8 +1141,8 @@ export default function Training() {
                   : 'De tu entrenador'}
               </p>
               <span style={{
-                background: 'var(--c-accent-dim)', color: 'var(--c-accent)',
-                fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
+                background: 'var(--c-accent-dim)', color: 'var(--c-action-text)',
+                fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
                 padding: '2px 7px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
               }}>
                 Coach
@@ -1129,46 +1204,6 @@ export default function Training() {
         {/* ── Contenido principal ── */}
         {!loading && !error && workouts.length > 0 && (
           <>
-            {/* ── Resumen semanal — el número es el héroe, sin tarjeta ── */}
-            <div className="fade-in" style={{ marginBottom: '32px', animationDelay: '40ms' }}>
-              <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
-                Esta semana
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
-                {[
-                  { value: stats.count, label: stats.count === 1 ? 'entreno' : 'entrenos' },
-                  { value: formatVolume(stats.weekVolume), label: 'kg de volumen' },
-                  { value: stats.thisMonth, label: 'días este mes' },
-                ].map((s, i) => (
-                  <div key={s.label} style={{ paddingLeft: i > 0 ? '16px' : 0, borderLeft: i > 0 ? '1px solid var(--c-border-subtle)' : 'none' }}>
-                    <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '42px', letterSpacing: '-0.04em', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', marginBottom: '8px' }}>
-                      {s.value}
-                    </p>
-                    <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
-                      {s.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* ── Hoy: nutrición + peso ── Viven en otras secciones, pero son
-                  datos de hoy, así que la portada los declara y lleva allí. */}
-              <div style={{ display: 'flex', alignItems: 'stretch', gap: '8px', marginTop: '20px' }}>
-                <TodayChip
-                  label="kcal hoy"
-                  value={kcalToday > 0 ? `${kcalToday.toLocaleString('es-CO')} / ${kcalTarget.toLocaleString('es-CO')}` : '—'}
-                  hint={kcalToday > 0 ? null : 'Registra tu comida'}
-                  onClick={() => navigate('/nutrition')}
-                />
-                <TodayChip
-                  label="peso corporal"
-                  value={latestWeight ? `${latestWeight.weight} ${latestWeight.unit}` : '—'}
-                  hint={latestWeight ? null : 'Aún sin registrar'}
-                  onClick={() => navigate('/profile')}
-                />
-              </div>
-            </div>
-
             {/* Grid: gráfico (izq) · señal ganada + metas (der) */}
             <div className="md:grid md:grid-cols-[1fr_360px] md:gap-x-6 md:items-start">
 
@@ -1241,130 +1276,14 @@ export default function Training() {
                   </div>
                 ) : null}
 
-                {/* ── Metas ── */}
-                <div style={{
-                  background: 'var(--c-surface)',
-                  border: '1px solid var(--c-border-subtle)',
-                  borderRadius: '16px',
-                  padding: '20px',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                    <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                      Mis metas
-                    </p>
-                    <button
-                      onClick={() => setShowGoalModal(true)}
-                      style={{
-                        color: 'var(--c-accent)', fontSize: '22px', lineHeight: 1, fontWeight: 300,
-                        minWidth: '44px', minHeight: '44px', margin: '-11px -10px -11px 0',
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        transition: 'opacity 150ms',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-                      onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                      aria-label="Agregar meta"
-                      title="Agregar meta"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  {goalProgress.length === 0 ? (
-                    /* Empty state humanizado */
-                    <div style={{
-                      background: 'var(--c-surface-2)',
-                      borderRadius: '12px',
-                      padding: '18px 16px',
-                    }}>
-                      <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-                        Todavía no tienes metas activas.
-                      </p>
-                      <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 400, lineHeight: 1.5, marginBottom: '14px' }}>
-                        Define una meta de fuerza o frecuencia para medir tu progreso real.
-                      </p>
-                      <button
-                        onClick={() => setShowGoalModal(true)}
-                        style={{
-                          background: 'transparent',
-                          color: 'var(--c-accent)',
-                          border: '1px solid var(--c-action-border)',
-                          borderRadius: '8px',
-                          padding: '8px 14px',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          transition: 'background 150ms, border-color 150ms',
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-action-dim)'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
-                      >
-                        Crear meta
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {goalProgress.map(goal => (
-                        <div key={goal.id}>
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              {/* Goal label: sentence case, sin uppercase */}
-                              <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>
-                                {goal.label}
-                              </p>
-                              <p style={{ color: getMotivationColor(goal.pct), fontSize: '11px', fontWeight: 500 }}>
-                                {getMotivation(goal.pct)}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => goalDelete.request(goal, {
-                                deletedMsg: `Meta «${goal.label}» eliminada. Toca deshacer para recuperarla.`,
-                                restoredMsg: `Meta «${goal.label}» restaurada.`,
-                              })}
-                              style={{ color: 'var(--c-text-muted)', fontSize: '13px', minWidth: '44px', minHeight: '44px', margin: '-12px -10px -12px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 120ms' }}
-                              onMouseEnter={e => e.currentTarget.style.color = 'var(--c-accent)'}
-                              onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
-                              aria-label={`Eliminar meta: ${goal.label}`}
-                              title="Eliminar meta"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                          {/* Barra de progreso */}
-                          <div
-                            style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', marginBottom: '6px', overflow: 'hidden' }}
-                            role="progressbar"
-                            aria-valuenow={goal.pct}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-label={goal.label}
-                          >
-                            <div style={{
-                              height: '100%',
-                              width: '100%',
-                              transformOrigin: 'left center',
-                              transform: `scaleX(${goal.pct / 100})`,
-                              background: goal.pct >= 100 ? 'var(--c-record)' : 'var(--c-action)',
-                              borderRadius: '999px',
-                              transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
-                            }} />
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500 }}>
-                              {goal.type === 'days_trained'
-                                ? `${goal.current} / ${goal.target_value} días este mes`
-                                : goal.target_reps
-                                  ? `${goal.current} / ${goal.target_value} ${goal.unit} × ${goal.target_reps} reps`
-                                  : `${goal.current} / ${goal.target_value} ${goal.unit} (1RM est.)`
-                              }
-                            </span>
-                            <span style={{ fontSize: '10px', fontWeight: 700, color: goal.pct >= 100 ? 'var(--c-success)' : 'var(--c-text-dim)' }}>
-                              {goal.pct}%
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <GoalsCard
+                  goals={goalProgress}
+                  onAdd={() => setShowGoalModal(true)}
+                  onDelete={goal => goalDelete.request(goal, {
+                    deletedMsg: `Meta «${goal.label}» eliminada. Toca deshacer para recuperarla.`,
+                    restoredMsg: `Meta «${goal.label}» restaurada.`,
+                  })}
+                />
 
               </div>
               {/* fin columna derecha */}
@@ -1378,12 +1297,57 @@ export default function Training() {
                   chartData={stats.chartData}
                   height={160}
                   title="Volumen semanal"
+                  subtitle={`${formatVolume(stats.weekVolume)} kg esta semana`}
                   colors={chartColors}
                 />
               </div>
 
             </div>
           </>
+        )}
+
+        {/* ── Metas sin entrenos todavía ──
+            Definir una meta es justo lo que hace quien aún no ha registrado
+            nada; antes la tarjeta estaba dentro del bloque "hay entrenos" y
+            por tanto era inalcanzable en el primer uso. */}
+        {!loading && !error && workouts.length === 0 && (
+          <div className="fade-in" style={{ marginBottom: '20px', animationDelay: '60ms' }}>
+            <GoalsCard
+              goals={goalProgress}
+              onAdd={() => setShowGoalModal(true)}
+              onDelete={goal => goalDelete.request(goal, {
+                deletedMsg: `Meta «${goal.label}» eliminada. Toca deshacer para recuperarla.`,
+                restoredMsg: `Meta «${goal.label}» restaurada.`,
+              })}
+            />
+          </div>
+        )}
+
+        {/* ── Calendario — lo planeado y lo hecho sobre la misma rejilla.
+            Baja por debajo de los números: planear el mes es una tarea de
+            sofá, no de gimnasio, y ocupaba una pantalla entera antes del
+            primer dato. ── */}
+        {!loading && !error && (
+          <section className="fade-in" style={{ marginBottom: '20px', animationDelay: '120ms' }}>
+            <Calendar
+              workouts={workouts}
+              sessions={sessions}
+              routines={routines}
+              onSelectDay={setSelectedDay}
+            />
+
+            {/* Lo que viene — la entrada a planear un día concreto. */}
+            <div style={{ display: 'flex', alignItems: 'stretch', marginTop: '10px' }}>
+              <Chip
+                label="próximo"
+                value={nextPlanned ? (nextPlanned.title || KINDS[nextPlanned.kind]?.label || '—') : '—'}
+                hint={nextPlanned ? null : 'Toca un día para planear'}
+                onClick={() => setSelectedDay(
+                  nextPlanned ? new Date(`${nextPlanned.date}T00:00:00`) : new Date()
+                )}
+              />
+            </div>
+          </section>
         )}
 
       </div>
