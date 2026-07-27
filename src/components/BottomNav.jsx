@@ -124,10 +124,11 @@ function StartAction({ onClick }) {
 }
 
 // ── Nav ───────────────────────────────────────────────────────────────
-// Perfil | Inicio | [+] | Progreso | Rutinas
+// Inicio | Progreso | [+] | Rutinas | Perfil
 //
-// Perfil ocupa el extremo izquierdo: es a donde se va a configurar, no a
-// entrenar, así que vive en el borde y no compite con Inicio por el centro.
+// Inicio recupera el extremo izquierdo (es donde empieza la lectura) y Perfil
+// se va al derecho: se entra a configurar de vez en cuando, así que ocupa la
+// esquina más lejana del pulgar y no le disputa el sitio a lo que se usa.
 //
 // "Ejercicios" ya no es pestaña. Clasificar y vincular ejercicios es
 // mantenimiento que se hace de vez en cuando, no una de las cinco cosas que
@@ -165,11 +166,11 @@ export default function BottomNav({ onStart }) {
         maxWidth: '480px', margin: '0 auto',
         height: '60px', padding: '0 4px',
       }}>
-        <TabItem to="/profile"  label="Perfil"   Icon={PerfilIcon} />
         <TabItem to="/"         label="Inicio"   Icon={BarbellIcon} exact />
-        <StartAction onClick={onStart} />
         <TabItem to="/progreso" label="Progreso" Icon={HistoryIcon} />
+        <StartAction onClick={onStart} />
         <TabItem to="/rutinas"  label="Rutinas"  Icon={ProgramaIcon} />
+        <TabItem to="/profile"  label="Perfil"   Icon={PerfilIcon} />
       </div>
     </nav>
   )
