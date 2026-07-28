@@ -6,7 +6,7 @@ import RestTimerPill from '../components/RestTimerPill'
 import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } from '../hooks/useWorkout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { hoverColor, ERROR_STYLE } from '../lib/ui'
+import { hoverColor, ERROR_STYLE, pressable } from '../lib/ui'
 import { useWorkouts } from '../hooks/useWorkout'
 import { Sheet, Button, LiveRegion, UndoSnackbar } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
@@ -356,8 +356,10 @@ function LoggingPrimer({ onDismiss }) {
         onClick={onDismiss}
         aria-label="Entendido, no mostrar de nuevo"
         style={{ position: 'absolute', top: '8px', right: '8px', color: 'var(--c-text-ghost)', fontSize: '14px', lineHeight: 1, padding: '6px' }}
-        onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text-dim)' }}
-        onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
+        {...pressable(0.97, {
+          onMouseEnter: e => { e.currentTarget.style.color = 'var(--c-text-dim)' },
+          onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-ghost)' },
+        })}
       >
         ✕
       </button>
@@ -858,8 +860,10 @@ export default function ActiveWorkout() {
                   padding: '6px 12px', background: 'transparent',
                   transition: 'color 150ms var(--ease-out)',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-action-text)' }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
+                {...pressable(0.97, {
+                  onMouseEnter: e => { e.currentTarget.style.color = 'var(--c-action-text)' },
+                  onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-ghost)' },
+                })}
               >
                 Descartar entreno
               </button>
@@ -883,8 +887,10 @@ export default function ActiveWorkout() {
                   borderRadius: '10px', transition: 'color 150ms, border-color 150ms',
                   background: 'transparent', cursor: 'pointer',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+                {...pressable(0.97, {
+                  onMouseEnter: e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' },
+                  onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' },
+                })}
               >
                 Editar entreno
               </button>
@@ -908,8 +914,10 @@ export default function ActiveWorkout() {
                 borderRadius: '10px', transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
                 background: 'transparent', cursor: 'pointer',
               }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-action-text)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+              {...pressable(0.97, {
+                onMouseEnter: e => { e.currentTarget.style.color = 'var(--c-action-text)'; e.currentTarget.style.borderColor = 'var(--c-accent)' },
+                onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' },
+              })}
             >
               Eliminar este entreno
             </button>

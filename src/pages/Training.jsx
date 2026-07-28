@@ -15,12 +15,13 @@ import { useInvites } from '../hooks/useInvites'
 import { useTheme } from '../hooks/useTheme'
 import { useSchedule } from '../hooks/useSchedule'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
-import { ERROR_STYLE } from '../lib/ui'
+import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Sheet, Field, Button, LiveRegion, UndoSnackbar, UnitToggle } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import Calendar from '../components/calendar/Calendar'
 import DaySheet from '../components/calendar/DaySheet'
 import { computeStreak, mondayOf, KINDS } from '../lib/calendar'
+import { calc1RM } from '../lib/progress'
 
 // Chart colors must be literal hex — CSS vars don't resolve in recharts SVG attrs.
 const CHART_COLORS = {
@@ -47,12 +48,6 @@ function getGreeting() {
   if (h < 12) return 'Buenos días'
   if (h < 19) return 'Buenas tardes'
   return 'Buenas noches'
-}
-
-// 1RM estimado (Epley) — una sola definición para toda la portada.
-function calc1RM(weight, reps) {
-  if (!weight || !reps || reps <= 0) return 0
-  return Math.round(weight * (1 + reps / 30))
 }
 
 // ── Format volume ─────────────────────────────────────────────────────────
@@ -350,10 +345,13 @@ function Chip({ label, value, hint, live, onClick }) {
         display: 'flex', flexDirection: 'column', gap: '4px',
         background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
         borderRadius: '12px', padding: '11px 12px', minHeight: '44px',
-        cursor: 'pointer', transition: 'border-color 150ms var(--ease-out)',
+        cursor: 'pointer',
+        transition: `border-color 150ms var(--ease-out), ${PRESS_TRANSITION}`,
       }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-border)' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+      {...pressable(0.97, {
+        onMouseEnter: e => { e.currentTarget.style.borderColor = 'var(--c-border)' },
+        onMouseLeave: e => { e.currentTarget.style.borderColor = 'var(--c-border-subtle)' },
+      })}
     >
       <span style={{
         display: 'flex', alignItems: 'center', gap: '5px',

@@ -5,6 +5,7 @@ import AddExerciseModal from '../components/AddExerciseModal'
 import ShareRoutineSheet from '../components/ShareRoutineSheet'
 import { useRoutines } from '../hooks/useRoutines'
 import { useAuth } from '../hooks/useAuth'
+import { pressable } from '../lib/ui'
 
 const eyebrow = { fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }
 
@@ -47,8 +48,10 @@ function ExerciseRowEditor({ exercise, onUpdate, onRemove }) {
       <button
         onClick={onRemove}
         style={{ flexShrink: 0, color: 'var(--c-text-ghost)', fontSize: '13px', padding: '4px', transition: 'color 150ms' }}
-        onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
-        onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+        {...pressable(0.97, {
+          onMouseEnter: e => e.currentTarget.style.color = 'var(--c-action-text)',
+          onMouseLeave: e => e.currentTarget.style.color = 'var(--c-text-ghost)',
+        })}
         aria-label="Quitar ejercicio"
       >
         ✕
@@ -92,8 +95,10 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
           <button
             onClick={onRemoveDay}
             style={{ flexShrink: 0, color: 'var(--c-text-ghost)', fontSize: '13px', padding: '4px', transition: 'color 150ms' }}
-            onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}
+            {...pressable(0.97, {
+              onMouseEnter: e => e.currentTarget.style.color = 'var(--c-action-text)',
+              onMouseLeave: e => e.currentTarget.style.color = 'var(--c-text-ghost)',
+            })}
             aria-label="Eliminar día"
           >
             🗑
@@ -126,8 +131,10 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
           color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em',
           transition: 'background 150ms, border-color 150ms',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
+        {...pressable(0.97, {
+          onMouseEnter: e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-accent)' },
+          onMouseLeave: e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--c-border)' },
+        })}
       >
         + Agregar ejercicio
       </button>
@@ -196,8 +203,10 @@ export default function RoutineDetail() {
               border: '1px solid var(--c-accent-border)', borderRadius: '8px',
               background: 'transparent', transition: 'background 150ms var(--ease-out)',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            {...pressable(0.97, {
+              onMouseEnter: e => e.currentTarget.style.background = 'var(--c-accent-dim)',
+              onMouseLeave: e => e.currentTarget.style.background = 'transparent',
+            })}
           >
             Compartir
           </button>

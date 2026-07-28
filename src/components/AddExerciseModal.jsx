@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useWorkouts } from '../hooks/useWorkout'
 import { Sheet, Button } from './ui'
 import { MUSCLE_GROUPS } from '../lib/muscleGroups'
+import { pressable } from '../lib/ui'
 
 /* ── Add / Swap Exercise Modal ──────────────────────────────────────────
  * Reused by the active workout (add/swap) and the routine editor. onAdd is
@@ -108,8 +109,10 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                 color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em',
                 transition: 'background 120ms var(--ease-out), border-color 120ms var(--ease-out)',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-action-dim)'; e.currentTarget.style.borderColor = 'var(--c-action-border)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
+              {...pressable(0.97, {
+                onMouseEnter: e => { e.currentTarget.style.background = 'var(--c-action-dim)'; e.currentTarget.style.borderColor = 'var(--c-action-border)' },
+                onMouseLeave: e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' },
+              })}
             >
               {g}
             </button>
@@ -161,8 +164,10 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                 transition: `background 120ms var(--ease-out)`,
                 display: 'block',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--c-surface-2)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              {...pressable(0.97, {
+                onMouseEnter: e => e.currentTarget.style.background = 'var(--c-surface-2)',
+                onMouseLeave: e => e.currentTarget.style.background = 'transparent',
+              })}
             >
               {ex.name}
             </button>
@@ -185,8 +190,10 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                 marginTop: '8px',
                 transition: `background 120ms var(--ease-out), border-color 120ms var(--ease-out)`,
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
+              {...pressable(0.97, {
+                onMouseEnter: e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-accent)' },
+                onMouseLeave: e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--c-border)' },
+              })}
             >
               + Crear "{query.trim()}"
             </button>
@@ -212,8 +219,10 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                       fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em',
                       borderRadius: '6px', transition: 'background 120ms var(--ease-out)',
                     }}
-                    onMouseEnter={e => { if (!isAdded) e.currentTarget.style.background = 'var(--c-surface-2)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                    {...pressable(0.97, {
+                      onMouseEnter: e => { if (!isAdded) e.currentTarget.style.background = 'var(--c-surface-2)' },
+                      onMouseLeave: e => { e.currentTarget.style.background = 'transparent' },
+                    })}
                   >
                     {name}
                     <span style={{ flexShrink: 0, color: isAdded ? 'var(--c-success)' : 'var(--c-text-ghost)', fontSize: '14px', fontWeight: 800 }}>

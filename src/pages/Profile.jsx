@@ -11,7 +11,7 @@ import { useTrainer } from '../hooks/useTrainer'
 import { useInvites } from '../hooks/useInvites'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { useTheme } from '../hooks/useTheme'
-import { ERROR_STYLE } from '../lib/ui'
+import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Button, Sheet, UnitToggle } from '../components/ui'
 
 // Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
@@ -54,10 +54,12 @@ function Disclosure({ title, summary, open, onToggle, children }) {
         type="button"
         onClick={onToggle}
         aria-expanded={open}
+        {...pressable(0.985)}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
           width: '100%', textAlign: 'left', cursor: 'pointer',
           padding: '16px 20px', minHeight: '44px', background: 'transparent',
+          transition: PRESS_TRANSITION,
         }}
       >
         <span style={{ minWidth: 0 }}>
@@ -100,11 +102,13 @@ function LinkRow({ label, hint, onClick }) {
     <button
       type="button"
       onClick={onClick}
+      {...pressable()}
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
         width: '100%', textAlign: 'left', cursor: 'pointer', minHeight: '44px',
         background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
         borderRadius: '12px', padding: '12px 14px',
+        transition: PRESS_TRANSITION,
       }}
     >
       <span style={{ minWidth: 0 }}>
@@ -1282,10 +1286,12 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => navigate('/admin')}
+                {...pressable(0.985)}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
                   width: '100%', textAlign: 'left', cursor: 'pointer',
                   padding: '16px 20px', minHeight: '44px', background: 'transparent',
+                  transition: PRESS_TRANSITION,
                 }}
               >
                 <span style={{ minWidth: 0 }}>

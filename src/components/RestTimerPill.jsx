@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { SPRING_POP } from '../lib/motion'
+import { pressable } from '../lib/ui'
 
 /*
  * The rest-timer pill — the floating control DESIGN.md reserves the
@@ -118,8 +119,10 @@ export default function RestTimerPill({ restId, endsAt, total, onExtend, onDismi
             color: 'var(--c-text-dim)', background: 'transparent', borderRadius: '999px',
             transition: 'color 120ms',
           }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)' }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)' }}
+          {...pressable(0.92, {
+            onMouseEnter: e => { e.currentTarget.style.color = 'var(--c-text)' },
+            onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-dim)' },
+          })}
         >
           +30
         </button>
@@ -135,8 +138,10 @@ export default function RestTimerPill({ restId, endsAt, total, onExtend, onDismi
           background: 'transparent', borderRadius: '999px',
           transition: 'color 120ms',
         }}
-        onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)' }}
-        onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-ghost)' }}
+        {...pressable(0.92, {
+          onMouseEnter: e => { e.currentTarget.style.color = 'var(--c-text)' },
+          onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-ghost)' },
+        })}
       >
         ✕
       </button>

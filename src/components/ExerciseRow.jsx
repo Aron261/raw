@@ -8,6 +8,7 @@ import { calc1RM, useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWo
 import { useAuth } from '../hooks/useAuth'
 import { useExerciseLang } from '../hooks/useExerciseLang'
 import { UnitToggle } from './ui'
+import { pressable, PRESS_TRANSITION } from '../lib/ui'
 
 // Rest between sets: the routine's prescription wins, then the lifter's own
 // per-exercise choice (localStorage — a device preference, not history), then 90s.
@@ -275,7 +276,11 @@ export default function ExerciseRow({
             onClick={toggleExpand}
             aria-label="Mostrar series"
             aria-expanded={expanded}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left', minWidth: 0 }}
+            {...pressable(0.985)}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left', minWidth: 0,
+              transformOrigin: 'left center', transition: PRESS_TRANSITION,
+            }}
           >
             <span style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {exLabel(exercise)}

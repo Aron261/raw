@@ -28,11 +28,9 @@ const newSetId = () => {
   })
 }
 
-// Calculate estimated 1RM using Epley formula
-export const calc1RM = (weight, reps) => {
-  if (reps === 1) return weight
-  return Math.round(weight * (1 + reps / 30) * 10) / 10
-}
+// Epley vive en lib/progress (módulo puro, junto a la comparación que lo usa).
+// Se reexporta aquí porque media app la importa de este hook.
+export { calc1RM } from '../lib/progress'
 
 // Calculate total volume for a list of sets, normalizado a kg.
 // Si el set tiene unit='lb', convierte antes de sumar.

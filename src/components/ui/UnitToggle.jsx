@@ -13,6 +13,8 @@
 // voz alta en cuál está y qué pasa al tocarlo, así que el aria-label nombra las
 // dos. El glifo ⇄ es la señal visual de que esto se puede tocar; sin él, una
 // unidad suelta se lee como una etiqueta muerta.
+import { pressable, PRESS_TRANSITION } from '../../lib/ui'
+
 export default function UnitToggle({
   value,
   units = ['kg', 'lb'],
@@ -69,9 +71,12 @@ export default function UnitToggle({
         display: 'inline-flex',
         alignItems: 'center',
         cursor: 'pointer',
+        transition: PRESS_TRANSITION,
       }}
-      onMouseEnter={e => { e.currentTarget.firstChild.style.borderColor = 'var(--c-action-border)' }}
-      onMouseLeave={e => { e.currentTarget.firstChild.style.borderColor = 'var(--c-border)' }}
+      {...pressable(0.93, {
+        onMouseEnter: e => { e.currentTarget.firstChild.style.borderColor = 'var(--c-action-border)' },
+        onMouseLeave: e => { e.currentTarget.firstChild.style.borderColor = 'var(--c-border)' },
+      })}
     >
       <span style={pill}>
         {current}

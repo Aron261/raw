@@ -3,7 +3,53 @@ import { animate, useReducedMotion } from 'motion/react'
 import { EASE_POP_KEYFRAMES, POP_DURATION } from '../lib/motion'
 import PRBadge from './PRBadge'
 import { calc1RM } from '../hooks/useWorkout'
+import { compareSet, formatDelta, describeDelta } from '../lib/progress'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
+import { pressable, PRESS_TRANSITION } from '../lib/ui'
+
+// ── Delta contra la misma serie de la vez anterior ───────────────────────
+// Azul de dato, no lima: la lima está reservada a un récord absoluto y superar
+// tu serie de la semana pasada no lo es. Y quedarse corto se dice en gris, no
+// en rojo: bajar el peso en una semana de descarga es el plan, no un fallo.
+function SetDelta({ cmp, unit }) {
+  if (!cmp) return null
+  const beat = cmp.verdict === 'beat'
+  return (
+    <div
+      className="fade-in"
+      style={{
+        display: 'flex', alignItems: 'baseline', gap: '6px',
+        // Alineado bajo los inputs, no bajo el número de serie: la comparación
+        // es de lo que acabas de teclear.
+        padding: '0 0 6px 24px',
+        marginTop: '-2px',
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700,
+          letterSpacing: '0.01em',
+          color: beat ? 'var(--c-data)' : 'var(--c-text-muted)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {formatDelta(cmp, unit)}
+      </span>
+      <span
+        aria-hidden="true"
+        style={{
+          fontSize: '11px', fontWeight: 500,
+          color: 'var(--c-text-muted)',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}
+      >
+        vs. la vez anterior
+      </span>
+      <span className="sr-only">{describeDelta(cmp, unit)}</span>
+    </div>
+  )
+}
 
 /*
  * One planned set row. A row may be backed by a saved set (`set`) or be an
@@ -95,6 +141,14 @@ export default function SetRow({
     return { set1RM: rm, isPR: rm > 0 && allTimeBest1RM > 0 && rm >= allTimeBest1RM }
   }, [weight, reps, allTimeBest1RM])
 
+  // ¿Superaste esta misma serie la vez pasada? Solo cuando está confirmada: en
+  // mitad de teclear el número aún no significa nada, y un veredicto que baila
+  // mientras escribes es ruido, no información.
+  const comparison = useMemo(
+    () => (done ? compareSet({ reps, weight }, previousSet) : null),
+    [done, reps, weight, previousSet]
+  )
+
   // Values default to the live state (typing/✓ path) but can be passed
   // explicitly by the debounced stepper save, which reads them from valuesRef.
   const persist = async (markDone, r = reps, w = weight) => {
@@ -171,6 +225,7 @@ export default function SetRow({
   if (readOnly) {
     if (!set) return null
     return (
+      <>
       <div style={rowStyle(done)}>
         <span style={numStyle}>{setNumber}</span>
         <span style={staticVal(56)}>{set.reps}</span>
@@ -181,6 +236,8 @@ export default function SetRow({
         {isPR && <PRBadge small />}
         {set1RM > 0 && <span style={rmStyle}>~{set1RM}</span>}
       </div>
+      <SetDelta cmp={compareSet({ reps: set.reps, weight: set.weight }, previousSet)} unit={unit} />
+      </>
     )
   }
 
@@ -288,19 +345,23 @@ export default function SetRow({
         onPointerDown={() => { committing.current = true }}
         onClick={() => { committing.current = false; onRemove(setNumber, set?.id) }}
         aria-label={`Quitar serie ${setNumber}`}
+        {...pressable(0.9, {
+          onMouseEnter: e => { e.currentTarget.style.color = 'var(--c-action-text)' },
+          onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-muted)' },
+        })}
         style={{
           flexShrink: 0,
           width: '36px', height: '44px',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           color: 'var(--c-text-muted)', fontSize: '14px', lineHeight: 1,
-          transition: 'color 150ms var(--ease-out)',
+          transition: `color 150ms var(--ease-out), ${PRESS_TRANSITION}`,
         }}
-        onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-action-text)' }}
-        onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-muted)' }}
       >
         ✕
       </button>
     </div>
+
+    <SetDelta cmp={comparison} unit={unit} />
 
     {saveError && (
       <div role="alert" style={errorCaptionStyle}>
