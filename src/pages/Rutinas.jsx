@@ -28,9 +28,9 @@ function sourceLabel(source) {
   return 'Personalizada'
 }
 
-function fmtDate(iso) {
+function fmtDate(iso, locale = 'es-CO') {
   if (!iso) return ''
-  return new Date(iso).toLocaleDateString('es-CO', { weekday: 'short', month: 'short', day: 'numeric' })
+  return new Date(iso).toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
 // Extract sorted exercises from a workout object
@@ -45,11 +45,12 @@ function workoutExercises(workout) {
 }
 
 function RoutineMeta({ routine, style = {} }) {
+  const { t } = useLang()
   return (
     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', ...style }}>
-      <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>{typeLabel(routine.type)}</span>
+      <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>{t(typeLabel(routine.type))}</span>
       <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>·</span>
-      <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>{sourceLabel(routine.source)}</span>
+      <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>{t(sourceLabel(routine.source))}</span>
       {routine.goal && <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {routine.goal}</span>}
       {routine.days_per_week && <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {routine.days_per_week} días/sem</span>}
       <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>
@@ -61,6 +62,7 @@ function RoutineMeta({ routine, style = {} }) {
 }
 
 function AssignedBadge() {
+  const { t } = useLang()
   return (
     <span style={{
       background: 'var(--c-accent-dim)', color: 'var(--c-action-text)',
@@ -108,9 +110,10 @@ const cardIconBtnHover = {
 const REFRESH_CYCLE_WEEKS = 12  // suggest refreshing a cycle after this long
 
 function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onShare }) {
+  const { t } = useLang()
   const activeLabel = weeksActive < 1
-    ? 'Recién activado'
-    : `Activo hace ${weeksActive} ${weeksActive === 1 ? 'semana' : 'semanas'}`
+    ? t('Recién activado')
+    : `${t('Activo hace')} ${weeksActive} ${t(weeksActive === 1 ? 'semana' : 'semanas')}`
   const shouldRefresh = weeksActive >= REFRESH_CYCLE_WEEKS
 
   return (
@@ -130,7 +133,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
           fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em',
           padding: '3px 8px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
         }}>
-          Activo
+          {t('Activo')}
         </span>
       </div>
 
@@ -182,7 +185,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
           onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          Editar
+          {t('Editar')}
         </button>
         <button
           onClick={onShare}
@@ -190,7 +193,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
           onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
           onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
         >
-          Compartir
+          {t('Compartir')}
         </button>
         <button
           onClick={onDeactivate}
@@ -198,7 +201,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
           onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
           onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
         >
-          Desactivar
+          {t('Desactivar')}
         </button>
       </div>
     </div>
@@ -207,6 +210,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
 
 // ── Card: ciclo guardado ──────────────────────────────────────────────────
 function CycleCard({ routine, onActivate, onDelete, onEdit }) {
+  const { t } = useLang()
   return (
     <div style={{
       padding: '14px 16px',
@@ -224,7 +228,7 @@ function CycleCard({ routine, onActivate, onDelete, onEdit }) {
             Editar
           </button>
           <button onClick={onActivate} aria-label={`Activar ${routine.name}`} style={cardPillStyle(true)} {...cardPillHover(true)}>
-            Activar
+            {t('Activar')}
           </button>
           <button onClick={onDelete} aria-label={`Eliminar ${routine.name}`} style={cardIconBtnStyle} {...cardIconBtnHover}>
             ✕
@@ -238,6 +242,7 @@ function CycleCard({ routine, onActivate, onDelete, onEdit }) {
 
 // ── Card: rutina de un día ─────────────────────────────────────────────────
 function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onEdit }) {
+  const { t } = useLang()
   const day = (routine.routine_days || [])[0]
   const exCount = day ? (day.routine_day_exercises || []).filter(e => e.exercise_name?.trim()).length : 0
   const canStart = day && hasExercises && !starting
@@ -262,8 +267,8 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onE
             <button
               onClick={canStart ? onStart : undefined}
               disabled={!canStart}
-              aria-label={hasExercises ? `Empezar ${routine.name}` : `${routine.name}: sin ejercicios`}
-              title={!hasExercises ? 'Este entreno no tiene ejercicios todavía' : undefined}
+              aria-label={hasExercises ? `${t('Empezar')} ${routine.name}` : `${routine.name}: ${t('Sin ejercicios').toLowerCase()}`}
+              title={!hasExercises ? t('Este entreno no tiene ejercicios todavía') : undefined}
               style={{
                 minHeight: '44px', padding: '0 12px', borderRadius: '8px',
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -301,6 +306,7 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onE
 
 // ── Shared: option row ────────────────────────────────────────────────────
 function OptionRow({ label, description, onClick, filled = false }) {
+  const { t } = useLang()
   return (
     <button
       onClick={onClick}
@@ -333,6 +339,7 @@ function OptionRow({ label, description, onClick, filled = false }) {
 
 // ── Modal: selección de tipo — rediseñado ─────────────────────────────────
 function TypeSelectionModal({ onClose, onSelectCycle, onSelectSingleDay, onSelectRecommendedCycle, onSelectRecommendedSingleDay, onSelectFromWorkout, onSelectFromWorkoutsCycle }) {
+  const { t } = useLang()
   const [tab, setTab] = useState('cycle')
 
   const tabStyle = (active) => ({
@@ -403,6 +410,7 @@ function TypeSelectionModal({ onClose, onSelectCycle, onSelectSingleDay, onSelec
 
 // ── Modal: rutina de un día desde un entreno ──────────────────────────────
 function FromWorkoutModal({ onClose, onCreate, workouts }) {
+  const { t } = useLang()
   const [step, setStep] = useState(0)          // 0 = pick, 1 = name
   const [selected, setSelected] = useState(null)
   const [name, setName] = useState('')
@@ -461,7 +469,7 @@ function FromWorkoutModal({ onClose, onCreate, workouts }) {
   return (
     <Sheet
       title="Desde un entreno"
-      subtitle={step === 0 ? 'Elige el entreno base' : 'Revisa y nombra la rutina'}
+      subtitle={t(step === 0 ? 'Elige el entreno base' : 'Revisa y nombra la rutina')}
       onClose={onClose}
       maxHeight="88dvh"
     >
@@ -469,7 +477,7 @@ function FromWorkoutModal({ onClose, onCreate, workouts }) {
         <>
           {eligible.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--c-text-muted)', fontSize: '12px' }}>
-              No hay entrenos completados aún.
+              {t('No hay entrenos completados aún.')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -510,7 +518,7 @@ function FromWorkoutModal({ onClose, onCreate, workouts }) {
           {/* Nombre */}
           <div style={{ marginBottom: '20px' }}>
             <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
-              Nombre de la rutina
+              {t('Nombre de la rutina')}
             </p>
             <input
               type="text"
@@ -543,13 +551,13 @@ function FromWorkoutModal({ onClose, onCreate, workouts }) {
           </div>
 
           <Button variant="primary" full size="lg" loading={saving} disabled={saving} onClick={handleCreate}>
-            {saving ? 'Guardando...' : 'Guardar rutina'}
+            {t(saving ? 'Guardando...' : 'Guardar rutina')}
           </Button>
           <button
             onClick={() => setStep(0)}
             style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', width: '100%', display: 'block', marginTop: '12px' }}
           >
-            Elegir otro entreno
+            {t('Elegir otro entreno')}
           </button>
         </>
       )}
@@ -559,6 +567,7 @@ function FromWorkoutModal({ onClose, onCreate, workouts }) {
 
 // ── Modal: ciclo desde entrenos ───────────────────────────────────────────
 function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
+  const { t } = useLang()
   const [step, setStep] = useState(0)          // 0 = pick workouts, 1 = name cycle
   const [selected, setSelected] = useState([]) // array of workout ids in order
   const [cycleName, setCycleName] = useState('')
@@ -707,7 +716,7 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
           {/* Nombre del ciclo */}
           <div style={{ marginBottom: '20px' }}>
             <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
-              Nombre del ciclo
+              {t('Nombre del ciclo')}
             </p>
             <input
               type="text"
@@ -758,13 +767,13 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
           </div>
 
           <Button variant="primary" full size="lg" loading={saving} disabled={saving} onClick={handleCreate}>
-            {saving ? 'Guardando...' : 'Crear ciclo'}
+            {t(saving ? 'Guardando...' : 'Crear ciclo')}
           </Button>
           <button
             onClick={() => setStep(0)}
             style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', width: '100%', display: 'block', marginTop: '12px' }}
           >
-            Atrás
+            {t('Atrás')}
           </button>
         </>
       )}
@@ -774,6 +783,7 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
 
 // ── Modal: crear ciclo manual ─────────────────────────────────────────────
 function CreateCycleModal({ onClose, onCreate }) {
+  const { t } = useLang()
   const [name, setName]         = useState('')
   const [days, setDays]         = useState([{ day_name: '', day_order: 0, focus: '', exercises: [] }])
   const [saving, setSaving]     = useState(false)
@@ -813,7 +823,7 @@ function CreateCycleModal({ onClose, onCreate }) {
 
       <div style={{ marginBottom: '20px' }}>
         <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
-          Nombre
+          {t('Nombre')}
         </p>
         <input
           type="text" value={name} onChange={e => setName(e.target.value)}
@@ -872,6 +882,7 @@ function CreateCycleModal({ onClose, onCreate }) {
 
 // ── Modal: crear rutina de un día manual ──────────────────────────────────
 function CreateSingleDayModal({ onClose, onCreate }) {
+  const { t } = useLang()
   const [name, setName]             = useState('')
   const [focus, setFocus]           = useState('')
   const [saving, setSaving]         = useState(false)
@@ -920,7 +931,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
 
       <div style={{ marginBottom: '24px' }}>
         <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
-          Enfoque (opcional)
+          {t('Enfoque (opcional)')}
         </p>
         <input
           type="text" value={focus} onChange={e => setFocus(e.target.value)}
@@ -930,7 +941,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
       </div>
 
       <Button variant="primary" full size="lg" loading={saving} disabled={saving} onClick={handleCreate}>
-        {saving ? 'Guardando...' : 'Crear rutina'}
+        {t(saving ? 'Guardando...' : 'Crear rutina')}
       </Button>
     </Sheet>
   )
@@ -984,7 +995,7 @@ export default function Rutinas() {
   const handleDeactivate = async () => {
     if (!activeCycle) return
     setActionError(null)
-    try { await setActiveRoutine(null); routineDelete.setLiveMsg('Ciclo desactivado.') } catch (e) { setActionError(e.message) }
+    try { await setActiveRoutine(null); routineDelete.setLiveMsg(t('Ciclo desactivado.')) } catch (e) { setActionError(e.message) }
   }
 
   const handleActivate = async (routine) => {
@@ -1035,7 +1046,7 @@ export default function Rutinas() {
             Rutinas
           </h1>
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
-            Ciclos y plantillas
+            {t('Ciclos y plantillas')}
           </p>
         </div>
 
@@ -1068,7 +1079,7 @@ export default function Rutinas() {
             {activeCycle && (
               <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '40ms' }}>
                 <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
-                  Ciclo activo
+                  {t('Ciclo activo')}
                 </p>
                 <ActiveCycleCard
                   routine={activeCycle}
@@ -1084,7 +1095,7 @@ export default function Rutinas() {
             {savedCycles.length > 0 && (
               <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '60ms' }}>
                 <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
-                  Ciclos guardados
+                  {t('Ciclos guardados')}
                 </p>
                 {savedCycles.map(r => (
                   <CycleCard key={r.id} routine={r} onActivate={() => handleActivate(r)} onDelete={() => requestDelete(r)} onEdit={() => navigate(`/rutina/${r.id}`)} />
@@ -1095,7 +1106,7 @@ export default function Rutinas() {
             {singleDayItems.length > 0 && (
               <section className="fade-in" style={{ marginBottom: '32px', animationDelay: '80ms' }}>
                 <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
-                  Rutinas de un día
+                  {t('Rutinas de un día')}
                 </p>
                 {singleDayItems.map(r => {
                   const firstDay = (r.routine_days || [])[0]

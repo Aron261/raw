@@ -21,16 +21,16 @@ function shiftISO(iso, days) {
   return toLocalISODate(date)
 }
 
-function labelForISO(iso) {
+function labelForISO(iso, t = (x) => x, locale = 'es-CO') {
   const today = toLocalISODate()
-  if (iso === today) return 'Hoy'
-  if (iso === shiftISO(today, -1)) return 'Ayer'
+  if (iso === today) return t('Hoy')
+  if (iso === shiftISO(today, -1)) return t('Ayer')
   const [y, m, d] = iso.split('-').map(Number)
-  const s = new Date(y, m - 1, d).toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })
+  const s = new Date(y, m - 1, d).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-const fmt = (n) => Math.round(n).toLocaleString('es-CO')
+const fmt = (n, locale = 'es-CO') => Math.round(n).toLocaleString(locale)
 
 // ── Sheet: agregar / editar comida ───────────────────────────────────────
 const PORTIONS = [
@@ -50,6 +50,7 @@ function servingLabel(f) {
 }
 
 function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) {
+  const { t } = useLang()
   const editing = !!initial
   const [name, setName] = useState(initial?.name || '')
   const [meal, setMeal] = useState(initial?.meal || defaultMeal || 'desayuno')
@@ -145,7 +146,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
   const manual = (setter) => (e) => { setter(e.target.value); setAmount('') }
 
   return (
-    <Sheet title={editing ? 'Editar comida' : 'Agregar comida'} onClose={onClose}>
+    <Sheet title={t(editing ? 'Editar comida' : 'Agregar comida')} onClose={onClose}>
       <Field label="Nombre">
         <input
           className="input-field"
@@ -159,7 +160,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
       {matches.length > 0 && (
         <div style={{ margin: '-4px 0 14px', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', overflow: 'hidden', background: 'var(--c-surface-2)' }}>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-muted)', padding: '8px 12px 4px' }}>
-            Sugerencias · toca para llenar, + para registrar ya
+            {t('Sugerencias · toca para llenar, + para registrar ya')}
           </p>
           {matches.map(f => (
             <div key={f.name.trim().toLowerCase()} style={{ display: 'flex', alignItems: 'center', borderTop: '1px solid var(--c-border-subtle)' }}>
@@ -278,7 +279,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
         onClick={handleSave}
         style={{ marginTop: '8px' }}
       >
-        {saving ? 'Guardando...' : 'Guardar'}
+        {t(saving ? 'Guardando...' : 'Guardar')}
       </Button>
 
       {editing && (
@@ -287,7 +288,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
           onClick={() => onDelete(initial.id)}
           style={{ marginTop: '10px' }}
         >
-          Eliminar
+          {t('Eliminar')}
         </Button>
       )}
     </Sheet>
@@ -298,7 +299,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
 // Vista propia por defecto; un entrenador pasa userId + readOnly para ver el
 // registro de ese cliente (solo lectura) y planificar sus objetivos.
 export default function Nutrition({ userId = null, readOnly = false }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const navigate = useNavigate()
   const today = toLocalISODate()
   const [dateISO, setDateISO] = useState(today)
@@ -384,7 +385,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             </button>
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
-                Nutrición
+                {t('Nutrición')}
               </h1>
               {clientProfile?.name && (
                 <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>
@@ -417,7 +418,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
                   borderRadius: '999px', padding: '7px 14px', background: 'transparent',
                 }}
               >
-                Objetivos
+                {t('Objetivos')}
               </button>
             }
           />
@@ -434,14 +435,14 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           </button>
           <div style={{ textAlign: 'center' }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text)' }}>
-              {labelForISO(dateISO)}
+              {labelForISO(dateISO, t, locale)}
             </p>
             {!isToday && (
               <button
                 onClick={() => setDateISO(today)}
                 style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-action-text)', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}
               >
-                Volver a hoy
+                {t('Volver a hoy')}
               </button>
             )}
           </div>
@@ -457,12 +458,12 @@ export default function Nutrition({ userId = null, readOnly = false }) {
 
         {error && (
           <div style={{ ...ERROR_STYLE, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-            <span>{readOnly ? 'No pudimos cargar sus comidas.' : 'No pudimos cargar tus comidas.'}</span>
+            <span>{readOnly ? t('No pudimos cargar sus comidas.') : t('No pudimos cargar tus comidas.')}</span>
             <button
               onClick={refetch}
               style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-accent-border)', borderRadius: '8px', padding: '6px 12px', background: 'transparent' }}
             >
-              Reintentar
+              {t('Reintentar')}
             </button>
           </div>
         )}
@@ -503,7 +504,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
               onClick={() => setSheet('targets')}
               style={{ display: 'inline-block', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)', background: 'transparent', border: 'none', padding: 0, margin: '-8px 0 18px', cursor: 'pointer' }}
             >
-              Meta por defecto · fija la tuya →
+              {t('Meta por defecto · fija la tuya →')}
             </button>
           )}
 
@@ -530,10 +531,10 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             {!readOnly && visibleCount === 0 && (
               <div style={{ textAlign: 'center', padding: '28px 20px', border: '1px dashed var(--c-border)', borderRadius: '16px', marginBottom: '24px' }}>
                 <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em', marginBottom: '6px' }}>
-                  Registra tu primera comida
+                  {t('Registra tu primera comida')}
                 </p>
                 <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', lineHeight: 1.5, maxWidth: '32ch', margin: '0 auto' }}>
-                  Toca + en cualquier comida, busca un alimento y regístralo en segundos.
+                  {t('Toca + en cualquier comida, busca un alimento y regístralo en segundos.')}
                 </p>
               </div>
             )}
@@ -622,10 +623,10 @@ export default function Nutrition({ userId = null, readOnly = false }) {
         <NutritionTargetsSheet
           targets={targets}
           userId={userId}
-          title={readOnly ? 'Plan de nutrición' : 'Objetivos diarios'}
+          title={t(readOnly ? 'Plan de nutrición' : 'Objetivos diarios')}
           subtitle={readOnly
             ? `Calorías y macros diarios para ${clientProfile?.name || 'tu cliente'}.`
-            : 'Tu meta de calorías y macros para cada día.'}
+            : t('Tu meta de calorías y macros para cada día.')}
           onSave={async (fields) => { await saveTargets(fields); setSheet(null) }}
           onClose={() => setSheet(null)}
         />

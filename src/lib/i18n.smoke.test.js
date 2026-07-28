@@ -45,6 +45,16 @@ describe('la app en inglés', () => {
     expect(weekRangeLabel(d, L)).toMatch(/July/i)
   })
 
+  it('traduce Rutinas y Nutrición', () => {
+    expect(en('Ciclos y plantillas')).toBe('Cycles and templates')
+    expect(en('Rutina de un día')).toBe('One-day routine')
+    expect(en('Crear ciclo')).toBe('Create cycle')
+    expect(en('Registra tu primera comida')).toBe('Log your first meal')
+    expect(en('Objetivos diarios')).toBe('Daily targets')
+    expect(en('Hoy')).toBe('Today')
+    expect(en('Ayer')).toBe('Yesterday')
+  })
+
   it('el plural funciona en las dos formas', () => {
     expect(en('entreno')).toBe('workout')
     expect(en('entrenos')).toBe('workouts')
