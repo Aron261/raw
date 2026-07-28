@@ -79,8 +79,8 @@ export default function Chat() {
 
         {!loading && !error && messages.length === 0 && (
           <div style={{ textAlign: 'center', margin: 'auto', padding: '20px' }}>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '13px' }}>Aún no hay mensajes.</p>
-            <p style={{ color: 'var(--c-text-ghost)', fontSize: '11px', marginTop: '4px' }}>Escribe el primero abajo.</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '13px' }}>Esta conversación está vacía.</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '4px' }}>Escribe el primer mensaje abajo.</p>
           </div>
         )}
 

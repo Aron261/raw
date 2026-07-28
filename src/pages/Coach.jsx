@@ -365,12 +365,13 @@ export default function Coach() {
                 ))}
               </div>
             ) : (
-              feed.slice(0, 12).map(item => (
+              feed.slice(0, 12).map((item, i) => (
+                <div key={item.workoutId} className="stagger-item" style={{ '--i': i }}>
                 <FeedRow
-                  key={item.workoutId}
                   item={item}
                   onOpen={() => navigate(`/coach/cliente/${item.clientId}`)}
                 />
+                </div>
               ))
             )}
           </section>
@@ -382,15 +383,16 @@ export default function Coach() {
             {activeClients.length > 0 ? (
               <section className="fade-in" style={{ animationDelay: '40ms' }}>
                 <p style={SECTION_LABEL}>Clientes ({activeClients.length})</p>
-                {activeClients.map(c => (
+                {activeClients.map((c, i) => (
+                  <div key={c.linkId} className="stagger-item" style={{ '--i': i }}>
                   <ClientCard
-                    key={c.linkId}
                     client={c}
                     unread={counts[c.clientId] || 0}
                     onOpen={() => navigate(`/coach/cliente/${c.clientId}`)}
                     onChat={(id) => navigate(`/chat/${id}`)}
                     onRevoke={handleRevoke}
                   />
+                  </div>
                 ))}
               </section>
             ) : (

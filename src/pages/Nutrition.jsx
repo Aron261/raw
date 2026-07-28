@@ -574,8 +574,8 @@ export default function Nutrition({ userId = null, readOnly = false }) {
                   </div>
 
                   {!isCollapsed && (list.length === 0 ? (
-                    <p style={{ color: 'var(--c-text-ghost)', fontSize: '12px', padding: '8px 0 2px', borderTop: '1px solid var(--c-border-subtle)' }}>
-                      Sin registros
+                    <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', padding: '8px 0 2px', borderTop: '1px solid var(--c-border-subtle)' }}>
+                      Nada anotado todavía. Toca «+» para añadir.
                     </p>
                   ) : (
                     <div>

@@ -201,8 +201,8 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
           <div style={{ marginTop: '24px', paddingBottom: '32px' }}>
             {visible.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px' }}>
-                <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>
-                  No tienes estadísticas activas.
+                <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 600, lineHeight: 1.5, marginBottom: '12px' }}>
+                  No tienes ningún módulo activo. Elige cuáles quieres ver y aparecerán aquí.
                 </p>
                 <button
                   onClick={() => setCustomizing(true)}

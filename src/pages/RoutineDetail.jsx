@@ -107,8 +107,8 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
       </div>
 
       {exercises.length === 0 ? (
-        <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', padding: '8px 0 12px' }}>
-          Sin ejercicios todavía.
+        <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', lineHeight: 1.5, padding: '8px 0 12px' }}>
+          Este día está vacío. Añade el primer ejercicio y la rutina ya sabrá qué toca.
         </p>
       ) : (
         <div>

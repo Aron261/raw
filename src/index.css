@@ -19,6 +19,8 @@
   --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Remate que sobrepasa y vuelve — para que un número aterrice. */
+  --ease-rise:   cubic-bezier(0.22, 1.12, 0.36, 1);
 
   /* Type */
   --font-display: 'Anton', 'Archivo', system-ui, sans-serif;
@@ -264,6 +266,7 @@
 .stagger-item {
   opacity: 0;
   animation: stagger-in 280ms var(--ease-out) forwards;
+  animation-delay: calc(min(var(--i, 0), 10) * 38ms);
 }
 
 /* ─── Fade in (general entry) ──────────────────────────────────────── */
@@ -273,6 +276,24 @@
 }
 .fade-in {
   animation: fade-in 300ms var(--ease-out) both;
+}
+
+/* ─── Rise in: la entrada del dato que manda ───────────────────────────
+   Toda la app entraba con el mismo .fade-in de 300ms: el número héroe de una
+   pantalla y un enlace de pie llegaban con el mismo peso y a la misma
+   velocidad. Eso es lo que hace que una interfaz se lea como generada.
+
+   Esta es la entrada de la cifra que importa — más recorrido, un pelo más
+   lenta y con un remate que pasa de largo y vuelve, para que el número
+   *aterrice* en vez de aparecer. Una por pantalla; si se usa en dos cosas a la
+   vez deja de significar "esto es lo importante". */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.rise-in {
+  animation: rise-in 460ms var(--ease-rise) both;
 }
 
 /* ─── Modal backdrop ────────────────────────────────────────────────── */
@@ -389,10 +410,12 @@
 @media (prefers-reduced-motion: reduce) {
   .stagger-item,
   .fade-in,
+  .rise-in,
   .modal-sheet,
   .modal-backdrop,
   .pr-badge-enter {
     animation: none;
+    animation-delay: 0ms;
     opacity: 1;
     transform: none;
   }

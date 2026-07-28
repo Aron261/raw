@@ -448,7 +448,7 @@ function BodyWeightSummary({ unit, onOpen }) {
               <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '2px' }}>{relativeDay(latestLog.logged_at)}</p>
             </>
           ) : (
-            <span style={{ color: 'var(--c-text-ghost)', fontSize: '13px', fontWeight: 600 }}>Sin registros aún</span>
+            <span style={{ color: 'var(--c-text-muted)', fontSize: '13px', fontWeight: 600 }}>Sin registros — anota el primero</span>
           )}
         </div>
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>

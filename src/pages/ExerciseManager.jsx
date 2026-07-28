@@ -156,7 +156,13 @@ export default function ExerciseManager() {
 
         {!loading && exercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px' }}>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '13px' }}>Aún no tienes ejercicios registrados.</p>
+            <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em' }}>
+              Todavía no hay ejercicios
+            </p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px', lineHeight: 1.5, maxWidth: '32ch', marginInline: 'auto' }}>
+              Aparecen aquí solos en cuanto registras tu primer entreno. Desde
+              aquí los ordenas por grupo muscular.
+            </p>
           </div>
         )}
 

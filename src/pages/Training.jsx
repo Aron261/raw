@@ -336,11 +336,13 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
 // Antes había dos componentes casi idénticos (TodayChip y SectionChip) en tres
 // filas distintas, y el resultado era un campo de cajitas iguales: justo el
 // "dashboard SaaS" que el sistema rechaza. Uno solo, una fila.
-function Chip({ label, value, hint, live, onClick }) {
+function Chip({ label, value, hint, live, index = 0, onClick }) {
   return (
     <button
       onClick={onClick}
+      className="stagger-item"
       style={{
+        '--i': index,
         flex: '1 1 30%', minWidth: '96px', textAlign: 'left',
         display: 'flex', flexDirection: 'column', gap: '4px',
         background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
@@ -1045,7 +1047,7 @@ export default function Training() {
                     { value: stats.thisMonth, label: 'días este mes' },
                   ].map((s, i) => (
                     <div key={s.label} style={{ paddingLeft: i > 0 ? '16px' : 0, borderLeft: i > 0 ? '1px solid var(--c-border-subtle)' : 'none' }}>
-                      <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '42px', letterSpacing: '-0.04em', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', marginBottom: '8px' }}>
+                      <p className="rise-in" style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '42px', letterSpacing: '-0.04em', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', marginBottom: '8px', animationDelay: `${60 + i * 70}ms` }}>
                         {s.value}
                       </p>
                       <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
@@ -1068,18 +1070,21 @@ export default function Training() {
               }}
             >
               <Chip
+                index={0}
                 label="racha"
                 value={streak > 0 ? `${streak} ${streak === 1 ? 'semana' : 'semanas'}` : '—'}
                 hint={streak > 0 ? null : 'Entrena esta semana'}
                 onClick={() => navigate('/progreso')}
               />
               <Chip
+                index={1}
                 label="kcal hoy"
                 value={kcalToday > 0 ? `${kcalToday.toLocaleString('es-CO')} / ${kcalTarget.toLocaleString('es-CO')}` : '—'}
                 hint={kcalToday > 0 ? null : 'Registra tu comida'}
                 onClick={() => navigate('/nutrition')}
               />
               <Chip
+                index={2}
                 label="peso corporal"
                 value={latestWeight ? `${latestWeight.weight} ${latestWeight.unit}` : '—'}
                 hint={latestWeight ? null : 'Aún sin registrar'}
@@ -1087,6 +1092,7 @@ export default function Training() {
               />
               {profile?.is_trainer && (
                 <Chip
+                  index={3}
                   label="coach"
                   live={unread > 0}
                   value={unread > 0 ? `${unread} sin leer` : 'Tus clientes'}

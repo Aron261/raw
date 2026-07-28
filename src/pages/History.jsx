@@ -128,9 +128,9 @@ export default function History({ embedded = false }) {
                   </p>
                 </div>
                 <div className="space-y-3">
-                  {items.map(workout => (
+                  {items.map((workout, i) => (
+                    <div key={workout.id} className="stagger-item" style={{ '--i': i }}>
                     <WorkoutCard
-                      key={workout.id}
                       workout={workout}
                       onDelete={w => workoutDelete.request(w, {
                         deletedMsg: `Entreno «${w.name}» eliminado. Toca deshacer para recuperarlo.`,
@@ -139,6 +139,7 @@ export default function History({ embedded = false }) {
                       onDuplicate={duplicateWorkout}
                       hasPR={prWorkoutIds.has(workout.id)}
                     />
+                    </div>
                   ))}
                 </div>
               </div>
