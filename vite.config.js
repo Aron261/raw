@@ -25,8 +25,12 @@ export default defineConfig({
         name: 'Raw',
         short_name: 'Raw',
         description: 'Gym workout logger',
-        theme_color: '#F3F4F6',
-        background_color: '#F3F4F6',
+        // El hueso del modo claro. Es el color del chrome del sistema y del
+        // splash cuando la app está instalada: si se queda con el gris del
+        // sistema anterior, la app instalada arranca con un marco que ya no
+        // es de ningún sitio antes de pintar su propio fondo.
+        theme_color: '#E7E7E4',
+        background_color: '#E7E7E4',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
