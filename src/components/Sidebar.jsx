@@ -1,8 +1,10 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
+import { useLang } from '../hooks/useLang'
 
 function BarbellIcon() {
+  const { t } = useLang()
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M6.5 6.5v11" /><path d="M17.5 6.5v11" />
@@ -12,6 +14,7 @@ function BarbellIcon() {
 }
 
 function ProgressIcon() {
+  const { t } = useLang()
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -20,6 +23,7 @@ function ProgressIcon() {
 }
 
 function RoutinesIcon() {
+  const { t } = useLang()
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" />
@@ -30,6 +34,7 @@ function RoutinesIcon() {
 }
 
 function NutritionIcon() {
+  const { t } = useLang()
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
@@ -40,6 +45,7 @@ function NutritionIcon() {
 }
 
 function CoachIcon() {
+  const { t } = useLang()
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8z" />
@@ -48,6 +54,7 @@ function CoachIcon() {
 }
 
 function NavItem({ to, label, Icon, exact }) {
+  const { t } = useLang()
   return (
     <NavLink
       to={to}
@@ -79,6 +86,7 @@ function NavItem({ to, label, Icon, exact }) {
 }
 
 function GroupLabel({ children }) {
+  const { t } = useLang()
   return (
     <p style={{
       fontFamily: 'var(--font-mono)',
@@ -94,6 +102,7 @@ function GroupLabel({ children }) {
 }
 
 export default function Sidebar() {
+  const { t } = useLang()
   const { user, signOut } = useAuth()
   const { profile } = useProfile()
   const navigate = useNavigate()
@@ -145,7 +154,7 @@ export default function Sidebar() {
             marginTop: '4px',
           }}
         >
-          Todo tu progreso
+          {t('Todo tu progreso')}
         </span>
       </NavLink>
 
@@ -153,7 +162,7 @@ export default function Sidebar() {
 
       {/* Nav — sections (el índice "Menú" se fusionó con Inicio) */}
       <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: '1px', overflowY: 'auto' }}>
-        <GroupLabel>Entreno</GroupLabel>
+        <GroupLabel>{t('Entreno')}</GroupLabel>
         <NavItem to="/"         label="Inicio"   Icon={BarbellIcon} exact />
         <NavItem to="/progreso" label="Progreso" Icon={ProgressIcon} />
         <NavItem to="/rutinas"  label="Rutinas"  Icon={RoutinesIcon} />
@@ -163,7 +172,7 @@ export default function Sidebar() {
 
         {profile?.is_trainer && (
           <>
-            <GroupLabel>Coaching</GroupLabel>
+            <GroupLabel>{t('Coaching')}</GroupLabel>
             <NavItem to="/coach" label="Coach" Icon={CoachIcon} />
           </>
         )}
@@ -230,7 +239,7 @@ export default function Sidebar() {
             e.currentTarget.style.borderColor = 'var(--c-border-subtle)'
           }}
         >
-          Cerrar sesión
+          {t('Cerrar sesión')}
         </button>
       </div>
     </aside>

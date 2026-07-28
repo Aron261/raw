@@ -167,7 +167,7 @@ export default function OAuthConsent() {
         </p>
         {error && <div style={{ ...ERROR_STYLE, marginTop: '14px' }}>{error}</div>}
         <Button onClick={() => navigate('/')} variant="secondary" style={{ marginTop: '18px' }}>
-          Ir a RAW
+          {t('Ir a RAW')}
         </Button>
       </Shell>
     )

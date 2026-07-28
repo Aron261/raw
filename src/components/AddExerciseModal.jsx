@@ -4,6 +4,7 @@ import { useWorkouts } from '../hooks/useWorkout'
 import { Sheet, Button } from './ui'
 import { MUSCLE_GROUPS } from '../lib/muscleGroups'
 import { pressable } from '../lib/ui'
+import { useLang } from '../hooks/useLang'
 
 /* ── Add / Swap Exercise Modal ──────────────────────────────────────────
  * Reused by the active workout (add/swap) and the routine editor. onAdd is
@@ -11,6 +12,7 @@ import { pressable } from '../lib/ui'
  * brand-new exercise, via the classification step.
  */
 export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio', subtitle = null, closeOnSelect = false }) {
+  const { t } = useLang()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -119,8 +121,8 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
           ))}
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <Button variant="secondary" full onClick={() => setPendingNew(null)}>Atrás</Button>
-          <Button variant="ghost" full onClick={() => confirmNew(null)}>Omitir</Button>
+          <Button variant="secondary" full onClick={() => setPendingNew(null)}>{t('Atrás')}</Button>
+          <Button variant="ghost" full onClick={() => confirmNew(null)}>{t('Omitir')}</Button>
         </div>
       </Sheet>
     )
@@ -143,7 +145,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
         <div style={{ maxHeight: '240px', overflowY: 'auto', marginBottom: '8px' }}>
           {searching && (
             <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '8px 0' }}>
-              Buscando...
+              {t('Buscando...')}
             </p>
           )}
 
@@ -203,7 +205,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
           {!query.trim() && frequents.length > 0 && (
             <>
               <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', padding: '4px 0 8px' }}>
-                Frecuentes
+                {t('Frecuentes')}
               </p>
               {frequents.map(name => {
                 const isAdded = added.includes(name)
@@ -236,7 +238,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
 
           {!searching && !query.trim() && frequents.length === 0 && (
             <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '8px 0' }}>
-              Escribe para buscar o crear un ejercicio.
+              {t('Escribe para buscar o crear un ejercicio.')}
             </p>
           )}
         </div>

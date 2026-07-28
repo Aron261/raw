@@ -67,7 +67,7 @@ export default function History({ embedded = false }) {
         <div className={embedded ? 'pb-4' : 'pt-10 pb-6'}>
           {!embedded && (
             <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '30px', letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1.02 }}>
-              Historial
+              {t('Historial')}
             </h1>
           )}
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: embedded ? 0 : '6px' }}>
@@ -94,9 +94,9 @@ export default function History({ embedded = false }) {
         {/* Error state */}
         {error && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)', color: 'var(--c-action-text)', fontSize: '13px', padding: '12px 14px', borderRadius: '12px', marginBottom: '16px' }}>
-            <span>No pudimos cargar tu historial.</span>
+            <span>{t('No pudimos cargar tu historial.')}</span>
             <button onClick={fetchWorkouts} style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-action-border)', borderRadius: '8px', padding: '6px 12px', background: 'transparent' }}>
-              Reintentar
+              {t('Reintentar')}
             </button>
           </div>
         )}
@@ -112,7 +112,7 @@ export default function History({ embedded = false }) {
               onClick={() => navigate('/')}
               style={{ marginTop: '16px', background: 'var(--c-accent)', color: 'var(--c-on-action)', border: 'none', borderRadius: '12px', padding: '11px 20px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}
             >
-              Empezar un entreno
+              {t('Empezar un entreno')}
             </button>
           </div>
         )}

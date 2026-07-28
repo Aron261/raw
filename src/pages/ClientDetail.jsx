@@ -556,7 +556,7 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
       </div>
 
       <div style={{ marginBottom: '14px' }}>
-        <p style={MINI_LABEL}>Nombre</p>
+        <p style={MINI_LABEL}>{t('Nombre')}</p>
         <input className="input-field" value={label} onChange={e => setLabel(e.target.value)} placeholder="Ej: Press banca 100kg" />
       </div>
 
@@ -576,7 +576,7 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
           )}
           {type === 'days_trained' && (
             <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: '10px', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700 }}>
-              días
+              {t('días')}
             </div>
           )}
         </div>

@@ -175,7 +175,7 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
                       onClick={() => copy(inv.code)}
                       style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
                     >
-                      Copiar
+                      {t('Copiar')}
                     </button>
                     <button
                       onClick={() => onDelete(inv.id)}
@@ -326,8 +326,7 @@ export default function Coach() {
             <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
               {t('Activa el modo entrenador')}
             </p>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5 }}>
-              Ve a tu <button onClick={() => navigate('/profile')} style={{ color: 'var(--c-action-text)', fontWeight: 700 }}>perfil</button> y
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5 }}>{t('Ve a tu')}<button onClick={() => navigate('/profile')} style={{ color: 'var(--c-action-text)', fontWeight: 700 }}>perfil</button> y
               activa «Soy entrenador» para empezar a invitar clientes.
             </p>
           </div>

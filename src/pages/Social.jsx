@@ -1,5 +1,6 @@
 import Layout from '../components/Layout'
 import { PageHeader } from '../components/ui'
+import { useLang } from '../hooks/useLang'
 
 // Lo que viene — declarado sin UI falsa: filas honestas, no mockups muertos.
 const UPCOMING = [
@@ -18,6 +19,7 @@ const UPCOMING = [
 ]
 
 export default function Social() {
+  const { t } = useLang()
   return (
     <Layout>
       <div className="w-full px-5 pb-10 max-w-[480px] mx-auto md:max-w-[640px] md:px-8">
@@ -32,7 +34,7 @@ export default function Social() {
               border: '1px solid var(--c-accent-border)',
               padding: '5px 10px', borderRadius: '999px',
             }}>
-              Próximamente
+              {t('Próximamente')}
             </span>
           }
         />
@@ -43,7 +45,7 @@ export default function Social() {
             fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.15,
             maxWidth: '20ch', marginBottom: '10px',
           }}>
-            Entrena con tu gente.
+            {t('Entrena con tu gente.')}
           </p>
           <p style={{ color: 'var(--c-text-muted)', fontSize: '13px', lineHeight: 1.55, maxWidth: '44ch', marginBottom: '28px' }}>
             Estamos construyendo la parte social de Raw: números reales entre gente real. Sin streaks, sin badges, sin ruido.
@@ -60,10 +62,10 @@ export default function Social() {
               }}
             >
               <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '4px' }}>
-                {item.title}
+                {t(item.title)}
               </p>
               <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', lineHeight: 1.5 }}>
-                {item.sub}
+                {t(item.sub)}
               </p>
             </div>
           ))}

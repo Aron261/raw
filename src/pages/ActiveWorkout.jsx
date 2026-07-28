@@ -173,7 +173,7 @@ function ExerciseHistorySheet({ exercise, userId, onClose }) {
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {isBest && (
                       <span style={{ background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '2px 6px', borderRadius: '2px' }}>
-                        Récord
+                        {t('Récord')}
                       </span>
                     )}
                     <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-text-dim)' }}>
@@ -321,7 +321,7 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
         })}
       </div>
 
-      <Button variant="primary" full size="lg" onClick={onClose}>Listo</Button>
+      <Button variant="primary" full size="lg" onClick={onClose}>{t('Listo')}</Button>
     </Sheet>
   )
 }

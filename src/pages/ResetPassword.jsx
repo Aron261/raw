@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { ERROR_STYLE } from '../lib/ui'
 import { Button, Logo } from '../components/ui'
+import { useLang } from '../hooks/useLang'
 
 // Pantalla de destino del enlace de recuperación. supabase-js procesa el token
 // del hash de la URL al cargar y abre una sesión de recuperación, así que aquí
 // solo pedimos y guardamos la contraseña nueva.
 export default function ResetPassword() {
+  const { t } = useLang()
   const { user, loading, setNewPassword } = useAuth()
   const navigate = useNavigate()
 
@@ -20,15 +22,15 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
-    if (password.length < 6) { setError('La contraseña debe tener al menos 6 caracteres.'); return }
-    if (password !== confirm) { setError('Las contraseñas no coinciden.'); return }
+    if (password.length < 6) { setError(t('La contraseña debe tener al menos 6 caracteres.')); return }
+    if (password !== confirm) { setError(t('Las contraseñas no coinciden.')); return }
     setSaving(true)
     try {
       await setNewPassword(password)
       setDone(true)
       setTimeout(() => navigate('/', { replace: true }), 1400)
     } catch (err) {
-      setError(err.message || 'No se pudo actualizar la contraseña.')
+      setError(err.message || t('No se pudo actualizar la contraseña.'))
     } finally {
       setSaving(false)
     }
@@ -48,7 +50,7 @@ export default function ResetPassword() {
   if (loading) {
     return shell(
       <p className="animate-pulse" style={{ textAlign: 'center', color: 'var(--c-text-muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-        Verificando enlace…
+        {t('Verificando enlace…')}
       </p>
     )
   }
@@ -58,10 +60,10 @@ export default function ResetPassword() {
     return shell(
       <div style={{ textAlign: 'center' }}>
         <div style={{ ...ERROR_STYLE, marginBottom: '16px' }}>
-          El enlace no es válido o expiró. Solicita uno nuevo.
+          {t('El enlace no es válido o expiró. Solicita uno nuevo.')}
         </div>
         <Button variant="primary" full size="lg" onClick={() => navigate('/login', { replace: true })}>
-          Volver a iniciar sesión
+          {t('Volver a iniciar sesión')}
         </Button>
       </div>
     )
@@ -71,10 +73,10 @@ export default function ResetPassword() {
     <>
       <div style={{ marginBottom: '20px' }}>
         <h2 style={{ fontFamily: 'var(--font-sans)', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
-          Nueva contraseña
+          {t('Nueva contraseña')}
         </h2>
         <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', marginTop: '4px', lineHeight: 1.5 }}>
-          Elige una contraseña nueva para tu cuenta.
+          {t('Elige una contraseña nueva para tu cuenta.')}
         </p>
       </div>
 
@@ -97,7 +99,7 @@ export default function ResetPassword() {
             autoComplete="new-password"
           />
           <Button type="submit" variant="primary" full size="lg" loading={saving} disabled={saving} style={{ marginTop: '4px' }}>
-            {saving ? 'Guardando…' : 'Guardar contraseña'}
+            {t(saving ? 'Guardando…' : 'Guardar contraseña')}
           </Button>
         </form>
       )}

@@ -106,19 +106,19 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
         <div style={{ display: 'flex', gap: '20px', borderTop: '1px solid var(--c-border-subtle)', paddingTop: '10px' }}>
           {duration && (
             <div>
-              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>Duración</p>
+              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>{t('Duración')}</p>
               <p style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{duration}</p>
             </div>
           )}
           <div>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>Volumen</p>
+            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>{t('Volumen')}</p>
             <p style={{ color: 'var(--c-data)', fontSize: '18px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               {totalVolume > 0 ? totalVolume.toLocaleString() : '—'}
               {totalVolume > 0 && <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '3px' }}>{unit}</span>}
             </p>
           </div>
           <div>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>Ejercicios</p>
+            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>{t('Ejercicios')}</p>
             <p style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{exerciseCount}</p>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { pressProps } from '../lib/ui'
 import { Sheet, Eyebrow } from './ui'
+import { useLang } from '../hooks/useLang'
 
 // A single tappable option row (blank / cycle day / routine).
 function OptionRow({ title, subtitle, onClick, arrowColor = 'var(--c-text-dim)', filled = false }) {
@@ -57,6 +58,7 @@ export default function WorkoutPickerModal({
   onSelectCycleDay,
   onClose,
 }) {
+  const { t } = useLang()
   const cycleDays = cycleData?.days || []
 
   // Every routine except the active cycle (already shown in its own section),
@@ -99,7 +101,7 @@ export default function WorkoutPickerModal({
           routines expand to one row per day. Both link back to the routine. */}
       {otherRoutines.length > 0 && (
         <>
-          <Eyebrow style={{ margin: '16px 0 8px' }}>Desde rutina</Eyebrow>
+          <Eyebrow style={{ margin: '16px 0 8px' }}>{t('Desde rutina')}</Eyebrow>
           {otherRoutines.map(({ routine, days }) =>
             days.length === 1 ? (
               <OptionRow

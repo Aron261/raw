@@ -60,6 +60,7 @@ function formatVolume(v) {
 
 // ── ChartTooltip ──────────────────────────────────────────────────────────
 function ChartTooltip({ active, payload, label }) {
+  const { t } = useLang()
   if (!active || !payload?.length) return null
   const val = payload[0]?.value || 0
   return (
@@ -142,6 +143,7 @@ function WeeklyChart({ chartData, height = 150, title, subtitle, colors }) {
 
 // ── GoalModal ─────────────────────────────────────────────────────────────
 function GoalModal({ onClose, onSave, exercises = [] }) {
+  const { t } = useLang()
   const [type, setType] = useState('exercise_weight')
   const [label, setLabel] = useState('')
   const [exerciseName, setExerciseName] = useState('')
@@ -264,6 +266,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
 // ── EntrenaHoyCard ────────────────────────────────────────────────────────
 // Muestra el próximo día del ciclo activo con CTA para empezar.
 function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachName }) {
+  const { t } = useLang()
   const validExercises = (day?.routine_day_exercises || []).filter(e => e.exercise_name?.trim())
   const exCount = validExercises.length
   const hasExercises = exCount > 0
@@ -339,6 +342,7 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
 // filas distintas, y el resultado era un campo de cajitas iguales: justo el
 // "dashboard SaaS" que el sistema rechaza. Uno solo, una fila.
 function Chip({ label, value, hint, live, index = 0, onClick }) {
+  const { t } = useLang()
   return (
     <button
       onClick={onClick}

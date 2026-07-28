@@ -12,6 +12,7 @@ import {
   GOALS, LEVELS, TIME_OPTIONS, FOCUS_OPTIONS, SPLIT_5D_OPTIONS,
 } from '../lib/engine'
 import { MUSCLE_GROUPS } from '../lib/muscleGroups'
+import { useLang } from '../hooks/useLang'
 
 const DAYS_OPTIONS = [2, 3, 4, 5, 6]
 
@@ -46,6 +47,7 @@ const MONO_LABEL = {
 }
 
 function OptionButton({ selected, onClick, children, sub }) {
+  const { t } = useLang()
   return (
     <button
       onClick={onClick}
@@ -71,6 +73,7 @@ function OptionButton({ selected, onClick, children, sub }) {
 }
 
 function Pill({ selected, onClick, children, hint }) {
+  const { t } = useLang()
   return (
     <button
       onClick={onClick}
@@ -90,9 +93,10 @@ function Pill({ selected, onClick, children, hint }) {
 }
 
 function BackLink({ onClick }) {
+  const { t } = useLang()
   return (
     <button onClick={onClick} style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', textAlign: 'center', width: '100%', display: 'block' }}>
-      Atrás
+      {t('Atrás')}
     </button>
   )
 }
@@ -100,13 +104,14 @@ function BackLink({ onClick }) {
 // ── Preview ─────────────────────────────────────────────────────────────────
 
 function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
+  const { t } = useLang()
   // Fila con el selector de alternativas abierto: 'dayIdx-exIdx' | null
   const [swapOpen, setSwapOpen] = useState(null)
 
   return (
     <div>
       <div style={{ padding: '14px 16px', background: 'var(--c-surface)', borderRadius: '14px', marginBottom: '14px' }}>
-        <p style={MONO_LABEL}>Por qué este plan</p>
+        <p style={MONO_LABEL}>{t('Por qué este plan')}</p>
         <p style={{ color: 'var(--c-text)', fontSize: '12px', lineHeight: 1.55 }}>{plan.summary}</p>
         {notesVisible && plan.notes.length > 0 && (
           <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', marginTop: '8px' }}>{plan.notes.join(' ')}</p>
@@ -141,7 +146,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
                       <div style={{ minWidth: 0 }}>
                         <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 600 }}>
                           {ex.name}
-                          {ex.isFamiliar && <span style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, marginLeft: '6px', textTransform: 'uppercase' }}>Habitual</span>}
+                          {ex.isFamiliar && <span style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, marginLeft: '6px', textTransform: 'uppercase' }}>{t('Habitual')}</span>}
                         </p>
                         <p style={{ color: 'var(--c-text-dim)', fontSize: '9.5px' }}>
                           RIR {ex.rir} · descanso {ex.restSeconds >= 60 ? `${Math.round(ex.restSeconds / 60 * 10) / 10} min` : `${ex.restSeconds} s`}
@@ -170,9 +175,9 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
                     </div>
                     {isOpen && (
                       <div style={{ margin: '8px 0 4px', padding: '10px 12px', background: 'var(--c-bg)', borderRadius: '10px', border: '1px solid var(--c-border-subtle)' }}>
-                        <p style={{ ...MONO_LABEL, marginBottom: '8px' }}>Cambiar por</p>
+                        <p style={{ ...MONO_LABEL, marginBottom: '8px' }}>{t('Cambiar por')}</p>
                         {alternatives.length === 0 ? (
-                          <p style={{ color: 'var(--c-text-dim)', fontSize: '10.5px' }}>No hay alternativas con tu equipo y nivel.</p>
+                          <p style={{ color: 'var(--c-text-dim)', fontSize: '10.5px' }}>{t('No hay alternativas con tu equipo y nivel.')}</p>
                         ) : (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             {alternatives.map(alt => (
@@ -206,6 +211,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
 // ── Wizard principal ────────────────────────────────────────────────────────
 
 export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreate }) {
+  const { t } = useLang()
   const { profile } = useProfile()
 
   const [goal, setGoal]           = useState(null)
@@ -364,7 +370,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
       maxHeight="90dvh"
     >
       {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
-      {ctxError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>No se pudo cargar la librería de ejercicios.</div>}
+      {ctxError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{t('No se pudo cargar la librería de ejercicios.')}</div>}
 
       {stepKey === 'goal' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -414,7 +420,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
 
       {stepKey === 'schedule' && (
         <div>
-          <p style={MONO_LABEL}>Días por semana</p>
+          <p style={MONO_LABEL}>{t('Días por semana')}</p>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
             {DAYS_OPTIONS.map(d => (
               <Pill key={d} selected={effDays === d} onClick={() => setDays(d)}>{d}</Pill>
@@ -427,17 +433,17 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
           )}
           {effDays === 5 && (
             <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', marginBottom: '14px' }}>
-              Con 5 días eliges el tipo de split en el siguiente paso.
+              {t('Con 5 días eliges el tipo de split en el siguiente paso.')}
             </p>
           )}
-          <p style={MONO_LABEL}>Tiempo por sesión</p>
+          <p style={MONO_LABEL}>{t('Tiempo por sesión')}</p>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '18px' }}>
             {TIME_OPTIONS.map(t => (
               <Pill key={t} selected={sessionMinutes === t} onClick={() => setTime(t)}>{t} min</Pill>
             ))}
           </div>
           <Button variant="primary" full size="lg" disabled={!effDays || !sessionMinutes} onClick={next}>
-            Continuar
+            {t('Continuar')}
           </Button>
           <BackLink onClick={back} />
         </div>
@@ -463,10 +469,10 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
         <div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
             <OptionButton selected={fullGym} onClick={() => setFullGym(true)} sub="Acceso a todo: barras, mancuernas, poleas y máquinas">
-              Gym completo
+              {t('Gym completo')}
             </OptionButton>
             <OptionButton selected={!fullGym} onClick={() => setFullGym(false)} sub="Elige exactamente con qué cuentas">
-              Equipo limitado
+              {t('Equipo limitado')}
             </OptionButton>
           </div>
           {!fullGym && (
@@ -490,7 +496,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
             </div>
           )}
           <Button variant="primary" full size="lg" disabled={!fullGym && equipmentSel.length === 0} onClick={next}>
-            Continuar
+            {t('Continuar')}
           </Button>
           <BackLink onClick={back} />
         </div>
@@ -498,7 +504,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
 
       {stepKey === 'priorities' && (
         <div>
-          <p style={MONO_LABEL}>Grupos a priorizar (máx. 2, opcional)</p>
+          <p style={MONO_LABEL}>{t('Grupos a priorizar (máx. 2, opcional)')}</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
             {MUSCLE_GROUPS.map(g => {
               const selected = effPriority.includes(g)
@@ -520,7 +526,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
             })}
           </div>
           <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', marginBottom: '16px' }}>
-            Los grupos priorizados reciben más series semanales y mejor posición en la sesión.
+            {t('Los grupos priorizados reciben más series semanales y mejor posición en la sesión.')}
           </p>
           {hasHistory && (
             <div style={{ marginBottom: '16px' }}>
@@ -528,12 +534,12 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
                 Usar mi historial{useHistory ? ' ✓' : ''}
               </Pill>
               <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', marginTop: '6px' }}>
-                Prioriza ejercicios que ya haces y sugiere pesos de arranque desde tus marcas.
+                {t('Prioriza ejercicios que ya haces y sugiere pesos de arranque desde tus marcas.')}
               </p>
             </div>
           )}
           <Button variant="primary" full size="lg" onClick={next}>
-            Generar plan
+            {t('Generar plan')}
           </Button>
           <BackLink onClick={back} />
         </div>
@@ -546,7 +552,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
               <PlanPreview plan={plan} getAlternatives={getAlternatives} onSwap={handleSwap} />
               <div style={{ display: 'flex', gap: '10px', marginTop: '18px' }}>
                 <Button variant="secondary" full onClick={() => setSeed(s => (s ?? 0) + 1)}>
-                  Regenerar
+                  {t('Regenerar')}
                 </Button>
                 <Button variant="primary" full loading={saving} disabled={saving} onClick={handleSave}>
                   {saving ? 'Guardando…' : isCycle ? 'Guardar ciclo' : 'Guardar rutina'}
@@ -555,7 +561,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
             </>
           ) : (ctxLoading || seed == null) ? (
             <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', padding: '20px 0', textAlign: 'center' }}>
-              Generando plan…
+              {t('Generando plan…')}
             </p>
           ) : (
             <div style={{ padding: '10px 0' }}>
@@ -563,7 +569,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
                 No se pudo generar el plan{genError ? `: ${genError}` : ''}. Inténtalo de nuevo.
               </div>
               <Button variant="secondary" full onClick={() => { setGenError(null); setSeed(s => (s ?? 0) + 1) }}>
-                Reintentar
+                {t('Reintentar')}
               </Button>
             </div>
           )}

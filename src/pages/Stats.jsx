@@ -5,11 +5,13 @@ import { Sheet } from '../components/ui'
 import { useStats } from '../hooks/useStats'
 import { useStatPrefs } from '../hooks/useStatPrefs'
 import { STAT_MODULES } from '../lib/statModules'
+import { useLang } from '../hooks/useLang'
 
 const BY_ID = Object.fromEntries(STAT_MODULES.map(m => [m.id, m]))
 
 // ── Drag-to-reorder list of modules (drag handle) + on/off toggle ─────────
 function ReorderList({ order, enabled, onToggle, onReorder }) {
+  const { t } = useLang()
   const [items, setItems] = useState(order)
   const [draggingId, setDraggingId] = useState(null)
   const dragId = useRef(null)
@@ -137,7 +139,7 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
           )}
           {!embedded && (
             <h1 style={{ flex: 1, fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
-              Estadísticas
+              {t('Estadísticas')}
             </h1>
           )}
           {embedded && <span style={{ flex: 1 }} />}
@@ -151,7 +153,7 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
                 color: 'var(--c-action-text)', padding: '4px 6px',
               }}
             >
-              Personalizar
+              {t('Personalizar')}
             </button>
           )}
         </div>
@@ -173,12 +175,12 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
         {/* Error */}
         {!loading && error && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)', color: 'var(--c-action-text)', fontSize: '13px', padding: '12px 14px', borderRadius: '12px', marginTop: '24px' }}>
-            <span>No pudimos cargar las estadísticas.</span>
+            <span>{t('No pudimos cargar las estadísticas.')}</span>
             <button
               onClick={refetch}
               style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-action-border)', borderRadius: '8px', padding: '6px 12px', background: 'transparent' }}
             >
-              Reintentar
+              {t('Reintentar')}
             </button>
           </div>
         )}
@@ -187,7 +189,7 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
         {!loading && !error && data && data.totals.workouts === 0 && (
           <div style={{ textAlign: 'center', padding: '48px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px', marginTop: '24px' }}>
             <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em', marginBottom: '8px' }}>
-              Aún no hay nada que medir
+              {t('Aún no hay nada que medir')}
             </p>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '13px', lineHeight: 1.5, maxWidth: '32ch', margin: '0 auto' }}>
               {readOnly
@@ -209,7 +211,7 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
                   onClick={() => setCustomizing(true)}
                   style={{ background: 'transparent', color: 'var(--c-action-text)', border: '1px solid var(--c-action-border)', borderRadius: '8px', padding: '8px 14px', fontSize: '11px', fontWeight: 700 }}
                 >
-                  Elegir qué ver
+                  {t('Elegir qué ver')}
                 </button>
               </div>
             ) : (

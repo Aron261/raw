@@ -3,6 +3,7 @@ import { Sheet, Field, Button } from './ui'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { DEFAULT_TARGETS, recommendMacros } from '../hooks/useNutrition'
+import { useLang } from '../hooks/useLang'
 
 const fmt = (n, locale = 'es-CO') => Math.round(n).toLocaleString(locale)
 const LB_TO_KG = 0.4536
@@ -25,23 +26,24 @@ const KCAL_OF = (p, c, f) => Math.round(p * 4 + c * 4 + f * 9)
 // edita los del propio usuario; un entrenador pasa el userId del cliente
 // para planificar su nutrición (el prefill de peso usa el peso del cliente).
 export default function NutritionTargetsSheet({ targets, onSave, onClose, userId = null, title = 'Objetivos diarios', subtitle = 'Tu meta de calorías y macros para cada día.' }) {
-  const t = targets || DEFAULT_TARGETS
+  const { t } = useLang()
+  const tgt = targets || DEFAULT_TARGETS
   const { user } = useAuth()
   const ownerId = userId || user?.id
   const [mode, setMode] = useState('peso')
   const [saving, setSaving] = useState(false)
 
-  const [kcal, setKcal] = useState(String(t.kcal))
+  const [kcal, setKcal] = useState(String(tgt.kcal))
   const [weight, setWeight] = useState('')
 
   // % personalizado: carbos siempre es el resto (100 − proteína − grasa).
-  const [pctP, setPctP] = useState(String(Math.round((t.protein_g * 4 / t.kcal) * 100) || 30))
-  const [pctF, setPctF] = useState(String(Math.round((t.fat_g * 9 / t.kcal) * 100) || 25))
+  const [pctP, setPctP] = useState(String(Math.round((tgt.protein_g * 4 / tgt.kcal) * 100) || 30))
+  const [pctF, setPctF] = useState(String(Math.round((tgt.fat_g * 9 / tgt.kcal) * 100) || 25))
 
   // Gramos exactos
-  const [gP, setGP] = useState(String(t.protein_g))
-  const [gC, setGC] = useState(String(t.carbs_g))
-  const [gF, setGF] = useState(String(t.fat_g))
+  const [gP, setGP] = useState(String(tgt.protein_g))
+  const [gC, setGC] = useState(String(tgt.carbs_g))
+  const [gF, setGF] = useState(String(tgt.fat_g))
 
   // Prefill del peso ideal con el último peso registrado (solo si no ha escrito).
   useEffect(() => {

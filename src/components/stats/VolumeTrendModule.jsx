@@ -5,6 +5,7 @@ import {
 import { useTheme } from '../../hooks/useTheme'
 import SectionHeader from './SectionHeader'
 import Segmented from './Segmented'
+import { useLang } from '../../hooks/useLang'
 
 // Monthly volume trend. Hex per palette+theme — CSS vars don't resolve in
 // recharts SVG attrs (same pattern as Home / ExerciseDetail).
@@ -16,6 +17,7 @@ const CHART_COLORS = {
 }
 
 function ChartTooltip({ active, payload, label }) {
+  const { t } = useLang()
   if (!active || !payload?.length) return null
   const val = payload[0]?.value || 0
   return (
@@ -33,6 +35,7 @@ function ChartTooltip({ active, payload, label }) {
 const RANGE_OPTIONS = [{ id: '6', label: '6M' }, { id: '12', label: '12M' }]
 
 export default function VolumeTrendModule({ data }) {
+  const { t } = useLang()
   const { resolved, palette } = useTheme()
   const colors = CHART_COLORS[`${palette}-${resolved}`] || CHART_COLORS['slate-light']
   const [range, setRange] = useState('12')
@@ -85,7 +88,7 @@ export default function VolumeTrendModule({ data }) {
 
       {!hasData ? (
         <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--c-text-muted)', fontSize: '11px', border: '1px dashed var(--c-border-subtle)', borderRadius: '12px' }}>
-          Sin entrenos registrados todavía
+          {t('Sin entrenos registrados todavía')}
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={180}>

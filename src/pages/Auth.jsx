@@ -79,9 +79,7 @@ export default function Auth() {
       >
         <span className="font-display" style={{ fontSize: '26px', lineHeight: 1 }}>RAW</span>
         <div>
-          <p className="font-display" style={{ fontSize: 'clamp(44px, 4.5vw, 72px)', lineHeight: 1.04 }}>
-            Registra.<br />Progresa.<br />Nada más.
-          </p>
+          <p className="font-display" style={{ fontSize: 'clamp(44px, 4.5vw, 72px)', lineHeight: 1.04 }}>{t('Registra.')}<br />{t('Progresa.')}<br />{t('Nada más.')}</p>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.32em', marginTop: '20px' }}>
             We Do Gym
           </p>
@@ -142,10 +140,10 @@ export default function Auth() {
             >
               <div style={{ textAlign: 'left' }}>
                 <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Instalar en Android
+                  {t('Instalar en Android')}
                 </p>
                 <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', marginTop: '2px' }}>
-                  Agrega RAW a tu pantalla de inicio
+                  {t('Agrega RAW a tu pantalla de inicio')}
                 </p>
               </div>
               <span style={{ color: 'var(--c-action-text)', fontSize: '18px', marginLeft: '12px' }}>↓</span>
@@ -155,10 +153,10 @@ export default function Auth() {
           {isIOS && (
             <div style={{ padding: '14px 16px', background: 'var(--c-surface)' }}>
               <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
-                Instalar en iPhone
+                {t('Instalar en iPhone')}
               </p>
               <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
-                Toca <span style={{ color: 'var(--c-text-secondary)', fontWeight: 700 }}>Compartir</span>{' '}
+                Toca <span style={{ color: 'var(--c-text-secondary)', fontWeight: 700 }}>{t('Compartir')}</span>{' '}
                 <span style={{ fontSize: '13px' }}>⎋</span> y luego{' '}
                 <span style={{ color: 'var(--c-text-secondary)', fontWeight: 700 }}>"Agregar a pantalla de inicio"</span>
               </p>
@@ -204,10 +202,10 @@ export default function Auth() {
         {mode === 'reset' && (
           <div style={{ marginBottom: '20px' }}>
             <h2 style={{ fontFamily: 'var(--font-sans)', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
-              Restablecer contraseña
+              {t('Restablecer contraseña')}
             </h2>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', marginTop: '4px', lineHeight: 1.5 }}>
-              Ingresa tu email y te enviaremos un enlace para crear una nueva.
+              {t('Ingresa tu email y te enviaremos un enlace para crear una nueva.')}
             </p>
           </div>
         )}

@@ -169,7 +169,7 @@ export default function Admin() {
 
         {/* Desktop hint (mobile only) */}
         <p className="md:hidden" style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginBottom: '20px', background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: '10px', padding: '10px 12px' }}>
-          Este panel está pensado para escritorio. Puedes usarlo aquí, pero se ve mejor en una pantalla grande.
+          {t('Este panel está pensado para escritorio. Puedes usarlo aquí, pero se ve mejor en una pantalla grande.')}
         </p>
 
         {error && <div style={{ ...ERROR_STYLE, marginBottom: '20px' }}>{error}</div>}
@@ -234,8 +234,7 @@ export default function Admin() {
             {/* System health */}
             <section style={CARD}>
               <p style={SECTION_TITLE}>{t('Salud del sistema')}</p>
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', marginBottom: '14px' }}>
-                Tamaño de la base de datos: <strong style={{ color: 'var(--c-text)' }}>{overview?.db_size || '—'}</strong>
+              <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', marginBottom: '14px' }}>{t('Tamaño de la base de datos:')}<strong style={{ color: 'var(--c-text)' }}>{overview?.db_size || '—'}</strong>
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px' }}>
                 {(overview?.health || []).slice(0, 12).map(h => (

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useExerciseGroups } from '../../hooks/useExerciseGroups'
 import { CATCH_ALL } from '../../lib/muscleGroups'
 import SectionHeader from './SectionHeader'
+import { useLang } from '../../hooks/useLang'
 
 // All-time volume distribution across muscle groups, shown as proportional
 // horizontal bars (relative to the most-trained group).
@@ -11,6 +12,7 @@ function formatVolume(v) {
 }
 
 export default function MuscleBalanceModule({ data, readOnly = false }) {
+  const { t } = useLang()
   const navigate = useNavigate()
   const { needsAttention } = useExerciseGroups()
 

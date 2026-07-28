@@ -70,7 +70,7 @@ describe('diccionario inglés', () => {
   it('ninguna entrada se quedó igual que el español por descuido', () => {
     // Algunas coinciden de verdad ("Cardio", "reps", "coach"); el resto sería
     // una traducción sin hacer que pasaría desapercibida.
-    const SAME_ON_PURPOSE = new Set(['Cardio', 'reps', 'rep', 'coach', 'Auto', 'kcal hoy', 'Email', 'Snacks', 'Plan', 'Chat', 'Error'])
+    const SAME_ON_PURPOSE = new Set(['Cardio', 'reps', 'rep', 'coach', 'Auto', 'kcal hoy', 'Email', 'Snacks', 'Plan', 'Chat', 'Error', 'Coaching'])
     const suspicious = Object.entries(en)
       .filter(([k, v]) => k === v && !SAME_ON_PURPOSE.has(k))
       .map(([k]) => k)

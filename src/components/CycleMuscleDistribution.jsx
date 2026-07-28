@@ -2,12 +2,14 @@ import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { CATCH_ALL } from '../lib/muscleGroups'
+import { useLang } from '../hooks/useLang'
 
 // Distribution of the active cycle by muscle group, measured in weekly working
 // sets — sum of each exercise's target `sets` across all days (sets on two days
 // add up). Classification precedence: the user's own exercises.muscle_group →
 // exercises_library → catch-all.
 export default function CycleMuscleDistribution({ routine }) {
+  const { t } = useLang()
   const { user } = useAuth()
   const [groupByName, setGroupByName] = useState(null)
 
@@ -73,15 +75,15 @@ export default function CycleMuscleDistribution({ routine }) {
       marginTop: '8px',
     }}>
       <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
-        Series por semana
+        {t('Series por semana')}
       </p>
       <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, lineHeight: 1.45, marginBottom: '14px' }}>
-        Series semanales por grupo muscular en este ciclo.
+        {t('Series semanales por grupo muscular en este ciclo.')}
       </p>
 
       {ordered.length === 0 ? (
         <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, padding: '4px 0' }}>
-          Define las series de cada ejercicio en el editor para ver el reparto.
+          {t('Define las series de cada ejercicio en el editor para ver el reparto.')}
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Sheet, Field, Button } from '../ui'
 import { KINDS, KIND_ORDER, longDate, toLocalISODate } from '../../lib/calendar'
 import { useStartRoutineWorkout } from '../../hooks/useStartRoutineWorkout'
+import { useLang } from '../../hooks/useLang'
 
 // ── DaySheet ─────────────────────────────────────────────────────────────
 // Un día del calendario: lo que ya pasó (entrenos registrados, solo lectura) y
@@ -12,6 +13,7 @@ export default function DaySheet({
   date, workouts = [], sessions = [], routines = [],
   onCreate, onUpdate, onDelete, onClose,
 }) {
+  const { t } = useLang()
   const navigate = useNavigate()
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
   const iso = toLocalISODate(date)
@@ -102,7 +104,7 @@ export default function DaySheet({
       {workouts.length > 0 && (
         <div style={{ marginBottom: '18px' }}>
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
-            Registrado
+            {t('Registrado')}
           </p>
           {workouts.map(w => (
             <button
@@ -128,7 +130,7 @@ export default function DaySheet({
       {sessions.length > 0 && (
         <div style={{ marginBottom: '18px' }}>
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
-            Planeado
+            {t('Planeado')}
           </p>
           {sessions.map(s => {
             const meta = KINDS[s.kind] || KINDS.note
@@ -172,7 +174,7 @@ export default function DaySheet({
                       fontSize: '10px', fontWeight: 800,
                     }}
                   >
-                    Empezar
+                    {t('Empezar')}
                   </button>
                 )}
                 <button
@@ -253,7 +255,7 @@ export default function DaySheet({
 
       {kind === 'deload' && (
         <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginBottom: '12px' }}>
-          La semana de esta fecha se marcará como descarga en el calendario.
+          {t('La semana de esta fecha se marcará como descarga en el calendario.')}
         </p>
       )}
 

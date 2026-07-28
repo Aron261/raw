@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { SPRING_POP } from '../lib/motion'
 import { pressable } from '../lib/ui'
+import { useLang } from '../hooks/useLang'
 
 /*
  * The rest-timer pill — the floating control DESIGN.md reserves the
@@ -28,6 +29,7 @@ function fmt(totalSecs) {
 }
 
 export default function RestTimerPill({ restId, endsAt, total, onExtend, onDismiss }) {
+  const { t } = useLang()
   const reduce = useReducedMotion()
   const [now, setNow] = useState(() => Date.now())
   const [exiting, setExiting] = useState(false)

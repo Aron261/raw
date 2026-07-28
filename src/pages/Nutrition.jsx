@@ -8,6 +8,7 @@ import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import { ERROR_STYLE } from '../lib/ui'
 import { searchFoods, normalizeFood, parseServing } from '../lib/foodLibrary'
 import { useClientDetail } from '../hooks/useClientDetail'
+import { useLang } from '../hooks/useLang'
 import {
   useNutritionDay, useNutritionTargets, useMyFoods,
   toLocalISODate, MEALS, DEFAULT_TARGETS,
@@ -402,7 +403,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
                 borderRadius: '999px', padding: '7px 14px', background: 'transparent',
               }}
             >
-              Plan
+              {t('Plan')}
             </button>
           </div>
         ) : (

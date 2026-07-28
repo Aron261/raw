@@ -69,7 +69,7 @@ function AssignedBadge() {
       fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
       padding: '2px 7px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
     }}>
-      Entrenador
+      {t('Entrenador')}
     </span>
   )
 }
@@ -225,7 +225,7 @@ function CycleCard({ routine, onActivate, onDelete, onEdit }) {
         </p>
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, marginRight: '-6px' }}>
           <button onClick={onEdit} aria-label={`Editar ${routine.name}`} style={cardPillStyle(false)} {...cardPillHover(false)}>
-            Editar
+            {t('Editar')}
           </button>
           <button onClick={onActivate} aria-label={`Activar ${routine.name}`} style={cardPillStyle(true)} {...cardPillHover(true)}>
             {t('Activar')}
@@ -261,7 +261,7 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onE
         </p>
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, marginRight: '-6px' }}>
           <button onClick={onEdit} aria-label={`Editar ${routine.name}`} style={cardPillStyle(false)} {...cardPillHover(false)}>
-            Editar
+            {t('Editar')}
           </button>
           {day && (
             <button
@@ -359,8 +359,8 @@ function TypeSelectionModal({ onClose, onSelectCycle, onSelectSingleDay, onSelec
         background: 'var(--c-surface-2)', borderRadius: '12px',
         marginBottom: '20px',
       }}>
-        <button style={tabStyle(tab === 'cycle')}  onClick={() => setTab('cycle')}>Ciclo</button>
-        <button style={tabStyle(tab === 'single')} onClick={() => setTab('single')}>Rutina de un día</button>
+        <button style={tabStyle(tab === 'cycle')}  onClick={() => setTab('cycle')}>{t('Ciclo')}</button>
+        <button style={tabStyle(tab === 'single')} onClick={() => setTab('single')}>{t('Rutina de un día')}</button>
       </div>
 
       {tab === 'cycle' && (
@@ -647,7 +647,7 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
 
           {eligible.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--c-text-muted)', fontSize: '12px' }}>
-              No hay entrenos completados aún.
+              {t('No hay entrenos completados aún.')}
             </div>
           ) : (
             <>
@@ -919,7 +919,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
 
       <div style={{ marginBottom: '16px' }}>
         <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
-          Nombre
+          {t('Nombre')}
         </p>
         <input
           type="text" value={name} onChange={e => setName(e.target.value)}
@@ -1043,7 +1043,7 @@ export default function Rutinas() {
         {/* Header */}
         <div className="fade-in" style={{ paddingTop: '40px', paddingBottom: '28px' }}>
           <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
-            Rutinas
+            {t('Rutinas')}
           </h1>
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
             {t('Ciclos y plantillas')}

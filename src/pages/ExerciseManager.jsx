@@ -13,6 +13,7 @@ const eyebrow = { fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fo
 
 // A single exercise row — tap to expand a chip selector and reassign its group.
 function ExerciseRow({ ex, expanded, onToggle, onPick, busy }) {
+  const { t } = useLang()
   const label = ex.effective || UNCLASSIFIED
   const attention = ex.needsAttention
   return (
@@ -39,8 +40,7 @@ function ExerciseRow({ ex, expanded, onToggle, onPick, busy }) {
       {expanded && (
         <div style={{ paddingBottom: '12px' }}>
           {ex.suggestion && (
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', marginBottom: '8px' }}>
-              Sugerencia: <span style={{ color: 'var(--c-text-dim)', fontWeight: 700 }}>{ex.suggestion}</span>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', marginBottom: '8px' }}>{t('Sugerencia:')}<span style={{ color: 'var(--c-text-dim)', fontWeight: 700 }}>{ex.suggestion}</span>
             </p>
           )}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -74,11 +74,12 @@ function ExerciseRow({ ex, expanded, onToggle, onPick, busy }) {
 // solos a propósito: decidir si un «Chest Supported Row» es un remo en máquina
 // o un remo T-bar con pecho apoyado reescribiría historial real de entreno.
 function UnlinkedSection({ items, onPick }) {
+  const { t } = useLang()
   if (items.length === 0) return null
   return (
     <div style={{ marginBottom: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        <p style={{ ...eyebrow, color: 'var(--c-action-text)' }}>Sin vincular</p>
+        <p style={{ ...eyebrow, color: 'var(--c-action-text)' }}>{t('Sin vincular')}</p>
         <span style={{ color: 'var(--c-text-ghost)', fontFamily: 'var(--font-mono)', fontSize: '10px' }}>{items.length}</span>
       </div>
       <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.4, marginBottom: '8px' }}>
@@ -142,7 +143,7 @@ export default function ExerciseManager() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '40px', paddingBottom: '4px' }}>
           <button onClick={() => navigate(-1)} style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }} aria-label="Volver">←</button>
           <h1 style={{ flex: 1, fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
-            Mis ejercicios
+            {t('Mis ejercicios')}
           </h1>
         </div>
         <p style={{ ...eyebrow, marginBottom: '20px' }}>

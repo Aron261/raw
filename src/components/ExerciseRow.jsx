@@ -375,8 +375,7 @@ export default function ExerciseRow({
                   {/* Cycles presets in place — the menu stays open so the
                       lifter can tap through to the duration they want. */}
                   {onRestStart && (
-                    <MenuItem onClick={cycleRest}>
-                      Descanso · <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--c-data)' }}>{fmtRest(restSecs)}</span>
+                    <MenuItem onClick={cycleRest}>{t('Descanso ·')}<span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--c-data)' }}>{fmtRest(restSecs)}</span>
                     </MenuItem>
                   )}
                   {onMove && canMoveUp && (

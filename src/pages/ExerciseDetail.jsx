@@ -20,6 +20,7 @@ const CHART = {
 
 // Custom tooltip — light theme
 function CustomTooltip({ active, payload, label }) {
+  const { t } = useLang()
   if (!active || !payload?.length) return null
   return (
     <div style={{
@@ -39,7 +40,7 @@ function CustomTooltip({ active, payload, label }) {
 const REP_RANGES = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20]
 
 export default function ExerciseDetail() {
-  const { locale } = useLang()
+  const { t, locale } = useLang()
   const { name } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -108,7 +109,7 @@ export default function ExerciseDetail() {
             <PRBadge />
             <div>
               <span style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>
-                Mejor 1RM estimado
+                {t('Mejor 1RM estimado')}
               </span>
               <span style={{ color: 'var(--c-text)', fontWeight: 900, fontSize: '22px' }}>
                 {allTimePR.best1RM}
@@ -131,8 +132,8 @@ export default function ExerciseDetail() {
 
         {!loading && prSets.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px 0', border: '1px dashed var(--c-border)', borderRadius: '14px' }}>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sin datos aún</p>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px' }}>Registra este ejercicio para ver tu progreso.</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('Sin datos aún')}</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px' }}>{t('Registra este ejercicio para ver tu progreso.')}</p>
           </div>
         )}
 
@@ -141,7 +142,7 @@ export default function ExerciseDetail() {
             {/* Progression chart */}
             <div style={{ marginBottom: '32px' }}>
               <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
-                Progresión 1RM
+                {t('Progresión 1RM')}
               </p>
               <div style={{ height: '180px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -177,7 +178,7 @@ export default function ExerciseDetail() {
             {prByReps.length > 0 && (
               <div style={{ marginBottom: '32px' }}>
                 <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
-                  Mejor peso por reps
+                  {t('Mejor peso por reps')}
                 </p>
                 <div style={{
                   background: 'var(--c-surface)',
@@ -234,7 +235,7 @@ export default function ExerciseDetail() {
             {/* Session history */}
             <div style={{ paddingBottom: '32px' }}>
               <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
-                Historial
+                {t('Historial')}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {[...prSets].reverse().map(session => {
@@ -281,7 +282,7 @@ export default function ExerciseDetail() {
                       {/* Session best */}
                       <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--c-border-subtle)' }}>
                         <span style={{ color: 'var(--c-text-dim)', fontSize: '11px' }}>
-                          Mejor: <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>{session.best1RM} 1RM</span>
+                          {t('Mejor:')} <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>{session.best1RM} 1RM</span>
                         </span>
                       </div>
                     </div>

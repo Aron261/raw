@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sheet, Button, UnitToggle } from './ui'
 import { useBodyWeight } from '../hooks/useBodyWeight'
+import { useLang } from '../hooks/useLang'
 
 /*
  * The universal "+" — one sheet to add anything, reachable from the tab bar
@@ -10,6 +11,7 @@ import { useBodyWeight } from '../hooks/useBodyWeight'
  * weight, the most requested "just let me log it" number).
  */
 function OptionRow({ title, sub, onClick }) {
+  const { t } = useLang()
   return (
     <button
       onClick={onClick}
@@ -36,6 +38,7 @@ function OptionRow({ title, sub, onClick }) {
 }
 
 export default function QuickAddSheet({ onClose, onStartWorkout }) {
+  const { t } = useLang()
   const navigate = useNavigate()
   const { latestLog, addLog } = useBodyWeight()
   const [mode, setMode] = useState('menu') // 'menu' | 'peso'
@@ -84,13 +87,13 @@ export default function QuickAddSheet({ onClose, onStartWorkout }) {
 
         {saveError && (
           <p role="alert" style={{ color: 'var(--c-action-text)', fontSize: '11px', marginBottom: '12px' }}>
-            {saveError} <button onClick={saveWeight} style={{ textDecoration: 'underline', color: 'inherit', fontWeight: 700 }}>Reintentar</button>
+            {saveError} <button onClick={saveWeight} style={{ textDecoration: 'underline', color: 'inherit', fontWeight: 700 }}>{t('Reintentar')}</button>
           </p>
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <Button variant="primary" full size="lg" loading={saving} disabled={saving || !(parseFloat(weight) > 0)} onClick={saveWeight}>
-            Guardar
+            {t('Guardar')}
           </Button>
           <Button variant="ghost" full onClick={() => setMode('menu')}>← Atrás</Button>
         </div>

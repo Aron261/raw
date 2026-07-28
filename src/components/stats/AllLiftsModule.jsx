@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SectionHeader from './SectionHeader'
 import Segmented from './Segmented'
+import { useLang } from '../../hooks/useLang'
 
 const CAP = 6
 const SORT_OPTIONS = [{ id: 'rm', label: '1RM' }, { id: 'az', label: 'A-Z' }]
@@ -10,6 +11,7 @@ const SORT_OPTIONS = [{ id: 'rm', label: '1RM' }, { id: 'az', label: 'A-Z' }]
 // sort, and a top-N cap. Rows tap into /exercise/:name — disabled in readOnly
 // (coach viewing a client, where the detail page would show the coach's data).
 export default function AllLiftsModule({ data, readOnly = false }) {
+  const { t } = useLang()
   const navigate = useNavigate()
   const lifts = data?.allLifts || []
   const [query, setQuery] = useState('')

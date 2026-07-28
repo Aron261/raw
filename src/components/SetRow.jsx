@@ -368,7 +368,7 @@ export default function SetRow({
     {saveError && (
       <div role="alert" style={errorCaptionStyle}>
         <span>{online ? 'No se guardó' : 'Sin conexión · no se guardó'}</span>
-        <button onClick={retry} style={retryLinkStyle}>Reintentar</button>
+        <button onClick={retry} style={retryLinkStyle}>{t('Reintentar')}</button>
       </div>
     )}
     </>

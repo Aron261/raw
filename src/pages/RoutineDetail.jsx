@@ -6,11 +6,13 @@ import ShareRoutineSheet from '../components/ShareRoutineSheet'
 import { useRoutines } from '../hooks/useRoutines'
 import { useAuth } from '../hooks/useAuth'
 import { pressable } from '../lib/ui'
+import { useLang } from '../hooks/useLang'
 
 const eyebrow = { fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }
 
 // One exercise row: name + editable target sets/reps + remove.
 function ExerciseRowEditor({ exercise, onUpdate, onRemove }) {
+  const { t } = useLang()
   const [sets, setSets] = useState(exercise.sets ?? '')
   const [reps, setReps] = useState(exercise.reps ?? '')
 
@@ -68,6 +70,7 @@ function ExerciseRowEditor({ exercise, onUpdate, onRemove }) {
 
 // One day card: editable name + focus, its exercises, add-exercise button.
 function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExercise, onRemoveExercise, canRemove }) {
+  const { t } = useLang()
   const [name, setName] = useState(day.day_name || '')
   const [focus, setFocus] = useState(day.focus || '')
   const exercises = day.routine_day_exercises || []
@@ -79,7 +82,7 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
           type="text" value={name}
           onChange={e => setName(e.target.value)}
           onBlur={() => { if (name.trim() && name !== day.day_name) onUpdateDay({ day_name: name.trim() }) }}
-          placeholder="Nombre del día"
+          placeholder={t('Nombre del día')}
           className="input-field"
           style={{ flex: 1, fontSize: '14px', fontWeight: 800 }}
         />
@@ -108,7 +111,7 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
 
       {exercises.length === 0 ? (
         <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', lineHeight: 1.5, padding: '8px 0 12px' }}>
-          Este día está vacío. Añade el primer ejercicio y la rutina ya sabrá qué toca.
+          {t('Este día está vacío. Añade el primer ejercicio y la rutina ya sabrá qué toca.')}
         </p>
       ) : (
         <div>
@@ -143,6 +146,7 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
 }
 
 export default function RoutineDetail() {
+  const { t } = useLang()
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -175,7 +179,7 @@ export default function RoutineDetail() {
         <div style={{ padding: '0 16px', maxWidth: '480px', margin: '0 auto', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '40px' }}>
             <button onClick={() => navigate('/rutinas')} style={{ color: 'var(--c-text-dim)', fontSize: '18px' }} aria-label="Volver">←</button>
-            <h1 style={{ color: 'var(--c-text)', fontSize: '18px', fontWeight: 800 }}>Rutina no encontrada</h1>
+            <h1 style={{ color: 'var(--c-text)', fontSize: '18px', fontWeight: 800 }}>{t('Rutina no encontrada')}</h1>
           </div>
         </div>
       </Layout>
@@ -191,7 +195,7 @@ export default function RoutineDetail() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '40px', paddingBottom: '4px' }}>
           <button onClick={() => navigate('/rutinas')} style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }} aria-label="Volver">←</button>
-          <p style={{ ...eyebrow, flex: 1, minWidth: 0 }}>{routine.type === 'cycle' ? 'Editar ciclo' : 'Editar rutina'}</p>
+          <p style={{ ...eyebrow, flex: 1, minWidth: 0 }}>{t(routine.type === 'cycle' ? 'Editar ciclo' : 'Editar rutina')}</p>
           <button
             onClick={() => setSharing(true)}
             aria-label={`Compartir ${routine.name}`}
@@ -208,7 +212,7 @@ export default function RoutineDetail() {
               onMouseLeave: e => e.currentTarget.style.background = 'transparent',
             })}
           >
-            Compartir
+            {t('Compartir')}
           </button>
         </div>
 
@@ -225,7 +229,7 @@ export default function RoutineDetail() {
         {routine.description && (
           <details style={{ marginBottom: '20px', marginTop: '-8px' }}>
             <summary style={{ ...eyebrow, cursor: 'pointer', listStyle: 'none' }}>
-              Por qué este plan ›
+              {t('Por qué este plan ›')}
             </summary>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.6, whiteSpace: 'pre-line', marginTop: '8px', padding: '12px 14px', background: 'var(--c-surface)', borderRadius: '12px' }}>
               {routine.description}

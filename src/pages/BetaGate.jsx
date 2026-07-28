@@ -3,10 +3,12 @@ import { useAuth } from '../hooks/useAuth'
 import { useBetaGate } from '../hooks/useBetaGate'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Button, Logo } from '../components/ui'
+import { useLang } from '../hooks/useLang'
 
 // Pantalla de acceso durante la beta: pide el código compartido.
 // Se muestra a cualquier usuario autenticado que aún no esté aprobado.
 export default function BetaGate() {
+  const { t } = useLang()
   const { user, signOut } = useAuth()
   const { redeemCode, redeeming } = useBetaGate()
   const [code, setCode] = useState('')
@@ -33,16 +35,16 @@ export default function BetaGate() {
           <Logo size={72} />
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '40px', letterSpacing: '0.02em', color: 'var(--c-text)' }}>RAW</span>
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: '4px' }}>
-            Acceso beta
+            {t('Acceso beta')}
           </p>
         </div>
 
         <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
           <h1 style={{ color: 'var(--c-text)', fontSize: '17px', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>
-            Ingresa tu código
+            {t('Ingresa tu código')}
           </h1>
           <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.5, marginBottom: '20px' }}>
-            La app está en beta cerrada. Ingresa el código de acceso que te compartieron para continuar.
+            {t('La app está en beta cerrada. Ingresa el código de acceso que te compartieron para continuar.')}
           </p>
 
           {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
@@ -64,7 +66,7 @@ export default function BetaGate() {
               size="lg"
               disabled={redeeming || !code.trim()}
             >
-              {redeeming ? 'Verificando...' : 'Entrar'}
+              {t(redeeming ? 'Verificando...' : 'Entrar')}
             </Button>
           </form>
         </div>
@@ -76,7 +78,7 @@ export default function BetaGate() {
             onClick={signOut}
             style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
           >
-            Cerrar sesión
+            {t('Cerrar sesión')}
           </button>
         </div>
       </div>

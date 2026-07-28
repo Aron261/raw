@@ -6,6 +6,7 @@ import { useRoutineShare } from '../hooks/useRoutineShare'
 import { useProfile } from '../hooks/useProfile'
 import { useTrainer } from '../hooks/useTrainer'
 import { shareMessage, routineToInput } from '../lib/share'
+import { useLang } from '../hooks/useLang'
 
 const eyebrow = {
   fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px',
@@ -21,6 +22,7 @@ const eyebrow = {
 // RLS —solo vínculos activos— y queda marcada con assigned_by = entrenador.
 // Se llama a la RPC aquí en vez de montar un useRoutines por cliente.
 function AssignToClients({ routine }) {
+  const { t } = useLang()
   const { clients, loading } = useTrainer()
   const [sendingId, setSendingId] = useState(null)
   const [sentIds, setSentIds] = useState([])
@@ -47,9 +49,9 @@ function AssignToClients({ routine }) {
 
   return (
     <div style={{ marginTop: '20px', paddingTop: '18px', borderTop: '1px solid var(--c-border-subtle)' }}>
-      <p style={{ ...eyebrow, marginBottom: '6px' }}>Enviar a un cliente</p>
+      <p style={{ ...eyebrow, marginBottom: '6px' }}>{t('Enviar a un cliente')}</p>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5, marginBottom: '12px' }}>
-        La copia aparece directamente en su app, lista para empezar.
+        {t('La copia aparece directamente en su app, lista para empezar.')}
       </p>
 
       {error && <div style={{ ...ERROR_STYLE, marginBottom: '12px' }}>{error}</div>}
@@ -98,6 +100,7 @@ function AssignToClients({ routine }) {
 // y cómo desactivarlo). No hay caducidades ni lista de invitados: el enlace es
 // el permiso, y desactivarlo es la única forma de retirarlo.
 export default function ShareRoutineSheet({ routine, onClose }) {
+  const { t } = useLang()
   const { share, url, loading, working, error, createLink, revokeLink } = useRoutineShare(routine?.id)
   // El perfil viene de la caché compartida; useTrainer (que sí consulta) solo se
   // monta si esta persona entrena a alguien.
@@ -171,7 +174,7 @@ export default function ShareRoutineSheet({ routine, onClose }) {
             background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
             borderRadius: '12px', padding: '12px 14px', marginBottom: '12px',
           }}>
-            <p style={{ ...eyebrow, marginBottom: '6px' }}>Enlace</p>
+            <p style={{ ...eyebrow, marginBottom: '6px' }}>{t('Enlace')}</p>
             <p style={{
               fontFamily: 'var(--font-mono)', color: 'var(--c-text-secondary)', fontSize: '11px',
               lineHeight: 1.45, wordBreak: 'break-all',
@@ -183,7 +186,7 @@ export default function ShareRoutineSheet({ routine, onClose }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '18px' }}>
             {canNativeShare && (
               <Button variant="primary" full size="lg" onClick={nativeShare}>
-                Compartir
+                {t('Compartir')}
               </Button>
             )}
             <Button variant="secondary" full size={canNativeShare ? 'md' : 'lg'} onClick={copy}>
@@ -215,10 +218,10 @@ export default function ShareRoutineSheet({ routine, onClose }) {
               </p>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <Button variant="danger" full loading={working} disabled={working} onClick={handleRevoke}>
-                  Desactivar
+                  {t('Desactivar')}
                 </Button>
                 <Button variant="secondary" full disabled={working} onClick={() => setConfirmRevoke(false)}>
-                  Cancelar
+                  {t('Cancelar')}
                 </Button>
               </div>
             </div>
@@ -231,7 +234,7 @@ export default function ShareRoutineSheet({ routine, onClose }) {
                 textTransform: 'uppercase', letterSpacing: '0.08em',
               }}
             >
-              Desactivar enlace
+              {t('Desactivar enlace')}
             </button>
           )}
         </>

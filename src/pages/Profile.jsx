@@ -49,6 +49,7 @@ const CARD = {
 // abrir varios a la vez a propósito — cerrar uno para ver otro es una pelea que
 // nadie pidió.
 function Disclosure({ title, summary, open, onToggle, children }) {
+  const { t } = useLang()
   return (
     <section style={{ ...CARD, padding: 0, overflow: 'hidden' }}>
       <button
@@ -99,6 +100,7 @@ function Disclosure({ title, summary, open, onToggle, children }) {
 
 // Una fila que lleva a otra pantalla desde dentro de un apartado.
 function LinkRow({ label, hint, onClick }) {
+  const { t } = useLang()
   return (
     <button
       type="button"
@@ -123,6 +125,7 @@ function LinkRow({ label, hint, onClick }) {
 
 // ── Pill selector (radio group) ────────────────────────────────────────
 function PillGroup({ options, value, onChange }) {
+  const { t } = useLang()
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
       {options.map(opt => {
@@ -151,6 +154,7 @@ function PillGroup({ options, value, onChange }) {
 
 // ── Number + unit selector ─────────────────────────────────────────────
 function NumberWithUnit({ value, unit, onValueChange, onUnitChange, units, placeholder }) {
+  const { t } = useLang()
   return (
     <div style={{ display: 'flex', gap: '8px' }}>
       <input
@@ -168,6 +172,7 @@ function NumberWithUnit({ value, unit, onValueChange, onUnitChange, units, place
 
 // ── Days picker (1-7) ──────────────────────────────────────────────────
 function DaysPicker({ value, onChange }) {
+  const { t } = useLang()
   return (
     <div style={{ display: 'flex', gap: '6px' }}>
       {[1, 2, 3, 4, 5, 6, 7].map(d => {
@@ -196,6 +201,7 @@ function DaysPicker({ value, onChange }) {
 
 // ── Summary row: label + value, taps to open a sheet ──────────────────────
 function SummaryRow({ label, value, onClick, isFirst }) {
+  const { t } = useLang()
   return (
     <button
       type="button"
@@ -290,6 +296,7 @@ function CharacteristicsSheet({ form, set, age, saving, onSave, onClose }) {
 
 // ── Weight chart tooltip ────────────────────────────────────────────────
 function WeightTooltip({ active, payload, label }) {
+  const { t } = useLang()
   if (!active || !payload?.length) return null
   return (
     <div style={{
@@ -389,7 +396,7 @@ function BodyWeightSheet({ unit, onClose }) {
       {/* Empty state */}
       {!loading && logs.length === 0 && (
         <div style={{ textAlign: 'center', padding: '20px 0 8px' }}>
-          <p style={{ color: 'var(--c-text-muted)', fontSize: '11px' }}>Registra tu primer peso arriba.</p>
+          <p style={{ color: 'var(--c-text-muted)', fontSize: '11px' }}>{t('Registra tu primer peso arriba.')}</p>
         </div>
       )}
 
@@ -442,7 +449,7 @@ function BodyWeightSummary({ unit, onOpen }) {
       >
         <div>
           {loading ? (
-            <span className="animate-pulse" style={{ color: 'var(--c-text-muted)', fontSize: '12px' }}>Cargando...</span>
+            <span className="animate-pulse" style={{ color: 'var(--c-text-muted)', fontSize: '12px' }}>{t('Cargando...')}</span>
           ) : latestLog ? (
             <>
               <span style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.03em' }}>
@@ -452,7 +459,7 @@ function BodyWeightSummary({ unit, onOpen }) {
               <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '2px' }}>{relativeDay(latestLog.logged_at, t, locale)}</p>
             </>
           ) : (
-            <span style={{ color: 'var(--c-text-muted)', fontSize: '13px', fontWeight: 600 }}>Sin registros — anota el primero</span>
+            <span style={{ color: 'var(--c-text-muted)', fontSize: '13px', fontWeight: 600 }}>{t('Sin registros — anota el primero')}</span>
           )}
         </div>
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -574,6 +581,7 @@ function AppLangPicker({ cell }) {
 // Idioma de los nombres de ejercicio. La identidad vive en la librería, así que
 // esto no toca historial ni PRs — solo elige las palabras.
 function ExerciseLangPicker({ cell }) {
+  const { t } = useLang()
   const { profile, saveProfile, saving } = useProfile()
   const lang = profile?.exercise_lang === 'en' ? 'en' : 'es'
   const opts = [
@@ -646,7 +654,7 @@ export function ClaudeSection() {
       </p>
 
       {/* URL del conector + copiar */}
-      <label style={LABEL}>URL del conector</label>
+      <label style={LABEL}>{t('URL del conector')}</label>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch', marginBottom: '16px' }}>
         <code
           style={{
@@ -801,7 +809,7 @@ function TrainerSection() {
 
       {/* Vincular entrenador por código */}
       <div>
-        <label style={LABEL}>Vincular un entrenador (código)</label>
+        <label style={LABEL}>{t('Vincular un entrenador (código)')}</label>
         <div style={{ display: 'flex', gap: '8px' }}>
           <input
             type="text"
@@ -833,7 +841,7 @@ function TrainerSection() {
       {/* Mis entrenadores */}
       {trainers.length > 0 && (
         <div style={{ marginTop: '20px' }}>
-          <label style={LABEL}>Mis entrenadores</label>
+          <label style={LABEL}>{t('Mis entrenadores')}</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {trainers.map(t => (
               <div key={t.linkId} style={{
@@ -859,7 +867,7 @@ function TrainerSection() {
                     onClick={() => navigate(`/chat/${t.trainerId}`)}
                     style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}
                   >
-                    Chat
+                    {t('Chat')}
                   </button>
                   <button
                     type="button"
@@ -882,6 +890,7 @@ function TrainerSection() {
 
 // ── Account row (tappable, opens a sheet) ─────────────────────────────────
 function AccountRow({ label, hint, danger, onClick, isFirst }) {
+  const { t } = useLang()
   return (
     <button
       type="button"
@@ -975,8 +984,7 @@ function ChangeEmailSheet({ currentEmail, onClose }) {
     <Sheet title="Cambiar email" subtitle={`Actual: ${currentEmail}`} onClose={onClose}>
       {error && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{error}</div>}
       {sent ? (
-        <p style={{ color: 'var(--c-text-secondary)', fontSize: '13px', lineHeight: 1.5, textAlign: 'center', padding: '12px 0' }}>
-          Te enviamos un enlace de confirmación a <strong>{email}</strong>. El cambio se aplica cuando lo confirmes.
+        <p style={{ color: 'var(--c-text-secondary)', fontSize: '13px', lineHeight: 1.5, textAlign: 'center', padding: '12px 0' }}>{t('Te enviamos un enlace de confirmación a')}<strong>{email}</strong>. El cambio se aplica cuando lo confirmes.
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1017,7 +1025,7 @@ function DeleteAccountSheet({ onClose }) {
     <Sheet title="Eliminar cuenta" subtitle="Esta acción es permanente y no se puede deshacer." onClose={onClose}>
       {error && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{error}</div>}
       <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
-        Se borrarán tu perfil, entrenos, rutinas, metas, nutrición, peso corporal, vínculos con entrenadores y mensajes. Escribe <strong style={{ color: 'var(--c-text)' }}>ELIMINAR</strong> para confirmar.
+        Se borrarán tu perfil, entrenos, rutinas, metas, nutrición, peso corporal, vínculos con entrenadores y mensajes. Escribe <strong style={{ color: 'var(--c-text)' }}>{t('ELIMINAR')}</strong> para confirmar.
       </p>
       <input
         type="text" value={confirmText} onChange={e => setConfirmText(e.target.value)}
@@ -1226,7 +1234,7 @@ export default function Profile() {
                   {charsSummary || 'Nombre, fecha de nacimiento, sexo, altura y nivel'}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0, marginLeft: '12px' }}>
-                  Editar ›
+                  {t('Editar ›')}
                 </span>
               </button>
 

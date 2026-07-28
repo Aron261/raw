@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Sheet, Button } from './ui'
 import { suggestLibraryMatches, mergeExerciseIntoLibrary } from '../hooks/useExerciseLinking'
+import { useLang } from '../hooks/useLang'
 
 /*
  * Link one unresolved exercise to its canonical library entry — or leave it
@@ -14,6 +15,7 @@ import { suggestLibraryMatches, mergeExerciseIntoLibrary } from '../hooks/useExe
  * training history and that should never be a surprise.
  */
 export default function LinkExerciseSheet({ exercise, onClose, onDone }) {
+  const { t } = useLang()
   const [suggestions, setSuggestions] = useState(null)
   const [picked, setPicked] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -85,7 +87,7 @@ export default function LinkExerciseSheet({ exercise, onClose, onDone }) {
             })}
             {suggestions.length === 0 && (
               <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', textAlign: 'center', padding: '20px 0' }}>
-                No encontramos nada parecido en la librería.
+                {t('No encontramos nada parecido en la librería.')}
               </p>
             )}
           </div>
@@ -111,7 +113,7 @@ export default function LinkExerciseSheet({ exercise, onClose, onDone }) {
               {picked ? `Es «${picked.name}»` : 'Elige uno'}
             </Button>
             <Button variant="ghost" full onClick={onClose}>
-              Es un ejercicio propio — déjalo así
+              {t('Es un ejercicio propio — déjalo así')}
             </Button>
           </div>
         </>
