@@ -635,7 +635,7 @@ export default function ActiveWorkout() {
       <Layout hideNav>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', gap: '16px', padding: '24px' }}>
           <p style={{ color: 'var(--c-action-text)', fontSize: '13px' }}>{error || t('Entreno no encontrado.')}</p>
-          <Button variant="secondary" onClick={handleBack}>← Atrás</Button>
+          <Button variant="secondary" onClick={handleBack}>← {t('Atrás')}</Button>
         </div>
       </Layout>
     )
@@ -662,7 +662,7 @@ export default function ActiveWorkout() {
             }}
             {...hoverColor('var(--c-text)', 'var(--c-text-dim)')}
           >
-            ← Atrás
+            ← {t('Atrás')}
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

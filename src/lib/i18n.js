@@ -11,9 +11,10 @@
 // (uno / lo demás) y el código ya elige la forma con un ternario. Se traduce
 // cada forma por separado — t(n === 1 ? 'entreno' : 'entrenos').
 //
-// El idioma de la interfaz es independiente del de los nombres de ejercicio
-// (useExerciseLang): alguien puede querer la app en español y los ejercicios en
-// inglés, que es justo para lo que existe aquel ajuste.
+// Este diccionario es solo texto de interfaz. Los nombres de ejercicio y el
+// vocabulario de gimnasio viven aparte (lib/exercises, lib/exerciseVocab) y se
+// traducen por useExerciseLang, que cuelga de este mismo idioma. Meter aquí una
+// palabra de gimnasio la saca de esa familia y produce listas mezcladas.
 
 export const LANGS = ['es', 'en']
 export const DEFAULT_LANG = 'es'
@@ -177,11 +178,8 @@ const EN = {
   'Oscuro': 'Dark',
   'Idioma': 'Language',
   'Idioma de la app': 'App language',
-  'Nombre de los ejercicios': 'Exercise names',
-  'Solo cambia cómo se llaman. Tu historial y tus récords son los mismos en cualquier idioma.':
-    'Only changes what they are called. Your history and records are the same in any language.',
-  'Cambia los textos de la app. No toca los nombres de los ejercicios.':
-    'Changes the app’s wording. Does not touch exercise names.',
+  'Cambia los textos y los nombres de los ejercicios. Tu historial y tus récords son los mismos en cualquier idioma.':
+    'Changes the wording and the exercise names. Your history and records are the same in any language.',
   'Altura': 'Height',
   'Peso de referencia': 'Reference weight',
   'Tu peso base. El seguimiento diario va en «Peso corporal».': 'Your baseline weight. Daily tracking lives in "Body weight".',

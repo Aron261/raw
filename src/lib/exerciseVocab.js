@@ -1,14 +1,14 @@
 // Vocabulario del gimnasio: grupos musculares y equipo.
 //
-// Esto NO es texto de interfaz. Es la misma familia de palabras que los nombres
-// de los ejercicios, así que sigue a `exercise_lang`, no a `app_lang`: quien
-// tiene la app en inglés pero los lifts en español espera leer "Press de banca"
-// y "Pecho", no "Press de banca" y "Chest".
+// Esto NO es texto de interfaz: es la misma familia de palabras que los
+// nombres de los ejercicios, y viaja con ellos por useExerciseLang.
 //
-// El fallo que arregla esto: al traducir el asistente de plan metí "Glúteo",
-// "Mancuernas", "Poleas" y compañía en el diccionario de la app. Resultado: con
-// la app en inglés, un grupo muscular salía en inglés y los otros nueve en
-// español, en la misma fila. La lista era la del idioma equivocado.
+// Que viva fuera del diccionario de la app sigue importando aunque hoy los dos
+// idiomas sean el mismo. El fallo que lo motivó: al traducir el asistente de
+// plan entraron "Glúteo", "Mancuernas", "Poleas" y compañía en el diccionario
+// de la interfaz, y bastaba con que a una le faltara la entrada para que un
+// grupo muscular saliera en un idioma y los otros nueve en el otro, en la
+// misma fila. Aquí están los diez juntos o no está ninguno.
 //
 // Igual que exerciseLabel: la identidad es la clave en español; esto solo elige
 // las palabras y no toca datos ni historial.

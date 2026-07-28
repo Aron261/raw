@@ -95,7 +95,7 @@ export default function QuickAddSheet({ onClose, onStartWorkout }) {
           <Button variant="primary" full size="lg" loading={saving} disabled={saving || !(parseFloat(weight) > 0)} onClick={saveWeight}>
             {t('Guardar')}
           </Button>
-          <Button variant="ghost" full onClick={() => setMode('menu')}>← Atrás</Button>
+          <Button variant="ghost" full onClick={() => setMode('menu')}>← {t('Atrás')}</Button>
         </div>
       </Sheet>
     )

@@ -3,9 +3,9 @@ import { useProfile } from './useProfile'
 import { translate, localeFor, normalizeLang } from '../lib/i18n'
 
 /*
- * El idioma de la interfaz. Independiente de useExerciseLang, que solo elige
- * las palabras de los nombres de ejercicio: alguien puede querer la app en
- * español y los lifts en inglés, que es para lo que existe aquel ajuste.
+ * El idioma de la app. Es el único: useExerciseLang cuelga de este, así que
+ * los nombres de ejercicio siguen a la interfaz y no hay forma de acabar con
+ * media pantalla en cada idioma.
  *
  * Devuelve también el `locale` para fechas y números, porque cambiar el idioma
  * sin cambiar el formato deja una app en inglés diciendo "12 de julio".

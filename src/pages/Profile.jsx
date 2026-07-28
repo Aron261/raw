@@ -505,22 +505,15 @@ function ThemeSection() {
       </p>
       <AppLangPicker cell={cell} />
       <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '8px' }}>
-        {t('Cambia los textos de la app. No toca los nombres de los ejercicios.')}
+        {t('Cambia los textos y los nombres de los ejercicios. Tu historial y tus récords son los mismos en cualquier idioma.')}
       </p>
 
-      <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', margin: '16px 0 10px' }}>
-        {t('Nombre de los ejercicios')}
-      </p>
-      <ExerciseLangPicker cell={cell} />
-      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '8px' }}>
-        {t('Solo cambia cómo se llaman. Tu historial y tus récords son los mismos en cualquier idioma.')}
-      </p>
     </>
   )
 }
 
-// Idioma de la interfaz. Independiente del de los nombres de ejercicio: se
-// puede tener la app en español y los lifts en inglés, y al revés.
+// El idioma de la app. Manda también sobre los nombres de los ejercicios: es
+// el único selector de idioma que hay.
 function AppLangPicker({ cell }) {
   const { lang, setLang, saving } = useLang()
   const opts = [
@@ -539,38 +532,6 @@ function AppLangPicker({ cell }) {
             onClick={() => { if (!active) setLang(o.value) }}
             aria-pressed={active}
             {...pressable(0.97)}
-            style={cell(active)}
-          >
-            {o.label}
-            <span style={{ fontSize: '9px', fontWeight: 500, color: 'var(--c-text-muted)' }}>{o.sub}</span>
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-// Idioma de los nombres de ejercicio. La identidad vive en la librería, así que
-// esto no toca historial ni PRs — solo elige las palabras.
-function ExerciseLangPicker({ cell }) {
-  const { t } = useLang()
-  const { profile, saveProfile, saving } = useProfile()
-  const lang = profile?.exercise_lang === 'en' ? 'en' : 'es'
-  const opts = [
-    { value: 'es', label: 'Español', sub: 'Press de banca' },
-    { value: 'en', label: 'English',  sub: 'Bench Press' },
-  ]
-  return (
-    <div role="group" aria-label="Idioma de los ejercicios" style={{ display: 'flex', gap: '8px', opacity: saving ? 0.6 : 1 }}>
-      {opts.map(o => {
-        const active = lang === o.value
-        return (
-          <button
-            key={o.value}
-            type="button"
-            disabled={saving}
-            onClick={() => { if (!active) saveProfile({ exercise_lang: o.value }) }}
-            aria-pressed={active}
             style={cell(active)}
           >
             {o.label}
