@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { DEFAULT_TARGETS, recommendMacros } from '../hooks/useNutrition'
 
-const fmt = (n) => Math.round(n).toLocaleString('es-CO')
+const fmt = (n, locale = 'es-CO') => Math.round(n).toLocaleString(locale)
 const LB_TO_KG = 0.4536
 
 // Balances de macros estilo MyFitnessPal (% de las calorías). 'peso' es la

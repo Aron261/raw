@@ -55,6 +55,17 @@ describe('la app en inglés', () => {
     expect(en('Ayer')).toBe('Yesterday')
   })
 
+  it('traduce Coach y Admin', () => {
+    expect(en('Panel de entrenador')).toBe('Trainer panel')
+    expect(en('Actividad reciente')).toBe('Recent activity')
+    expect(en('Sin clientes todavía')).toBe('No clients yet')
+    expect(en('Asignar rutina')).toBe('Assign routine')
+    expect(en('Mejores levantamientos')).toBe('Best lifts')
+    expect(en('Panel de control')).toBe('Control panel')
+    expect(en('Salud del sistema')).toBe('System health')
+    expect(en('Dar beta')).toBe('Grant beta')
+  })
+
   it('el plural funciona en las dos formas', () => {
     expect(en('entreno')).toBe('workout')
     expect(en('entrenos')).toBe('workouts')

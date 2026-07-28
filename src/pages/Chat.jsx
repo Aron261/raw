@@ -3,22 +3,26 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useChat } from '../hooks/useChat'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
+import { useLang } from '../hooks/useLang'
 
-function formatTime(iso) {
-  return new Date(iso).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
+// Helpers puros: reciben t y locale. Meterles el hook —o un t() suelto— los
+// rompe, porque se llaman por mensaje dentro del map.
+function formatTime(iso, locale = 'es-CO') {
+  return new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 }
 
-function dayLabel(iso) {
+function dayLabel(iso, t = (x) => x, locale = 'es-CO') {
   const d = new Date(iso)
   const today = new Date()
   const yest = new Date(); yest.setDate(today.getDate() - 1)
   const same = (a, b) => a.toDateString() === b.toDateString()
-  if (same(d, today)) return 'Hoy'
-  if (same(d, yest)) return 'Ayer'
-  return d.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })
+  if (same(d, today)) return t('Hoy')
+  if (same(d, yest)) return t('Ayer')
+  return d.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 export default function Chat() {
+  const { t, locale } = useLang()
   const { otherId } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -79,8 +83,8 @@ export default function Chat() {
 
         {!loading && !error && messages.length === 0 && (
           <div style={{ textAlign: 'center', margin: 'auto', padding: '20px' }}>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '13px' }}>Esta conversación está vacía.</p>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '4px' }}>Escribe el primer mensaje abajo.</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '13px' }}>{t('Esta conversación está vacía.')}</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '4px' }}>{t('Escribe el primer mensaje abajo.')}</p>
           </div>
         )}
 
@@ -93,7 +97,7 @@ export default function Chat() {
               {showDay && (
                 <div style={{ textAlign: 'center', margin: '12px 0 8px' }}>
                   <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'var(--c-surface-2)', padding: '3px 10px', borderRadius: '20px' }}>
-                    {dayLabel(m.created_at)}
+                    {dayLabel(m.created_at, t, locale)}
                   </span>
                 </div>
               )}
@@ -108,7 +112,7 @@ export default function Chat() {
                 }}>
                   <p style={{ fontSize: '14px', lineHeight: 1.4, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.body}</p>
                   <p style={{ fontSize: '9px', marginTop: '3px', textAlign: 'right', color: mine ? 'rgba(255,255,255,0.7)' : 'var(--c-text-ghost)' }}>
-                    {formatTime(m.created_at)}
+                    {formatTime(m.created_at, locale)}
                   </p>
                 </div>
               </div>
@@ -144,7 +148,7 @@ export default function Chat() {
           }}
           {...pressProps(0.96)}
         >
-          {sending ? '...' : 'Enviar'}
+          {sending ? '...' : t('Enviar')}
         </button>
       </form>
 

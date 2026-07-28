@@ -6,6 +6,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useTheme } from '../hooks/useTheme'
 import { ERROR_STYLE } from '../lib/ui'
 import { Toast } from '../components/ui'
+import { useLang } from '../hooks/useLang'
 
 const CHART = {
   'slate-light': { bar: '#3E5C76', axis: '#565C64' },
@@ -24,20 +25,21 @@ const SECTION_TITLE = {
   borderBottom: '1px solid var(--c-border-subtle)',
 }
 
-function fmtDate(iso) {
+function fmtDate(iso, locale = 'es-CO') {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es', { month: 'short', day: 'numeric', year: 'numeric' })
+  return new Date(iso).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })
 }
-function fmtDateTime(iso) {
+function fmtDateTime(iso, locale = 'es-CO') {
   if (!iso) return '—'
-  return new Date(iso).toLocaleString('es', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleString(locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
-function dayLabel(iso) {
-  return new Date(iso).toLocaleDateString('es', { month: 'short', day: 'numeric' })
+function dayLabel(iso, locale = 'es-CO') {
+  return new Date(iso).toLocaleDateString(locale, { month: 'short', day: 'numeric' })
 }
 
 // ── Metric tile ────────────────────────────────────────────────────────────
 function Metric({ label, value, sub }) {
+  const { t, locale } = useLang()
   return (
     <div style={{ ...CARD, padding: '16px' }}>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</p>
@@ -48,6 +50,7 @@ function Metric({ label, value, sub }) {
 }
 
 function MiniChart({ data, color, axis }) {
+  const { t, locale } = useLang()
   return (
     <div style={{ height: '150px', width: '100%' }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -67,6 +70,7 @@ function MiniChart({ data, color, axis }) {
 
 // ── User management row ──────────────────────────────────────────────────────
 function UserRow({ u, onSetBeta, onSetAdmin, onDelete, onError }) {
+  const { t, locale } = useLang()
   const [busy, setBusy] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
 
@@ -91,8 +95,8 @@ function UserRow({ u, onSetBeta, onSetAdmin, onDelete, onError }) {
         <div style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>{u.name || '—'}</div>
         <div style={{ color: 'var(--c-text-dim)', fontSize: '11px' }}>{u.email}</div>
       </td>
-      <td style={{ padding: '10px 8px', color: 'var(--c-text-dim)', fontSize: '11px', whiteSpace: 'nowrap' }}>{fmtDate(u.created_at)}</td>
-      <td style={{ padding: '10px 8px', color: 'var(--c-text-dim)', fontSize: '11px', whiteSpace: 'nowrap' }}>{u.workout_count} · {u.last_workout_at ? fmtDate(u.last_workout_at) : 'nunca'}</td>
+      <td style={{ padding: '10px 8px', color: 'var(--c-text-dim)', fontSize: '11px', whiteSpace: 'nowrap' }}>{fmtDate(u.created_at, locale)}</td>
+      <td style={{ padding: '10px 8px', color: 'var(--c-text-dim)', fontSize: '11px', whiteSpace: 'nowrap' }}>{u.workout_count} · {u.last_workout_at ? fmtDate(u.last_workout_at, locale) : 'nunca'}</td>
       <td style={{ padding: '10px 8px' }}>
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           {chip(u.beta_approved, 'Beta')}
@@ -103,15 +107,15 @@ function UserRow({ u, onSetBeta, onSetAdmin, onDelete, onError }) {
       <td style={{ padding: '10px 8px' }}>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <button type="button" disabled={busy} onClick={wrap(() => onSetBeta(u.id, !u.beta_approved))}
-            style={btnStyle}>{u.beta_approved ? 'Quitar beta' : 'Dar beta'}</button>
+            style={btnStyle}>{t(u.beta_approved ? 'Quitar beta' : 'Dar beta')}</button>
           <button type="button" disabled={busy} onClick={wrap(() => onSetAdmin(u.id, !u.is_admin))}
             style={btnStyle}>{u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
           {confirmDel ? (
             <button type="button" disabled={busy} onClick={wrap(() => onDelete(u.id))}
-              style={{ ...btnStyle, color: '#fff', background: 'var(--c-danger, #C0392B)', borderColor: 'transparent' }}>Confirmar</button>
+              style={{ ...btnStyle, color: '#fff', background: 'var(--c-danger, #C0392B)', borderColor: 'transparent' }}>{t('Confirmar')}</button>
           ) : (
             <button type="button" disabled={busy} onClick={() => setConfirmDel(true)}
-              style={{ ...btnStyle, color: 'var(--c-danger, #C0392B)', borderColor: 'var(--c-danger, #C0392B)' }}>Eliminar</button>
+              style={{ ...btnStyle, color: 'var(--c-danger, #C0392B)', borderColor: 'var(--c-danger, #C0392B)' }}>{t('Eliminar')}</button>
           )}
         </div>
       </td>
@@ -127,6 +131,7 @@ const btnStyle = {
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function Admin() {
+  const { t, locale } = useLang()
   const navigate = useNavigate()
   const { resolved, palette } = useTheme()
   const cc = CHART[`${palette}-${resolved}`] || CHART['slate-light']
@@ -138,7 +143,7 @@ export default function Admin() {
   if (profileLoading) {
     return (
       <div style={{ minHeight: '100dvh', background: 'var(--c-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span className="animate-pulse" style={{ color: 'var(--c-text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Cargando…</span>
+        <span className="animate-pulse" style={{ color: 'var(--c-text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('Cargando…')}</span>
       </div>
     )
   }
@@ -154,11 +159,11 @@ export default function Admin() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <div>
             <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }}>Admin</p>
-            <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '26px', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1 }}>Panel de control</h1>
+            <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '26px', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1 }}>{t('Panel de control')}</h1>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button type="button" onClick={refetch} style={{ ...btnStyle, padding: '8px 12px' }}>↻ Refrescar</button>
-            <button type="button" onClick={() => navigate('/')} style={{ ...btnStyle, padding: '8px 12px' }}>Volver a la app</button>
+            <button type="button" onClick={() => navigate('/')} style={{ ...btnStyle, padding: '8px 12px' }}>{t('Volver a la app')}</button>
           </div>
         </div>
 
@@ -191,11 +196,11 @@ export default function Admin() {
             {/* Charts */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
               <section style={CARD}>
-                <p style={SECTION_TITLE}>Registros · últimos 30 días</p>
+                <p style={SECTION_TITLE}>{t('Registros · últimos 30 días')}</p>
                 <MiniChart data={overview?.signups_series || []} color={cc.bar} axis={cc.axis} />
               </section>
               <section style={CARD}>
-                <p style={SECTION_TITLE}>Entrenos · últimos 30 días</p>
+                <p style={SECTION_TITLE}>{t('Entrenos · últimos 30 días')}</p>
                 <MiniChart data={overview?.workouts_series || []} color={cc.bar} axis={cc.axis} />
               </section>
             </div>
@@ -203,23 +208,23 @@ export default function Admin() {
             {/* Recent activity */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
               <section style={CARD}>
-                <p style={SECTION_TITLE}>Últimos registros</p>
+                <p style={SECTION_TITLE}>{t('Últimos registros')}</p>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {(overview?.recent_signups || []).map((s, i) => (
                     <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: i ? '1px solid var(--c-border-subtle)' : 'none' }}>
                       <span style={{ color: 'var(--c-text)', fontSize: '12px' }}>{s.name || s.email}</span>
-                      <span style={{ color: 'var(--c-text-dim)', fontSize: '11px' }}>{fmtDate(s.created_at)}</span>
+                      <span style={{ color: 'var(--c-text-dim)', fontSize: '11px' }}>{fmtDate(s.created_at, locale)}</span>
                     </div>
                   ))}
                 </div>
               </section>
               <section style={CARD}>
-                <p style={SECTION_TITLE}>Últimos entrenos</p>
+                <p style={SECTION_TITLE}>{t('Últimos entrenos')}</p>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {(overview?.recent_workouts || []).map((w, i) => (
                     <div key={w.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: i ? '1px solid var(--c-border-subtle)' : 'none' }}>
                       <span style={{ color: 'var(--c-text)', fontSize: '12px' }}>{w.name} · <span style={{ color: 'var(--c-text-dim)' }}>{w.user_name || w.email}</span></span>
-                      <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', whiteSpace: 'nowrap' }}>{fmtDateTime(w.started_at)}</span>
+                      <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', whiteSpace: 'nowrap' }}>{fmtDateTime(w.started_at, locale)}</span>
                     </div>
                   ))}
                 </div>
@@ -228,7 +233,7 @@ export default function Admin() {
 
             {/* System health */}
             <section style={CARD}>
-              <p style={SECTION_TITLE}>Salud del sistema</p>
+              <p style={SECTION_TITLE}>{t('Salud del sistema')}</p>
               <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', marginBottom: '14px' }}>
                 Tamaño de la base de datos: <strong style={{ color: 'var(--c-text)' }}>{overview?.db_size || '—'}</strong>
               </p>
@@ -241,7 +246,7 @@ export default function Admin() {
                 ))}
               </div>
               <p style={{ color: 'var(--c-text-ghost)', fontSize: '10px', marginTop: '12px', lineHeight: 1.5 }}>
-                Los avisos completos de seguridad/rendimiento (advisors) se revisan en el panel de Supabase.
+                {t('Los avisos completos de seguridad/rendimiento (advisors) se revisan en el panel de Supabase.')}
               </p>
             </section>
 
@@ -252,7 +257,7 @@ export default function Admin() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '640px' }}>
                   <thead>
                     <tr>
-                      {['Usuario', 'Registro', 'Entrenos', 'Estado', ''].map((h, i) => (
+                      {[t('Usuario'), t('Registro'), t('Entrenos'), t('Estado'), ''].map((h, i) => (
                         <th key={i} style={{ textAlign: i === 4 ? 'right' : 'left', padding: '0 8px 8px', color: 'var(--c-text-ghost)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
                       ))}
                     </tr>

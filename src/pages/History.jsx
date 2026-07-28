@@ -13,7 +13,7 @@ const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : v.toLocaleStri
 // no page title) for composition inside Progreso.
 export default function History({ embedded = false }) {
   const navigate = useNavigate()
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const { workouts, loading, error, fetchWorkouts, deleteWorkout, duplicateWorkout } = useWorkouts()
 
   // Undoable delete (shared primitive) — hide optimistically, commit after a
@@ -49,7 +49,7 @@ export default function History({ embedded = false }) {
     const acc = {}
     for (const w of visibleWorkouts) {
       const d = new Date(w.started_at)
-      const raw = d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
+      const raw = d.toLocaleDateString(locale, { month: 'long', year: 'numeric' })
       const key = raw.charAt(0).toUpperCase() + raw.slice(1)
       if (!acc[key]) acc[key] = { items: [], volume: 0 }
       acc[key].items.push(w)

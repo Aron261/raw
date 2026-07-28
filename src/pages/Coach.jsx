@@ -6,9 +6,10 @@ import { useCoachFeed } from '../hooks/useCoachFeed'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button } from '../components/ui'
+import { useLang } from '../hooks/useLang'
 
 // "hace 2 h" / "ayer" / "hace 3 d" — a coach scans by recency, not calendar.
-function relativeDate(iso) {
+function relativeDate(iso, t = (x) => x, locale = 'es-CO') {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
   if (mins < 60) return mins <= 1 ? 'ahora' : `hace ${mins} min`
   const hrs = Math.floor(mins / 60)
@@ -16,13 +17,14 @@ function relativeDate(iso) {
   const days = Math.floor(hrs / 24)
   if (days === 1) return 'ayer'
   if (days < 7) return `hace ${days} d`
-  return new Date(iso).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })
+  return new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
 }
 
-const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : v.toLocaleString('es-CO'))
+const fmtVol = (v, locale = 'es-CO') => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : v.toLocaleString(locale))
 
 // ── Feed row: one client workout ───────────────────────────────────────────
 function FeedRow({ item, onOpen }) {
+  const { t, locale } = useLang()
   return (
     <button
       onClick={onOpen}
@@ -55,11 +57,11 @@ function FeedRow({ item, onOpen }) {
           )}
         </div>
         <span style={{ display: 'block', color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {item.name} · {item.volume > 0 ? `${fmtVol(item.volume)} kg` : `${item.exerciseCount} ej.`}
+          {item.name} · {item.volume > 0 ? `${fmtVol(item.volume, locale)} kg` : `${item.exerciseCount} ej.`}
         </span>
       </div>
       <span style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', letterSpacing: '0.02em' }}>
-        {relativeDate(item.startedAt)}
+        {relativeDate(item.startedAt, t, locale)}
       </span>
     </button>
   )
@@ -67,6 +69,7 @@ function FeedRow({ item, onOpen }) {
 
 // Badge rojo con la cantidad de mensajes sin leer
 function UnreadBadge({ count }) {
+  const { t, locale } = useLang()
   if (!count) return null
   return (
     <span style={{
@@ -88,6 +91,7 @@ const SECTION_LABEL = {
 
 // ── Modal: generar / mostrar código de invitación ─────────────────────────
 function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
+  const { t, locale } = useLang()
   const [code, setCode]     = useState(null)
   const [saving, setSaving] = useState(false)
   const [localError, setLocalError] = useState(null)
@@ -130,13 +134,13 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
             border: '1px solid var(--c-accent-border)', textAlign: 'center', marginBottom: '16px',
           }}>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
-              Código generado
+              {t('Código generado')}
             </p>
             <p style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '0.1em', marginBottom: '14px' }}>
               {code}
             </p>
             <Button variant="secondary" full onClick={() => copy(code)}>
-              {copied ? '✓ Copiado' : 'Copiar código'}
+              {copied ? `✓ ${t('Copiada')}` : t('Copiar código')}
             </Button>
           </div>
         ) : (
@@ -149,7 +153,7 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
             onClick={handleCreate}
             style={{ marginBottom: '16px' }}
           >
-            {saving ? 'Generando...' : 'Generar código'}
+            {t(saving ? 'Generando...' : 'Generar código')}
           </Button>
         )}
 
@@ -194,6 +198,7 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
 
 // ── Card de cliente ────────────────────────────────────────────────────────
 function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
+  const { t, locale } = useLang()
   const [confirm, setConfirm] = useState(false)
   const name = client.profile?.name || 'Cliente'
   const initial = name.charAt(0).toUpperCase()
@@ -240,14 +245,14 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
           onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          Chat
+          {t('Chat')}
         </button>
         {confirm ? (
           <button
             onClick={() => onRevoke(client.linkId)}
             style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}
           >
-            Confirmar
+            {t('Confirmar')}
           </button>
         ) : (
           <button
@@ -267,6 +272,7 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
 
 // ── Página principal ───────────────────────────────────────────────────────
 export default function Coach() {
+  const { t, locale } = useLang()
   const navigate = useNavigate()
   const {
     isTrainer, clients, activeInvites, loading, error,
@@ -302,10 +308,10 @@ export default function Coach() {
             </button>
             <div>
               <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
-                Clientes
+                {t('Clientes')}
               </h1>
               <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
-                Panel de entrenador
+                {t('Panel de entrenador')}
               </p>
             </div>
           </div>
@@ -318,7 +324,7 @@ export default function Coach() {
             borderRadius: '14px', marginBottom: '20px',
           }}>
             <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
-              Activa el modo entrenador
+              {t('Activa el modo entrenador')}
             </p>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5 }}>
               Ve a tu <button onClick={() => navigate('/profile')} style={{ color: 'var(--c-action-text)', fontWeight: 700 }}>perfil</button> y
@@ -357,7 +363,7 @@ export default function Coach() {
             solo mirar una lista. */}
         {!loading && activeClients.length > 0 && (feedLoading || feed.length > 0) && (
           <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '30ms' }}>
-            <p style={SECTION_LABEL}>Actividad reciente</p>
+            <p style={SECTION_LABEL}>{t('Actividad reciente')}</p>
             {feedLoading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {[...Array(3)].map((_, i) => (
@@ -402,10 +408,10 @@ export default function Coach() {
                 borderRadius: '16px', animationDelay: '40ms',
               }}>
                 <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Sin clientes todavía
+                  {t('Sin clientes todavía')}
                 </p>
                 <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '8px' }}>
-                  Genera un código de invitación y compártelo para empezar.
+                  {t('Genera un código de invitación y compártelo para empezar.')}
                 </p>
               </div>
             )}

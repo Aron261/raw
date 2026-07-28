@@ -14,6 +14,7 @@ import { useNutritionTargets, useNutritionRange, toLocalISODate } from '../hooks
 import { useTheme } from '../hooks/useTheme'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button, UnitToggle } from '../components/ui'
+import { useLang } from '../hooks/useLang'
 
 // Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
 const CHART = {
@@ -40,6 +41,7 @@ const MINI_LABEL = {
 
 // ── Mini stat ──────────────────────────────────────────────────────────────
 function Stat({ label, value }) {
+  const { t, locale } = useLang()
   return (
     <div style={{ ...CARD, flex: 1, textAlign: 'center', padding: '14px 8px' }}>
       <p style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em' }}>{value}</p>
@@ -48,12 +50,13 @@ function Stat({ label, value }) {
   )
 }
 
-const fmt = (n) => Math.round(n).toLocaleString('es-CO')
+const fmt = (n, locale = 'es-CO') => Math.round(n).toLocaleString(locale)
 
 // ── Sección de nutrición del cliente ────────────────────────────────────────
 // Plan (objetivos de kcal/macros que fija el entrenador) + seguimiento de lo
 // que el cliente registró hoy y en los últimos 7 días.
 function NutritionSection({ clientId, clientName, onOpenLog }) {
+  const { t, locale } = useLang()
   const { targets, hasCustomTargets, loading, saveTargets } = useNutritionTargets(clientId)
   const [showPlan, setShowPlan] = useState(false)
 
@@ -72,13 +75,13 @@ function NutritionSection({ clientId, clientName, onOpenLog }) {
   return (
     <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '50ms' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Nutrición</p>
+        <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>{t('Nutrición')}</p>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button onClick={() => setShowPlan(true)} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            {hasCustomTargets ? 'Editar plan' : '+ Plan'}
+            {hasCustomTargets ? t('Editar plan') : `+ ${t('Plan')}`}
           </button>
           <button onClick={onOpenLog} style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Registro →
+            {t('Registro →')}
           </button>
         </div>
       </div>
@@ -88,7 +91,7 @@ function NutritionSection({ clientId, clientName, onOpenLog }) {
       ) : !hasCustomTargets ? (
         <div style={{ ...CARD, textAlign: 'center', padding: '20px 16px' }}>
           <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
-            Sin plan de nutrición
+            {t('Sin plan de nutrición')}
           </p>
           <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5 }}>
             Define las calorías y macros diarios de {clientName}.
@@ -98,19 +101,19 @@ function NutritionSection({ clientId, clientName, onOpenLog }) {
         <div style={{ ...CARD }}>
           {/* Plan asignado */}
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', marginBottom: '4px' }}>
-            <p style={MINI_LABEL}>Plan diario</p>
+            <p style={MINI_LABEL}>{t('Plan diario')}</p>
             <p className="tnum" style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700 }}>
-              {fmt(targets.kcal)} kcal · P {targets.protein_g} · C {targets.carbs_g} · G {targets.fat_g}
+              {fmt(targets.kcal, locale)} kcal · P {targets.protein_g} · C {targets.carbs_g} · G {targets.fat_g}
             </p>
           </div>
 
           {/* Hoy vs plan */}
           <p className="tnum" style={{ marginTop: '8px', marginBottom: '10px' }}>
             <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', color: todayTotals.kcal > targets.kcal ? 'var(--c-action-text)' : 'var(--c-text)' }}>
-              {fmt(todayTotals.kcal)}
+              {fmt(todayTotals.kcal, locale)}
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '8px' }}>
-              / {fmt(targets.kcal)} kcal hoy
+              / {fmt(targets.kcal, locale)} kcal hoy
             </span>
           </p>
           <div style={{ display: 'flex', gap: '14px' }}>
@@ -123,7 +126,7 @@ function NutritionSection({ clientId, clientName, onOpenLog }) {
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--c-border-subtle)' }}>
             Últimos 7 días: {daysLogged === 0
               ? 'sin registros'
-              : `${daysLogged} ${daysLogged === 1 ? 'día registrado' : 'días registrados'} · prom. ${fmt(avgKcal)} kcal`}
+              : `${daysLogged} ${daysLogged === 1 ? 'día registrado' : 'días registrados'} · prom. ${fmt(avgKcal, locale)} kcal`}
           </p>
         </div>
       )}
@@ -184,6 +187,7 @@ function routineSummary(routine) {
 // golpe— y ajustarla al cliente antes de guardar. Lo que se guarda es una copia
 // en la cuenta del cliente: editarla aquí no toca la rutina original.
 export function BuildRoutineModal({ clientName, initialType, startPicking = false, onClose, onCreate }) {
+  const { t, locale } = useLang()
   // Sin argumento, useRoutines opera sobre el propio entrenador: estas son SUS
   // rutinas, con días y ejercicios ya cargados.
   const { routines: myRoutines, loading: loadingMine } = useRoutines()
@@ -286,7 +290,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
           <div className="skeleton" aria-hidden="true" style={{ height: '60px', borderRadius: '12px' }} />
         ) : myRoutines.length === 0 ? (
           <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', textAlign: 'center', padding: '28px 0' }}>
-            Todavía no tienes rutinas propias que copiar.
+            {t('Todavía no tienes rutinas propias que copiar.')}
           </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -319,7 +323,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
           onClick={() => setPicking(false)}
           style={{ width: '100%', minHeight: '44px', marginTop: '12px', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
         >
-          Volver al constructor
+          {t('Volver al constructor')}
         </button>
       </Sheet>
     )
@@ -341,7 +345,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
         {...pressProps(0.99)}
       >
         <span style={{ color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-          {copiedFrom ? 'Elegir otra de mis rutinas' : 'Usar una de mis rutinas'}
+          {t(copiedFrom ? 'Elegir otra de mis rutinas' : 'Usar una de mis rutinas')}
         </span>
         <span aria-hidden="true" style={{ color: 'var(--c-action-text)', fontSize: '13px', flexShrink: 0 }}>→</span>
       </button>
@@ -353,9 +357,9 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
       )}
 
       {/* Tipo */}
-      <p style={MINI_LABEL}>Tipo</p>
+      <p style={MINI_LABEL}>{t('Tipo')}</p>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        {[{ v: 'cycle', l: 'Ciclo (varios días)' }, { v: 'single_day', l: 'Un día' }].map(opt => (
+        {[{ v: 'cycle', l: t('Ciclo (varios días)') }, { v: 'single_day', l: t('Un día') }].map(opt => (
           <button
             key={opt.v}
             onClick={() => switchType(opt.v)}
@@ -372,7 +376,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
       </div>
 
       {/* Nombre */}
-      <p style={MINI_LABEL}>Nombre</p>
+      <p style={MINI_LABEL}>{t('Nombre')}</p>
       <input
         className="input-field"
         value={name}
@@ -386,12 +390,12 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
         <div key={di} style={{ ...CARD, marginBottom: '12px', padding: '14px' }}>
           {/* cabecera del día */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <p style={{ ...MINI_LABEL, marginBottom: 0 }}>{isCycle ? `Día ${di + 1}` : 'Entrenamiento'}</p>
+            <p style={{ ...MINI_LABEL, marginBottom: 0 }}>{isCycle ? `${t('Día')} ${di + 1}` : t('Entrenamiento')}</p>
             {isCycle && days.length > 1 && (
               <button onClick={() => removeDay(di)} style={{ color: 'var(--c-text-ghost)', fontSize: '11px', fontWeight: 700 }}
                 onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                 onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}>
-                Quitar día
+                {t('Quitar día')}
               </button>
             )}
           </div>
@@ -402,7 +406,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
               className="input-field"
               value={day.day_name}
               onChange={e => updateDay(di, 'day_name', e.target.value)}
-              placeholder={isCycle ? 'Nombre (ej: Lunes / Push)' : 'Nombre del día'}
+              placeholder={isCycle ? t('Nombre (ej: Lunes / Push)') : t('Nombre del día')}
               style={{ flex: 1, fontSize: '12px' }}
             />
             <input
@@ -486,7 +490,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
         onClick={handleSave}
         style={{ marginTop: isCycle ? 0 : '8px' }}
       >
-        {saving ? 'Guardando...' : 'Asignar rutina'}
+        {t(saving ? 'Guardando...' : 'Asignar rutina')}
       </Button>
     </Sheet>
   )
@@ -494,6 +498,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
 
 // ── Modal: asignar meta ──────────────────────────────────────────────────────
 function AssignGoalModal({ clientName, onClose, onCreate }) {
+  const { t, locale } = useLang()
   const [type, setType]   = useState('exercise_weight')
   const [label, setLabel] = useState('')
   const [exerciseName, setExerciseName] = useState('')
@@ -529,10 +534,10 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
     <Sheet title="Asignar meta" subtitle={`Para ${clientName}`} onClose={onClose}>
       {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
-      <p style={MINI_LABEL}>Tipo de meta</p>
+      <p style={MINI_LABEL}>{t('Tipo de meta')}</p>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '18px' }}>
         {[
-          { v: 'exercise_weight', l: 'Peso en ejercicio' },
+          { v: 'exercise_weight', l: t('Peso en ejercicio') },
           { v: 'days_trained',    l: 'Días/mes' },
         ].map(opt => (
           <button
@@ -557,13 +562,13 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
 
       {type === 'exercise_weight' && (
         <div style={{ marginBottom: '14px' }}>
-          <p style={MINI_LABEL}>Ejercicio</p>
+          <p style={MINI_LABEL}>{t('Ejercicio')}</p>
           <input className="input-field" value={exerciseName} onChange={e => setExerciseName(e.target.value)} placeholder="Ej: Bench Press" />
         </div>
       )}
 
       <div style={{ marginBottom: '24px' }}>
-        <p style={MINI_LABEL}>Objetivo</p>
+        <p style={MINI_LABEL}>{t('Objetivo')}</p>
         <div style={{ display: 'flex', gap: '8px' }}>
           <input className="input-field" type="number" value={target} onChange={e => setTarget(e.target.value)} placeholder="0" style={{ flex: 1 }} />
           {type === 'exercise_weight' && (
@@ -578,7 +583,7 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
       </div>
 
       <Button variant="primary" full size="lg" loading={saving} disabled={saving} onClick={handleCreate}>
-        {saving ? 'Asignando...' : 'Asignar meta'}
+        {t(saving ? 'Asignando...' : 'Asignar meta')}
       </Button>
     </Sheet>
   )
@@ -586,6 +591,7 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
 
 // ── Página principal ───────────────────────────────────────────────────────
 export default function ClientDetail() {
+  const { t, locale } = useLang()
   const { id: clientId } = useParams()
   const navigate = useNavigate()
 
@@ -634,7 +640,7 @@ export default function ClientDetail() {
               {profLoading ? '...' : name}
             </h1>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '4px' }}>
-              {[age ? `${age} años` : null, profile?.level, profile?.goal].filter(Boolean).join(' · ') || 'Sin datos de perfil'}
+              {[age ? `${age} años` : null, profile?.level, profile?.goal].filter(Boolean).join(' · ') || t('Sin datos de perfil')}
             </p>
           </div>
           <button
@@ -648,7 +654,7 @@ export default function ClientDetail() {
             }}
             {...pressProps(0.97)}
           >
-            Mensaje
+            {t('Mensaje')}
           </button>
         </div>
 
@@ -657,13 +663,13 @@ export default function ClientDetail() {
         {/* ── Datos del cliente ────────────────────────────────────── */}
         {(profile?.weight || profile?.height || profile?.sex || profile?.days_per_week) && (
           <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '20ms' }}>
-            <p style={SECTION_LABEL}>Datos</p>
+            <p style={SECTION_LABEL}>{t('Datos')}</p>
             <div style={{ ...CARD, display: 'flex', flexWrap: 'wrap', rowGap: '12px', padding: '14px 16px' }}>
               {[
-                profile?.weight        && { label: 'Peso',       value: `${profile.weight} ${profile.weight_unit || 'kg'}` },
-                profile?.height        && { label: 'Estatura',   value: `${profile.height} ${profile.height_unit || 'cm'}` },
-                profile?.sex           && { label: 'Sexo',       value: profile.sex },
-                profile?.days_per_week && { label: 'Frecuencia', value: `${profile.days_per_week} días/sem` },
+                profile?.weight        && { label: t('Peso'),       value: `${profile.weight} ${profile.weight_unit || 'kg'}` },
+                profile?.height        && { label: t('Estatura'),   value: `${profile.height} ${profile.height_unit || 'cm'}` },
+                profile?.sex           && { label: t('Sexo'),       value: profile.sex },
+                profile?.days_per_week && { label: t('Frecuencia'), value: `${profile.days_per_week} ${t('días')}/sem` },
               ].filter(Boolean).map(d => (
                 <div key={d.label} style={{ flex: '1 1 50%', minWidth: 0 }}>
                   <p style={{ ...MINI_LABEL, marginBottom: '2px' }}>{d.label}</p>
@@ -677,12 +683,12 @@ export default function ClientDetail() {
         {/* ── Progreso ─────────────────────────────────────────────── */}
         <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '40ms' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
-            <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Progreso</p>
+            <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>{t('Progreso')}</p>
             <button
               onClick={() => navigate(`/coach/cliente/${clientId}/stats`)}
               style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
             >
-              Estadísticas →
+              {t('Estadísticas →')}
             </button>
           </div>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
@@ -693,7 +699,7 @@ export default function ClientDetail() {
 
           {dash?.weeklyData?.some(w => w.volume > 0) && (
             <div style={{ ...CARD }}>
-              <p style={MINI_LABEL}>Volumen semanal</p>
+              <p style={MINI_LABEL}>{t('Volumen semanal')}</p>
               <div style={{ height: '120px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dash.weeklyData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
@@ -710,7 +716,7 @@ export default function ClientDetail() {
 
           {dash?.bestLifts?.length > 0 && (
             <div style={{ ...CARD, marginTop: '8px' }}>
-              <p style={MINI_LABEL}>Mejores levantamientos</p>
+              <p style={MINI_LABEL}>{t('Mejores levantamientos')}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {dash.bestLifts.map(l => (
                   <div key={l.name} style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -733,7 +739,7 @@ export default function ClientDetail() {
         {/* ── Rutinas ──────────────────────────────────────────────── */}
         <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '60ms' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Rutinas</p>
+            <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>{t('Rutinas')}</p>
             <div style={{ display: 'flex', gap: '10px' }}>
               {/* La vía corta a lo que el entrenador ya tiene escrito; las otras
                   dos siguen abriendo el constructor en blanco. */}
@@ -746,7 +752,7 @@ export default function ClientDetail() {
           {routLoading ? (
             <div style={{ height: '60px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px' }} />
           ) : routines.length === 0 ? (
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '12px 0' }}>Sin rutinas. Copia una de las tuyas o crea un ciclo desde cero.</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '12px 0' }}>{t('Sin rutinas. Copia una de las tuyas o crea un ciclo desde cero.')}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {[...cycles, ...singleDays].map(r => {
@@ -771,7 +777,7 @@ export default function ClientDetail() {
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
                         {r.type === 'cycle' && !r.is_active && (
                           <button onClick={() => run(() => setActiveRoutine(r.id))} style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '4px 9px', borderRadius: '8px' }}>
-                            Activar
+                            {t('Activar')}
                           </button>
                         )}
                         <button onClick={() => run(() => deleteRoutine(r.id))} aria-label="Eliminar" style={{ color: 'var(--c-text-ghost)', fontSize: '12px', padding: '2px 4px' }}
@@ -791,14 +797,14 @@ export default function ClientDetail() {
         {/* ── Metas ────────────────────────────────────────────────── */}
         <section className="fade-in" style={{ marginBottom: '40px', animationDelay: '80ms' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Metas</p>
+            <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>{t('Metas')}</p>
             <button onClick={() => setModal('goal')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Meta</button>
           </div>
 
           {goalsLoading ? (
             <div style={{ height: '50px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px' }} />
           ) : goals.length === 0 ? (
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '12px 0' }}>Sin metas asignadas.</p>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '12px 0' }}>{t('Sin metas asignadas.')}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {goals.map(g => (

@@ -12,6 +12,9 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 
 vi.mock('recharts', () => ({}))
 vi.mock('../lib/supabase', () => ({ supabase: {} }))
+// useLang cuelga de useProfile → useAuth, que necesita el provider. Aquí solo
+// hace falta que traduzca; las aserciones son sobre el español, que es la clave.
+vi.mock('../hooks/useLang', () => ({ useLang: () => ({ t: (x) => x, locale: 'es-CO', lang: 'es' }) }))
 
 const mine = {
   routines: [

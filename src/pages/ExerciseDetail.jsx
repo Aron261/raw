@@ -8,6 +8,7 @@ import PRBadge from '../components/PRBadge'
 import { useExercisePR, calc1RM } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
+import { useLang } from '../hooks/useLang'
 
 // Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
 const CHART = {
@@ -38,6 +39,7 @@ function CustomTooltip({ active, payload, label }) {
 const REP_RANGES = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20]
 
 export default function ExerciseDetail() {
+  const { locale } = useLang()
   const { name } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -50,7 +52,7 @@ export default function ExerciseDetail() {
 
   // Chart: date + best 1RM per session
   const chartData = prSets.map(session => ({
-    date: new Date(session.date).toLocaleDateString('es', { month: 'short', day: 'numeric' }),
+    date: new Date(session.date).toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
     '1RM': session.best1RM,
   }))
 
@@ -184,7 +186,7 @@ export default function ExerciseDetail() {
                   overflow: 'hidden',
                 }}>
                   {prByReps.map((entry, i) => {
-                    const dateStr = new Date(entry.date).toLocaleDateString('es', { month: 'short', day: 'numeric' })
+                    const dateStr = new Date(entry.date).toLocaleDateString(locale, { month: 'short', day: 'numeric' })
                     const isFirst = i === 0
                     return (
                       <div
@@ -236,7 +238,7 @@ export default function ExerciseDetail() {
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {[...prSets].reverse().map(session => {
-                  const sessionDate = new Date(session.date).toLocaleDateString('es', {
+                  const sessionDate = new Date(session.date).toLocaleDateString(locale, {
                     weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
                   })
                   const isAllTimePR = session.best1RM === allTimeBest1RM

@@ -49,7 +49,7 @@ function WorkoutTimer({ startedAt }) {
 
 /* ── Finish Confirm Modal ───────────────────────────────────────────── */
 function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   // Calcular duración desde started_at hasta ahora
   const durationLabel = () => {
     if (!workout?.started_at) return '—'
@@ -97,7 +97,7 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
 
 /* ── Discard Confirm Modal ──────────────────────────────────────────── */
 function DiscardConfirmModal({ onConfirm, onCancel, busy }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   return (
     <Sheet title="Descartar entreno" onClose={onCancel}>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
@@ -117,7 +117,7 @@ function DiscardConfirmModal({ onConfirm, onCancel, busy }) {
 
 /* ── Delete finished workout modal ──────────────────────────────────── */
 function DeleteWorkoutModal({ name, onConfirm, onCancel, busy }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   return (
     <Sheet title="Eliminar entreno" onClose={onCancel}>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
@@ -136,14 +136,14 @@ function DeleteWorkoutModal({ name, onConfirm, onCancel, busy }) {
 
 /* ── Exercise history sheet ─────────────────────────────────────────── */
 function ExerciseHistorySheet({ exercise, userId, onClose }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const { prSets, allTimePR, loading } = useExercisePR(exercise?.name, userId)
   const sessions = [...(prSets || [])].reverse() // most recent first
   const bestRM = allTimePR?.best1RM || 0
 
   const fmtDate = (iso) => {
     try {
-      return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+      return new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
     } catch { return '' }
   }
 
@@ -203,7 +203,7 @@ function ExerciseHistorySheet({ exercise, userId, onClose }) {
 
 /* ── Session summary (on finish) ────────────────────────────────────── */
 function SessionSummary({ workout, workoutExercises, userId, onClose }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const [prIds, setPrIds] = useState(null) // Set<exercise_id> beating a prior best; null = loading
   const [prevBests, setPrevBests] = useState({}) // exercise_id → best 1RM before this session
 
@@ -268,7 +268,7 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
         background: 'var(--c-border-subtle)', border: '1px solid var(--c-border-subtle)',
         borderRadius: '12px', overflow: 'hidden', marginBottom: '14px',
       }}>
-        <SummaryStat value={totalVolume.toLocaleString('es-ES')} unit="kg" label="Volumen" valueColor="var(--c-data)" />
+        <SummaryStat value={totalVolume.toLocaleString(locale)} unit="kg" label="Volumen" valueColor="var(--c-data)" />
         <SummaryStat value={durationLabel()} label={t('Duración')} />
         <SummaryStat value={totalSets} label="Series" />
       </div>
@@ -346,7 +346,7 @@ function SummaryStat({ value, unit, label, valueColor = 'var(--c-text)' }) {
 const LOGGING_PRIMER_KEY = 'raw_onboard_logging'
 
 function LoggingPrimer({ onDismiss }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const chip = {
     flexShrink: 0, width: '26px', height: '26px', borderRadius: '8px',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -407,7 +407,7 @@ function LoggingPrimer({ onDismiss }) {
 /* ── Main page ──────────────────────────────────────────────────────── */
 export default function ActiveWorkout() {
   const { id } = useParams()
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const navigate = useNavigate()
   const { user } = useAuth()
   const { deleteWorkout } = useWorkouts()

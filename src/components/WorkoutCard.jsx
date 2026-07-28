@@ -2,8 +2,10 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDuration, calcVolume } from '../hooks/useWorkout'
 import { pressProps } from '../lib/ui'
+import { useLang } from '../hooks/useLang'
 
 export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = false }) {
+  const { locale } = useLang()
   const navigate = useNavigate()
   const [duplicating, setDuplicating] = useState(false)
 
@@ -16,7 +18,7 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
     const exerciseCount = workout.workout_exercises?.length || 0
 
     const date = new Date(workout.started_at)
-    const dateStr = date.toLocaleDateString('es-CO', {
+    const dateStr = date.toLocaleDateString(locale, {
       weekday: 'short', month: 'short', day: 'numeric',
     })
 

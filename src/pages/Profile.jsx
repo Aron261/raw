@@ -220,7 +220,7 @@ function SummaryRow({ label, value, onClick, isFirst }) {
 
 // ── Sheet: Mis características (identity + físico + nivel) ──────────────────
 function CharacteristicsSheet({ form, set, age, saving, onSave, onClose }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   return (
     <Sheet title={t('Mis características')} subtitle="Datos que cambian poco. Edítalos cuando haga falta." onClose={onClose} maxHeight="92dvh">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -305,20 +305,20 @@ function WeightTooltip({ active, payload, label }) {
 }
 
 // Relative-time label: "hoy", "ayer", "hace 3 días", or a date
-function relativeDay(iso) {
+function relativeDay(iso, t = (x) => x, locale = 'es-CO') {
   if (!iso) return ''
   const then = new Date(iso); then.setHours(0, 0, 0, 0)
   const now = new Date(); now.setHours(0, 0, 0, 0)
   const days = Math.round((now - then) / 86400000)
-  if (days <= 0) return 'hoy'
-  if (days === 1) return 'ayer'
-  if (days < 7) return `hace ${days} días`
-  return new Date(iso).toLocaleDateString('es', { month: 'short', day: 'numeric' })
+  if (days <= 0) return t('hoy')
+  if (days === 1) return t('ayer')
+  if (days < 7) return `${t('hace')} ${days} ${t('días')}`
+  return new Date(iso).toLocaleDateString(locale, { month: 'short', day: 'numeric' })
 }
 
 // ── Sheet: body-weight history (chart + full log + add) ───────────────────
 function BodyWeightSheet({ unit, onClose }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const { resolved, palette } = useTheme()
   const cc = PROFILE_CHART[`${palette}-${resolved}`] || PROFILE_CHART['slate-light']
   const { logs, chartData, latestLog, loading, adding, addLog, deleteLog } = useBodyWeight()
@@ -397,7 +397,7 @@ function BodyWeightSheet({ unit, onClose }) {
       {!loading && recentLogs.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
           {recentLogs.map((log, i) => {
-            const dateStr = new Date(log.logged_at).toLocaleDateString('es', { weekday: 'short', month: 'short', day: 'numeric' })
+            const dateStr = new Date(log.logged_at).toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' })
             return (
               <div key={log.id} style={{
                 display: 'flex', alignItems: 'center', padding: '10px 0',
@@ -427,7 +427,7 @@ function BodyWeightSheet({ unit, onClose }) {
 
 // ── Body-weight summary (collapsed) — latest only, taps to open sheet ──────
 function BodyWeightSummary({ unit, onOpen }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const { latestLog, loading } = useBodyWeight()
 
   return (
@@ -449,7 +449,7 @@ function BodyWeightSummary({ unit, onOpen }) {
                 {latestLog.weight}
                 <span style={{ color: 'var(--c-text-dim)', fontSize: '14px', fontWeight: 700, marginLeft: '4px' }}>{latestLog.unit}</span>
               </span>
-              <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '2px' }}>{relativeDay(latestLog.logged_at)}</p>
+              <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '2px' }}>{relativeDay(latestLog.logged_at, t, locale)}</p>
             </>
           ) : (
             <span style={{ color: 'var(--c-text-muted)', fontSize: '13px', fontWeight: 600 }}>Sin registros — anota el primero</span>
@@ -466,7 +466,7 @@ function BodyWeightSummary({ unit, onOpen }) {
 // ── Appearance: mode + palette ───────────────────────────────────────────
 function ThemeSection() {
   const { preference, setPreference, palette, setPalette } = useTheme()
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const modeOpts = [
     { value: 'auto',  label: 'Auto',   icon: '◐' },
     { value: 'light', label: 'Claro',  icon: '☀' },
@@ -621,7 +621,7 @@ const CANNOT_DO = [
 ]
 
 export function ClaudeSection() {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const [copied, setCopied] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -734,7 +734,7 @@ export function ClaudeSection() {
 
 // ── Trainer / coach section ─────────────────────────────────────────────
 function TrainerSection() {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const navigate = useNavigate()
   const { isTrainer, toggleTrainer, error: trainerError } = useTrainer()
   const { trainers, redeemCode, removeTrainer, redeeming, error: inviteError } = useInvites()
@@ -903,7 +903,7 @@ function AccountRow({ label, hint, danger, onClick, isFirst }) {
 
 // ── Sheet: cambiar contraseña ─────────────────────────────────────────────
 function ChangePasswordSheet({ onClose }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const { updatePassword } = useAuth()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
@@ -949,7 +949,7 @@ function ChangePasswordSheet({ onClose }) {
 
 // ── Sheet: cambiar email ──────────────────────────────────────────────────
 function ChangeEmailSheet({ currentEmail, onClose }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const { updateEmail } = useAuth()
   const [email, setEmail] = useState('')
   const [saving, setSaving] = useState(false)
@@ -992,7 +992,7 @@ function ChangeEmailSheet({ currentEmail, onClose }) {
 
 // ── Sheet: eliminar cuenta ────────────────────────────────────────────────
 function DeleteAccountSheet({ onClose }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const { deleteAccount } = useAuth()
   const navigate = useNavigate()
   const [confirmText, setConfirmText] = useState('')
@@ -1037,7 +1037,7 @@ function DeleteAccountSheet({ onClose }) {
 
 // ── Account / security section ────────────────────────────────────────────
 function AccountSection({ email }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const [sheet, setSheet] = useState(null)   // 'password' | 'email' | 'delete' | null
   return (
     <>
@@ -1055,7 +1055,7 @@ function AccountSection({ email }) {
 // ── Main page ──────────────────────────────────────────────────────────
 export default function Profile() {
   const navigate = useNavigate()
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const { user, signOut } = useAuth()
   const { profile, loading, saving, saveError, saveSuccess, saveProfile, age } = useProfile()
   const { preference: themePreference, palette: themePalette } = useTheme()

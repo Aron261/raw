@@ -76,7 +76,7 @@ function ChartTooltip({ active, payload, label }) {
 
 // ── WeeklyChart ───────────────────────────────────────────────────────────
 function WeeklyChart({ chartData, height = 150, title, subtitle, colors }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   return (
     <div style={{
       background: 'var(--c-surface)',
@@ -395,7 +395,7 @@ const getMotivationColor = (pct) => (pct >= 100 ? 'var(--c-success)' : 'var(--c-
 // Vive fuera del bloque "hay entrenos": definir una meta es justo lo que hace
 // alguien que todavía no ha registrado nada, y antes estaba fuera de alcance.
 function GoalsCard({ goals, onAdd, onDelete }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   return (
     <div style={{
       background: 'var(--c-surface)',
@@ -1096,7 +1096,7 @@ export default function Training() {
               <Chip
                 index={1}
                 label={t('kcal hoy')}
-                value={kcalToday > 0 ? `${kcalToday.toLocaleString('es-CO')} / ${kcalTarget.toLocaleString('es-CO')}` : '—'}
+                value={kcalToday > 0 ? `${kcalToday.toLocaleString(locale)} / ${kcalTarget.toLocaleString(locale)}` : '—'}
                 hint={kcalToday > 0 ? null : t('Registra tu comida')}
                 onClick={() => navigate('/nutrition')}
               />

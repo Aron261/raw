@@ -1,4 +1,4 @@
-const fmt = (n) => Math.round(n).toLocaleString('es-CO')
+const fmt = (n, locale = 'es-CO') => Math.round(n).toLocaleString(locale)
 
 // Barra de progreso de un macro (proteína / carbos / grasa) contra su objetivo.
 export default function MacroBar({ label, current, target, unit = 'g' }) {

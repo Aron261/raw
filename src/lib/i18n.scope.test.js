@@ -9,6 +9,10 @@
 //
 // Esta prueba lee el código y comprueba que todo componente que llama a t()
 // lo tiene en su ámbito: o llama a useLang(), o lo recibe por props.
+//
+// El patrón tiene que cubrir `export function X()` además de `function X()` y
+// `export default function X()`: al traducir Coach se coló justo por ahí
+// (BuildRoutineModal), y el guard no lo vio.
 
 import { describe, it, expect } from 'vitest'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
@@ -31,7 +35,7 @@ describe('t() siempre está en ámbito', () => {
     for (const file of jsxFiles(SRC)) {
       const src = readFileSync(file, 'utf8')
       if (!CALL.test(src)) continue
-      const heads = [...src.matchAll(/^(?:export default )?function (\w+)\(([^)]*)\)/gm)]
+      const heads = [...src.matchAll(/^(?:export (?:default )?)?function (\w+)\(([^)]*)\)/gm)]
       heads.forEach((h, i) => {
         const start = h.index
         const end = i + 1 < heads.length ? heads[i + 1].index : src.length

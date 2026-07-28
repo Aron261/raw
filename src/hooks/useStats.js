@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { calc1RM, calcVolume } from './useWorkout'
+import { useLang } from './useLang'
 import { CATCH_ALL } from '../lib/muscleGroups'
 import { useCachedResource } from '../lib/swr'
 
@@ -10,9 +11,9 @@ function monthKey(date) {
   const d = new Date(date)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
-function monthLabel(key) {
+function monthLabel(key, locale = 'es-CO') {
   const [y, m] = key.split('-').map(Number)
-  return new Date(y, m - 1, 1).toLocaleDateString('es-CO', { month: 'short' })
+  return new Date(y, m - 1, 1).toLocaleDateString(locale, { month: 'short' })
 }
 
 // Last N month keys (oldest first), e.g. ['2025-07', ..., '2026-06'].
@@ -29,6 +30,7 @@ function getLastNMonths(n = 12) {
 // useStats(targetUserId?) — all-time aggregates for the lifter's stats page.
 // Sin argumento usa el usuario actual; con targetUserId, lectura de un cliente.
 export function useStats(targetUserId = null) {
+  const { locale } = useLang()
   const { user } = useAuth()
   const ownerId = targetUserId || user?.id
   const key = ownerId ? `stats:${ownerId}` : null
@@ -79,7 +81,7 @@ export function useStats(targetUserId = null) {
         const monthKeys = getLastNMonths(12)
         const cutoff = new Date(monthKeys[0] + '-01')
         const monthMap = Object.fromEntries(
-          monthKeys.map(k => [k, { key: k, label: monthLabel(k), volume: 0 }])
+          monthKeys.map(k => [k, { key: k, label: monthLabel(k, locale), volume: 0 }])
         )
         list
           .filter(w => new Date(w.started_at) >= cutoff)

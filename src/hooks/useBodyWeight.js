@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useLang } from './useLang'
 import { useAuth } from './useAuth'
 import { useCachedResource, mutateCache } from '../lib/swr'
 
@@ -10,6 +11,7 @@ import { useCachedResource, mutateCache } from '../lib/swr'
 // `logs` is oldest → newest (the chart reads it in that order); `latestLog` is
 // the entry to show when you want "today's weight".
 export function useBodyWeight() {
+  const { locale } = useLang()
   const { user } = useAuth()
   const [adding, setAdding] = useState(false)
 
@@ -64,7 +66,7 @@ export function useBodyWeight() {
 
   // Chart-ready data (last 30 entries)
   const chartData = logs.slice(-30).map(log => ({
-    date: new Date(log.logged_at).toLocaleDateString('es', { month: 'short', day: 'numeric' }),
+    date: new Date(log.logged_at).toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
     peso: log.weight,
     unit: log.unit,
     id: log.id,
