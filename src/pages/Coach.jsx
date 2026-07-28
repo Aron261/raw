@@ -295,26 +295,33 @@ export default function Coach() {
     <Layout>
       <div style={{ padding: '0 16px', maxWidth: '480px', margin: '0 auto', width: '100%' }}>
 
-        {/* Header */}
-        <div className="fade-in" style={{ paddingTop: '40px', paddingBottom: '28px' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-            <button
-              onClick={() => navigate('/')}
-              className="md:hidden"
-              style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0, padding: '6px 4px 6px 0', marginTop: '2px' }}
-              aria-label="Volver al menú"
-            >
-              ←
-            </button>
-            <div>
-              <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
-                {t('Clientes')}
-              </h1>
-              <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '6px' }}>
-                {t('Panel de entrenador')}
-              </p>
-            </div>
-          </div>
+        {/* Cabecera.
+            Mismo arreglo que en Rutinas: el subtítulo repetía lo que ya dice
+            el título, y «+ Invitar cliente» era un bloque azul a todo lo ancho
+            que con un cliente en la lista pesaba más que todo el contenido
+            junto. Invitar se hace una vez por cliente; mirar la actividad, a
+            diario. */}
+        <div
+          className="fade-in"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            paddingTop: '40px', paddingBottom: '20px',
+          }}
+        >
+          <button
+            onClick={() => navigate('/')}
+            className="md:hidden"
+            style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0, padding: '6px 4px 6px 0' }}
+            aria-label="Volver al menú"
+          >
+            ←
+          </button>
+          <h1 style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
+            {t('Clientes')}
+          </h1>
+          <Button variant="secondary" size="sm" onClick={() => setShowInvite(true)} style={{ flexShrink: 0 }}>
+            + {t('Invitar')}
+          </Button>
         </div>
 
         {/* Aviso si el rol no está activo */}
@@ -333,16 +340,6 @@ export default function Coach() {
         )}
 
         {/* Botón invitar */}
-        <div className="fade-in" style={{ marginBottom: '28px', animationDelay: '20ms' }}>
-          <Button
-            variant="primary"
-            full
-            onClick={() => setShowInvite(true)}
-            style={{ letterSpacing: '-0.01em' }}
-          >
-            + Invitar cliente
-          </Button>
-        </div>
 
         {(error || actionError) && (
           <div style={{ ...ERROR_STYLE, marginBottom: '16px' }}>{error || actionError}</div>

@@ -329,6 +329,7 @@ const EN = {
   // ── Coach ──
   'Panel de entrenador': 'Trainer panel',
   'Actividad reciente': 'Recent activity',
+  'Invitar': 'Invite',
   'Clientes': 'Clients',
   'Cliente': 'Client',
   'Sin clientes todavía': 'No clients yet',

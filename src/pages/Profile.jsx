@@ -1175,7 +1175,6 @@ export default function Profile() {
                   {age} años{form.sex ? ` · ${form.sex}` : ''}
                 </p>
               )}
-              <p style={{ color: 'var(--c-text-ghost)', fontSize: '11px', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
             </div>
           </div>
         </div>

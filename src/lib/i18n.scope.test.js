@@ -19,7 +19,11 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
 const SRC = new URL('..', import.meta.url).pathname
-const CALL = /(?<![A-Za-z0-9_$.])t\('/
+// Cualquier llamada a t(), no solo t('literal'). El patrón anterior no veía
+// t(cond ? 'a' : 'b') —que es como llama WorkoutCard—, así que el archivo
+// entero quedaba fuera del guard: podías quitarle el `t` a la
+// desestructuración y la prueba seguía verde mientras /progreso reventaba.
+const CALL = /(?<![A-Za-z0-9_$.])t\(/
 
 function jsxFiles(dir) {
   return readdirSync(dir).flatMap(name => {
@@ -41,7 +45,12 @@ describe('t() siempre está en ámbito', () => {
         const end = i + 1 < heads.length ? heads[i + 1].index : src.length
         const body = src.slice(start, end)
         if (!CALL.test(body)) return
-        if (body.includes('useLang()')) return
+        // Llamar a useLang() no basta: hay que sacar `t` de la desestructuración.
+        // Por aquí se coló WorkoutCard, que hacía `const { locale } = useLang()`
+        // y usaba t() tres veces — /progreso reventaba en blanco con el build y
+        // los tests en verde, porque este guard solo miraba que el hook
+        // apareciera en el cuerpo.
+        if (/const\s*\{[^}]*\bt\b[^}]*\}\s*=\s*useLang\(\)/.test(body)) return
         if (/(^|[({,\s])t([,}\s)]|$)/.test(h[2])) return   // lo recibe por props
         offenders.push(`${file.replace(SRC, '')}:${h[1]}`)
       })
