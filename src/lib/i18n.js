@@ -528,14 +528,6 @@ const EN = {
   'Prioriza ejercicios que ya haces y sugiere pesos de arranque desde tus marcas.':
     'It favours exercises you already do and suggests starting weights from your marks.',
   'poco volumen últimamente': 'low volume lately',
-  'Banco': 'Bench',
-  'Barra': 'Barbell',
-  'Barra dominadas': 'Pull-up bar',
-  'Mancuernas': 'Dumbbells',
-  'Máquinas': 'Machines',
-  'Poleas': 'Cables',
-  'Rueda abdominal': 'Ab wheel',
-  'Glúteo': 'Glutes',
   'Agenda': 'Schedule',
 
   // ── Compartir rutina ──
@@ -732,7 +724,6 @@ const EN = {
   'Todavía no hay ejercicios': 'No exercises yet',
   'Aparecen aquí solos en cuanto registras tu primer entreno. Desde aquí los ordenas por grupo muscular.':
     'They show up here on their own once you log your first workout. This is where you sort them by muscle group.',
-  'Sin clasificar': 'Unsorted',
 
   // ── Rutinas ──
   'Este día está vacío. Añade el primer ejercicio y la rutina ya sabrá qué toca.':

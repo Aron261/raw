@@ -13,6 +13,7 @@ const eyebrow = { fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fo
 
 // A single exercise row — tap to expand a chip selector and reassign its group.
 function ExerciseRow({ ex, expanded, onToggle, onPick, busy }) {
+  const { term } = useExerciseLang()
   const { t } = useLang()
   const label = ex.effective || UNCLASSIFIED
   const attention = ex.needsAttention
@@ -32,7 +33,7 @@ function ExerciseRow({ ex, expanded, onToggle, onPick, busy }) {
           color: attention ? 'var(--c-action-text)' : 'var(--c-text-dim)',
           border: `1px solid ${attention ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
         }}>
-          {label}
+          {term(label)}
         </span>
         <span aria-hidden="true" style={{ flexShrink: 0, color: 'var(--c-text-ghost)', fontSize: '12px', transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 150ms' }}>›</span>
       </button>
@@ -58,7 +59,7 @@ function ExerciseRow({ ex, expanded, onToggle, onPick, busy }) {
                     border: `1px solid ${active ? 'var(--c-accent)' : suggested ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
                   }}
                 >
-                  {g}
+                  {term(g)}
                 </button>
               )
             })}

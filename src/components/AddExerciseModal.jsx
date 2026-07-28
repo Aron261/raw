@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useWorkouts } from '../hooks/useWorkout'
 import { Sheet, Button } from './ui'
 import { MUSCLE_GROUPS } from '../lib/muscleGroups'
+import { useExerciseLang } from '../hooks/useExerciseLang'
 import { pressable } from '../lib/ui'
 import { useLang } from '../hooks/useLang'
 
@@ -12,6 +13,7 @@ import { useLang } from '../hooks/useLang'
  * brand-new exercise, via the classification step.
  */
 export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agregar ejercicio', subtitle = null, closeOnSelect = false }) {
+  const { term } = useExerciseLang()
   const { t } = useLang()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -116,7 +118,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                 onMouseLeave: e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' },
               })}
             >
-              {g}
+              {term(g)}
             </button>
           ))}
         </div>

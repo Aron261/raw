@@ -12,6 +12,7 @@ import {
   GOALS, LEVELS, TIME_OPTIONS, FOCUS_OPTIONS, SPLIT_5D_OPTIONS,
 } from '../lib/engine'
 import { MUSCLE_GROUPS } from '../lib/muscleGroups'
+import { useExerciseLang } from '../hooks/useExerciseLang'
 import { useLang } from '../hooks/useLang'
 
 const DAYS_OPTIONS = [2, 3, 4, 5, 6]
@@ -211,6 +212,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
 // ── Wizard principal ────────────────────────────────────────────────────────
 
 export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreate }) {
+  const { term } = useExerciseLang()
   const { t } = useLang()
   const { profile } = useProfile()
 
@@ -381,7 +383,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
               onClick={() => { setGoal(g); next() }}
               sub={g === 'Fuerza' ? 'Series de 3-5 reps pesadas, descansos largos' : 'Series de 8-12 reps cerca del fallo'}
             >
-              {g}
+              {term(g)}
             </OptionButton>
           ))}
           {step > 0 && <BackLink onClick={back} />}
@@ -483,7 +485,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
                   selected={equipmentSel.includes(tok)}
                   onClick={() => setEquipmentSel(sel => sel.includes(tok) ? sel.filter(t => t !== tok) : [...sel, tok])}
                 >
-                  {label}
+                  {term(label)}
                 </Pill>
               ))}
             </div>
