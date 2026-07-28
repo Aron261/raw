@@ -5,7 +5,7 @@ import { pressProps } from '../lib/ui'
 import { useLang } from '../hooks/useLang'
 
 export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = false }) {
-  const { locale } = useLang()
+  const { t, locale } = useLang()
   const navigate = useNavigate()
   const [duplicating, setDuplicating] = useState(false)
 
@@ -59,8 +59,8 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
         className="card-hover w-full text-left"
         style={{
           background: 'var(--c-surface)',
-          border: '1px solid var(--c-border-subtle)',
-          borderRadius: '16px',
+          border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+          borderRadius: 'var(--r-lg)',
           padding: '14px 16px',
           paddingRight: (onDelete || onDuplicate) ? '52px' : '16px', // room for action btns
           display: 'block',
@@ -72,10 +72,10 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
         {/* Top row */}
         <div className="flex items-start justify-between mb-3">
           <div>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '3px' }}>
+            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '3px' }}>
               {dateStr}
             </p>
-            <h3 style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+            <h3 style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
               {workout.name}
             </h3>
           </div>
@@ -85,8 +85,8 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
               display: 'flex', alignItems: 'center', gap: '5px',
               background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
               color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 900,
-              letterSpacing: '0.1em', textTransform: 'uppercase',
-              padding: '3px 7px', borderRadius: '6px',
+              letterSpacing: '-0.01em',
+              padding: '3px 7px', borderRadius: 'var(--r-xs)',
             }}>
               <span className="live-dot" style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--c-accent)', display: 'inline-block' }} />
               Live
@@ -94,8 +94,8 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
           ) : hasPR ? (
             <span style={{
               background: 'var(--c-record)', color: 'var(--c-record-ink)',
-              fontSize: '9px', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase',
-              padding: '3px 7px', borderRadius: '6px',
+              fontSize: '9px', fontWeight: 900, letterSpacing: '-0.01em',
+              padding: '3px 7px', borderRadius: 'var(--r-xs)',
             }}>
               PR
             </span>
@@ -106,19 +106,19 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
         <div style={{ display: 'flex', gap: '20px', borderTop: '1px solid var(--c-border-subtle)', paddingTop: '10px' }}>
           {duration && (
             <div>
-              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>{t('Duración')}</p>
+              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>{t('Duración')}</p>
               <p style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{duration}</p>
             </div>
           )}
           <div>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>{t('Volumen')}</p>
+            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>{t('Volumen')}</p>
             <p style={{ color: 'var(--c-data)', fontSize: '18px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               {totalVolume > 0 ? totalVolume.toLocaleString() : '—'}
               {totalVolume > 0 && <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '3px' }}>{unit}</span>}
             </p>
           </div>
           <div>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>{t('Ejercicios')}</p>
+            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>{t('Ejercicios')}</p>
             <p style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{exerciseCount}</p>
           </div>
         </div>

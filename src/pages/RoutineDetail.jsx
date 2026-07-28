@@ -8,7 +8,7 @@ import { useAuth } from '../hooks/useAuth'
 import { pressable } from '../lib/ui'
 import { useLang } from '../hooks/useLang'
 
-const eyebrow = { fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }
+const eyebrow = { fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em' }
 
 // One exercise row: name + editable target sets/reps + remove.
 function ExerciseRowEditor({ exercise, onUpdate, onRemove }) {
@@ -76,7 +76,7 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
   const exercises = day.routine_day_exercises || []
 
   return (
-    <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '16px', marginBottom: '12px' }}>
+    <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-lg)', padding: '16px', marginBottom: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
         <input
           type="text" value={name}
@@ -130,8 +130,8 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
         onClick={onAddExercise}
         style={{
           marginTop: '10px', width: '100%', padding: '10px',
-          background: 'transparent', border: '1px dashed var(--c-border)', borderRadius: '10px',
-          color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em',
+          background: 'transparent', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-sm)',
+          color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em',
           transition: 'background 150ms, border-color 150ms',
         }}
         {...pressable(0.97, {
@@ -202,9 +202,8 @@ export default function RoutineDetail() {
             style={{
               flexShrink: 0, minHeight: '44px', padding: '0 12px', marginRight: '-8px',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800,
-              textTransform: 'uppercase', letterSpacing: '0.06em',
-              border: '1px solid var(--c-accent-border)', borderRadius: '8px',
+              color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em',
+              border: '1px solid var(--c-accent-border)', borderRadius: 'var(--r-xs)',
               background: 'transparent', transition: 'background 150ms var(--ease-out)',
             }}
             {...pressable(0.97, {
@@ -231,14 +230,14 @@ export default function RoutineDetail() {
             <summary style={{ ...eyebrow, cursor: 'pointer', listStyle: 'none' }}>
               {t('Por qué este plan ›')}
             </summary>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.6, whiteSpace: 'pre-line', marginTop: '8px', padding: '12px 14px', background: 'var(--c-surface)', borderRadius: '12px' }}>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.6, whiteSpace: 'pre-line', marginTop: '8px', padding: '12px 14px', background: 'var(--c-surface)', borderRadius: 'var(--r-md)' }}>
               {routine.description}
             </p>
           </details>
         )}
 
         {error && (
-          <div style={{ background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)', color: 'var(--c-action-text)', fontSize: '12px', padding: '10px 12px', borderRadius: '10px', marginBottom: '14px' }}>
+          <div style={{ background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)', color: 'var(--c-action-text)', fontSize: '12px', padding: '10px 12px', borderRadius: 'var(--r-sm)', marginBottom: '14px' }}>
             {error}
           </div>
         )}
@@ -262,8 +261,8 @@ export default function RoutineDetail() {
           onClick={() => addDay(routine.id, { day_name: `Día ${days.length + 1}` })}
           style={{
             width: '100%', padding: '12px', marginBottom: '32px',
-            background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '12px',
-            color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
+            background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)',
+            color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em',
           }}
         >
           + Agregar día

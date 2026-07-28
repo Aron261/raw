@@ -14,32 +14,26 @@ import { useTheme } from '../hooks/useTheme'
 import { useLang } from '../hooks/useLang'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Button, Sheet, UnitToggle } from '../components/ui'
+import { useChartColors } from '../lib/chartColors'
 
-// Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
-const PROFILE_CHART = {
-  'slate-light': { line: '#3E5C76', grid: '#DDE0E4', axis: '#565C64' },
-  'slate-dark':  { line: '#7FA0BE', grid: '#2F343B', axis: '#9AA0A8' },
-  'riso-light':  { line: '#2438FF', grid: '#D5D2C7', axis: '#67696c' },
-  'riso-dark':   { line: '#6E7BFF', grid: '#26271F', axis: '#A2A096' },
-}
 
 // ── Shared label styles ───────────────────────────────────────────────────
 const LABEL = {
-  fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-  letterSpacing: '0.09em', color: 'var(--c-text-dim)',
+  fontSize: '10px', fontWeight: 700,
+  letterSpacing: '-0.01em', color: 'var(--c-text-dim)',
   display: 'block', marginBottom: '8px',
 }
 
 const SECTION_TITLE = {
-  fontSize: '10px', fontWeight: 800, textTransform: 'uppercase',
-  letterSpacing: '0.12em', color: 'var(--c-text-dim)',
+  fontSize: '10px', fontWeight: 800,
+  letterSpacing: '-0.01em', color: 'var(--c-text-dim)',
   marginBottom: '16px', paddingBottom: '10px',
   borderBottom: '1px solid var(--c-border-subtle)',
 }
 
 const CARD = {
   background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-  borderRadius: '16px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+  borderRadius: 'var(--r-lg)', padding: '20px', boxShadow: 'var(--e-1)',
 }
 
 // ── Disclosure ───────────────────────────────────────────────────────────
@@ -110,7 +104,7 @@ function LinkRow({ label, hint, onClick }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
         width: '100%', textAlign: 'left', cursor: 'pointer', minHeight: '44px',
         background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
-        borderRadius: '12px', padding: '12px 14px',
+        borderRadius: 'var(--r-md)', padding: '12px 14px',
         transition: PRESS_TRANSITION,
       }}
     >
@@ -300,10 +294,10 @@ function WeightTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
     <div style={{
-      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-      padding: '7px 11px', borderRadius: '10px', fontSize: '11px',
+      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+      padding: '7px 11px', borderRadius: 'var(--r-sm)', fontSize: '11px',
     }}>
-      <p style={{ color: 'var(--c-text-dim)', letterSpacing: '0.06em', marginBottom: '2px' }}>{label}</p>
+      <p style={{ color: 'var(--c-text-dim)', letterSpacing: '-0.01em', marginBottom: '2px' }}>{label}</p>
       <p style={{ color: 'var(--c-text)', fontWeight: 700 }}>
         {payload[0].value} {payload[0].payload.unit}
       </p>
@@ -326,8 +320,7 @@ function relativeDay(iso, t = (x) => x, locale = 'es-CO') {
 // ── Sheet: body-weight history (chart + full log + add) ───────────────────
 function BodyWeightSheet({ unit, onClose }) {
   const { t, locale } = useLang()
-  const { resolved, palette } = useTheme()
-  const cc = PROFILE_CHART[`${palette}-${resolved}`] || PROFILE_CHART['slate-light']
+  const cc = useChartColors()
   const { logs, chartData, latestLog, loading, adding, addLog, deleteLog } = useBodyWeight()
   const [inputWeight, setInputWeight] = useState('')
 
@@ -365,7 +358,7 @@ function BodyWeightSheet({ unit, onClose }) {
           disabled={adding || !inputWeight}
           style={{
             padding: '0 18px', background: 'var(--c-accent)', color: 'var(--c-on-action)',
-            fontSize: '12px', fontWeight: 800, borderRadius: '10px',
+            fontSize: '12px', fontWeight: 800, borderRadius: 'var(--r-sm)',
             opacity: adding || !inputWeight ? 0.5 : 1, transition: 'opacity 150ms', flexShrink: 0,
           }}
         >
@@ -462,7 +455,7 @@ function BodyWeightSummary({ unit, onOpen }) {
             <span style={{ color: 'var(--c-text-muted)', fontSize: '13px', fontWeight: 600 }}>{t('Sin registros — anota el primero')}</span>
           )}
         </div>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em' }}>
           {latestLog ? 'Ver historial' : 'Registrar'} ›
         </span>
       </button>
@@ -470,22 +463,22 @@ function BodyWeightSummary({ unit, onOpen }) {
   )
 }
 
-// ── Appearance: mode + palette ───────────────────────────────────────────
+// ── Apariencia: modo, idioma de la app e idioma de los ejercicios ────────
+// Aquí había además un selector de paleta (Sobrio / Vibrante). El rediseño
+// dejó una sola paleta, así que el control desapareció: mantener dos
+// duplicaba la superficie que hay que verificar en cada pantalla a cambio de
+// una elección que se toma una vez y no se vuelve a tocar.
 function ThemeSection() {
-  const { preference, setPreference, palette, setPalette } = useTheme()
+  const { preference, setPreference } = useTheme()
   const { t, locale } = useLang()
   const modeOpts = [
     { value: 'auto',  label: 'Auto',   icon: '◐' },
     { value: 'light', label: 'Claro',  icon: '☀' },
     { value: 'dark',  label: 'Oscuro', icon: '☾' },
   ]
-  const paletteOpts = [
-    { value: 'slate', label: 'Sobrio',   sub: 'Calmado' },
-    { value: 'riso',  label: 'Vibrante', sub: 'Con color' },
-  ]
   const cell = (active) => ({
     flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
-    padding: '12px 8px', borderRadius: '12px',
+    padding: '12px 8px', borderRadius: 'var(--r-md)',
     background: active ? 'var(--c-action-dim)' : 'var(--c-surface-2)',
     border: `1px solid ${active ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
     color: active ? 'var(--c-action-text)' : 'var(--c-text-dim)',
@@ -493,7 +486,7 @@ function ThemeSection() {
   })
   return (
     <>
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+      <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '10px' }}>
         {t('Tema')}
       </p>
       <div role="group" aria-label="Modo de color" style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
@@ -508,27 +501,7 @@ function ThemeSection() {
         })}
       </div>
 
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
-        {t('Paleta')}
-      </p>
-      <div role="group" aria-label="Paleta de color" style={{ display: 'flex', gap: '8px' }}>
-        {paletteOpts.map(o => {
-          const active = palette === o.value
-          return (
-            <button key={o.value} type="button" onClick={() => setPalette(o.value)} aria-pressed={active} style={cell(active)}>
-              <span style={{ display: 'flex', gap: '3px' }} aria-hidden="true">
-                {(o.value === 'riso' ? ['#FF2E7E', '#2438FF', '#C0EE2E'] : ['#3E5C76', '#6B7280', '#1A1D21']).map(c => (
-                  <span key={c} style={{ width: '10px', height: '10px', borderRadius: '50%', background: c }} />
-                ))}
-              </span>
-              {o.label}
-              <span style={{ fontSize: '9px', fontWeight: 500, color: 'var(--c-text-muted)' }}>{o.sub}</span>
-            </button>
-          )
-        })}
-      </div>
-
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '16px 0 10px' }}>
+      <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', margin: '16px 0 10px' }}>
         {t('Idioma de la app')}
       </p>
       <AppLangPicker cell={cell} />
@@ -536,7 +509,7 @@ function ThemeSection() {
         {t('Cambia los textos de la app. No toca los nombres de los ejercicios.')}
       </p>
 
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '16px 0 10px' }}>
+      <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', margin: '16px 0 10px' }}>
         {t('Nombre de los ejercicios')}
       </p>
       <ExerciseLangPicker cell={cell} />
@@ -659,8 +632,8 @@ export function ClaudeSection() {
         <code
           style={{
             flex: 1, minWidth: 0, background: 'var(--c-surface-2)',
-            border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
-            padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: '11px',
+            border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)',
+            padding: '10px 12px', fontFamily: 'var(--font-sans)', fontSize: '11px',
             color: 'var(--c-text-secondary)', overflowX: 'auto', whiteSpace: 'nowrap',
           }}
         >
@@ -670,10 +643,10 @@ export function ClaudeSection() {
           type="button"
           onClick={copy}
           style={{
-            flexShrink: 0, border: '1px solid var(--c-accent-border)', borderRadius: '10px',
+            flexShrink: 0, border: '1px solid var(--c-accent-border)', borderRadius: 'var(--r-sm)',
             padding: '0 14px', background: 'transparent', color: 'var(--c-action-text)',
-            fontSize: '10px', fontWeight: 800, textTransform: 'uppercase',
-            letterSpacing: '0.06em', cursor: 'pointer',
+            fontSize: '10px', fontWeight: 800,
+            letterSpacing: '-0.01em', cursor: 'pointer',
           }}
         >
           {t(copied ? 'Copiada' : 'Copiar')}
@@ -802,7 +775,7 @@ function TrainerSection() {
           <span style={{
             position: 'absolute', top: '3px', left: isTrainer ? '21px' : '3px',
             width: '22px', height: '22px', borderRadius: '50%', background: '#fff',
-            transition: 'left 200ms var(--ease-out)', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            transition: 'left 200ms var(--ease-out)', boxShadow: 'var(--e-1)',
           }} />
         </button>
       </div>
@@ -818,7 +791,7 @@ function TrainerSection() {
             onKeyDown={e => e.key === 'Enter' && handleRedeem()}
             placeholder="Ej: A1B2C3D4"
             className="input-field"
-            style={{ flex: 1, letterSpacing: '0.08em', fontWeight: 700 }}
+            style={{ flex: 1, letterSpacing: '-0.01em', fontWeight: 700 }}
           />
           <button
             type="button"
@@ -826,7 +799,7 @@ function TrainerSection() {
             disabled={redeeming || !code.trim()}
             style={{
               padding: '0 18px', background: 'var(--c-accent)', color: 'var(--c-on-action)',
-              fontSize: '12px', fontWeight: 800, borderRadius: '10px', flexShrink: 0,
+              fontSize: '12px', fontWeight: 800, borderRadius: 'var(--r-sm)', flexShrink: 0,
               opacity: redeeming || !code.trim() ? 0.5 : 1,
             }}
           >
@@ -847,7 +820,7 @@ function TrainerSection() {
               <div key={t.linkId} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '10px 12px', background: 'var(--c-surface-2)',
-                border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+                border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)',
               }}>
                 <span style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>
                   {t.profile?.name || 'Entrenador'}
@@ -865,14 +838,14 @@ function TrainerSection() {
                   <button
                     type="button"
                     onClick={() => navigate(`/chat/${t.trainerId}`)}
-                    style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                    style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em' }}
                   >
                     {t('Chat')}
                   </button>
                   <button
                     type="button"
                     onClick={() => removeTrainer(t.linkId)}
-                    style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                    style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em' }}
                     onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                     onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-dim)'}
                   >
@@ -1030,7 +1003,7 @@ function DeleteAccountSheet({ onClose }) {
       <input
         type="text" value={confirmText} onChange={e => setConfirmText(e.target.value)}
         className="input-field" placeholder="ELIMINAR"
-        style={{ marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}
+        style={{ marginBottom: '12px', letterSpacing: '-0.01em', fontWeight: 700 }}
       />
       <Button
         type="button" variant="primary" full size="lg"
@@ -1066,7 +1039,7 @@ export default function Profile() {
   const { t, locale } = useLang()
   const { user, signOut } = useAuth()
   const { profile, loading, saving, saveError, saveSuccess, saveProfile, age } = useProfile()
-  const { preference: themePreference, palette: themePalette } = useTheme()
+  const { preference: themePreference } = useTheme()
 
   const handleSignOut = async () => {
     await signOut()
@@ -1155,14 +1128,14 @@ export default function Profile() {
   ].filter(Boolean).join(' · ') || 'Objetivo, frecuencia y ejercicios'
 
   const MODE_LABEL = { auto: 'Auto', light: 'Claro', dark: 'Oscuro' }
-  const appearanceSummary = `${MODE_LABEL[themePreference] || 'Auto'} · ${themePalette === 'riso' ? 'Vibrante' : 'Sobrio'}`
+  const appearanceSummary = MODE_LABEL[themePreference] || 'Auto'
 
   if (loading) {
     return (
       <Layout>
         <div style={{ padding: '40px 20px', maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {[120, 80, 160, 140].map((h, i) => (
-            <div key={i} style={{ height: h, background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', opacity: 1 - i * 0.15 }} />
+            <div key={i} style={{ height: h, background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-lg)', opacity: 1 - i * 0.15 }} />
           ))}
         </div>
       </Layout>
@@ -1233,7 +1206,7 @@ export default function Profile() {
                 <span style={{ color: charsSummary ? 'var(--c-text)' : 'var(--c-text-ghost)', fontSize: '13px', fontWeight: 600, lineHeight: 1.5 }}>
                   {charsSummary || 'Nombre, fecha de nacimiento, sexo, altura y nivel'}
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0, marginLeft: '12px' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em', flexShrink: 0, marginLeft: '12px' }}>
                   {t('Editar ›')}
                 </span>
               </button>
@@ -1325,9 +1298,8 @@ export default function Profile() {
                 type="button"
                 onClick={handleSignOut}
                 style={{
-                  color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: '0.08em',
-                  border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+                  color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em',
+                  border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)',
                   padding: '10px 20px', background: 'transparent', minHeight: '44px',
                   transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)',
                 }}

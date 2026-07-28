@@ -42,8 +42,8 @@ export function Toast({ message, onDismiss, duration = 4000 }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
         background: 'var(--c-surface)', color: 'var(--c-action-text)',
         border: '1px solid var(--c-action-border)',
-        borderRadius: '14px', padding: '12px 12px 12px 16px',
-        boxShadow: '0 8px 28px rgba(0,0,0,0.22)',
+        borderRadius: 'var(--r-md)', padding: '12px 12px 12px 16px',
+        boxShadow: 'var(--e-3)',
       }}
     >
       <span style={{ fontSize: '13px', fontWeight: 700, minWidth: 0, lineHeight: 1.4 }}>
@@ -75,8 +75,8 @@ export function UndoSnackbar({ show, message, actionLabel = 'Deshacer', onUndo }
         maxWidth: '448px', margin: '0 auto', zIndex: 60,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
         background: 'var(--c-text)', color: 'var(--c-bg)',
-        borderRadius: '14px', padding: '12px 12px 12px 16px',
-        boxShadow: '0 8px 28px rgba(0,0,0,0.22)',
+        borderRadius: 'var(--r-md)', padding: '12px 12px 12px 16px',
+        boxShadow: 'var(--e-3)',
       }}
     >
       <span style={{ fontSize: '13px', fontWeight: 600, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -85,10 +85,9 @@ export function UndoSnackbar({ show, message, actionLabel = 'Deshacer', onUndo }
       <button
         onClick={onUndo}
         style={{
-          flexShrink: 0, minHeight: '40px', padding: '0 16px', borderRadius: '10px',
+          flexShrink: 0, minHeight: '40px', padding: '0 16px', borderRadius: 'var(--r-sm)',
           background: 'var(--c-bg)', color: 'var(--c-text)',
-          fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: 800,
-          textTransform: 'uppercase', letterSpacing: '0.04em',
+          fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: 800, letterSpacing: '-0.01em',
         }}
       >
         {actionLabel}

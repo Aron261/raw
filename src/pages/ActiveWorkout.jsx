@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } fr
 import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import ExerciseRow from '../components/ExerciseRow'
+import ExerciseDeck from '../components/ExerciseDeck'
 import RestTimerPill from '../components/RestTimerPill'
 import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } from '../hooks/useWorkout'
 import { supabase } from '../lib/supabase'
@@ -38,7 +39,7 @@ function WorkoutTimer({ startedAt }) {
         color: 'var(--c-text-dim)',
         fontSize: '13px',
         fontWeight: 700,
-        letterSpacing: '0.06em',
+        letterSpacing: '-0.01em',
         fontVariantNumeric: 'tabular-nums',
       }}
     >
@@ -70,10 +71,10 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
 
   return (
     <Sheet title={t('Finalizar entreno')} onClose={onCancel}>
-      <div style={{ background: 'var(--c-surface-2)', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
+      <div style={{ background: 'var(--c-surface-2)', borderRadius: 'var(--r-sm)', padding: '12px 14px', marginBottom: '16px' }}>
         {stats.map(s => (
           <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', lineHeight: 2 }}>
-            <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', letterSpacing: '-0.01em' }}>
               {s.label}
             </span>
             <span style={{ color: 'var(--c-text)', fontWeight: 800, fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}>
@@ -164,15 +165,15 @@ function ExerciseHistorySheet({ exercise, userId, onClose }) {
             return (
               <div key={s.workoutId || i} style={{
                 background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
-                borderRadius: '12px', padding: '12px 14px',
+                borderRadius: 'var(--r-md)', padding: '12px 14px',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span className="mono" style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-text-dim)' }}>
+                  <span className="mono" style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)' }}>
                     {fmtDate(s.date)}
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {isBest && (
-                      <span style={{ background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '2px 6px', borderRadius: '2px' }}>
+                      <span style={{ background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '9px', fontWeight: 900, letterSpacing: '-0.01em', padding: '2px 6px', borderRadius: '4px' }}>
                         {t('Récord')}
                       </span>
                     )}
@@ -185,8 +186,8 @@ function ExerciseHistorySheet({ exercise, userId, onClose }) {
                   {(s.sets || []).map((set, j) => (
                     <span key={set.id || j} style={{
                       fontSize: '13px', fontWeight: 800, color: 'var(--c-text)',
-                      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-                      borderRadius: '8px', padding: '4px 8px', fontVariantNumeric: 'tabular-nums',
+                      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+                      borderRadius: 'var(--r-xs)', padding: '4px 8px', fontVariantNumeric: 'tabular-nums',
                     }}>
                       {set.reps}×{set.weight}<span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--c-text-dim)', marginLeft: '2px' }}>{s.unit}</span>
                     </span>
@@ -266,7 +267,7 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px',
         background: 'var(--c-border-subtle)', border: '1px solid var(--c-border-subtle)',
-        borderRadius: '12px', overflow: 'hidden', marginBottom: '14px',
+        borderRadius: 'var(--r-md)', overflow: 'hidden', marginBottom: '14px',
       }}>
         <SummaryStat value={totalVolume.toLocaleString(locale)} unit="kg" label="Volumen" valueColor="var(--c-data)" />
         <SummaryStat value={durationLabel()} label={t('Duración')} />
@@ -278,10 +279,10 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
         <div style={{
           display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px',
           background: 'var(--c-record)', color: 'var(--c-record-ink)',
-          borderRadius: '10px', padding: '10px 12px',
+          borderRadius: 'var(--r-sm)', padding: '10px 12px',
         }}>
           <span style={{ fontSize: '14px' }}>🏆</span>
-          <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+          <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '-0.01em' }}>
             {prCount} {prCount === 1 ? 'récord nuevo' : 'récords nuevos'}
           </span>
         </div>
@@ -296,17 +297,17 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
           const delta = prev > 0 && e.best1RM > 0 ? Math.round(e.best1RM - prev) : null
           return (
             <div key={e.exerciseId || i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 2px', borderBottom: '1px solid var(--c-border-subtle)' }}>
-              <span style={{ flex: 1, minWidth: 0, fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ flex: 1, minWidth: 0, fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {e.name}
               </span>
               {isPR ? (
-                <span style={{ flexShrink: 0, background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '2px 6px', borderRadius: '2px' }}>PR</span>
+                <span style={{ flexShrink: 0, background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '9px', fontWeight: 900, letterSpacing: '-0.01em', padding: '2px 6px', borderRadius: '4px' }}>PR</span>
               ) : delta !== null && (
                 <span
                   aria-label={delta > 0 ? `Superaste tu 1RM anterior por ${delta}` : delta === 0 ? t('Igualaste tu 1RM anterior') : `Por debajo de tu 1RM anterior por ${-delta}`}
                   style={{
-                    flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-                    letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums',
+                    flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700,
+                    letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums',
                     color: delta > 0 ? 'var(--c-success)' : delta === 0 ? 'var(--c-text-muted)' : 'var(--c-text-dim)',
                   }}
                 >
@@ -332,7 +333,7 @@ function SummaryStat({ value, unit, label, valueColor = 'var(--c-text)' }) {
       <p style={{ color: valueColor, fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
         {value}{unit && <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-text-dim)', marginLeft: '2px' }}>{unit}</span>}
       </p>
-      <p className="mono" style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-dim)', marginTop: '6px' }}>
+      <p className="mono" style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginTop: '6px' }}>
         {label}
       </p>
     </div>
@@ -348,7 +349,7 @@ const LOGGING_PRIMER_KEY = 'raw_onboard_logging'
 function LoggingPrimer({ onDismiss }) {
   const { t, locale } = useLang()
   const chip = {
-    flexShrink: 0, width: '26px', height: '26px', borderRadius: '8px',
+    flexShrink: 0, width: '26px', height: '26px', borderRadius: 'var(--r-xs)',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   }
   const text = { color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.4 }
@@ -356,8 +357,8 @@ function LoggingPrimer({ onDismiss }) {
   return (
     <div className="fade-in" style={{
       position: 'relative',
-      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-      borderRadius: '14px', padding: '16px', marginBottom: '12px',
+      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+      borderRadius: 'var(--r-md)', padding: '16px', marginBottom: '12px',
     }}>
       <button
         onClick={onDismiss}
@@ -371,7 +372,7 @@ function LoggingPrimer({ onDismiss }) {
         ✕
       </button>
 
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+      <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '12px' }}>
         {t('Cómo registrar')}
       </p>
 
@@ -394,7 +395,7 @@ function LoggingPrimer({ onDismiss }) {
 
         {/* ghost previous value */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ ...chip, background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', color: 'var(--c-text-ghost)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700 }}>
+          <span style={{ ...chip, background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', color: 'var(--c-text-ghost)', fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700 }}>
             8×
           </span>
           <span style={text}>{t('El número tenue en cada campo es tu última vez.')}</span>
@@ -508,6 +509,37 @@ export default function ActiveWorkout() {
   // Hide the exercise awaiting an undoable removal.
   const visibleExercises = workoutExercises.filter(we => we.id !== exerciseDelete.pending?.id)
 
+  // ── Baraja ────────────────────────────────────────────────────────────
+  // Se usa mientras se entrena (y al editar una sesión ya guardada). En
+  // repaso puro manda la lista: ahí el trabajo es escanear, no registrar.
+  const deckMode = !isFinished || isEditing
+  const [deckIndex, setDeckIndex] = useState(0)
+
+  // Si la carta que se estaba viendo desaparece —se borró el ejercicio, o
+  // llegó una sesión más corta—, el índice se queda apuntando al vacío y la
+  // baraja se va a negro. Se recorta al último válido.
+  useEffect(() => {
+    setDeckIndex(i => Math.min(i, Math.max(visibleExercises.length - 1, 0)))
+  }, [visibleExercises.length])
+
+  // Al dar un ejercicio por terminado, la baraja avanza sola al siguiente que
+  // queda por hacer — que es lo que ibas a hacer de todas formas. Si no queda
+  // ninguno, se queda donde está: adelantar a una carta ya hecha sería mentir
+  // sobre lo que falta.
+  //
+  // Se salta por token, no por dependencias. `visibleExercises` es un array
+  // nuevo en cada render, así que un efecto que dependa de él se ejecuta
+  // siempre — y volvería a plantarte en la carta del autoavance cada vez que
+  // el componente repinta, dejándote sin poder moverte de ahí.
+  const handledAutoExpand = useRef(null)
+  useEffect(() => {
+    if (!deckMode || !autoExpand) return
+    if (handledAutoExpand.current === autoExpand.token) return
+    handledAutoExpand.current = autoExpand.token
+    const next = visibleExercises.findIndex(we => we.id === autoExpand.id)
+    if (next >= 0) setDeckIndex(next)
+  }, [autoExpand, deckMode, visibleExercises])
+
   // ExerciseRow's ··· "Eliminar" routes here for the undo window.
   const requestRemoveExercise = (weId) => {
     const we = workoutExercises.find(w => w.id === weId)
@@ -618,12 +650,11 @@ export default function ActiveWorkout() {
           <button
             onClick={handleBack}
             style={{
-              fontFamily: 'var(--font-mono)',
+              fontFamily: 'var(--font-sans)',
               color: 'var(--c-text-dim)',
-              fontSize: '11px',
+              fontSize: '12px',
               fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
+              letterSpacing: '-0.01em',
               transition: `color 150ms var(--ease-out)`,
               display: 'flex',
               alignItems: 'center',
@@ -637,7 +668,7 @@ export default function ActiveWorkout() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {!isFinished && workout.started_at && <WorkoutTimer startedAt={workout.started_at} />}
             {isFinished && (
-              <span style={{ fontFamily: 'var(--font-mono)', color: isEditing ? 'var(--c-action-text)' : 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <span style={{ fontFamily: 'var(--font-sans)', color: isEditing ? 'var(--c-action-text)' : 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em' }}>
                 {isEditing ? t('Editando') : t('Finalizado')}
               </span>
             )}
@@ -652,13 +683,13 @@ export default function ActiveWorkout() {
             style={{
               display: 'flex', alignItems: 'center', gap: '8px',
               background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
-              borderRadius: '10px', padding: '8px 12px', marginBottom: '16px',
+              borderRadius: 'var(--r-sm)', padding: '8px 12px', marginBottom: '16px',
             }}
           >
             <span aria-hidden="true" style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--c-action)', flexShrink: 0 }} />
             <span style={{
-              fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)',
+              fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+              letterSpacing: '-0.01em', color: 'var(--c-action-text)',
             }}>
               {t('Estás editando tu historial — los cambios se guardan solos')}
             </span>
@@ -673,7 +704,7 @@ export default function ActiveWorkout() {
             style={{
               display: 'flex', alignItems: 'center', gap: '8px',
               background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
-              borderRadius: '10px', padding: '8px 12px', marginBottom: '16px',
+              borderRadius: 'var(--r-sm)', padding: '8px 12px', marginBottom: '16px',
             }}
           >
             <span
@@ -682,8 +713,8 @@ export default function ActiveWorkout() {
               style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--c-action)', flexShrink: 0 }}
             />
             <span style={{
-              fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)',
+              fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+              letterSpacing: '-0.01em', color: 'var(--c-action-text)',
             }}>
               {unsynced > 0
                 ? `${unsynced} ${unsynced === 1 ? 'serie sin sincronizar' : 'series sin sincronizar'}${online ? ' — sincronizando' : ''}`
@@ -703,7 +734,7 @@ export default function ActiveWorkout() {
               onBlur={saveName}
               onKeyDown={e => { if (e.key === 'Enter') saveName() }}
               className="input-field"
-              style={{ fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}
+              style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em' }}
             />
           ) : (
             <button
@@ -716,7 +747,7 @@ export default function ActiveWorkout() {
                 gap: '8px',
               }}
             >
-              <span style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+              <span style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
                 {workout.name}
               </span>
               {(!isFinished || isEditing) && (
@@ -744,8 +775,8 @@ export default function ActiveWorkout() {
                 }} />
               </div>
               <span style={{
-                fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-                letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0,
+                fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+                letterSpacing: '-0.01em', flexShrink: 0,
                 color: allDone ? 'var(--c-success)' : 'var(--c-text-dim)',
                 fontVariantNumeric: 'tabular-nums',
               }}>
@@ -757,8 +788,8 @@ export default function ActiveWorkout() {
 
         {/* Empty state */}
         {visibleExercises.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '14px', marginBottom: '16px' }}>
-            <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
+          <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-md)', marginBottom: '16px' }}>
+            <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em' }}>
               {t('Sin ejercicios aún')}
             </p>
             {!isFinished && (
@@ -774,46 +805,87 @@ export default function ActiveWorkout() {
           <LoggingPrimer onDismiss={dismissPrimer} />
         )}
 
-        {/* Exercise list — finished exercises collapse and rise to the top;
-            the ones still to do stay at the bottom. Move arrows operate within
-            the pending sublist. */}
-        <div style={{ marginBottom: '8px' }}>
-          {(() => {
-            const finished = visibleExercises.filter(we => doneExs.has(we.id))
-            const pending  = visibleExercises.filter(we => !doneExs.has(we.id))
-            const display  = [...finished, ...pending]
-            return display.map((we, i) => {
-              const exFinished = doneExs.has(we.id)
-              const pIdx = exFinished ? -1 : pending.findIndex(p => p.id === we.id)
-              return (
-                <div key={we.id} className="stagger-item" style={{ animationDelay: `${i * 40}ms` }}>
-                  <ExerciseRow
-                    workoutExercise={we}
-                    workoutId={id}
-                    onAddSet={addSet}
-                    onDeleteSet={deleteSet}
-                    onUpdateSet={updateSet}
-                    onUpdateUnit={updateUnit}
-                    onRemoveExercise={requestRemoveExercise}
-                    onSwapExercise={(!isFinished || isEditing) ? (weId) => setSwappingId(weId) : undefined}
-                    onUpdateNotes={(!isFinished || isEditing) ? updateExerciseNotes : undefined}
-                    completedSetIds={doneSets}
-                    onToggleSetDone={toggleSetDone}
-                    isExerciseFinished={exFinished}
-                    onToggleFinish={toggleExerciseFinish}
-                    onShowHistory={setHistoryExercise}
-                    onRestStart={!isFinished ? startRest : undefined}
-                    autoExpandToken={autoExpand?.id === we.id ? autoExpand.token : null}
-                    onMove={(!isFinished || isEditing) ? moveExercise : undefined}
-                    canMoveUp={!exFinished && pIdx > 0}
-                    canMoveDown={!exFinished && pIdx < pending.length - 1}
-                    readOnly={isFinished && !isEditing}
-                  />
-                </div>
-              )
-            })
-          })()}
-        </div>
+        {/* Los ejercicios.
+            · Sesión viva (o en edición): baraja — un ejercicio por pantalla.
+              Entre serie y serie no estás eligiendo ejercicio, estás haciendo
+              uno, y el resto de la lista solo compite por la vista.
+            · Sesión terminada, en repaso: la lista de siempre. Ahí el trabajo
+              es escanear la sesión entera, y una baraja obliga a pasar seis
+              cartas para ver lo que una lista dice de un vistazo. */}
+        {deckMode ? (
+          <div style={{ marginBottom: '8px' }}>
+            <ExerciseDeck
+              items={visibleExercises}
+              index={deckIndex}
+              onIndexChange={setDeckIndex}
+              isDone={(we) => doneExs.has(we.id)}
+            >
+              {(we, i) => (
+                <ExerciseRow
+                  deck
+                  workoutExercise={we}
+                  workoutId={id}
+                  onAddSet={addSet}
+                  onDeleteSet={deleteSet}
+                  onUpdateSet={updateSet}
+                  onUpdateUnit={updateUnit}
+                  onRemoveExercise={requestRemoveExercise}
+                  onSwapExercise={(weId) => setSwappingId(weId)}
+                  onUpdateNotes={updateExerciseNotes}
+                  completedSetIds={doneSets}
+                  onToggleSetDone={toggleSetDone}
+                  isExerciseFinished={doneExs.has(we.id)}
+                  onToggleFinish={toggleExerciseFinish}
+                  onShowHistory={setHistoryExercise}
+                  onRestStart={!isFinished ? startRest : undefined}
+                  onMove={moveExercise}
+                  canMoveUp={i > 0}
+                  canMoveDown={i < visibleExercises.length - 1}
+                  readOnly={false}
+                />
+              )}
+            </ExerciseDeck>
+          </div>
+        ) : (
+          /* Lista de repaso — los terminados se pliegan y suben arriba. */
+          <div style={{ marginBottom: '8px' }}>
+            {(() => {
+              const finished = visibleExercises.filter(we => doneExs.has(we.id))
+              const pending  = visibleExercises.filter(we => !doneExs.has(we.id))
+              const display  = [...finished, ...pending]
+              return display.map((we, i) => {
+                const exFinished = doneExs.has(we.id)
+                const pIdx = exFinished ? -1 : pending.findIndex(p => p.id === we.id)
+                return (
+                  <div key={we.id} className="stagger-item" style={{ animationDelay: `${i * 40}ms` }}>
+                    <ExerciseRow
+                      workoutExercise={we}
+                      workoutId={id}
+                      onAddSet={addSet}
+                      onDeleteSet={deleteSet}
+                      onUpdateSet={updateSet}
+                      onUpdateUnit={updateUnit}
+                      onRemoveExercise={requestRemoveExercise}
+                      onSwapExercise={undefined}
+                      onUpdateNotes={undefined}
+                      completedSetIds={doneSets}
+                      onToggleSetDone={toggleSetDone}
+                      isExerciseFinished={exFinished}
+                      onToggleFinish={toggleExerciseFinish}
+                      onShowHistory={setHistoryExercise}
+                      onRestStart={undefined}
+                      autoExpandToken={autoExpand?.id === we.id ? autoExpand.token : null}
+                      onMove={undefined}
+                      canMoveUp={false}
+                      canMoveDown={false}
+                      readOnly
+                    />
+                  </div>
+                )
+              })
+            })()}
+          </div>
+        )}
 
         {/* Bottom actions */}
         {(!isFinished || isEditing) && (
@@ -863,8 +935,7 @@ export default function ActiveWorkout() {
                 onClick={() => setShowDiscardConfirm(true)}
                 style={{
                   alignSelf: 'center', marginTop: '2px',
-                  color: 'var(--c-text-ghost)', fontSize: '11px', fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                  color: 'var(--c-text-ghost)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em',
                   padding: '6px 12px', background: 'transparent',
                   transition: 'color 150ms var(--ease-out)',
                 }}
@@ -889,10 +960,9 @@ export default function ActiveWorkout() {
               <button
                 onClick={() => setIsEditing(true)}
                 style={{
-                  width: '100%', padding: '14px', fontSize: '10px', fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                  width: '100%', padding: '14px', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em',
                   color: 'var(--c-text-dim)', border: '1px solid var(--c-border-subtle)',
-                  borderRadius: '10px', transition: 'color 150ms, border-color 150ms',
+                  borderRadius: 'var(--r-sm)', transition: 'color 150ms, border-color 150ms',
                   background: 'transparent', cursor: 'pointer',
                 }}
                 {...pressable(0.97, {
@@ -916,10 +986,9 @@ export default function ActiveWorkout() {
             <button
               onClick={() => setShowDeleteConfirm(true)}
               style={{
-                width: '100%', padding: '14px', fontSize: '10px', fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
+                width: '100%', padding: '14px', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em',
                 color: 'var(--c-text-dim)', border: '1px solid var(--c-border-subtle)',
-                borderRadius: '10px', transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
+                borderRadius: 'var(--r-sm)', transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
                 background: 'transparent', cursor: 'pointer',
               }}
               {...pressable(0.97, {

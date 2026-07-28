@@ -6,15 +6,8 @@ import { useTheme } from '../../hooks/useTheme'
 import SectionHeader from './SectionHeader'
 import Segmented from './Segmented'
 import { useLang } from '../../hooks/useLang'
+import { useChartColors } from '../../lib/chartColors'
 
-// Monthly volume trend. Hex per palette+theme — CSS vars don't resolve in
-// recharts SVG attrs (same pattern as Home / ExerciseDetail).
-const CHART_COLORS = {
-  'slate-light': { axis: '#565C64', bar: '#3E5C76', current: '#1A1D21', empty: '#DDE0E4' },
-  'slate-dark':  { axis: '#9AA0A8', bar: '#7FA0BE', current: '#E9EBEE', empty: '#2F343B' },
-  'riso-light':  { axis: '#5A584F', bar: '#2438FF', current: '#FF2E7E', empty: '#D5D2C7' },
-  'riso-dark':   { axis: '#A2A096', bar: '#6E7BFF', current: '#FF3D86', empty: '#26271F' },
-}
 
 function ChartTooltip({ active, payload, label }) {
   const { t } = useLang()
@@ -23,9 +16,9 @@ function ChartTooltip({ active, payload, label }) {
   return (
     <div style={{
       background: 'var(--c-surface)', border: '1px solid var(--c-border)',
-      borderRadius: '8px', padding: '6px 10px',
+      borderRadius: 'var(--r-xs)', padding: '6px 10px',
       fontSize: '10px', fontWeight: 700, color: 'var(--c-text)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+      boxShadow: 'var(--e-2)',
     }}>
       {label}: {val > 0 ? `${(val / 1000).toFixed(1)}k kg` : '—'}
     </div>
@@ -36,8 +29,7 @@ const RANGE_OPTIONS = [{ id: '6', label: '6M' }, { id: '12', label: '12M' }]
 
 export default function VolumeTrendModule({ data }) {
   const { t } = useLang()
-  const { resolved, palette } = useTheme()
-  const colors = CHART_COLORS[`${palette}-${resolved}`] || CHART_COLORS['slate-light']
+  const colors = useChartColors()
   const [range, setRange] = useState('12')
 
   const all = data?.volumeByMonth || []
@@ -87,7 +79,7 @@ export default function VolumeTrendModule({ data }) {
       )}
 
       {!hasData ? (
-        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--c-text-muted)', fontSize: '11px', border: '1px dashed var(--c-border-subtle)', borderRadius: '12px' }}>
+        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--c-text-muted)', fontSize: '11px', border: '1px dashed var(--c-border-subtle)', borderRadius: 'var(--r-md)' }}>
           {t('Sin entrenos registrados todavía')}
         </div>
       ) : (

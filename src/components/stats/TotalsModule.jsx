@@ -18,7 +18,7 @@ function SubStat({ value, label }) {
       <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1 }}>
         {value}
       </p>
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', marginTop: '5px' }}>
+      <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '-0.01em', marginTop: '5px' }}>
         {label}
       </p>
     </div>
@@ -31,7 +31,7 @@ export default function TotalsModule({ data }) {
   return (
     <section style={{ marginBottom: '40px' }}>
       {/* Hero: total volume lifted */}
-      <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-display)', fontSize: '64px', letterSpacing: '0.005em', lineHeight: 0.82 }}>
+      <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '64px', letterSpacing: '-0.04em', lineHeight: 0.82 }}>
         {formatVolume(t.volume)}
         <span style={{ fontFamily: 'var(--font-sans)', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-dim)', marginLeft: '6px' }}>kg</span>
       </p>

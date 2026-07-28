@@ -18,7 +18,7 @@ export default function StartFab({ onClick, offset = 72 }) {
         border: 'none', borderRadius: '999px',
         padding: '14px 18px',
         fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: '13px', letterSpacing: '-0.01em',
-        boxShadow: '0 6px 20px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--e-2)',
         cursor: 'pointer',
         transition: 'transform 160ms var(--ease-out)',
       }}

@@ -86,7 +86,7 @@ export default function RestTimerPill({ restId, endsAt, total, onExtend, onDismi
         border: '1px solid var(--c-border)',
         borderRadius: '999px',
         padding: '6px 8px 6px 10px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.16)',
+        boxShadow: 'var(--e-3)',
       }}
     >
       {/* Ring + countdown — success green, the "done/complete" state color */}
@@ -104,7 +104,7 @@ export default function RestTimerPill({ restId, endsAt, total, onExtend, onDismi
       <span style={{
         minWidth: '52px', textAlign: 'center',
         fontFamily: 'var(--font-mono)', fontSize: done ? '12px' : '17px', fontWeight: 700,
-        letterSpacing: done ? '0.06em' : '0.02em', textTransform: done ? 'uppercase' : 'none',
+        letterSpacing: done ? '-0.01em' : '0.02em',
         color: done ? 'var(--c-success)' : 'var(--c-text)',
         fontVariantNumeric: 'tabular-nums',
       }}>
@@ -117,7 +117,7 @@ export default function RestTimerPill({ restId, endsAt, total, onExtend, onDismi
           aria-label="Añadir 30 segundos de descanso"
           style={{
             height: '44px', padding: '0 10px', flexShrink: 0,
-            fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em',
+            fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em',
             color: 'var(--c-text-dim)', background: 'transparent', borderRadius: '999px',
             transition: 'color 120ms',
           }}

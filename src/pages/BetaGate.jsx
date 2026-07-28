@@ -33,13 +33,13 @@ export default function BetaGate() {
         {/* Wordmark */}
         <div style={{ textAlign: 'center', marginBottom: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           <Logo size={72} />
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '40px', letterSpacing: '0.02em', color: 'var(--c-text)' }}>RAW</span>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: '4px' }}>
+          <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '40px', letterSpacing: '-0.04em', color: 'var(--c-text)' }}>RAW</span>
+          <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '4px' }}>
             {t('Acceso beta')}
           </p>
         </div>
 
-        <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+        <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-lg)', padding: '24px', boxShadow: 'var(--e-1)' }}>
           <h1 style={{ color: 'var(--c-text)', fontSize: '17px', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>
             {t('Ingresa tu código')}
           </h1>
@@ -76,7 +76,7 @@ export default function BetaGate() {
           <p style={{ color: 'var(--c-text-ghost)', fontSize: '11px', marginBottom: '8px' }}>{user?.email}</p>
           <button
             onClick={signOut}
-            style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
+            style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em' }}
           >
             {t('Cerrar sesión')}
           </button>

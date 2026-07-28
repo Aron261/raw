@@ -159,8 +159,8 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
       </Field>
 
       {matches.length > 0 && (
-        <div style={{ margin: '-4px 0 14px', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', overflow: 'hidden', background: 'var(--c-surface-2)' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-muted)', padding: '8px 12px 4px' }}>
+        <div style={{ margin: '-4px 0 14px', border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-md)', overflow: 'hidden', background: 'var(--c-surface-2)' }}>
+          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-muted)', padding: '8px 12px 4px' }}>
             {t('Sugerencias · toca para llenar, + para registrar ya')}
           </p>
           {matches.map(f => (
@@ -172,7 +172,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
                 <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {f.name}
                 </p>
-                <p className="tnum" style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, marginTop: '2px', letterSpacing: '0.03em' }}>
+                <p className="tnum" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, marginTop: '2px', letterSpacing: '-0.01em' }}>
                   {servingLabel(f) ? `${servingLabel(f)} · ` : ''}{fmt(f.kcal)} kcal · P {Math.round(f.protein_g)} · C {Math.round(f.carbs_g)} · G {Math.round(f.fat_g)}
                 </p>
               </button>
@@ -202,8 +202,8 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
               key={m.id}
               onClick={() => setMeal(m.id)}
               style={{
-                flex: 1, padding: '9px 4px', borderRadius: '8px',
-                fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em',
+                flex: 1, padding: '9px 4px', borderRadius: 'var(--r-xs)',
+                fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em',
                 background: meal === m.id ? 'var(--c-accent)' : 'var(--c-surface-2)',
                 color: meal === m.id ? 'var(--c-on-action)' : 'var(--c-text-dim)',
                 border: `1px solid ${meal === m.id ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
@@ -243,7 +243,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
                   key={p.m}
                   onClick={() => { setAmount(String(val)); applyBase(base, p.m) }}
                   style={{
-                    flex: 1, padding: '9px 4px', borderRadius: '8px',
+                    flex: 1, padding: '9px 4px', borderRadius: 'var(--r-xs)',
                     fontSize: '12px', fontWeight: 700,
                     background: active ? 'var(--c-accent)' : 'var(--c-surface-2)',
                     color: active ? 'var(--c-on-action)' : 'var(--c-text-dim)',
@@ -385,11 +385,11 @@ export default function Nutrition({ userId = null, readOnly = false }) {
               ←
             </button>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
+              <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em' }}>
                 {t('Nutrición')}
               </h1>
               {clientProfile?.name && (
-                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>
+                <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '2px' }}>
                   {clientProfile.name}
                 </p>
               )}
@@ -397,8 +397,8 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             <button
               onClick={() => setSheet('targets')}
               style={{
-                flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
+                flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+                letterSpacing: '-0.01em',
                 color: 'var(--c-action-text)', border: '1px solid var(--c-accent-border)',
                 borderRadius: '999px', padding: '7px 14px', background: 'transparent',
               }}
@@ -413,8 +413,8 @@ export default function Nutrition({ userId = null, readOnly = false }) {
               <button
                 onClick={() => setSheet('targets')}
                 style={{
-                  fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                  fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+                  letterSpacing: '-0.01em',
                   color: 'var(--c-action-text)', border: '1px solid var(--c-accent-border)',
                   borderRadius: '999px', padding: '7px 14px', background: 'transparent',
                 }}
@@ -430,18 +430,18 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           <button
             onClick={() => setDateISO(shiftISO(dateISO, -1))}
             aria-label="Día anterior"
-            style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text-dim)', fontSize: '18px', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', background: 'var(--c-surface)' }}
+            style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text-dim)', fontSize: '18px', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)', background: 'var(--c-surface)' }}
           >
             ‹
           </button>
           <div style={{ textAlign: 'center' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text)' }}>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '12.5px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text)' }}>
               {labelForISO(dateISO, t, locale)}
             </p>
             {!isToday && (
               <button
                 onClick={() => setDateISO(today)}
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-action-text)', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, color: 'var(--c-action-text)', marginTop: '2px', letterSpacing: '-0.01em' }}
               >
                 {t('Volver a hoy')}
               </button>
@@ -451,7 +451,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             onClick={() => !isToday && setDateISO(shiftISO(dateISO, 1))}
             aria-label="Día siguiente"
             disabled={isToday}
-            style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isToday ? 'var(--c-text-ghost)' : 'var(--c-text-dim)', fontSize: '18px', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', background: 'var(--c-surface)', opacity: isToday ? 0.5 : 1 }}
+            style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isToday ? 'var(--c-text-ghost)' : 'var(--c-text-dim)', fontSize: '18px', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)', background: 'var(--c-surface)', opacity: isToday ? 0.5 : 1 }}
           >
             ›
           </button>
@@ -462,7 +462,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             <span>{readOnly ? t('No pudimos cargar sus comidas.') : t('No pudimos cargar tus comidas.')}</span>
             <button
               onClick={refetch}
-              style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-accent-border)', borderRadius: '8px', padding: '6px 12px', background: 'transparent' }}
+              style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-accent-border)', borderRadius: 'var(--r-xs)', padding: '6px 12px', background: 'transparent' }}
             >
               {t('Reintentar')}
             </button>
@@ -475,7 +475,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             <span style={{ fontFamily: 'var(--font-sans)', fontSize: '52px', fontWeight: 900, letterSpacing: '-0.05em', color: kcalOver ? 'var(--c-action-text)' : 'var(--c-text)' }}>
               {fmt(shownTotals.kcal)}
             </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '10px' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '10px' }}>
               / {fmt(tgt.kcal)} kcal
             </span>
           </p>
@@ -493,7 +493,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             }} />
           </div>
 
-          <p className="tnum" style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.03em', color: kcalOver ? 'var(--c-action-text)' : 'var(--c-text-dim)', margin: '-10px 0 18px' }}>
+          <p className="tnum" style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: kcalOver ? 'var(--c-action-text)' : 'var(--c-text-dim)', margin: '-10px 0 18px' }}>
             {kcalOver
               ? `${fmt(shownTotals.kcal - tgt.kcal)} kcal por encima`
               : `Quedan ${fmt(tgt.kcal - shownTotals.kcal)} kcal`}
@@ -503,7 +503,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           {!readOnly && !hasCustomTargets && (
             <button
               onClick={() => setSheet('targets')}
-              style={{ display: 'inline-block', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)', background: 'transparent', border: 'none', padding: 0, margin: '-8px 0 18px', cursor: 'pointer' }}
+              style={{ display: 'inline-block', fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-action-text)', background: 'transparent', border: 'none', padding: 0, margin: '-8px 0 18px', cursor: 'pointer' }}
             >
               {t('Meta por defecto · fija la tuya →')}
             </button>
@@ -521,8 +521,8 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           <div aria-hidden="true">
             {MEALS.map((m, i) => (
               <div key={m.id} style={{ marginBottom: '22px' }}>
-                <div className="skeleton" style={{ height: '15px', width: '108px', borderRadius: '6px', marginBottom: '10px' }} />
-                <div className="skeleton" style={{ height: '42px', borderRadius: '10px', opacity: 1 - i * 0.12 }} />
+                <div className="skeleton" style={{ height: '15px', width: '108px', borderRadius: 'var(--r-xs)', marginBottom: '10px' }} />
+                <div className="skeleton" style={{ height: '42px', borderRadius: 'var(--r-sm)', opacity: 1 - i * 0.12 }} />
               </div>
             ))}
           </div>
@@ -530,7 +530,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           <div className="fade-in" style={{ animationDelay: '80ms' }}>
             {/* Primer día vacío: enseña el bucle de registro rápido */}
             {!readOnly && visibleCount === 0 && (
-              <div style={{ textAlign: 'center', padding: '28px 20px', border: '1px dashed var(--c-border)', borderRadius: '16px', marginBottom: '24px' }}>
+              <div style={{ textAlign: 'center', padding: '28px 20px', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-lg)', marginBottom: '24px' }}>
                 <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em', marginBottom: '6px' }}>
                   {t('Registra tu primera comida')}
                 </p>
@@ -560,7 +560,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
                     </button>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', flexShrink: 0 }}>
                       {(mealKcal > 0 || (isCollapsed && list.length > 0)) && (
-                        <span className="tnum" style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: 'var(--c-text-dim)' }}>
+                        <span className="tnum" style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, color: 'var(--c-text-dim)' }}>
                           {isCollapsed && list.length > 0 ? `${list.length} · ` : ''}{fmt(mealKcal)} kcal
                         </span>
                       )}
@@ -600,11 +600,11 @@ export default function Nutrition({ userId = null, readOnly = false }) {
                             <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {e.name}
                             </p>
-                            <p className="tnum" style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, marginTop: '3px', letterSpacing: '0.03em' }}>
+                            <p className="tnum" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, marginTop: '3px', letterSpacing: '-0.01em' }}>
                               P {Math.round(e.protein_g)} · C {Math.round(e.carbs_g)} · G {Math.round(e.fat_g)}
                             </p>
                           </div>
-                          <span className="tnum" style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
+                          <span className="tnum" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
                             {fmt(e.kcal)} kcal
                           </span>
                         </button>

@@ -64,7 +64,7 @@ function NavItem({ to, label, Icon, exact }) {
         alignItems: 'center',
         gap: '10px',
         padding: '8px 14px',
-        borderRadius: '10px',
+        borderRadius: 'var(--r-sm)',
         fontSize: '12px',
         fontWeight: 700,
         letterSpacing: '-0.01em',
@@ -89,9 +89,9 @@ function GroupLabel({ children }) {
   const { t } = useLang()
   return (
     <p style={{
-      fontFamily: 'var(--font-mono)',
-      fontSize: '9px', fontWeight: 700,
-      textTransform: 'uppercase', letterSpacing: '0.14em',
+      fontFamily: 'var(--font-sans)',
+      fontSize: '11px', fontWeight: 700,
+      letterSpacing: '-0.01em',
       color: 'var(--c-text-ghost)',
       padding: '14px 14px 5px',
       userSelect: 'none',
@@ -124,7 +124,7 @@ export default function Sidebar() {
         flexDirection: 'column',
         background: 'var(--c-surface)',
         borderRight: '1px solid var(--c-border-subtle)',
-        boxShadow: '2px 0 12px rgba(0,0,0,0.04)',
+        boxShadow: 'var(--e-2)',
         overflow: 'hidden',
       }}
     >
@@ -148,8 +148,7 @@ export default function Sidebar() {
             display: 'block',
             fontSize: '9px',
             fontWeight: 700,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
+            letterSpacing: '-0.01em',
             color: 'var(--c-text-ghost)',
             marginTop: '4px',
           }}
@@ -189,7 +188,7 @@ export default function Sidebar() {
             alignItems: 'center',
             gap: '10px',
             padding: '8px 10px',
-            borderRadius: '10px',
+            borderRadius: 'var(--r-sm)',
             background: isActive ? 'var(--c-surface-2)' : 'transparent',
             transition: `background 150ms var(--ease-out)`,
           })}
@@ -221,12 +220,11 @@ export default function Sidebar() {
           style={{
             fontSize: '10px',
             fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
+            letterSpacing: '-0.01em',
             color: 'var(--c-text-dim)',
             border: '1px solid var(--c-border-subtle)',
             padding: '6px 12px',
-            borderRadius: '8px',
+            borderRadius: 'var(--r-xs)',
             transition: `color 150ms var(--ease-out), border-color 150ms var(--ease-out)`,
             width: '100%',
           }}

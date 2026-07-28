@@ -42,8 +42,8 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
             key={i}
             aria-hidden="true"
             style={{
-              textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
-              letterSpacing: '0.06em', color: 'var(--c-text-muted)', paddingBottom: '4px',
+              textAlign: 'center', fontFamily: 'var(--font-sans)', fontSize: '9px', fontWeight: 700,
+              letterSpacing: '-0.01em', color: 'var(--c-text-muted)', paddingBottom: '4px',
             }}
           >
             {d}
@@ -84,7 +84,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
                 minHeight: '46px',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
                 padding: '6px 2px 4px',
-                borderRadius: '10px',
+                borderRadius: 'var(--r-sm)',
                 background: isDeloadWeek ? 'var(--c-surface-2)' : 'transparent',
                 border: isToday ? '1.5px solid var(--c-accent)' : '1.5px solid transparent',
                 opacity: inMonth ? 1 : 0.32,
@@ -92,7 +92,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
               }}
             >
               <span style={{
-                fontFamily: 'var(--font-mono)', fontSize: '12px',
+                fontFamily: 'var(--font-sans)', fontSize: '12px',
                 fontWeight: isToday ? 800 : 600,
                 fontVariantNumeric: 'tabular-nums',
                 color: isToday ? 'var(--c-action-text)' : 'var(--c-text-dim)',
@@ -104,7 +104,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', minHeight: '8px', flexWrap: 'wrap' }}>
                 {shown.map(d => <Dot key={d.key} color={d.color} filled={d.filled} />)}
                 {extra > 0 && (
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', color: 'var(--c-text-muted)', lineHeight: 1 }}>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: '9px', color: 'var(--c-text-muted)', lineHeight: 1 }}>
                     +{extra}
                   </span>
                 )}
@@ -141,7 +141,7 @@ function DayChip({ color, filled, label, detail, struck }) {
       </span>
       {detail && (
         <span style={{
-          display: 'block', fontFamily: 'var(--font-mono)', fontSize: '9px',
+          display: 'block', fontFamily: 'var(--font-sans)', fontSize: '9px',
           color: 'var(--c-text-muted)', lineHeight: 1.3, marginTop: '1px',
         }}>
           {detail}
@@ -165,12 +165,12 @@ function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, da
         <div style={{
           display: 'flex', alignItems: 'center', gap: '7px',
           background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
-          borderRadius: '10px', padding: '8px 11px', marginBottom: '8px',
+          borderRadius: 'var(--r-sm)', padding: '8px 11px', marginBottom: '8px',
         }}>
           <Dot color={KINDS.deload.color} filled size={7} />
           <span style={{
-            fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-            textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-text-dim)',
+            fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+            letterSpacing: '-0.01em', color: 'var(--c-text-dim)',
           }}>
             {t('Semana de descarga')}
           </span>
@@ -196,7 +196,7 @@ function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, da
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '4px',
                 minHeight: '112px', padding: '7px 2px 6px',
-                borderRadius: '10px', textAlign: 'left',
+                borderRadius: 'var(--r-sm)', textAlign: 'left',
                 background: isToday ? 'var(--c-action-dim)' : 'var(--c-surface-2)',
                 border: `1px solid ${isToday ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
                 cursor: 'pointer',
@@ -205,8 +205,8 @@ function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, da
               {/* Cabecera de la columna: día y número */}
               <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
                 <span style={{
-                  fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: '0.04em',
+                  fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700,
+                  letterSpacing: '-0.01em',
                   color: isToday ? 'var(--c-action-text)' : 'var(--c-text-muted)',
                 }}>
                   {DAY_ABBR[i]}
@@ -225,7 +225,7 @@ function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, da
                 {empty && (
                   <span aria-hidden="true" style={{
                     height: '2px', width: '12px', margin: '4px auto 0',
-                    background: 'var(--c-border)', borderRadius: '2px',
+                    background: 'var(--c-border)', borderRadius: '4px',
                   }} />
                 )}
 
@@ -328,7 +328,7 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
     : anchor.getFullYear() === today.getFullYear() && anchor.getMonth() === today.getMonth()
 
   const navBtn = {
-    width: '36px', height: '36px', borderRadius: '10px',
+    width: '36px', height: '36px', borderRadius: 'var(--r-sm)',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
     color: 'var(--c-text-dim)', fontSize: '15px', lineHeight: 1,
@@ -339,8 +339,8 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
       aria-label={t('Calendario de entrenamiento')}
       style={{
         background: 'var(--c-surface)',
-        border: '1px solid var(--c-border-subtle)',
-        borderRadius: '16px',
+        border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+        borderRadius: 'var(--r-lg)',
         padding: '16px 14px 14px',
       }}
     >
@@ -354,8 +354,8 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
             <button
               onClick={goToday}
               style={{
-                marginTop: '6px', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)', background: 'transparent',
+                marginTop: '6px', fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+                letterSpacing: '-0.01em', color: 'var(--c-action-text)', background: 'transparent',
               }}
             >
               {t('Ir a hoy')}
@@ -383,11 +383,11 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
 
       {/* Leyenda — mínima, solo lo que aparece en la rejilla */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--c-border-subtle)' }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-muted)' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-muted)' }}>
           <Dot color={DONE_COLOR} filled /> {t('Hecho')}
         </span>
         {['strength', 'cardio', 'mobility', 'deload'].map(k => (
-          <span key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-muted)' }}>
+          <span key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-muted)' }}>
             <Dot color={KINDS[k].color} /> {t(KINDS[k].label)}
           </span>
         ))}

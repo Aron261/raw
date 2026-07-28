@@ -39,6 +39,10 @@ export default function ExerciseRow({
   canMoveUp = false,
   canMoveDown = false,
   readOnly = false,
+  // Modo baraja: la fila es la única carta en pantalla, así que no se pliega
+  // (no hay nada que ganar plegándola) y pierde el galón y el resumen
+  // colapsado del ejercicio terminado — de eso se encarga el contenedor.
+  deck = false,
 }) {
   const { user } = useAuth()
   const { t } = useLang()
@@ -213,8 +217,12 @@ export default function ExerciseRow({
     return next
   })
 
+  // En baraja la carta está sola en pantalla: plegarla no gana espacio, solo
+  // esconde lo único que hay que ver.
+  const isOpen = deck || expanded
+
   /* ── Finished (collapsed recap) ─────────────────────────────────────── */
-  if (isExerciseFinished && !readOnly) {
+  if (isExerciseFinished && !readOnly && !deck) {
     return (
       <div style={{ ...cardStyle(false), opacity: 0.92, marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px' }}>
@@ -226,7 +234,7 @@ export default function ExerciseRow({
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {exLabel(exercise)}
             </p>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 600, marginTop: '2px' }}>
@@ -237,9 +245,9 @@ export default function ExerciseRow({
           <button
             onClick={() => onToggleFinish?.(workoutExercise.id, false)}
             style={{
-              flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-dim)',
-              border: '1px solid var(--c-border-subtle)', borderRadius: '8px', padding: '8px 10px',
+              flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+              letterSpacing: '-0.01em', color: 'var(--c-text-dim)',
+              border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-xs)', padding: '8px 10px',
               transition: 'color 150ms, border-color 150ms',
             }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
@@ -261,9 +269,9 @@ export default function ExerciseRow({
           style={{
             position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)',
             zIndex: 10, background: 'var(--c-record)', color: 'var(--c-record-ink)',
-            fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em',
+            fontSize: '10px', fontWeight: 900, letterSpacing: '-0.01em',
             padding: '4px 12px', borderRadius: '999px', whiteSpace: 'nowrap',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.16)', cursor: 'pointer',
+            boxShadow: 'var(--e-2)', cursor: 'pointer',
           }}
           onClick={() => setShowPRBanner(false)}
         >
@@ -271,55 +279,92 @@ export default function ExerciseRow({
         </div>
       )}
 
-      <div style={{ ...cardStyle(isNewPR), marginBottom: '10px', overflow: 'hidden' }}>
+      <div style={{ ...cardStyle(isNewPR), marginBottom: deck ? 0 : '10px', overflow: 'hidden' }}>
         {/* Exercise header */}
-        <div style={{ display: 'flex', alignItems: 'center', padding: '12px 14px', gap: '10px' }}>
-          <button
-            onClick={toggleExpand}
-            aria-label={t('Mostrar series')}
-            aria-expanded={expanded}
-            {...pressable(0.985)}
-            style={{
-              flex: 1, display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left', minWidth: 0,
-              transformOrigin: 'left center', transition: PRESS_TRANSITION,
-            }}
-          >
-            <span style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {exLabel(exercise)}
-            </span>
+        <div style={{
+          display: 'flex', alignItems: deck ? 'flex-start' : 'center',
+          padding: deck ? '20px 18px 14px' : '12px 14px', gap: '10px',
+        }}>
+          {/* En lista, la cabecera entera es el control que pliega la fila. En
+              baraja no hay nada que plegar, así que deja de ser un botón: es
+              un titular, y el nombre puede crecer y ocupar su línea. */}
+          {(() => {
+            const Meta = (
+              <>
+                {sets.length > 0 ? (
+                  <span style={{
+                    flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: deck ? '12px' : '10px', fontWeight: 700,
+                    letterSpacing: '-0.01em', color: allDone ? 'var(--c-success)' : 'var(--c-text-dim)',
+                  }}>
+                    {doneCount}/{sets.length}
+                  </span>
+                ) : (
+                  <span style={{ flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: deck ? '12px' : '10px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-ghost)' }}>
+                    {t('nuevo')}
+                  </span>
+                )}
 
-            {sets.length > 0 ? (
+                {/* Routine target — the prescribed sets × reps, shown as a guide */}
+                {(targetSets || targetReps) && (
+                  <span
+                    title="Objetivo de tu rutina"
+                    style={{
+                      flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700,
+                      letterSpacing: '-0.01em', color: 'var(--c-text-dim)',
+                      border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-xs)', padding: '2px 6px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {targetSets ? `${targetSets}×` : ''}{targetReps || ''}
+                  </span>
+                )}
+
+                {isNewPR && <PRBadge small />}
+              </>
+            )
+
+            const Name = (
+              /* Iba en 13px con nowrap + ellipsis, así que "Dumbbell Bench
+                 Press" se leía "Dumbbell Bench Pr…": justo la etiqueta que hay
+                 que reconocer de un vistazo entre serie y serie era la única
+                 que se cortaba. Ahora envuelve y, en baraja, crece. */
               <span style={{
-                flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-                letterSpacing: '0.04em', color: allDone ? 'var(--c-success)' : 'var(--c-text-dim)',
+                color: 'var(--c-text)',
+                fontSize: deck ? '23px' : '15px', fontWeight: deck ? 900 : 800,
+                letterSpacing: deck ? '-0.035em' : '-0.02em',
+                lineHeight: deck ? 1.1 : 1.2, minWidth: 0,
+                display: '-webkit-box', WebkitLineClamp: deck ? 3 : 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
               }}>
-                {doneCount}/{sets.length}
+                {exLabel(exercise)}
               </span>
-            ) : (
-              <span style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', color: 'var(--c-text-ghost)' }}>
-                {t('nuevo')}
-              </span>
-            )}
+            )
 
-            {/* Routine target — the prescribed sets × reps, shown as a guide */}
-            {(targetSets || targetReps) && (
-              <span
-                title="Objetivo de tu rutina"
+            if (deck) {
+              return (
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {Name}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>{Meta}</div>
+                </div>
+              )
+            }
+
+            return (
+              <button
+                onClick={toggleExpand}
+                aria-label={t('Mostrar series')}
+                aria-expanded={expanded}
+                {...pressable(0.985)}
                 style={{
-                  flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
-                  letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--c-text-dim)',
-                  border: '1px solid var(--c-border-subtle)', borderRadius: '6px', padding: '2px 5px',
-                  whiteSpace: 'nowrap',
+                  flex: 1, display: 'flex', alignItems: 'center', gap: '8px', textAlign: 'left', minWidth: 0,
+                  transformOrigin: 'left center', transition: PRESS_TRANSITION,
                 }}
               >
-                {targetSets ? `${targetSets}×` : ''}{targetReps || ''}
-              </span>
-            )}
-
-            {isNewPR && <PRBadge small />}
-
-            <span className={`chevron ${expanded ? 'open' : ''}`} style={{ marginLeft: 'auto', color: 'var(--c-text-ghost)', fontSize: '10px', flexShrink: 0 }}>▼</span>
-          </button>
+                {Name}
+                {Meta}
+                <span className={`chevron ${expanded ? 'open' : ''}`} style={{ marginLeft: 'auto', color: 'var(--c-text-ghost)', fontSize: '10px', flexShrink: 0 }}>▼</span>
+              </button>
+            )
+          })()}
 
           {/* Unit toggle — una unidad a la vez, un toque la cambia */}
           <UnitToggle
@@ -341,8 +386,8 @@ export default function ExerciseRow({
                 aria-expanded={showMenu}
                 style={{
                   color: showMenu ? 'var(--c-text)' : 'var(--c-text-ghost)', fontSize: '18px', lineHeight: 1,
-                  padding: '4px 6px', borderRadius: '6px', background: showMenu ? 'var(--c-surface-2)' : 'transparent',
-                  transition: 'color 120ms, background 120ms', letterSpacing: '0.05em',
+                  padding: '4px 6px', borderRadius: 'var(--r-xs)', background: showMenu ? 'var(--c-surface-2)' : 'transparent',
+                  transition: 'color 120ms, background 120ms', letterSpacing: '-0.01em',
                 }}
               >
                 ···
@@ -358,8 +403,8 @@ export default function ExerciseRow({
                   style={{
                     position: 'fixed', top: `${menuPos.top}px`, right: `${menuPos.right}px`, zIndex: 90,
                     transformOrigin: 'top right',
-                    background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: '10px',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.18)', minWidth: '184px', overflow: 'hidden',
+                    background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 'var(--r-sm)',
+                    boxShadow: 'var(--e-3)', minWidth: '184px', overflow: 'hidden',
                   }}
                 >
                   {previousSets.length > 0 && (
@@ -412,7 +457,7 @@ export default function ExerciseRow({
         </div>
 
         {/* Sets — animated expand/collapse */}
-        <div className={`exercise-sets-wrapper ${expanded ? '' : 'collapsed'}`}>
+        <div className={`exercise-sets-wrapper ${isOpen ? '' : 'collapsed'}`}>
           <div className="exercise-sets-inner">
             <div style={{ padding: '0 14px 6px' }}>
               {Array.from({ length: plannedCount }).map((_, i) => {
@@ -510,11 +555,15 @@ function MenuItem({ children, onClick, color = 'var(--c-text)' }) {
   )
 }
 
+// Cada ejercicio es una superficie propia apoyada en el hueso. El que acaba
+// de dar un récord sube un paso de elevación además de teñir el borde: la
+// señal se ve de reojo sin depender solo del color.
 const cardStyle = (accent) => ({
   background: 'var(--c-surface)',
   border: `1px solid ${accent ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
-  borderRadius: '16px',
-  transition: 'border-color 400ms var(--ease-out)',
+  borderRadius: 'var(--r-xl)',
+  boxShadow: accent ? 'var(--e-2)' : 'var(--e-1)',
+  transition: 'border-color 400ms var(--ease-out), box-shadow 400ms var(--ease-out)',
 })
 
 const ghostBtn = {
@@ -522,11 +571,10 @@ const ghostBtn = {
   padding: '11px',
   fontSize: '11px',
   fontWeight: 800,
-  textTransform: 'uppercase',
-  letterSpacing: '0.06em',
+  letterSpacing: '-0.01em',
   color: 'var(--c-text-dim)',
   border: '1px dashed var(--c-border-subtle)',
-  borderRadius: '10px',
+  borderRadius: 'var(--r-sm)',
   background: 'transparent',
   cursor: 'pointer',
   transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out), background 150ms var(--ease-out)',

@@ -84,8 +84,7 @@ function TabItem({ to, label, Icon, exact }) {
             <Icon />
           </div>
           <span style={{
-            fontSize: '10px', fontWeight: isActive ? 700 : 600,
-            textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1,
+            fontSize: '10px', fontWeight: isActive ? 700 : 600, letterSpacing: '-0.01em', lineHeight: 1,
             color: isActive ? 'var(--c-action-text)' : 'var(--c-text-ghost)',
             transition: 'color 200ms var(--ease-out)',
           }}>
@@ -106,17 +105,17 @@ function StartAction({ onClick, label }) {
         aria-label={label}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: '48px', height: '48px', borderRadius: '16px',
+          width: '48px', height: '48px', borderRadius: 'var(--r-lg)',
           background: 'var(--c-action)', color: 'var(--c-on-action)',
           border: 'none', cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+          boxShadow: 'var(--e-2)',
           transition: 'transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out)',
           flexShrink: 0,
           marginBottom: '4px',
         }}
-        onPointerDown={e => { e.currentTarget.style.transform = 'scale(0.92)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.14)' }}
-        onPointerUp={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.18)' }}
-        onPointerLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.18)' }}
+        onPointerDown={e => { e.currentTarget.style.transform = 'scale(0.92)'; e.currentTarget.style.boxShadow = 'var(--e-1)' }}
+        onPointerUp={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'var(--e-2)' }}
+        onPointerLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'var(--e-2)' }}
       >
         <PlusIcon />
       </button>

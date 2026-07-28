@@ -66,8 +66,8 @@ function AssignedBadge() {
   return (
     <span style={{
       background: 'var(--c-accent-dim)', color: 'var(--c-action-text)',
-      fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
-      padding: '2px 7px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
+      fontSize: '8px', fontWeight: 800, letterSpacing: '-0.01em',
+      padding: '2px 7px', borderRadius: 'var(--r-xl)', border: '1px solid var(--c-accent-border)',
     }}>
       {t('Entrenador')}
     </span>
@@ -76,9 +76,9 @@ function AssignedBadge() {
 
 // ── Card action buttons — >=44px touch height, text-sized width ────────────
 const cardPillStyle = (accent) => ({
-  minHeight: '44px', padding: '0 12px', borderRadius: '8px',
+  minHeight: '44px', padding: '0 12px', borderRadius: 'var(--r-xs)',
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
+  fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em',
   color: accent ? 'var(--c-action-text)' : 'var(--c-text-dim)',
   border: `1px solid ${accent ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
   background: 'transparent',
@@ -121,24 +121,24 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
       padding: '18px 16px',
       background: 'var(--c-surface)',
       border: '1px solid var(--c-accent-border)',
-      borderRadius: '16px',
+      borderRadius: 'var(--r-lg)',
       marginBottom: '8px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
+        <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.02em' }}>
           {routine.name}
         </p>
         <span style={{
           background: 'var(--c-accent-dim)', color: 'var(--c-action-text)',
-          fontSize: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em',
-          padding: '3px 8px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
+          fontSize: '8px', fontWeight: 800, letterSpacing: '-0.01em',
+          padding: '3px 8px', borderRadius: 'var(--r-xl)', border: '1px solid var(--c-accent-border)',
         }}>
           {t('Activo')}
         </span>
       </div>
 
       {/* Time active */}
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', marginBottom: '12px' }}>
+      <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '12px' }}>
         {activeLabel}
       </p>
 
@@ -149,7 +149,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
         <div style={{
           display: 'flex', gap: '8px', alignItems: 'flex-start',
           background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
-          borderRadius: '10px', padding: '10px 12px', marginBottom: '14px',
+          borderRadius: 'var(--r-sm)', padding: '10px 12px', marginBottom: '14px',
         }}>
           <span aria-hidden="true" style={{ color: 'var(--c-action-text)', fontSize: '12px', lineHeight: 1.4, flexShrink: 0 }}>↻</span>
           <p style={{ color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 600, lineHeight: 1.45 }}>
@@ -165,9 +165,9 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '7px 10px',
               background: 'var(--c-surface-2)',
-              borderRadius: '8px',
+              borderRadius: 'var(--r-xs)',
             }}>
-              <span style={{ color: 'var(--c-text)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
+              <span style={{ color: 'var(--c-text)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em' }}>
                 {day.day_name}
               </span>
               <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>
@@ -181,7 +181,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
       <div style={{ display: 'flex', gap: '8px' }}>
         <button
           onClick={onEdit}
-          style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '6px 12px', borderRadius: '8px', transition: 'background 150ms var(--ease-out)' }}
+          style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em', border: '1px solid var(--c-accent-border)', padding: '6px 12px', borderRadius: 'var(--r-xs)', transition: 'background 150ms var(--ease-out)' }}
           onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
@@ -189,7 +189,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
         </button>
         <button
           onClick={onShare}
-          style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-border-subtle)', padding: '6px 12px', borderRadius: '8px', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
+          style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', border: '1px solid var(--c-border-subtle)', padding: '6px 12px', borderRadius: 'var(--r-xs)', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
           onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
           onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
         >
@@ -197,7 +197,7 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
         </button>
         <button
           onClick={onDeactivate}
-          style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-border-subtle)', padding: '6px 12px', borderRadius: '8px', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
+          style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', border: '1px solid var(--c-border-subtle)', padding: '6px 12px', borderRadius: 'var(--r-xs)', transition: 'color 150ms var(--ease-out), border-color 150ms var(--ease-out)' }}
           onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
           onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
         >
@@ -215,12 +215,12 @@ function CycleCard({ routine, onActivate, onDelete, onEdit }) {
     <div style={{
       padding: '14px 16px',
       background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)',
-      borderRadius: '14px',
+      border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+      borderRadius: 'var(--r-md)',
       marginBottom: '6px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {routine.name}
         </p>
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, marginRight: '-6px' }}>
@@ -251,12 +251,12 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onE
     <div style={{
       padding: '14px 16px',
       background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)',
-      borderRadius: '14px',
+      border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+      borderRadius: 'var(--r-md)',
       marginBottom: '6px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {routine.name}
         </p>
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, marginRight: '-6px' }}>
@@ -270,9 +270,9 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onE
               aria-label={hasExercises ? `${t('Empezar')} ${routine.name}` : `${routine.name}: ${t('Sin ejercicios').toLowerCase()}`}
               title={!hasExercises ? t('Este entreno no tiene ejercicios todavía') : undefined}
               style={{
-                minHeight: '44px', padding: '0 12px', borderRadius: '8px',
+                minHeight: '44px', padding: '0 12px', borderRadius: 'var(--r-xs)',
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
+                fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em',
                 color: canStart ? 'var(--c-action-text)' : 'var(--c-text-ghost)',
                 border: `1px solid ${canStart ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
                 background: 'transparent',
@@ -314,7 +314,7 @@ function OptionRow({ label, description, onClick, filled = false }) {
         width: '100%', padding: '13px 14px', textAlign: 'left',
         background: filled ? 'var(--c-surface-2)' : 'var(--c-surface)',
         border: '1px solid var(--c-border-subtle)',
-        borderRadius: '12px',
+        borderRadius: 'var(--r-md)',
         transition: 'background 150ms var(--ease-out), border-color 150ms var(--ease-out)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
       }}
@@ -323,7 +323,7 @@ function OptionRow({ label, description, onClick, filled = false }) {
       {...pressProps(0.98)}
     >
       <div style={{ minWidth: 0 }}>
-        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', textTransform: 'uppercase' }}>
+        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>
           {label}
         </p>
         {description && (
@@ -343,9 +343,8 @@ function TypeSelectionModal({ onClose, onSelectCycle, onSelectSingleDay, onSelec
   const [tab, setTab] = useState('cycle')
 
   const tabStyle = (active) => ({
-    flex: 1, padding: '8px 0', fontSize: '11px', fontWeight: 800,
-    textTransform: 'uppercase', letterSpacing: '0.06em',
-    border: 'none', borderRadius: '8px', cursor: 'pointer',
+    flex: 1, padding: '8px 0', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em',
+    border: 'none', borderRadius: 'var(--r-xs)', cursor: 'pointer',
     transition: 'background 150ms var(--ease-out), color 150ms var(--ease-out)',
     background: active ? 'var(--c-accent)' : 'transparent',
     color: active ? 'var(--c-on-action)' : 'var(--c-text-ghost)',
@@ -356,7 +355,7 @@ function TypeSelectionModal({ onClose, onSelectCycle, onSelectSingleDay, onSelec
       {/* Segmented control */}
       <div style={{
         display: 'flex', gap: '4px', padding: '4px',
-        background: 'var(--c-surface-2)', borderRadius: '12px',
+        background: 'var(--c-surface-2)', borderRadius: 'var(--r-md)',
         marginBottom: '20px',
       }}>
         <button style={tabStyle(tab === 'cycle')}  onClick={() => setTab('cycle')}>{t('Ciclo')}</button>
@@ -489,18 +488,18 @@ function FromWorkoutModal({ onClose, onCreate, workouts }) {
                     onClick={() => handlePick(w)}
                     style={{
                       width: '100%', padding: '12px 14px', textAlign: 'left',
-                      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-                      borderRadius: '12px',
+                      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+                      borderRadius: 'var(--r-md)',
                       transition: 'background 150ms var(--ease-out), border-color 150ms var(--ease-out)',
                     }}
                     onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'var(--c-surface)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
                     {...pressProps(0.98)}
                   >
-                    <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '3px' }}>
+                    <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '3px' }}>
                       {w.name || 'Entreno'}
                     </p>
-                    <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+                    <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontFamily: 'var(--font-sans)' }}>
                       {fmtDate(w.started_at)} · {exs.length} ejercicios
                     </p>
                   </button>
@@ -517,7 +516,7 @@ function FromWorkoutModal({ onClose, onCreate, workouts }) {
 
           {/* Nombre */}
           <div style={{ marginBottom: '20px' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
+            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '6px' }}>
               {t('Nombre de la rutina')}
             </p>
             <input
@@ -532,17 +531,17 @@ function FromWorkoutModal({ onClose, onCreate, workouts }) {
 
           {/* Preview ejercicios */}
           <div style={{ marginBottom: '24px' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '8px' }}>
+            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '8px' }}>
               Ejercicios ({workoutExercises(selected).length})
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {workoutExercises(selected).map((ex, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '8px 12px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+                  padding: '8px 12px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-sm)',
                 }}>
                   <span style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 600 }}>{ex.name}</span>
-                  <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+                  <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontFamily: 'var(--font-sans)' }}>
                     {ex.sets} series
                   </span>
                 </div>
@@ -555,7 +554,7 @@ function FromWorkoutModal({ onClose, onCreate, workouts }) {
           </Button>
           <button
             onClick={() => setStep(0)}
-            style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', width: '100%', display: 'block', marginTop: '12px' }}
+            style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', textAlign: 'center', width: '100%', display: 'block', marginTop: '12px' }}
           >
             {t('Elegir otro entreno')}
           </button>
@@ -664,7 +663,7 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
                         width: '100%', padding: '12px 14px', textAlign: 'left',
                         background: isOn ? 'var(--c-accent-dim)' : 'var(--c-surface)',
                         border: `1px solid ${isOn ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
-                        borderRadius: '12px',
+                        borderRadius: 'var(--r-md)',
                         transition: 'background 150ms var(--ease-out), border-color 150ms var(--ease-out)',
                         display: 'flex', alignItems: 'center', gap: '12px',
                       }}
@@ -683,10 +682,10 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
                         {isOn ? orderIdx : ''}
                       </div>
                       <div style={{ minWidth: 0 }}>
-                        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '2px' }}>
+                        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>
                           {w.name || 'Entreno'}
                         </p>
-                        <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+                        <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontFamily: 'var(--font-sans)' }}>
                           {fmtDate(w.started_at)} · {exs.length} ejercicios
                         </p>
                       </div>
@@ -715,7 +714,7 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
 
           {/* Nombre del ciclo */}
           <div style={{ marginBottom: '20px' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
+            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '6px' }}>
               {t('Nombre del ciclo')}
             </p>
             <input
@@ -731,7 +730,7 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
 
           {/* Días editables */}
           <div style={{ marginBottom: '24px' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '8px' }}>
+            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '8px' }}>
               Días ({dayNames.length})
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -757,7 +756,7 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
                         style={{ width: '100%', fontSize: '12px' }}
                       />
                     </div>
-                    <span style={{ color: 'var(--c-text-ghost)', fontSize: '10px', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>
+                    <span style={{ color: 'var(--c-text-ghost)', fontSize: '10px', fontFamily: 'var(--font-sans)', flexShrink: 0 }}>
                       {exs.length}ej
                     </span>
                   </div>
@@ -771,7 +770,7 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
           </Button>
           <button
             onClick={() => setStep(0)}
-            style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', width: '100%', display: 'block', marginTop: '12px' }}
+            style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', textAlign: 'center', width: '100%', display: 'block', marginTop: '12px' }}
           >
             {t('Atrás')}
           </button>
@@ -822,7 +821,7 @@ function CreateCycleModal({ onClose, onCreate }) {
       {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
       <div style={{ marginBottom: '20px' }}>
-        <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
+        <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '6px' }}>
           {t('Nombre')}
         </p>
         <input
@@ -835,12 +834,12 @@ function CreateCycleModal({ onClose, onCreate }) {
 
       <div style={{ marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em' }}>
             Días ({days.length})
           </p>
           <button
             onClick={addDay}
-            style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+            style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em' }}
           >
             + Agregar día
           </button>
@@ -918,7 +917,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
       {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
       <div style={{ marginBottom: '16px' }}>
-        <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
+        <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '6px' }}>
           {t('Nombre')}
         </p>
         <input
@@ -930,7 +929,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
       </div>
 
       <div style={{ marginBottom: '24px' }}>
-        <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '6px' }}>
+        <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '6px' }}>
           {t('Enfoque (opcional)')}
         </p>
         <input
@@ -1045,14 +1044,14 @@ export default function Rutinas() {
           <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
             {t('Rutinas')}
           </h1>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
+          <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '6px' }}>
             {t('Ciclos y plantillas')}
           </p>
         </div>
 
         {/* CTA */}
         <div className="fade-in" style={{ marginBottom: '28px', animationDelay: '20ms' }}>
-          <Button variant="primary" full onClick={() => setModal('type')} style={{ textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <Button variant="primary" full onClick={() => setModal('type')} style={{ letterSpacing: '-0.01em' }}>
             + Nueva rutina
           </Button>
         </div>
@@ -1065,10 +1064,10 @@ export default function Rutinas() {
         {/* Loading skeleton — foreshadows section label + routine cards */}
         {loading && (
           <div aria-hidden="true">
-            <div className="skeleton" style={{ height: '9px', width: '96px', borderRadius: '6px', marginBottom: '12px' }} />
+            <div className="skeleton" style={{ height: '9px', width: '96px', borderRadius: 'var(--r-xs)', marginBottom: '12px' }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="skeleton" style={{ height: '68px', borderRadius: '14px', opacity: 1 - i * 0.18 }} />
+                <div key={i} className="skeleton" style={{ height: '68px', borderRadius: 'var(--r-md)', opacity: 1 - i * 0.18 }} />
               ))}
             </div>
           </div>
@@ -1078,7 +1077,7 @@ export default function Rutinas() {
           <>
             {activeCycle && (
               <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '40ms' }}>
-                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
+                <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '10px' }}>
                   {t('Ciclo activo')}
                 </p>
                 <ActiveCycleCard
@@ -1094,7 +1093,7 @@ export default function Rutinas() {
 
             {savedCycles.length > 0 && (
               <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '60ms' }}>
-                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
+                <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '10px' }}>
                   {t('Ciclos guardados')}
                 </p>
                 {savedCycles.map(r => (
@@ -1105,7 +1104,7 @@ export default function Rutinas() {
 
             {singleDayItems.length > 0 && (
               <section className="fade-in" style={{ marginBottom: '32px', animationDelay: '80ms' }}>
-                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
+                <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '10px' }}>
                   {t('Rutinas de un día')}
                 </p>
                 {singleDayItems.map(r => {
@@ -1128,9 +1127,9 @@ export default function Rutinas() {
               <div className="fade-in" style={{
                 textAlign: 'center', padding: '48px 20px',
                 background: 'var(--c-surface)', border: '2px dashed var(--c-border)',
-                borderRadius: '16px', animationDelay: '40ms',
+                borderRadius: 'var(--r-lg)', animationDelay: '40ms',
               }}>
-                <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em' }}>
                   {t('Sin rutinas guardadas')}
                 </p>
                 <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '8px' }}>

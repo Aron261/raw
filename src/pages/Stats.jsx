@@ -65,7 +65,7 @@ function ReorderList({ order, enabled, onToggle, onReorder }) {
               display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px',
               background: 'var(--c-surface-2)',
               border: `1px solid ${on ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
-              borderRadius: '12px',
+              borderRadius: 'var(--r-md)',
               boxShadow: dragging ? '0 6px 16px rgba(0,0,0,0.14)' : 'none',
               transform: dragging ? 'scale(1.02)' : 'none',
               transition: dragging ? 'none' : 'transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out)',
@@ -138,7 +138,7 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
             </button>
           )}
           {!embedded && (
-            <h1 style={{ flex: 1, fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
+            <h1 style={{ flex: 1, fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em' }}>
               {t('Estadísticas')}
             </h1>
           )}
@@ -148,8 +148,8 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
               onClick={() => setCustomizing(true)}
               style={{
                 flexShrink: 0,
-                fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
+                fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+                letterSpacing: '-0.01em',
                 color: 'var(--c-action-text)', padding: '4px 6px',
               }}
             >
@@ -165,8 +165,8 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
               <div key={i} className="animate-pulse" style={{
                 height: i === 0 ? '90px' : '210px',
                 background: 'var(--c-surface)',
-                border: '1px solid var(--c-border-subtle)',
-                borderRadius: '16px',
+                border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+                borderRadius: 'var(--r-lg)',
               }} />
             ))}
           </div>
@@ -174,11 +174,11 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
 
         {/* Error */}
         {!loading && error && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)', color: 'var(--c-action-text)', fontSize: '13px', padding: '12px 14px', borderRadius: '12px', marginTop: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)', color: 'var(--c-action-text)', fontSize: '13px', padding: '12px 14px', borderRadius: 'var(--r-md)', marginTop: '24px' }}>
             <span>{t('No pudimos cargar las estadísticas.')}</span>
             <button
               onClick={refetch}
-              style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-action-border)', borderRadius: '8px', padding: '6px 12px', background: 'transparent' }}
+              style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-action-border)', borderRadius: 'var(--r-xs)', padding: '6px 12px', background: 'transparent' }}
             >
               {t('Reintentar')}
             </button>
@@ -187,7 +187,7 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
 
         {/* Empty — no workouts at all */}
         {!loading && !error && data && data.totals.workouts === 0 && (
-          <div style={{ textAlign: 'center', padding: '48px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px', marginTop: '24px' }}>
+          <div style={{ textAlign: 'center', padding: '48px 24px', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-lg)', marginTop: '24px' }}>
             <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em', marginBottom: '8px' }}>
               {t('Aún no hay nada que medir')}
             </p>
@@ -203,13 +203,13 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
         {!loading && !error && data && data.totals.workouts > 0 && (
           <div style={{ marginTop: '24px', paddingBottom: '32px' }}>
             {visible.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px' }}>
+              <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-lg)' }}>
                 <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 600, lineHeight: 1.5, marginBottom: '12px' }}>
                   {t('No tienes ningún módulo activo. Elige cuáles quieres ver y aparecerán aquí.')}
                 </p>
                 <button
                   onClick={() => setCustomizing(true)}
-                  style={{ background: 'transparent', color: 'var(--c-action-text)', border: '1px solid var(--c-action-border)', borderRadius: '8px', padding: '8px 14px', fontSize: '11px', fontWeight: 700 }}
+                  style={{ background: 'transparent', color: 'var(--c-action-text)', border: '1px solid var(--c-action-border)', borderRadius: 'var(--r-xs)', padding: '8px 14px', fontSize: '11px', fontWeight: 700 }}
                 >
                   {t('Elegir qué ver')}
                 </button>

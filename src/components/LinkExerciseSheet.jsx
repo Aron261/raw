@@ -64,7 +64,7 @@ export default function LinkExerciseSheet({ exercise, onClose, onDone }) {
                   aria-pressed={active}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left',
-                    padding: '13px 12px', minHeight: '44px', borderRadius: '12px',
+                    padding: '13px 12px', minHeight: '44px', borderRadius: 'var(--r-md)',
                     marginBottom: '6px', cursor: 'pointer',
                     background: active ? 'var(--c-action-dim)' : 'var(--c-surface-2)',
                     border: `1px solid ${active ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
@@ -96,7 +96,7 @@ export default function LinkExerciseSheet({ exercise, onClose, onDone }) {
             <p style={{
               color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5, marginBottom: '12px',
               background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
-              borderRadius: '10px', padding: '10px 12px',
+              borderRadius: 'var(--r-sm)', padding: '10px 12px',
             }}>
               «{exercise.name}» pasará a llamarse «{picked.name}». Sus {exercise.sets}{' '}
               {exercise.sets === 1 ? 'serie' : 'series'} se conservan; si ya tienes ese ejercicio,

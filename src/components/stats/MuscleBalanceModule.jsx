@@ -34,8 +34,8 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
       />
       <div style={{
         background: 'var(--c-surface)',
-        border: '1px solid var(--c-border-subtle)',
-        borderRadius: '14px',
+        border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+        borderRadius: 'var(--r-md)',
         padding: '16px',
         display: 'flex', flexDirection: 'column', gap: '14px',
       }}>
@@ -47,7 +47,7 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
                 <span style={{ color: isOther ? 'var(--c-text-muted)' : 'var(--c-text)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {g.group}
                 </span>
-                <span style={{ flexShrink: 0, color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700 }}>
+                <span style={{ flexShrink: 0, color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700 }}>
                   {formatVolume(g.volume)} kg
                 </span>
               </div>
@@ -79,8 +79,8 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
         onClick={() => navigate('/ejercicios')}
         style={{
           marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '5px',
-          fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700,
-          textTransform: 'uppercase', letterSpacing: '0.06em',
+          fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700,
+          letterSpacing: '-0.01em',
         }}
       >
         {needsAttention.length > 0

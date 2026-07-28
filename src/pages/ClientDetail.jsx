@@ -15,28 +15,22 @@ import { useTheme } from '../hooks/useTheme'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button, UnitToggle } from '../components/ui'
 import { useLang } from '../hooks/useLang'
+import { useChartColors } from '../lib/chartColors'
 
-// Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
-const CHART = {
-  'slate-light': { bar: '#3E5C76', grid: '#DDE0E4', axis: '#565C64', cursor: 'rgba(62,92,118,0.10)' },
-  'slate-dark':  { bar: '#7FA0BE', grid: '#2F343B', axis: '#9AA0A8', cursor: 'rgba(127,160,190,0.16)' },
-  'riso-light':  { bar: '#2438FF', grid: '#D5D2C7', axis: '#67696c', cursor: 'rgba(36,56,255,0.08)' },
-  'riso-dark':   { bar: '#6E7BFF', grid: '#26271F', axis: '#A2A096', cursor: 'rgba(110,123,255,0.14)' },
-}
 
 const SECTION_LABEL = {
-  fontFamily: 'var(--font-mono)',
-  color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
-  textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px',
+  fontFamily: 'var(--font-sans)',
+  color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700,
+  letterSpacing: '-0.01em', marginBottom: '10px',
 }
 const CARD = {
-  background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-  borderRadius: '14px', padding: '16px',
+  background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+  borderRadius: 'var(--r-md)', padding: '16px',
 }
 const MINI_LABEL = {
-  fontFamily: 'var(--font-mono)',
-  color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
-  textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px',
+  fontFamily: 'var(--font-sans)',
+  color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700,
+  letterSpacing: '-0.01em', marginBottom: '6px',
 }
 
 // ── Mini stat ──────────────────────────────────────────────────────────────
@@ -45,7 +39,7 @@ function Stat({ label, value }) {
   return (
     <div style={{ ...CARD, flex: 1, textAlign: 'center', padding: '14px 8px' }}>
       <p style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em' }}>{value}</p>
-      <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{label}</p>
+      <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '2px' }}>{label}</p>
     </div>
   )
 }
@@ -77,17 +71,17 @@ function NutritionSection({ clientId, clientName, onOpenLog }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
         <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>{t('Nutrición')}</p>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => setShowPlan(true)} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <button onClick={() => setShowPlan(true)} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em' }}>
             {hasCustomTargets ? t('Editar plan') : `+ ${t('Plan')}`}
           </button>
-          <button onClick={onOpenLog} style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <button onClick={onOpenLog} style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em' }}>
             {t('Registro →')}
           </button>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ height: '80px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px' }} />
+        <div style={{ height: '80px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)' }} />
       ) : !hasCustomTargets ? (
         <div style={{ ...CARD, textAlign: 'center', padding: '20px 16px' }}>
           <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
@@ -102,7 +96,7 @@ function NutritionSection({ clientId, clientName, onOpenLog }) {
           {/* Plan asignado */}
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', marginBottom: '4px' }}>
             <p style={MINI_LABEL}>{t('Plan diario')}</p>
-            <p className="tnum" style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700 }}>
+            <p className="tnum" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700 }}>
               {fmt(targets.kcal, locale)} kcal · P {targets.protein_g} · C {targets.carbs_g} · G {targets.fat_g}
             </p>
           </div>
@@ -112,7 +106,7 @@ function NutritionSection({ clientId, clientName, onOpenLog }) {
             <span style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.03em', color: todayTotals.kcal > targets.kcal ? 'var(--c-action-text)' : 'var(--c-text)' }}>
               {fmt(todayTotals.kcal, locale)}
             </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '8px' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '8px' }}>
               / {fmt(targets.kcal, locale)} kcal hoy
             </span>
           </p>
@@ -123,7 +117,7 @@ function NutritionSection({ clientId, clientName, onOpenLog }) {
           </div>
 
           {/* Últimos 7 días */}
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--c-border-subtle)' }}>
+          <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--c-border-subtle)' }}>
             Últimos 7 días: {daysLogged === 0
               ? 'sin registros'
               : `${daysLogged} ${daysLogged === 1 ? 'día registrado' : 'días registrados'} · prom. ${fmt(avgKcal, locale)} kcal`}
@@ -287,7 +281,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
         maxHeight="88dvh"
       >
         {loadingMine ? (
-          <div className="skeleton" aria-hidden="true" style={{ height: '60px', borderRadius: '12px' }} />
+          <div className="skeleton" aria-hidden="true" style={{ height: '60px', borderRadius: 'var(--r-md)' }} />
         ) : myRoutines.length === 0 ? (
           <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', textAlign: 'center', padding: '28px 0' }}>
             {t('Todavía no tienes rutinas propias que copiar.')}
@@ -300,18 +294,18 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
                 onClick={() => loadFromMine(r)}
                 style={{
                   width: '100%', padding: '12px 14px', textAlign: 'left',
-                  background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-                  borderRadius: '12px',
+                  background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+                  borderRadius: 'var(--r-md)',
                   transition: 'background 150ms var(--ease-out), border-color 150ms var(--ease-out)',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'var(--c-surface)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
                 {...pressProps(0.98)}
               >
-                <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '3px' }}>
+                <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '3px' }}>
                   {r.name}
                 </p>
-                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-muted)', fontSize: '10px' }}>
+                <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-muted)', fontSize: '10px' }}>
                   {routineSummary(r)}
                 </p>
               </button>
@@ -321,7 +315,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
 
         <button
           onClick={() => setPicking(false)}
-          style={{ width: '100%', minHeight: '44px', marginTop: '12px', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
+          style={{ width: '100%', minHeight: '44px', marginTop: '12px', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em' }}
         >
           {t('Volver al constructor')}
         </button>
@@ -340,11 +334,11 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
           width: '100%', minHeight: '44px', padding: '10px 14px', marginBottom: '16px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
           background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
-          borderRadius: '12px', textAlign: 'left',
+          borderRadius: 'var(--r-md)', textAlign: 'left',
         }}
         {...pressProps(0.99)}
       >
-        <span style={{ color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        <span style={{ color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em' }}>
           {t(copiedFrom ? 'Elegir otra de mis rutinas' : 'Usar una de mis rutinas')}
         </span>
         <span aria-hidden="true" style={{ color: 'var(--c-action-text)', fontSize: '13px', flexShrink: 0 }}>→</span>
@@ -364,7 +358,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
             key={opt.v}
             onClick={() => switchType(opt.v)}
             style={{
-              flex: 1, padding: '10px', borderRadius: '10px', fontSize: '11px', fontWeight: 700,
+              flex: 1, padding: '10px', borderRadius: 'var(--r-sm)', fontSize: '11px', fontWeight: 700,
               border: `1px solid ${type === opt.v ? 'var(--c-accent)' : 'var(--c-border)'}`,
               background: type === opt.v ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
               color: type === opt.v ? 'var(--c-action-text)' : 'var(--c-text-dim)',
@@ -420,7 +414,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
 
           {/* ejercicios */}
           {day.exercises.map((ex, ei) => (
-            <div key={ei} style={{ background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: '10px', padding: '10px', marginBottom: '8px' }}>
+            <div key={ei} style={{ background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)', padding: '10px', marginBottom: '8px' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                 <input
                   className="input-field"
@@ -466,7 +460,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
 
           <button
             onClick={() => addExercise(di)}
-            style={{ color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '2px' }}
+            style={{ color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '2px' }}
           >
             + Agregar ejercicio
           </button>
@@ -544,7 +538,7 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
             key={opt.v}
             onClick={() => setType(opt.v)}
             style={{
-              flex: 1, padding: '10px', borderRadius: '10px', fontSize: '11px', fontWeight: 700,
+              flex: 1, padding: '10px', borderRadius: 'var(--r-sm)', fontSize: '11px', fontWeight: 700,
               border: `1px solid ${type === opt.v ? 'var(--c-accent)' : 'var(--c-border)'}`,
               background: type === opt.v ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
               color: type === opt.v ? 'var(--c-action-text)' : 'var(--c-text-dim)',
@@ -575,7 +569,7 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
             <UnitToggle value={unit} units={['kg', 'lb']} onChange={setUnit} />
           )}
           {type === 'days_trained' && (
-            <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: '10px', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700 }}>
+            <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: 'var(--r-sm)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700 }}>
               {t('días')}
             </div>
           )}
@@ -599,8 +593,7 @@ export default function ClientDetail() {
   const { routines, loading: routLoading, createRoutine, deleteRoutine, setActiveRoutine } = useRoutines(clientId)
   const { goals, loading: goalsLoading, createGoal, deleteGoal } = useGoals(clientId)
   const { data: dash } = useDashboard(clientId)
-  const { resolved, palette } = useTheme()
-  const cc = CHART[`${palette}-${resolved}`] || CHART['slate-light']
+  const cc = useChartColors()
 
   const [modal, setModal] = useState(null) // 'mine' | 'cycle' | 'single' | 'goal'
   const [actionError, setActionError] = useState(null)
@@ -621,7 +614,7 @@ export default function ClientDetail() {
         {/* Back */}
         <button
           onClick={() => navigate('/coach')}
-          style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', paddingTop: '32px', display: 'flex', alignItems: 'center', gap: '4px' }}
+          style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', paddingTop: '32px', display: 'flex', alignItems: 'center', gap: '4px' }}
         >
           ← Clientes
         </button>
@@ -648,9 +641,8 @@ export default function ClientDetail() {
             style={{
               flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px',
               background: 'var(--c-accent-dim)', color: 'var(--c-action-text)',
-              border: '1px solid var(--c-accent-border)', borderRadius: '10px',
-              padding: '8px 12px', fontSize: '11px', fontWeight: 800,
-              textTransform: 'uppercase', letterSpacing: '0.04em',
+              border: '1px solid var(--c-accent-border)', borderRadius: 'var(--r-sm)',
+              padding: '8px 12px', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em',
             }}
             {...pressProps(0.97)}
           >
@@ -686,7 +678,7 @@ export default function ClientDetail() {
             <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>{t('Progreso')}</p>
             <button
               onClick={() => navigate(`/coach/cliente/${clientId}/stats`)}
-              style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+              style={{ flexShrink: 0, fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em' }}
             >
               {t('Estadísticas →')}
             </button>
@@ -743,14 +735,14 @@ export default function ClientDetail() {
             <div style={{ display: 'flex', gap: '10px' }}>
               {/* La vía corta a lo que el entrenador ya tiene escrito; las otras
                   dos siguen abriendo el constructor en blanco. */}
-              <button onClick={() => setModal('mine')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ De mis rutinas</button>
-              <button onClick={() => setModal('cycle')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Ciclo</button>
-              <button onClick={() => setModal('single')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Día</button>
+              <button onClick={() => setModal('mine')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em' }}>+ De mis rutinas</button>
+              <button onClick={() => setModal('cycle')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em' }}>+ Ciclo</button>
+              <button onClick={() => setModal('single')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em' }}>+ Día</button>
             </div>
           </div>
 
           {routLoading ? (
-            <div style={{ height: '60px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px' }} />
+            <div style={{ height: '60px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)' }} />
           ) : routines.length === 0 ? (
             <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '12px 0' }}>{t('Sin rutinas. Copia una de las tuyas o crea un ciclo desde cero.')}</p>
           ) : (
@@ -767,7 +759,7 @@ export default function ClientDetail() {
                             {r.type === 'cycle' ? 'Ciclo' : 'Día'} · {(r.routine_days || []).length} {(r.routine_days || []).length === 1 ? 'día' : 'días'} · {exCount} ejercicios
                           </span>
                           {r.is_active && (
-                            <span style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>· Activo</span>
+                            <span style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, letterSpacing: '-0.01em' }}>· Activo</span>
                           )}
                           {r.assigned_by && (
                             <span style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700 }}>· Asignada por ti</span>
@@ -776,7 +768,7 @@ export default function ClientDetail() {
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
                         {r.type === 'cycle' && !r.is_active && (
-                          <button onClick={() => run(() => setActiveRoutine(r.id))} style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '4px 9px', borderRadius: '8px' }}>
+                          <button onClick={() => run(() => setActiveRoutine(r.id))} style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, letterSpacing: '-0.01em', border: '1px solid var(--c-accent-border)', padding: '4px 9px', borderRadius: 'var(--r-xs)' }}>
                             {t('Activar')}
                           </button>
                         )}
@@ -798,11 +790,11 @@ export default function ClientDetail() {
         <section className="fade-in" style={{ marginBottom: '40px', animationDelay: '80ms' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>{t('Metas')}</p>
-            <button onClick={() => setModal('goal')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>+ Meta</button>
+            <button onClick={() => setModal('goal')} style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em' }}>+ Meta</button>
           </div>
 
           {goalsLoading ? (
-            <div style={{ height: '50px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px' }} />
+            <div style={{ height: '50px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)' }} />
           ) : goals.length === 0 ? (
             <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '12px 0' }}>{t('Sin metas asignadas.')}</p>
           ) : (

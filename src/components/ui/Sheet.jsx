@@ -156,9 +156,12 @@ export default function Sheet({ title, subtitle, onClose, children, maxHeight = 
         style={{
           position: 'relative', zIndex: 1, y, opacity,
           background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderBottom: 'none',
-          borderRadius: '20px 20px 0 0', width: '100%', maxWidth: '480px',
+          // La hoja es lo que más se despega: e-3 es el paso reservado a lo
+          // que se levanta del todo por encima del contenido.
+          boxShadow: 'var(--e-3)',
+          borderRadius: 'var(--r-2xl) var(--r-2xl) 0 0', width: '100%', maxWidth: '480px',
           maxHeight, overflowY: 'auto', outline: 'none',
-          padding: '20px', paddingBottom: 'max(28px, env(safe-area-inset-bottom))',
+          padding: '22px', paddingBottom: 'max(30px, env(safe-area-inset-bottom))',
         }}
       >
         {/* Grab handle — the drag starts here so scrollable content still scrolls. */}

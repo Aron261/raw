@@ -40,7 +40,7 @@ export default function ResetPassword() {
     <div className="fade-in" style={{ minHeight: '100dvh', background: 'var(--c-bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
       <div style={{ textAlign: 'center', marginBottom: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
         <Logo size={72} />
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: '32px', letterSpacing: '0.03em', color: 'var(--c-text)', lineHeight: 1 }}>RAW</span>
+        <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '32px', letterSpacing: '-0.04em', color: 'var(--c-text)', lineHeight: 1 }}>RAW</span>
       </div>
       <div style={{ width: '100%', maxWidth: '340px' }}>{children}</div>
     </div>
@@ -49,7 +49,7 @@ export default function ResetPassword() {
   // Aún procesando el token del enlace
   if (loading) {
     return shell(
-      <p className="animate-pulse" style={{ textAlign: 'center', color: 'var(--c-text-muted)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+      <p className="animate-pulse" style={{ textAlign: 'center', color: 'var(--c-text-muted)', fontSize: '12px', letterSpacing: '-0.01em' }}>
         {t('Verificando enlace…')}
       </p>
     )

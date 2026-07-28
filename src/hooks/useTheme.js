@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 
 const THEME_KEY = 'raw-theme'     // 'auto' | 'light' | 'dark'
-const PALETTE_KEY = 'raw-palette' // 'slate' | 'riso'
 const MQ = '(prefers-color-scheme: dark)'
 
 function getStoredTheme() {
@@ -10,15 +9,6 @@ function getStoredTheme() {
     return v === 'light' || v === 'dark' || v === 'auto' ? v : 'auto'
   } catch {
     return 'auto'
-  }
-}
-
-function getStoredPalette() {
-  try {
-    const v = localStorage.getItem(PALETTE_KEY)
-    return v === 'riso' ? 'riso' : 'slate' // default: slate (sober)
-  } catch {
-    return 'slate'
   }
 }
 
@@ -31,27 +21,22 @@ function applyTheme(resolved) {
   document.documentElement.setAttribute('data-theme', resolved)
 }
 
-function applyPalette(palette) {
-  document.documentElement.setAttribute('data-palette', palette)
-}
-
 // Keep the iOS status-bar tint in sync with the current bg.
 function syncMeta() {
-  const el = document.documentElement
-  const dark = el.getAttribute('data-theme') === 'dark'
-  const riso = el.getAttribute('data-palette') === 'riso'
-  const bg = riso ? (dark ? '#0E0F0C' : '#EAE7DE') : (dark ? '#15171B' : '#F3F4F6')
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark'
   const m = document.getElementById('theme-color-meta')
-  if (m) m.setAttribute('content', bg)
+  if (m) m.setAttribute('content', dark ? '#121316' : '#E7E7E4')
 }
 
-// Theme = mode (auto/light/dark) + palette (slate/riso). The inline boot script
-// in index.html sets the initial attributes; this hook keeps them in sync with
-// the user's choice and live OS changes when mode is on 'auto'.
+// El modo (auto/claro/oscuro) y nada más. Antes esto llevaba también una
+// segunda dimensión —la paleta slate/riso—, pero el rediseño dejó una sola
+// paleta: mantener dos multiplicaba por dos la superficie que hay que
+// verificar a cambio de una elección que nadie tomaba dos veces.
+// El script de arranque de index.html fija el atributo inicial; este hook lo
+// mantiene en sintonía con la elección y con los cambios en vivo del sistema.
 export function useTheme() {
   const [preference, setPreference] = useState(getStoredTheme)
   const [resolved, setResolved] = useState(() => resolve(getStoredTheme()))
-  const [palette, setPaletteState] = useState(getStoredPalette)
 
   useEffect(() => {
     const r = resolve(preference)
@@ -67,18 +52,10 @@ export function useTheme() {
     return () => mq.removeEventListener('change', onChange)
   }, [preference])
 
-  useEffect(() => {
-    applyPalette(palette)
-    syncMeta()
-    try { localStorage.setItem(PALETTE_KEY, palette) } catch { /* ignore */ }
-  }, [palette])
-
   // Cycle mode auto → light → dark → auto
   const cycle = useCallback(() => {
     setPreference(p => (p === 'auto' ? 'light' : p === 'light' ? 'dark' : 'auto'))
   }, [])
 
-  const setPalette = useCallback((p) => setPaletteState(p === 'riso' ? 'riso' : 'slate'), [])
-
-  return { preference, resolved, setPreference, cycle, palette, setPalette }
+  return { preference, resolved, setPreference, cycle }
 }

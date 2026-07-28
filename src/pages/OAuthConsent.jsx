@@ -50,9 +50,8 @@ function Section({ title, items, tone }) {
   return (
     <div style={{ marginBottom: '18px' }}>
       <p style={{
-        fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
-        letterSpacing: '0.16em', textTransform: 'uppercase',
-        color: 'var(--c-text-dim)', marginBottom: '8px',
+        fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700,
+        letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginBottom: '8px',
       }}>
         {title}
       </p>
@@ -195,12 +194,11 @@ export default function OAuthConsent() {
       {redirectUri && (
         <div style={{
           background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
-          borderRadius: '10px', padding: '10px 12px', marginBottom: '18px',
+          borderRadius: 'var(--r-sm)', padding: '10px 12px', marginBottom: '18px',
         }}>
           <p style={{
-            fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
-            letterSpacing: '0.14em', textTransform: 'uppercase',
-            color: 'var(--c-text-dim)', marginBottom: '4px',
+            fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700,
+            letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginBottom: '4px',
           }}>
             {t('Te devolverá a')}
           </p>
@@ -250,12 +248,12 @@ function Shell({ children }) {
       <div className="fade-in" style={{ width: '100%', maxWidth: '380px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
           <Logo size={64} />
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '34px', letterSpacing: '0.02em', color: 'var(--c-text)', lineHeight: 1 }}>RAW</span>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+          <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '34px', letterSpacing: '-0.04em', color: 'var(--c-text)', lineHeight: 1 }}>RAW</span>
+          <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', }}>
             {t('Autorización')}
           </p>
         </div>
-        <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+        <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-lg)', padding: '24px', boxShadow: 'var(--e-1)' }}>
           {children}
         </div>
       </div>
@@ -267,7 +265,7 @@ function Splash() {
   const { t } = useLang()
   return (
     <div className="min-h-dvh" style={{ background: 'var(--c-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ color: 'var(--c-text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.2em' }} className="animate-pulse">
+      <span style={{ color: 'var(--c-text-muted)', fontSize: '11px', letterSpacing: '-0.01em' }} className="animate-pulse">
         RAW
       </span>
     </div>

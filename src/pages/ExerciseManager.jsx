@@ -9,7 +9,7 @@ import { MUSCLE_GROUPS, LEGACY_GROUPS } from '../lib/muscleGroups'
 import { useLang } from '../hooks/useLang'
 
 const UNCLASSIFIED = 'Sin clasificar'
-const eyebrow = { fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }
+const eyebrow = { fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em' }
 
 // A single exercise row — tap to expand a chip selector and reassign its group.
 function ExerciseRow({ ex, expanded, onToggle, onPick, busy }) {
@@ -28,7 +28,7 @@ function ExerciseRow({ ex, expanded, onToggle, onPick, busy }) {
         </span>
         <span style={{
           flexShrink: 0, fontSize: '10px', fontWeight: 700, padding: '3px 9px', borderRadius: '999px',
-          fontFamily: 'var(--font-mono)', letterSpacing: '0.02em',
+          fontFamily: 'var(--font-sans)', letterSpacing: '-0.01em',
           background: attention ? 'var(--c-action-dim)' : 'var(--c-surface-2)',
           color: attention ? 'var(--c-action-text)' : 'var(--c-text-dim)',
           border: `1px solid ${attention ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
@@ -81,7 +81,7 @@ function UnlinkedSection({ items, onPick }) {
     <div style={{ marginBottom: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
         <p style={{ ...eyebrow, color: 'var(--c-action-text)' }}>{t('Sin vincular')}</p>
-        <span style={{ color: 'var(--c-text-ghost)', fontFamily: 'var(--font-mono)', fontSize: '10px' }}>{items.length}</span>
+        <span style={{ color: 'var(--c-text-ghost)', fontFamily: 'var(--font-sans)', fontSize: '10px' }}>{items.length}</span>
       </div>
       <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.4, marginBottom: '8px' }}>
         No coinciden con ningún ejercicio de la librería, así que tienen su propio historial.
@@ -100,7 +100,7 @@ function UnlinkedSection({ items, onPick }) {
           <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {ex.name}
           </span>
-          <span style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-dim)', fontVariantNumeric: 'tabular-nums' }}>
+          <span style={{ flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-dim)', fontVariantNumeric: 'tabular-nums' }}>
             {ex.sets} {ex.sets === 1 ? 'serie' : 'series'}
           </span>
           <span aria-hidden="true" style={{ flexShrink: 0, color: 'var(--c-text-ghost)', fontSize: '12px' }}>›</span>
@@ -143,7 +143,7 @@ export default function ExerciseManager() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '40px', paddingBottom: '4px' }}>
           <button onClick={() => navigate(-1)} style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }} aria-label="Volver">←</button>
-          <h1 style={{ flex: 1, fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>
+          <h1 style={{ flex: 1, fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em' }}>
             {t('Mis ejercicios')}
           </h1>
         </div>
@@ -159,7 +159,7 @@ export default function ExerciseManager() {
         )}
 
         {!loading && exercises.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '48px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px' }}>
+          <div style={{ textAlign: 'center', padding: '48px 24px', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-lg)' }}>
             <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em' }}>
               {t('Todavía no hay ejercicios')}
             </p>
@@ -177,7 +177,7 @@ export default function ExerciseManager() {
             <div key={section} style={{ marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                 <p style={{ ...eyebrow, color: isAttention ? 'var(--c-action-text)' : 'var(--c-text-dim)' }}>{section}</p>
-                <span style={{ color: 'var(--c-text-ghost)', fontFamily: 'var(--font-mono)', fontSize: '10px' }}>{buckets[section].length}</span>
+                <span style={{ color: 'var(--c-text-ghost)', fontFamily: 'var(--font-sans)', fontSize: '10px' }}>{buckets[section].length}</span>
               </div>
               {isAttention && (
                 <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.4, marginBottom: '6px' }}>

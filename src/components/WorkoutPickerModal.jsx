@@ -12,7 +12,7 @@ function OptionRow({ title, subtitle, onClick, arrowColor = 'var(--c-text-dim)',
         width: '100%', padding: '14px 16px', marginBottom: '6px',
         background: filled ? 'var(--c-surface-2)' : 'transparent',
         border: `1px solid ${filled ? 'var(--c-border)' : 'var(--c-border-subtle)'}`,
-        borderRadius: '12px',
+        borderRadius: 'var(--r-md)',
         transition: 'background 150ms var(--ease-out), border-color 150ms var(--ease-out)',
       }}
       onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-surface-2)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
@@ -20,7 +20,7 @@ function OptionRow({ title, subtitle, onClick, arrowColor = 'var(--c-text-dim)',
       {...pressProps(0.98)}
     >
       <div style={{ textAlign: 'left', minWidth: 0 }}>
-        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {title}
         </p>
         <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', marginTop: '2px' }}>
@@ -113,7 +113,7 @@ export default function WorkoutPickerModal({
               />
             ) : (
               <div key={routine.id} style={{ marginBottom: '4px' }}>
-                <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', margin: '4px 2px 6px' }}>
+                <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em', margin: '4px 2px 6px' }}>
                   {routine.name}
                 </p>
                 {days.map(day => (

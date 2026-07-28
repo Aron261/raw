@@ -146,7 +146,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
 
         <div style={{ maxHeight: '240px', overflowY: 'auto', marginBottom: '8px' }}>
           {searching && (
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '8px 0' }}>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', padding: '8px 0' }}>
               {t('Buscando...')}
             </p>
           )}
@@ -162,9 +162,8 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                 color: 'var(--c-text)',
                 fontSize: '13px',
                 fontWeight: 700,
-                textTransform: 'uppercase',
                 letterSpacing: '-0.01em',
-                borderRadius: '6px',
+                borderRadius: 'var(--r-xs)',
                 transition: `background 120ms var(--ease-out)`,
                 display: 'block',
               }}
@@ -187,9 +186,8 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                 color: 'var(--c-action-text)',
                 fontSize: '12px',
                 fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                borderRadius: '6px',
+                letterSpacing: '-0.01em',
+                borderRadius: 'var(--r-xs)',
                 border: '1px dashed var(--c-border)',
                 marginTop: '8px',
                 transition: `background 120ms var(--ease-out), border-color 120ms var(--ease-out)`,
@@ -206,7 +204,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
           {/* Frequents — one-tap, shown before any typing */}
           {!query.trim() && frequents.length > 0 && (
             <>
-              <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', padding: '4px 0 8px' }}>
+              <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', padding: '4px 0 8px' }}>
                 {t('Frecuentes')}
               </p>
               {frequents.map(name => {
@@ -220,8 +218,8 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                       width: '100%', textAlign: 'left', padding: '11px 10px',
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
                       color: isAdded ? 'var(--c-text-muted)' : 'var(--c-text)',
-                      fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em',
-                      borderRadius: '6px', transition: 'background 120ms var(--ease-out)',
+                      fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em',
+                      borderRadius: 'var(--r-xs)', transition: 'background 120ms var(--ease-out)',
                     }}
                     {...pressable(0.97, {
                       onMouseEnter: e => { if (!isAdded) e.currentTarget.style.background = 'var(--c-surface-2)' },
@@ -250,7 +248,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
           <div style={{
             background: 'var(--c-surface-2)',
             border: '1px solid var(--c-border-subtle)',
-            borderRadius: '6px',
+            borderRadius: 'var(--r-xs)',
             padding: '10px 12px',
             marginBottom: '8px',
           }}>
@@ -259,7 +257,6 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                 color: 'var(--c-success)',
                 fontSize: '11px',
                 fontWeight: 700,
-                textTransform: 'uppercase',
                 lineHeight: 1.6,
               }}>
                 ✓ {name}

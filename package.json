@@ -10,7 +10,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@fontsource/anton": "^5.2.7",
     "@fontsource/archivo": "^5.2.8",
     "@fontsource/space-mono": "^5.2.9",
     "@supabase/supabase-js": "^2.39.0",

@@ -15,6 +15,12 @@ export const SPRING_ENTER = { type: 'spring', bounce: 0.18, duration: 0.42 }
 export const SPRING_SETTLE = { type: 'spring', bounce: 0.12, duration: 0.4 }
 export const SPRING_DISMISS = { type: 'spring', bounce: 0, duration: 0.3 }
 
+// Cambio de carta en la baraja de ejercicios. Corto y sin rebote: la carta
+// que sale y la que entra van en secuencia (si no, dos alturas distintas
+// pelean por el mismo hueco), así que cada tramo tiene que ser breve o el
+// gesto se siente pastoso.
+export const SPRING_DECK = { type: 'spring', bounce: 0, duration: 0.22 }
+
 // One-shot celebratory pop (the ✓ confirming a set) — overshoots then lands.
 export const EASE_POP_KEYFRAMES = [0.34, 1.56, 0.64, 1]
 export const POP_DURATION = 0.34

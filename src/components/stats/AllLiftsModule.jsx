@@ -64,12 +64,12 @@ export default function AllLiftsModule({ data, readOnly = false }) {
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: '14px',
             padding: '14px 16px', marginBottom: '10px', textAlign: 'left',
-            background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px',
+            background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-md)',
             cursor: readOnly ? 'default' : 'pointer',
           }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: 'block', fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>
+            <span style={{ display: 'block', fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '4px' }}>
               ▲ Más fuerte
             </span>
             <span style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
@@ -118,8 +118,8 @@ export default function AllLiftsModule({ data, readOnly = false }) {
           onClick={() => setExpanded(v => !v)}
           style={{
             marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '5px',
-            fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700,
-            textTransform: 'uppercase', letterSpacing: '0.06em',
+            fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700,
+            letterSpacing: '-0.01em',
           }}
         >
           {expanded ? 'Ver menos' : `Ver todos (${filtered.length})`}

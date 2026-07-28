@@ -32,7 +32,7 @@ function OptionRow({ title, sub, onClick }) {
           </span>
         )}
       </span>
-      <span aria-hidden="true" style={{ color: 'var(--c-text-ghost)', fontSize: '16px', flexShrink: 0, fontFamily: 'var(--font-mono)' }}>→</span>
+      <span aria-hidden="true" style={{ color: 'var(--c-text-ghost)', fontSize: '16px', flexShrink: 0, fontFamily: 'var(--font-sans)' }}>→</span>
     </button>
   )
 }

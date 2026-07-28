@@ -6,7 +6,7 @@ export default function MacroBar({ label, current, target, unit = 'g' }) {
   const over = target > 0 && current > target
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
-      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-dim)', marginBottom: '5px' }}>
+      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginBottom: '5px' }}>
         {label}
       </p>
       <p className="tnum" style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', color: over ? 'var(--c-action-text)' : 'var(--c-text)', marginBottom: '6px' }}>

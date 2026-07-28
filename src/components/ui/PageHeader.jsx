@@ -22,7 +22,7 @@ export default function PageHeader({ title, sub, right, backTo = '/' }) {
         {title}
       </h1>
       {sub && (
-        <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '8px' }}>
+        <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '8px' }}>
           {sub}
         </p>
       )}

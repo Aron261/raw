@@ -29,8 +29,8 @@ function SetDelta({ cmp, unit, t, locale }) {
       <span
         aria-hidden="true"
         style={{
-          fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 700,
-          letterSpacing: '0.01em',
+          fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: 700,
+          letterSpacing: '-0.01em',
           color: beat ? 'var(--c-data)' : 'var(--c-text-muted)',
           whiteSpace: 'nowrap',
         }}
@@ -313,7 +313,7 @@ export default function SetRow({
           flexShrink: 0,
           width: '44px', height: '44px',
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          borderRadius: '10px',
+          borderRadius: 'var(--r-sm)',
           background: done && !saveError ? 'var(--c-success)' : 'transparent',
           border: `1.5px solid ${
             saveError ? 'var(--c-action)'
@@ -403,7 +403,7 @@ function StepButton({ dir, ariaLabel, onHoldStart, onStep, onHoldEnd }) {
         flex: 1, width: '30px',
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
-        borderRadius: '6px', color: 'var(--c-text-dim)',
+        borderRadius: 'var(--r-xs)', color: 'var(--c-text-dim)',
         fontSize: '15px', fontWeight: 700, lineHeight: 1, touchAction: 'none', cursor: 'pointer',
         WebkitUserSelect: 'none', userSelect: 'none',
       }}
@@ -425,7 +425,7 @@ const rowStyle = (done) => ({
 
 const numStyle = {
   color: 'var(--c-text-dim)',
-  fontFamily: 'var(--font-mono)',
+  fontFamily: 'var(--font-sans)',
   fontSize: '12px',
   fontWeight: 700,
   width: '18px',
@@ -464,15 +464,15 @@ const errorBorder = { borderColor: 'var(--c-action)' }
 const errorCaptionStyle = {
   display: 'flex', alignItems: 'center', gap: '8px',
   padding: '2px 0 8px 26px',
-  fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-  textTransform: 'uppercase', letterSpacing: '0.06em',
+  fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+  letterSpacing: '-0.01em',
   color: 'var(--c-action-text)',
 }
 
 const retryLinkStyle = {
   color: 'var(--c-action-text)',
-  fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
-  textTransform: 'uppercase', letterSpacing: '0.06em',
+  fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+  letterSpacing: '-0.01em',
   textDecoration: 'underline', textUnderlineOffset: '2px',
   padding: '4px 2px',
 }

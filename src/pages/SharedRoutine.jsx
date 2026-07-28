@@ -17,8 +17,8 @@ import { useLang } from '../hooks/useLang'
 // eso sí— exige cuenta, porque la copia se escribe en la suya.
 
 const eyebrow = {
-  fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px',
-  fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em',
+  fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px',
+  fontWeight: 700, letterSpacing: '-0.01em',
 }
 
 function Shell({ children }) {
@@ -36,7 +36,7 @@ function Splash() {
   const { t } = useLang()
   return (
     <div className="min-h-dvh" style={{ background: 'var(--c-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span className="animate-pulse" style={{ color: 'var(--c-text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+      <span className="animate-pulse" style={{ color: 'var(--c-text-muted)', fontSize: '11px', letterSpacing: '-0.01em' }}>
         RAW
       </span>
     </div>
@@ -48,7 +48,7 @@ function Brand() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '32px', paddingBottom: '24px' }}>
       <Logo size={22} />
-      <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', letterSpacing: '0.02em', color: 'var(--c-text)', lineHeight: 1 }}>
+      <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '18px', letterSpacing: '-0.04em', color: 'var(--c-text)', lineHeight: 1 }}>
         RAW
       </span>
     </div>
@@ -62,11 +62,11 @@ function DayCard({ day, index }) {
   const exercises = day.exercises || []
   return (
     <div style={{
-      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-      borderRadius: '16px', padding: '16px', marginBottom: '10px',
+      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+      borderRadius: 'var(--r-lg)', padding: '16px', marginBottom: '10px',
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', marginBottom: exercises.length ? '10px' : 0 }}>
-        <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em', minWidth: 0 }}>
+        <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', minWidth: 0 }}>
           {day.day_name || `Día ${index + 1}`}
         </p>
         {day.focus && (
@@ -86,7 +86,7 @@ function DayCard({ day, index }) {
               {ex.exercise_name}
             </span>
             {(ex.sets || ex.reps) && (
-              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, flexShrink: 0 }}>
+              <span style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, flexShrink: 0 }}>
                 {ex.sets ?? '—'} × {ex.reps ?? '—'}
               </span>
             )}
@@ -199,7 +199,7 @@ export default function SharedRoutine() {
         {shared.description && (
           <p style={{
             color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.6, whiteSpace: 'pre-line',
-            padding: '12px 14px', background: 'var(--c-surface)', borderRadius: '12px', marginBottom: '20px',
+            padding: '12px 14px', background: 'var(--c-surface)', borderRadius: 'var(--r-md)', marginBottom: '20px',
           }}>
             {shared.description}
           </p>

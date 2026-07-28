@@ -30,15 +30,25 @@ export default {
       },
       fontFamily: {
         sans: ['Archivo', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        display: ['Anton', 'Archivo', 'system-ui', 'sans-serif'],
         mono: ['Space Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       letterSpacing: {
         tight:  '-0.025em',
         tighter: '-0.05em',
       },
+      // Misma fuente de verdad que los tokens de index.css.
       borderRadius: {
-        sm: '10px',
+        xs: 'var(--r-xs)',
+        sm: 'var(--r-sm)',
+        md: 'var(--r-md)',
+        lg: 'var(--r-lg)',
+        xl: 'var(--r-xl)',
+        '2xl': 'var(--r-2xl)',
+      },
+      boxShadow: {
+        e1: 'var(--e-1)',
+        e2: 'var(--e-2)',
+        e3: 'var(--e-3)',
       },
     },
   },

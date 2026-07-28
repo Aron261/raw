@@ -9,10 +9,9 @@ export default function PRBadge({ small = false }) {
         color: 'var(--c-record-ink)',
         fontSize: small ? '8px' : '9px',
         fontWeight: 900,
-        letterSpacing: '0.12em',
-        textTransform: 'uppercase',
+        letterSpacing: '-0.01em',
         padding: small ? '1px 4px' : '2px 5px',
-        borderRadius: '2px',
+        borderRadius: '4px',
         lineHeight: 1.2,
         flexShrink: 0,
       }}

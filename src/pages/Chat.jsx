@@ -96,7 +96,7 @@ export default function Chat() {
             <div key={m.id}>
               {showDay && (
                 <div style={{ textAlign: 'center', margin: '12px 0 8px' }}>
-                  <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'var(--c-surface-2)', padding: '3px 10px', borderRadius: '20px' }}>
+                  <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', background: 'var(--c-surface-2)', padding: '3px 10px', borderRadius: 'var(--r-xl)' }}>
                     {dayLabel(m.created_at, t, locale)}
                   </span>
                 </div>
@@ -143,7 +143,7 @@ export default function Chat() {
           disabled={sending || !text.trim()}
           style={{
             flexShrink: 0, background: 'var(--c-accent)', color: 'var(--c-on-action)',
-            border: 'none', borderRadius: '12px', padding: '10px 16px',
+            border: 'none', borderRadius: 'var(--r-md)', padding: '10px 16px',
             fontSize: '13px', fontWeight: 800, opacity: sending || !text.trim() ? 0.5 : 1,
           }}
           {...pressProps(0.96)}

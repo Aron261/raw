@@ -28,8 +28,8 @@ export default function Social() {
           title="Social"
           right={
             <span style={{
-              fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.1em',
+              fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700,
+              letterSpacing: '-0.01em',
               background: 'var(--c-accent-dim)', color: 'var(--c-action-text)',
               border: '1px solid var(--c-accent-border)',
               padding: '5px 10px', borderRadius: '999px',

@@ -1,41 +1,30 @@
 ---
 name: Raw
-description: A mobile-first PWA for logging strength training. Two selectable palettes — Slate (sober steel, default) and Riso (vibrant pink/blue/lime) — each in light + dark. The number is the hero.
+description: PWA mobile-first para registrar entrenamiento de fuerza. Una paleta —hueso y azul apagado— en dos modos reales. La jerarquía la lleva la elevación, no el color.
 colors:
-  slate-accent: "#3E5C76"
-  slate-accent-dark: "#7FA0BE"
-  slate-bg: "#F3F4F6"
-  slate-surface: "#FFFFFF"
-  slate-ink: "#1A1D21"
-  slate-muted: "#5E646D"
-  riso-action: "#FF2E7E"
-  action-text: "#C8185A"
-  on-action: "#15140F"
-  action-dim: "rgba(255,46,126,0.10)"
-  action-border: "rgba(255,46,126,0.30)"
-  data: "#2438FF"
-  record: "#C0EE2E"
-  record-ink: "#15140F"
-  success: "oklch(48% 0.16 150)"
-  bg: "#EAE7DE"
-  surface: "#F4F2EB"
-  surface-2: "#DFDCD2"
-  surface-3: "#D5D2C7"
-  ink: "#15140F"
-  ink-secondary: "#3A3833"
-  ink-dim: "#5A584F"
-  ink-muted: "#646359"
-  ink-ghost: "#9A988E"
-  border: "rgba(21,20,15,0.22)"
-  border-subtle: "rgba(21,20,15,0.12)"
-  scrim: "rgba(21,20,15,0.55)"
+  bg: "#E7E7E4"
+  surface: "#FDFDFC"
+  surface-2: "#EFEFEC"
+  surface-3: "#E2E2DE"
+  text: "#16181B"
+  text-secondary: "#3C4148"
+  text-dim: "#565C64"
+  text-muted: "#5C626A"
+  text-ghost: "#9BA0A6"
+  action: "#2C56A6"
+  action-text: "#274C93"
+  on-action: "#FFFFFF"
+  action-dim: "rgba(44,86,166,0.09)"
+  action-border: "rgba(44,86,166,0.26)"
+  success: "oklch(46% 0.10 150)"
+  border: "rgba(22,24,27,0.14)"
+  border-subtle: "rgba(22,24,27,0.07)"
+  scrim: "rgba(22,24,27,0.42)"
+  bg-dark: "#121316"
+  surface-dark: "#1C1E22"
+  text-dark: "#EDEEF0"
+  action-dark: "#7FA0EA"
 typography:
-  display:
-    fontFamily: "Anton, Archivo, system-ui, sans-serif"
-    fontSize: "30px"
-    fontWeight: 400
-    lineHeight: 0.95
-    letterSpacing: "0.01em"
   greeting:
     fontFamily: "Archivo, system-ui, sans-serif"
     fontSize: "30px"
@@ -44,217 +33,201 @@ typography:
     letterSpacing: "-0.03em"
   metric:
     fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "46px"
+    fontSize: "56px"
     fontWeight: 900
-    lineHeight: 0.9
-    letterSpacing: "-0.05em"
+    lineHeight: 0.82
+    letterSpacing: "-0.045em"
   title:
     fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "18px"
+    fontSize: "15px"
     fontWeight: 800
-    lineHeight: 1.15
+    lineHeight: 1.2
     letterSpacing: "-0.02em"
   body:
     fontFamily: "Archivo, system-ui, sans-serif"
     fontSize: "13px"
     fontWeight: 500
-    lineHeight: 1.45
+    lineHeight: 1.5
+    letterSpacing: "-0.015em"
+  label:
+    fontFamily: "Archivo, system-ui, sans-serif"
+    fontSize: "11.5px"
+    fontWeight: 700
+    lineHeight: 1.3
     letterSpacing: "-0.01em"
   data:
     fontFamily: "Space Mono, ui-monospace, monospace"
-    fontSize: "11px"
+    fontSize: "17px"
     fontWeight: 700
     lineHeight: 1
-    letterSpacing: "0.08em"
+elevation:
+  e-1: "0 1px 1px rgba(22,24,27,.045), 0 2px 4px rgba(22,24,27,.035)"
+  e-2: "0 1px 2px rgba(22,24,27,.05), 0 8px 22px rgba(22,24,27,.07)"
+  e-3: "0 2px 6px rgba(22,24,27,.07), 0 18px 44px rgba(22,24,27,.13)"
 rounded:
-  badge: "2px"
-  xs: "6px"
-  sm: "8px"
-  base: "10px"
-  md: "12px"
-  lg: "14px"
-  card: "16px"
-  sheet: "20px"
-  xl: "24px"
+  xs: "8px"
+  sm: "12px"
+  md: "16px"
+  lg: "20px"
+  xl: "26px"
+  2xl: "32px"
   pill: "999px"
-spacing:
-  xs: "4px"
-  sm: "8px"
-  md: "12px"
-  lg: "16px"
-  xl: "20px"
 components:
+  material:
+    backgroundColor: "{colors.surface}"
+    rounded: "{rounded.xl}"
+    shadow: "{elevation.e-1}"
+    padding: "18px"
   button-primary:
     backgroundColor: "{colors.action}"
     textColor: "{colors.on-action}"
     rounded: "{rounded.lg}"
-    padding: "16px"
-  button-secondary:
-    backgroundColor: "{colors.surface-2}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.lg}"
-    padding: "16px"
+    padding: "18px"
+    shadow: "{elevation.e-1}"
   input-field:
     backgroundColor: "{colors.surface-2}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.base}"
-    padding: "8px 12px"
-  card:
+    rounded: "{rounded.md}"
+    padding: "12px 14px"
+    shadow: "inset 0 1px 2px rgba(22,24,27,.05)"
+  sheet:
     backgroundColor: "{colors.surface}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.card}"
-    padding: "16px"
-  today-card:
-    backgroundColor: "{colors.action}"
-    textColor: "{colors.on-action}"
-    rounded: "{rounded.lg}"
-    padding: "16px"
-  pr-badge:
-    backgroundColor: "{colors.record}"
-    textColor: "{colors.record-ink}"
-    rounded: "{rounded.xs}"
-    padding: "2px 6px"
+    rounded: "{rounded.2xl} {rounded.2xl} 0 0"
+    shadow: "{elevation.e-3}"
+    padding: "22px"
 ---
 
-# Design System: Raw
+# Sistema de diseño: Raw
 
-## 1. Overview
+## 1. Idea
 
-**Creative North Star: "Ink & Voltage"**
+**Norte creativo: "Cuerpo".**
 
-Raw reads like a risograph print run wired to a stadium scoreboard. The foundation is print: a stark paper-or-ink field, heavyweight type set tight, hairline structure, and flat blocks of one or two spot colors slammed down with conviction — the look of a screen-printed training poster, not a SaaS dashboard. Onto that print foundation Raw runs voltage: a fluorescent pink that means *act*, an electric blue that means *data*, and an acid lime reserved for the one thing worth celebrating — a record. The result is loud where it counts and silent everywhere else, an instrument that still has attitude.
+Raw se toca antes que se lee. El sistema anterior separaba las superficies con
+un filete de 1px y prohibía la sombra ("etched, never floated"); este hace lo
+contrario y lo hace a propósito: **la jerarquía la lleva la elevación**. Una
+tarjeta se apoya sobre el hueso, sube al pasar el puntero, cede al pulsarla y
+vuelve. Un campo de texto no flota: se hunde. La hoja de descanso se despega
+del todo y se puede empujar con el pulgar.
 
-The system ships in **two true modes, not one theme inverted**. Light is "paper" — a warm-grey print stock under gym fluorescents. Dark is "ink" — a near-black panel where the same fluoros glow like a readout. They share one layout, one type system, and one set of role colors; only the spine flips. A boot script resolves the user's `auto/light/dark` choice before first paint, so there is no flash and no wrong-mode greeting.
+Eso libera al color de tener que llevar la jerarquía, y por eso el color puede
+callarse. Hay **un solo azul apagado** y no tiene más trabajo que decir "aquí
+se actúa". No hay tres voces de marca ni dos paletas: la anterior tenía Slate y
+Riso en paralelo, que era el doble de superficie que verificar a cambio de una
+elección que se toma una vez.
 
-This explicitly rejects Raw's three anti-references. It is **not a generic SaaS dashboard** — no gradient hero tiles, no pastel charts, no soft cards-everywhere sameness; the surfaces are flat print blocks with hairline edges. It is **not a bloated consumer fitness app** — no confetti, no streak spam; a PR is stated in lime and that is the entire celebration. And it is **not corporate-clinical** — the Anton/Archivo weight and the fluoro palette are unmistakably athletic and human.
+**Rasgos:**
+- **Elevación antes que color.** Tres pasos (`--e-1..--e-3`) y ninguno más.
+- **Un acento, un trabajo.** Azul = actuar. Si aparece en un dato que nadie va
+  a tocar, deja de significar nada donde importa.
+- **Una familia de texto.** Archivo lo lleva todo, de la microcopia 500 al
+  número héroe 900. Anton se retiró.
+- **Dos modos reales.** Claro es hueso; oscuro es grafito templado — no la
+  inversión del claro.
+- **El pulgar primero.** Acciones en la zona baja, objetivos ≥44px.
 
-**Key Characteristics:**
-- **Numbers are the content.** Hero figures run 30–64px at weight 900 with tight negative tracking; everything else recedes.
-- **Role-based color, rationed hard.** Pink = act, blue = data, lime = record. Three voices, each with one job.
-- **Two real modes.** Paper (light) and ink (dark), auto-resolved, both AA-verified.
-- **A committed type voice.** Anton display + Archivo 900 numerals + Space Mono data labels — self-hosted, no system-font fallback look.
-- **Flat print structure.** Hairline borders and flat blocks, never drop-shadowed cards.
-- **Thumb-first.** Primary actions in the bottom reach zone; a glass bottom-nav spine.
+## 2. Color
 
-## 2. Colors
+Una paleta, dos modos, resueltos por el script de arranque de `index.html`
+antes del primer pintado (`data-theme` en `<html>`).
 
-**Two palettes, chosen in Profile (`data-palette` on `<html>`), each in light + dark:**
+**Claro — hueso.** Fondo `#E7E7E4`, superficie `#FDFDFC`. El fondo no es blanco
+a propósito: la tarjeta necesita algo contra lo que ser blanca.
 
-- **Slate — the default (sober).** A restrained, near-monochrome system: graphite neutrals + **one** muted steel accent (`#3E5C76` light / `#7FA0BE` dark). The three roles collapse onto that single accent (action = data = record = steel); hierarchy comes from weight and size, not hue. Success stays a muted green. This is the calm, "honest instrument" face.
-- **Riso — opt-in (vibrant).** The full-palette "Ink & Voltage" system documented below: pink (act) / blue (data) / lime (record) on a warm paper/ink spine.
+**Oscuro — grafito templado.** Fondo `#121316`, superficie `#1C1E22`. Las
+superficies **suben** en vez de bajar, porque en oscuro la sombra casi no
+trabaja y el escalón de fondo es lo que separa.
 
-Both are driven by the **same role tokens** (`--c-action`, `--c-data`, `--c-record`, `--c-success`), so components never hardcode a hue — switching palette just remaps the tokens. The Riso palette below is the reference for role *meaning*; Slate applies the same roles in one quiet voice.
+**Acento** `#2C56A6` (claro) / `#7FA0EA` (oscuro). Los roles `--c-action`,
+`--c-data` y `--c-record` apuntan todos a él. Ningún componente escribe un hex:
+si algún día el récord quiere voz propia, es cambiar `--c-record` y ya.
 
-A committed, role-based palette (a full-palette strategy, not restrained) sitting on a warm-grey/near-black neutral spine. Every color carries a fixed meaning across every screen. Values below are the Riso **light (paper)** canon; each has a **dark (ink)** counterpart that brightens for legibility on black.
+**Success** es lo único que no es el acento: un verde apagado para
+*hecho / completo* (el anillo del descanso, un objetivo al 100%). No decora.
 
-### Primary
-- **Action Pink** (light `#FF2E7E` / dark `#FF3D86`): The brand voice and every primary action — CTAs, the "today" card, active nav, send/invite. On light it is a **fill only** (pink-as-text fails on paper — use Action-Text `#C8185A` for the rare pink label). Text on a pink fill is always ink (`on-action`), never white.
-- **Action-Text** (light `#C8185A` / dark `#FF3D86`): The darkened pink used only when pink must be text or an icon on the paper background (4.55:1).
+### Reglas con nombre
 
-### Secondary
-- **Data Blue** (light `#2438FF` / dark `#6E7BFF`): Informational — volume figures, chart bars and lines, structural emphasis. The "data" voice, distinct from "act."
+**Regla del acento caro.** El azul solo aparece donde se puede actuar, o en la
+cifra que se acaba de ganar. Una fecha, una etiqueta o un borde decorativo en
+azul devalúan el botón de abajo.
 
-### Tertiary
-- **Record Lime** (light `#C0EE2E` / dark `#C6FB50`): Reserved exclusively for PRs and records — the rare "earned win" color. Always a fill with ink text (`record-ink`). If lime appears anywhere that isn't a record, it's a bug.
+**Regla del suelo de legibilidad.** Ningún texto que haya que leer baja de
+`--c-text-muted`. `--c-text-ghost` es decoración.
 
-### Semantic
-- **Success Green** (light `oklch(48% 0.16 150)` / dark `oklch(72% 0.17 150)`): A functional state color, *not* a brand voice — used only for "done / complete / saved": the set-done timer ring, finished checkmarks, a goal at 100%, and save confirmations. AA in both modes. It never decorates and never competes with the three voices; it just confirms a state.
+## 3. Tipografía
 
-### Neutral
-- **Ink** (light `#15140F` / dark `#EFEDE4`): Primary text and hero numbers.
-- **Ink Secondary** (`#3A3833` / `#C9C7BC`): In-card secondary values.
-- **Ink Dim** (`#5A584F` / `#A2A096`): Sub-lines, mono eyebrows.
-- **Ink Muted** (`#646359` / `#86857A`): Captions — the lightest text permitted (AA: ≥4.9:1 light, ≥5.2:1 dark).
-- **Ink Ghost** (`#9A988E` / `#5C5B53`): Decoration only — separators, inactive states. Never must-read text.
-- **Paper / Ink field** (bg `#EAE7DE` / `#0E0F0C`), **Surface** (`#F4F2EB` / `#161712`), **Surface-2/3** for insets, inputs, tracks.
-- **Border / Border-subtle**: hairline structure as translucent ink (light) or paper (dark).
+**Archivo** para todo (500 → 900) y **Space Mono** solo para **tiempo, código y
+lo que se copia**: el cronómetro, el enlace de una rutina compartida, el token
+de OAuth y el detalle de un error.
 
-### Named Rules
-**The Three Voices Rule.** Brand color speaks exactly three words — pink *act*, blue *data*, lime *record*. A color used outside its role is removed; their discipline is what makes them read. (Success-green is the one exception, and a deliberate one: a functional state color for *done/complete*, never a brand voice.)
+Esa restricción es la corrección de un problema real: había 142 etiquetas en
+mono con mayúsculas forzadas y tracking abierto. Cuando toda etiqueta es un
+instrumento, ninguna señala nada — y el tracking se comía el ancho.
 
-**The Ink-on-Pink Rule.** Text on an Action-Pink fill is always ink (`on-action`), never white — white on this pink fails AA (3.7:1), ink clears it (5.2:1).
+### Escala
+- **Saludo / título de página** — 900, 30–34px, `-0.03em`.
+- **Métrica** — 900, 26–56px, `-0.045em`, tabular.
+- **Título de tarjeta** — 800, 15px, `-0.02em`.
+- **Cuerpo** — 500, 12–13px.
+- **Etiqueta** — 700, 11.5px, caja de frase. **No versalitas.**
 
-**The Legibility Floor Rule.** Must-read text never renders lighter than Ink-Muted (≥4.9:1 in either mode). Ink-Ghost is decoration only.
+### Reglas con nombre
 
-## 3. Typography
+**Regla del número héroe.** La cifra que manda en una pantalla es la más
+grande, la más pesada y la más oscura. Se encoge el resto, nunca el número.
 
-**Display Font:** Anton (with Archivo fallback) — a condensed grotesk for the brand shout.
-**Body / Numeral Font:** Archivo (system-ui fallback) — carries everything from 500 captions to 900 hero numbers.
-**Data Font:** Space Mono — timestamps, eyebrows, set/rep readouts, anything that should read like an instrument.
+**Regla de la caja de frase.** Las etiquetas se escriben como se leen. Si una
+cadena necesita ir en mayúsculas, va en mayúsculas en el origen — nunca por
+CSS, porque entonces el diccionario guarda `'racha'` y en inglés sale
+`'streak'` en minúscula el día que alguien quita el `text-transform`.
 
-**Character:** A print-shop pairing. Anton's compression gives headlines poster-weight; Archivo's wide 900 makes numbers monumental; Space Mono's fixed rhythm makes data feel measured. All self-hosted (subset woff2) so the gym load is fast and the personality never falls back to system sans.
+## 4. Elevación
 
-### Hierarchy
-- **Display** (Anton, 30–52px, UPPERCASE, line-height ~0.95): The brand shout — "today" card titles, poster moments.
-- **Greeting / Page title** (Archivo 900, 30px, `-0.03em`): The top-of-screen address; sentence case for readability.
-- **Metric** (Archivo 900, 30–64px, `-0.05em`, often tabular): Hero numbers — volume, counts, records. Loudest element on any screen.
-- **Title** (Archivo 800, 18px, `-0.02em`): Card subjects.
-- **Body** (Archivo 500, 12–13px): Sentences and microcopy. Cap prose at 65–75ch.
-- **Data label** (Space Mono 700, 9–11px, `0.08em`, UPPERCASE): Eyebrows, dates, stat labels — the only place uppercase + tracking lives.
+Tres pasos, cada uno con dos capas —un contacto corto y pegado, y una difusa y
+ancha—, porque una sombra de una sola capa se lee a plástico.
 
-### Named Rules
-**The Number-As-Hero Rule.** The single most important figure on a screen is the largest, heaviest, darkest element. Shrink competing chrome, never the number.
+- **`--e-1`** reposo: una tarjeta apoyada en el hueso.
+- **`--e-2`** lo que reclama atención o lo que está bajo el dedo: el récord de
+  la semana, el ejercicio con PR, el botón primario al levantarse.
+- **`--e-3`** lo que se despega del todo: hojas, menús, el temporizador, los
+  toasts.
 
-**The Mono-Eyebrow Rule.** Small uppercase labels are Space Mono, not Archivo. The instrument speaks its metadata in monospace.
+### Reglas con nombre
 
-## 4. Elevation
+**Regla de los tres pasos.** Si algo necesita un cuarto nivel, el problema es
+la composición, no la sombra.
 
-Flat by structure, depth by hairline — print, not paper-float. Surfaces separate via a 1px translucent border plus a one-step background lift, never a drop shadow. The only shadows are functional: the rest-timer pill and chart tooltip lift slightly so they read above content; the bottom-nav and modal sheets use backdrop-blur glass. There is no ambient card-shadow vocabulary.
+**Regla de la contrapartida.** Lo que se toca sube; lo que recibe texto se
+hunde (`inset` en `.input-field`). Si todo flota, nada flota.
 
-### Shadow Vocabulary
-- **Floating-control lift** (`0 4px 24px rgba(0,0,0,0.16)`): transient overlays only (rest timer).
-- **Tooltip lift** (`0 4px 12px rgba(0,0,0,0.06)`): chart tooltips.
-- **Glass scrim** (`backdrop-filter: blur(10–20px)`): fixed nav + modal backdrops.
+## 5. Componentes
 
-### Named Rules
-**The Etched-Not-Floated Rule.** Cards earn separation from a 1px border + a surface lift, never `box-shadow`. Reaching for a card shadow means the system broke.
+- **`.material`** es la primitiva: superficie + borde sutil + `--e-1` + radio
+  `xl`. `.material-raised` sube a `--e-2`; `.material-tappable` añade el
+  levantarse con puntero y el ceder al pulsar. El componente `<Card>` la
+  envuelve y añade `accent` (el bloque teñido de la tarjeta de hoy).
+- **`<Button>`** — `sm`/`md`/`lg` (52px de alto en `lg`). El primario lleva
+  `--e-1` y resorte de pulsación a 0.975; los demás son planos.
+- **`<Sheet>`** — arrastre vertical con `dragControls` desde el asa, cierre por
+  velocidad o por recorrido, `SPRING_SETTLE` al abandonar. `--e-3` y radio
+  `2xl` arriba.
+- **Gráficas (recharts)** — los colores viven en `src/lib/chartColors.js`
+  (`useChartColors()`), en hex literal por modo, porque `var()` no resuelve
+  dentro de un atributo SVG. Un solo tono por serie: la barra que manda va a
+  plena intensidad y el resto baja la opacidad.
 
-## 5. Components
+## 6. Movimiento
 
-### Buttons
-- **Shape:** 14px radius (`rounded.lg`) for full-width CTAs; 10px for compact buttons.
-- **Primary (action):** Action-Pink fill, ink text (`on-action`), weight 700–900. Press feedback `scale(0.97)` over 160ms `ease-out`. Disabled 40% opacity.
-- **Secondary:** Surface-2 fill, ink text, 1px border.
-- **Resume / in-progress:** inverted — surface fill, pink text, 2px pink border.
-- **Ghost:** transparent, muted text, for low-stakes inline actions.
+El vocabulario vive en `src/lib/motion.js` y ningún componente declara un
+resorte suelto. Todo lo animado tiene salida por `prefers-reduced-motion`.
 
-### Inputs / Fields
-- **Style:** Surface-2 fill, 1px border, 10px radius, `8px 12px`. Number inputs strip spinners, centered, tabular.
-- **Focus:** a 2px Action-Pink `:focus-visible` outline (app-wide, keyboard only) plus the field's own soft ring.
+## 7. Qué no hacer
 
-### Cards / Containers
-- **Corner Style:** 14–16px content cards; 20px modal sheets.
-- **Background:** Surface on the bg field; 1px `border-subtle` at rest.
-- **Today card:** an Action-Pink fill block with ink text and an inverted (ink-fill / pink-text) CTA inside — the one drenched-color surface, earned because it's the day's single most important action.
-- **Hover (pointer only):** border darkens one step. Never relied on for touch.
-
-### Chips / Badges
-- **PR / record:** Record-Lime fill, ink text, small uppercase — states the win and stops.
-- **Coach / live tag:** Action-dim fill, action text, pill radius; live adds a pulsing dot.
-
-### Charts (recharts)
-- Volume/data series render in **Data Blue**; grid + axes use neutral hairlines. Colors are supplied as **literal hex per theme** from a JS map (CSS variables don't resolve inside SVG attributes), so charts flip correctly between paper and ink.
-
-### Navigation
-- **Bottom nav:** fixed, glass blur, 1px top border, safe-area padded, 480px-centered. Active tab turns Action-Pink; inactive is Ink-Ghost. Stroke icons at `strokeWidth 2.2`.
-
-## 6. Do's and Don'ts
-
-### Do:
-- **Do** keep the most important number the largest, heaviest, darkest element (Number-As-Hero).
-- **Do** speak color in exactly three voices — pink *act*, blue *data*, lime *record* (Three Voices).
-- **Do** use ink text on every pink fill (Ink-on-Pink); reach for Action-Text only when pink must be a label on paper.
-- **Do** keep readable text at Ink-Muted or darker; Ink-Ghost is decoration only.
-- **Do** supply chart colors as literal hex per theme — CSS vars don't resolve in recharts SVG attributes.
-- **Do** separate surfaces with a 1px border + lift, not a shadow (Etched-Not-Floated).
-- **Do** keep tap targets ≥44px and primary actions in the thumb zone; pair every record/live signal with a label or icon, never color alone.
-- **Do** ship a `prefers-reduced-motion` fallback for every animation; honor the user's theme choice.
-
-### Don't:
-- **Don't** build a generic SaaS dashboard — no gradient hero tiles, pastel charts, or soft cards-everywhere sameness.
-- **Don't** add consumer-fitness dopamine theatre — no confetti, streak spam, or badges. A PR is stated in lime, not celebrated.
-- **Don't** drift corporate-clinical — keep the Anton/Archivo weight and the fluoro palette.
-- **Don't** put white text on the Action-Pink fill (fails AA) or render must-read text in Ink-Ghost.
-- **Don't** use lime for anything but a record, or spend pink/blue/lime on decoration.
-- **Don't** invert one theme to fake the other — light is paper, dark is ink, each tuned on its own.
-- **Don't** add a drop shadow to a card, a side-stripe accent border, or a web font beyond the three documented faces.
+- **No** meter un segundo color de marca. Si algo necesita distinguirse, se
+  distingue por elevación, peso o tamaño.
+- **No** poner versalitas por CSS.
+- **No** usar Space Mono para prosa ni para etiquetas.
+- **No** añadir un cuarto nivel de sombra ni una sombra literal en un `style`:
+  se usa `--e-1..3`.
+- **No** truncar el nombre de un ejercicio. Es la etiqueta que hay que
+  reconocer entre serie y serie; envuelve a dos líneas.
+- **No** invertir un modo para fabricar el otro.

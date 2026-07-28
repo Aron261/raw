@@ -80,7 +80,7 @@ export default function Auth() {
         <span className="font-display" style={{ fontSize: '26px', lineHeight: 1 }}>RAW</span>
         <div>
           <p className="font-display" style={{ fontSize: 'clamp(44px, 4.5vw, 72px)', lineHeight: 1.04 }}>{t('Registra.')}<br />{t('Progresa.')}<br />{t('Nada más.')}</p>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.32em', marginTop: '20px' }}>
+          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '20px' }}>
             We Do Gym
           </p>
         </div>
@@ -101,7 +101,7 @@ export default function Auth() {
              inline o pisaría el lg:hidden. ── */}
       <div className="flex lg:hidden" style={{ textAlign: 'center', marginBottom: '36px', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
         <Logo size={96} />
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: '42px', letterSpacing: '0.03em', color: 'var(--c-text)', lineHeight: 1 }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '42px', letterSpacing: '-0.04em', color: 'var(--c-text)', lineHeight: 1 }}>
           RAW
         </span>
         {/* Tagline */}
@@ -109,8 +109,7 @@ export default function Auth() {
           color: 'var(--c-text-dim)',
           fontSize: '9px',
           fontWeight: 700,
-          textTransform: 'uppercase',
-          letterSpacing: '0.32em',
+          letterSpacing: '-0.01em',
           marginTop: '-4px',
         }}>
           We Do Gym
@@ -123,7 +122,7 @@ export default function Auth() {
           className="fade-in"
           style={{
             width: '100%', maxWidth: '340px', marginBottom: '28px',
-            border: '1px solid var(--c-border-subtle)', borderRadius: '16px', overflow: 'hidden',
+            border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-lg)', overflow: 'hidden',
           }}
         >
           {prompt && (
@@ -139,7 +138,7 @@ export default function Auth() {
               onMouseLeave={e => e.currentTarget.style.background = 'var(--c-surface)'}
             >
               <div style={{ textAlign: 'left' }}>
-                <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 800, letterSpacing: '-0.01em' }}>
                   {t('Instalar en Android')}
                 </p>
                 <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', marginTop: '2px' }}>
@@ -152,7 +151,7 @@ export default function Auth() {
 
           {isIOS && (
             <div style={{ padding: '14px 16px', background: 'var(--c-surface)' }}>
-              <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
+              <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 800, letterSpacing: '-0.01em', marginBottom: '6px' }}>
                 {t('Instalar en iPhone')}
               </p>
               <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
@@ -173,8 +172,8 @@ export default function Auth() {
           <div style={{
             display: 'flex',
             background: 'var(--c-surface)',
-            border: '1px solid var(--c-border-subtle)',
-            borderRadius: '14px',
+            border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+            borderRadius: 'var(--r-md)',
             padding: '3px',
             marginBottom: '20px',
           }}>
@@ -185,9 +184,8 @@ export default function Auth() {
                 aria-pressed={mode === m}
                 style={{
                   flex: 1, padding: '8px',
-                  fontSize: '10px', fontWeight: 800,
-                  textTransform: 'uppercase', letterSpacing: '0.1em',
-                  borderRadius: '10px',
+                  fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em',
+                  borderRadius: 'var(--r-sm)',
                   transition: 'background 200ms var(--ease-out), color 200ms var(--ease-out)',
                   background: mode === m ? 'var(--c-surface-2)' : 'transparent',
                   color: mode === m ? 'var(--c-text)' : 'var(--c-text-dim)',
@@ -225,7 +223,7 @@ export default function Auth() {
               color: 'var(--c-text-secondary)',
               fontSize: '12px',
               padding: '10px 12px',
-              borderRadius: '10px',
+              borderRadius: 'var(--r-sm)',
               marginBottom: '14px',
               lineHeight: 1.4,
             }}
@@ -236,7 +234,7 @@ export default function Auth() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
-            <label style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
+            <label style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', display: 'block', marginBottom: '6px' }}>
               {t('Email')}
             </label>
             <input
@@ -252,7 +250,7 @@ export default function Auth() {
 
           {mode !== 'reset' && (
             <div>
-              <label style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
+              <label style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', display: 'block', marginBottom: '6px' }}>
                 {t('Contraseña')}
               </label>
               <input
@@ -287,7 +285,7 @@ export default function Auth() {
             <button
               type="button"
               onClick={() => switchMode('reset')}
-              style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'transparent' }}
+              style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', background: 'transparent' }}
             >
               {t('¿Olvidaste tu contraseña?')}
             </button>
@@ -296,7 +294,7 @@ export default function Auth() {
             <button
               type="button"
               onClick={() => switchMode('login')}
-              style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'transparent' }}
+              style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', background: 'transparent' }}
             >
               ← Volver a iniciar sesión
             </button>

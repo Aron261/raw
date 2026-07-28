@@ -9,14 +9,8 @@ import { useExercisePR, calc1RM } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
 import { useLang } from '../hooks/useLang'
+import { useChartColors } from '../lib/chartColors'
 
-// Literal hex per palette+theme — CSS vars don't resolve in recharts SVG attrs.
-const CHART = {
-  'slate-light': { line: '#3E5C76', grid: '#DDE0E4', axis: '#565C64' },
-  'slate-dark':  { line: '#7FA0BE', grid: '#2F343B', axis: '#9AA0A8' },
-  'riso-light':  { line: '#2438FF', grid: '#D5D2C7', axis: '#5A584F' },
-  'riso-dark':   { line: '#6E7BFF', grid: '#26271F', axis: '#A2A096' },
-}
 
 // Custom tooltip — light theme
 function CustomTooltip({ active, payload, label }) {
@@ -25,12 +19,12 @@ function CustomTooltip({ active, payload, label }) {
   return (
     <div style={{
       background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)',
+      border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
       padding: '8px 12px',
-      borderRadius: '10px',
+      borderRadius: 'var(--r-sm)',
       fontSize: '11px',
     }}>
-      <p style={{ color: 'var(--c-text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>{label}</p>
+      <p style={{ color: 'var(--c-text-dim)', letterSpacing: '-0.01em', marginBottom: '2px' }}>{label}</p>
       <p style={{ color: 'var(--c-text)', fontWeight: 700 }}>{payload[0].value} 1RM</p>
     </div>
   )
@@ -44,9 +38,7 @@ export default function ExerciseDetail() {
   const { name } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
-
-  const { resolved, palette } = useTheme()
-  const cc = CHART[`${palette}-${resolved}`] || CHART['slate-light']
+  const cc = useChartColors()
 
   const exerciseName = decodeURIComponent(name)
   const { prSets, allTimePR, loading } = useExercisePR(exerciseName, user?.id)
@@ -94,7 +86,7 @@ export default function ExerciseDetail() {
           >
             ←
           </button>
-          <h1 style={{ color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.03em', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <h1 style={{ color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {exerciseName}
           </h1>
         </div>
@@ -104,11 +96,11 @@ export default function ExerciseDetail() {
           <div style={{
             display: 'flex', alignItems: 'center', gap: '12px',
             background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)',
-            padding: '12px 16px', borderRadius: '14px', margin: '16px 0 24px',
+            padding: '12px 16px', borderRadius: 'var(--r-md)', margin: '16px 0 24px',
           }}>
             <PRBadge />
             <div>
-              <span style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block' }}>
+              <span style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', display: 'block' }}>
                 {t('Mejor 1RM estimado')}
               </span>
               <span style={{ color: 'var(--c-text)', fontWeight: 900, fontSize: '22px' }}>
@@ -124,15 +116,15 @@ export default function ExerciseDetail() {
             <div className="skeleton" style={{ height: '180px', marginBottom: '32px' }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {[0, 1, 2].map(i => (
-                <div key={i} className="skeleton" style={{ height: '64px', borderRadius: '14px' }} />
+                <div key={i} className="skeleton" style={{ height: '64px', borderRadius: 'var(--r-md)' }} />
               ))}
             </div>
           </div>
         )}
 
         {!loading && prSets.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '48px 0', border: '1px dashed var(--c-border)', borderRadius: '14px' }}>
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('Sin datos aún')}</p>
+          <div style={{ textAlign: 'center', padding: '48px 0', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-md)' }}>
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em' }}>{t('Sin datos aún')}</p>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px' }}>{t('Registra este ejercicio para ver tu progreso.')}</p>
           </div>
         )}
@@ -141,7 +133,7 @@ export default function ExerciseDetail() {
           <>
             {/* Progression chart */}
             <div style={{ marginBottom: '32px' }}>
-              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' }}>
+              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '16px' }}>
                 {t('Progresión 1RM')}
               </p>
               <div style={{ height: '180px', width: '100%' }}>
@@ -177,13 +169,13 @@ export default function ExerciseDetail() {
             {/* PR by rep range */}
             {prByReps.length > 0 && (
               <div style={{ marginBottom: '32px' }}>
-                <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+                <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '12px' }}>
                   {t('Mejor peso por reps')}
                 </p>
                 <div style={{
                   background: 'var(--c-surface)',
-                  border: '1px solid var(--c-border-subtle)',
-                  borderRadius: '14px',
+                  border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+                  borderRadius: 'var(--r-md)',
                   overflow: 'hidden',
                 }}>
                   {prByReps.map((entry, i) => {
@@ -203,7 +195,7 @@ export default function ExerciseDetail() {
                         <div style={{
                           width: '36px', height: '36px',
                           background: 'var(--c-surface-2)',
-                          borderRadius: '10px',
+                          borderRadius: 'var(--r-sm)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           flexShrink: 0, marginRight: '12px',
                         }}>
@@ -212,7 +204,7 @@ export default function ExerciseDetail() {
 
                         {/* Label */}
                         <div style={{ flex: 1 }}>
-                          <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 600, letterSpacing: '-0.01em' }}>
                             {entry.reps === 1 ? '1 rep' : `${entry.reps} reps`}
                           </span>
                         </div>
@@ -234,7 +226,7 @@ export default function ExerciseDetail() {
 
             {/* Session history */}
             <div style={{ paddingBottom: '32px' }}>
-              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
+              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '12px' }}>
                 {t('Historial')}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -248,11 +240,11 @@ export default function ExerciseDetail() {
                     <div key={session.workoutId} style={{
                       background: 'var(--c-surface)',
                       border: `1px solid ${isAllTimePR ? 'var(--c-action-border)' : 'var(--c-border-subtle)'}`,
-                      borderRadius: '14px',
+                      borderRadius: 'var(--r-md)',
                       padding: '14px 16px',
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                        <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em' }}>
                           {sessionDate}
                         </span>
                         {isAllTimePR && <PRBadge />}

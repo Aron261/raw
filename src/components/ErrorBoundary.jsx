@@ -1,5 +1,8 @@
 import { Component } from 'react'
-import { useLang } from '../hooks/useLang'
+
+// El idioma vive en el perfil (useLang), y aquí no hay hooks ni garantía de que
+// el árbol siga en pie: la pantalla de rescate se queda en el idioma fuente.
+const t = (s) => s
 
 // App-wide safety net. Without this, any render-time error unmounts the whole
 // tree and leaves a blank white screen with no clue. This catches it, logs it,
@@ -24,8 +27,8 @@ export default class ErrorBoundary extends Component {
 
     return (
       <div style={{ minHeight: '100dvh', background: 'var(--c-bg)', color: 'var(--c-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-        <div style={{ maxWidth: '420px', width: '100%', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '24px' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
+        <div style={{ maxWidth: '420px', width: '100%', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-lg)', padding: '24px' }}>
+          <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '10px' }}>
             {t('Algo se rompió')}
           </p>
           <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '10px' }}>
@@ -35,7 +38,7 @@ export default class ErrorBoundary extends Component {
             {t('Puedes recargar o volver al inicio. Si vuelve a pasar, este es el detalle:')}
           </p>
           <pre style={{
-            background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+            background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)',
             padding: '12px', fontSize: '11px', color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)',
             whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: '160px', overflow: 'auto', marginBottom: '16px',
           }}>
@@ -44,13 +47,13 @@ export default class ErrorBoundary extends Component {
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={() => window.location.reload()}
-              style={{ flex: 1, background: 'var(--c-action)', color: 'var(--c-on-action)', border: 'none', borderRadius: '12px', padding: '13px', fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}
+              style={{ flex: 1, background: 'var(--c-action)', color: 'var(--c-on-action)', border: 'none', borderRadius: 'var(--r-md)', padding: '13px', fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}
             >
               {t('Recargar')}
             </button>
             <button
               onClick={() => { window.location.href = '/' }}
-              style={{ flex: 1, background: 'var(--c-surface-2)', color: 'var(--c-text)', border: '1px solid var(--c-border)', borderRadius: '12px', padding: '13px', fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}
+              style={{ flex: 1, background: 'var(--c-surface-2)', color: 'var(--c-text)', border: '1px solid var(--c-border)', borderRadius: 'var(--r-md)', padding: '13px', fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}
             >
               {t('Inicio')}
             </button>

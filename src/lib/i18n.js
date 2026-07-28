@@ -64,11 +64,13 @@ const EN = {
   'entreno': 'workout',
   'entrenos': 'workouts',
   'días este mes': 'days this month',
-  'racha': 'streak',
-  'kcal hoy': 'kcal today',
-  'peso corporal': 'body weight',
-  'coach': 'coach',
-  'próximo': 'up next',
+  // Las etiquetas de los chips de la portada. Iban en minúscula porque el CSS
+  // las ponía en mayúsculas; el rediseño quitó esa regla, así que ahora viajan
+  // en caja de frase tal cual se leen.
+  'Racha': 'Streak',
+  'Kcal hoy': 'Kcal today',
+  'Coach': 'Coach',
+  'Próximo': 'Up next',
   'Entrena esta semana': 'Train this week',
   'Registra tu comida': 'Log your food',
   'Aún sin registrar': 'Not logged yet',
@@ -173,11 +175,6 @@ const EN = {
   'Auto': 'Auto',
   'Claro': 'Light',
   'Oscuro': 'Dark',
-  'Paleta': 'Palette',
-  'Sobrio': 'Sober',
-  'Vibrante': 'Vibrant',
-  'Calmado': 'Calm',
-  'Con color': 'With colour',
   'Idioma': 'Language',
   'Idioma de la app': 'App language',
   'Nombre de los ejercicios': 'Exercise names',
@@ -240,6 +237,10 @@ const EN = {
 
   // ── Entreno activo ──
   'Sin ejercicios aún': 'No exercises yet',
+  // Baraja de ejercicios del entreno activo
+  'Ejercicio {n} de {total}': 'Exercise {n} of {total}',
+  'Ejercicio anterior': 'Previous exercise',
+  'Ejercicio siguiente': 'Next exercise',
   'Agrega tu primer ejercicio para empezar a registrar tus series.': 'Add your first exercise to start logging sets.',
   'Mostrar series': 'Show sets',
   'nuevo': 'new',

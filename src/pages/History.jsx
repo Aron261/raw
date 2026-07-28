@@ -70,7 +70,7 @@ export default function History({ embedded = false }) {
               {t('Historial')}
             </h1>
           )}
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: embedded ? 0 : '6px' }}>
+          <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', letterSpacing: '-0.01em', marginTop: embedded ? 0 : '6px' }}>
             {visibleWorkouts.length} {visibleWorkouts.length === 1 ? 'entreno registrado' : 'entrenos registrados'}
           </p>
         </div>
@@ -80,10 +80,10 @@ export default function History({ embedded = false }) {
           <div aria-hidden="true">
             {[...Array(2)].map((_, g) => (
               <div key={g} style={{ marginBottom: '32px' }}>
-                <div className="skeleton" style={{ height: '11px', width: '120px', borderRadius: '6px', marginBottom: '14px' }} />
+                <div className="skeleton" style={{ height: '11px', width: '120px', borderRadius: 'var(--r-xs)', marginBottom: '14px' }} />
                 <div className="space-y-3">
                   {[...Array(2)].map((_, i) => (
-                    <div key={i} className="skeleton" style={{ height: '96px', borderRadius: '16px', opacity: 1 - (g * 2 + i) * 0.12 }} />
+                    <div key={i} className="skeleton" style={{ height: '96px', borderRadius: 'var(--r-lg)', opacity: 1 - (g * 2 + i) * 0.12 }} />
                   ))}
                 </div>
               </div>
@@ -93,9 +93,9 @@ export default function History({ embedded = false }) {
 
         {/* Error state */}
         {error && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)', color: 'var(--c-action-text)', fontSize: '13px', padding: '12px 14px', borderRadius: '12px', marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', background: 'var(--c-action-dim)', border: '1px solid var(--c-action-border)', color: 'var(--c-action-text)', fontSize: '13px', padding: '12px 14px', borderRadius: 'var(--r-md)', marginBottom: '16px' }}>
             <span>{t('No pudimos cargar tu historial.')}</span>
-            <button onClick={fetchWorkouts} style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-action-border)', borderRadius: '8px', padding: '6px 12px', background: 'transparent' }}>
+            <button onClick={fetchWorkouts} style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700, border: '1px solid var(--c-action-border)', borderRadius: 'var(--r-xs)', padding: '6px 12px', background: 'transparent' }}>
               {t('Reintentar')}
             </button>
           </div>
@@ -103,14 +103,14 @@ export default function History({ embedded = false }) {
 
         {/* Empty state */}
         {!loading && !error && visibleWorkouts.length === 0 && (
-          <div className="text-center py-16" style={{ border: '1px dashed var(--c-border)', borderRadius: '16px', padding: '48px 24px' }}>
+          <div className="text-center py-16" style={{ border: '1px dashed var(--c-border)', borderRadius: 'var(--r-lg)', padding: '48px 24px' }}>
             <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em' }}>{t('Sin entrenos aún')}</p>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px', lineHeight: 1.5, maxWidth: '30ch', marginInline: 'auto' }}>
               {t('Cada sesión que registres aparece aquí, agrupada por mes.')}
             </p>
             <button
               onClick={() => navigate('/')}
-              style={{ marginTop: '16px', background: 'var(--c-accent)', color: 'var(--c-on-action)', border: 'none', borderRadius: '12px', padding: '11px 20px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+              style={{ marginTop: '16px', background: 'var(--c-accent)', color: 'var(--c-on-action)', border: 'none', borderRadius: 'var(--r-md)', padding: '11px 20px', fontSize: '12px', fontWeight: 800, letterSpacing: '-0.01em' }}
             >
               {t('Empezar un entreno')}
             </button>
@@ -123,8 +123,8 @@ export default function History({ embedded = false }) {
             {Object.entries(months).map(([month, { items, volume }]) => (
               <div key={month} className="mb-8">
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                  <h2 style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{month}</h2>
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.04em', color: 'var(--c-text-muted)' }}>
+                  <h2 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', letterSpacing: '-0.01em' }}>{month}</h2>
+                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: '10px', letterSpacing: '-0.01em', color: 'var(--c-text-muted)' }}>
                     {items.length} {items.length === 1 ? 'entreno' : 'entrenos'}
                     {volume > 0 && <> · <span style={{ color: 'var(--c-data)', fontWeight: 700 }}>{fmtVol(Math.round(volume))} kg</span></>}
                   </p>

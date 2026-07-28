@@ -69,12 +69,12 @@ export default function CycleMuscleDistribution({ routine }) {
   return (
     <div style={{
       background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)',
-      borderRadius: '14px',
+      border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+      borderRadius: 'var(--r-md)',
       padding: '16px',
       marginTop: '8px',
     }}>
-      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+      <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '4px' }}>
         {t('Series por semana')}
       </p>
       <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, lineHeight: 1.45, marginBottom: '14px' }}>
@@ -95,7 +95,7 @@ export default function CycleMuscleDistribution({ routine }) {
                   <span style={{ color: isOther ? 'var(--c-text-muted)' : 'var(--c-text)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em' }}>
                     {d.group}
                   </span>
-                  <span style={{ flexShrink: 0, color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700 }}>
+                  <span style={{ flexShrink: 0, color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700 }}>
                     {d.count} {d.count === 1 ? 'serie' : 'series'}
                   </span>
                 </div>

@@ -43,8 +43,8 @@ const clampDays = (d) => (d ? Math.min(6, Math.max(2, d)) : null)
 // ── UI helpers (mismo lenguaje visual que Rutinas.jsx) ──────────────────────
 
 const MONO_LABEL = {
-  fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px',
-  fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '8px',
+  fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px',
+  fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '8px',
 }
 
 function OptionButton({ selected, onClick, children, sub }) {
@@ -56,9 +56,9 @@ function OptionButton({ selected, onClick, children, sub }) {
         width: '100%', padding: '14px 16px', textAlign: 'left',
         background: selected ? 'var(--c-accent-dim)' : 'var(--c-surface)',
         border: `1px solid ${selected ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
-        borderRadius: '12px',
+        borderRadius: 'var(--r-md)',
         color: selected ? 'var(--c-action-text)' : 'var(--c-text)',
-        fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em',
+        fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em',
         transition: 'background 150ms var(--ease-out), border-color 150ms var(--ease-out)',
       }}
       {...pressProps(0.98)}
@@ -96,7 +96,7 @@ function Pill({ selected, onClick, children, hint }) {
 function BackLink({ onClick }) {
   const { t } = useLang()
   return (
-    <button onClick={onClick} style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '12px', textAlign: 'center', width: '100%', display: 'block' }}>
+    <button onClick={onClick} style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '12px', textAlign: 'center', width: '100%', display: 'block' }}>
       {t('Atrás')}
     </button>
   )
@@ -111,7 +111,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
 
   return (
     <div>
-      <div style={{ padding: '14px 16px', background: 'var(--c-surface)', borderRadius: '14px', marginBottom: '14px' }}>
+      <div style={{ padding: '14px 16px', background: 'var(--c-surface)', borderRadius: 'var(--r-md)', marginBottom: '14px' }}>
         <p style={MONO_LABEL}>{t('Por qué este plan')}</p>
         <p style={{ color: 'var(--c-text)', fontSize: '12px', lineHeight: 1.55 }}>{plan.summary}</p>
         {notesVisible && plan.notes.length > 0 && (
@@ -121,7 +121,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
         {Object.entries(plan.weeklyVolume).map(([group, sets]) => (
-          <span key={group} style={{ padding: '4px 10px', borderRadius: '999px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700 }}>
+          <span key={group} style={{ padding: '4px 10px', borderRadius: '999px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700 }}>
             {group} {sets}
           </span>
         ))}
@@ -130,10 +130,10 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {plan.days.map((day, i) => (
-          <div key={i} style={{ padding: '14px 16px', background: 'var(--c-surface)', borderRadius: '14px' }}>
+          <div key={i} style={{ padding: '14px 16px', background: 'var(--c-surface)', borderRadius: 'var(--r-md)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
-              <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em' }}>{day.dayName}</p>
-              <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontFamily: 'var(--font-mono)' }}>~{day.estMinutes} min</span>
+              <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em' }}>{day.dayName}</p>
+              <span style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontFamily: 'var(--font-sans)' }}>~{day.estMinutes} min</span>
             </div>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '10.5px', lineHeight: 1.5, marginBottom: '10px' }}>{day.rationale}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
@@ -147,7 +147,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
                       <div style={{ minWidth: 0 }}>
                         <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 600 }}>
                           {ex.name}
-                          {ex.isFamiliar && <span style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, marginLeft: '6px', textTransform: 'uppercase' }}>{t('Habitual')}</span>}
+                          {ex.isFamiliar && <span style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, marginLeft: '6px' }}>{t('Habitual')}</span>}
                         </p>
                         <p style={{ color: 'var(--c-text-dim)', fontSize: '9.5px' }}>
                           RIR {ex.rir} · descanso {ex.restSeconds >= 60 ? `${Math.round(ex.restSeconds / 60 * 10) / 10} min` : `${ex.restSeconds} s`}
@@ -155,7 +155,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
                         </p>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline', flexShrink: 0 }}>
-                        <span style={{ color: 'var(--c-text)', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                        <span style={{ color: 'var(--c-text)', fontSize: '11px', fontWeight: 700, fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap' }}>
                           {ex.sets}×{ex.repsMin}-{ex.repsMax}{ex.repsUnit === 'seg' ? '"' : ''}
                         </span>
                         {onSwap && (
@@ -175,7 +175,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
                       </div>
                     </div>
                     {isOpen && (
-                      <div style={{ margin: '8px 0 4px', padding: '10px 12px', background: 'var(--c-bg)', borderRadius: '10px', border: '1px solid var(--c-border-subtle)' }}>
+                      <div style={{ margin: '8px 0 4px', padding: '10px 12px', background: 'var(--c-bg)', borderRadius: 'var(--r-sm)', border: '1px solid var(--c-border-subtle)' }}>
                         <p style={{ ...MONO_LABEL, marginBottom: '8px' }}>{t('Cambiar por')}</p>
                         {alternatives.length === 0 ? (
                           <p style={{ color: 'var(--c-text-dim)', fontSize: '10.5px' }}>{t('No hay alternativas con tu equipo y nivel.')}</p>
@@ -185,7 +185,7 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
                               <button
                                 key={alt.id}
                                 onClick={() => { onSwap(i, j, alt); setSwapOpen(null) }}
-                                style={{ textAlign: 'left', padding: '7px 10px', borderRadius: '8px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', color: 'var(--c-text)', fontSize: '11.5px', fontWeight: 600 }}
+                                style={{ textAlign: 'left', padding: '7px 10px', borderRadius: 'var(--r-xs)', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', color: 'var(--c-text)', fontSize: '11.5px', fontWeight: 600 }}
                                 {...pressProps(0.98)}
                               >
                                 {alt.name}

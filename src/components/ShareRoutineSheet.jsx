@@ -9,8 +9,8 @@ import { shareMessage, routineToInput } from '../lib/share'
 import { useLang } from '../hooks/useLang'
 
 const eyebrow = {
-  fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px',
-  fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em',
+  fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px',
+  fontWeight: 700, letterSpacing: '-0.01em',
 }
 
 // Enviar una copia a un cliente vinculado, sin pasar por el enlace.
@@ -64,7 +64,7 @@ function AssignToClients({ routine }) {
             <div key={c.clientId} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
               padding: '8px 12px', background: 'var(--c-surface-2)',
-              border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+              border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)',
             }}>
               <span style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {name}
@@ -74,9 +74,9 @@ function AssignToClients({ routine }) {
                 disabled={sendingId === c.clientId}
                 aria-label={sent ? `Enviar otra copia a ${name}` : `Enviar a ${name}`}
                 style={{
-                  flexShrink: 0, minHeight: '44px', padding: '0 12px', borderRadius: '8px',
+                  flexShrink: 0, minHeight: '44px', padding: '0 12px', borderRadius: 'var(--r-xs)',
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
+                  fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em',
                   color: sent ? 'var(--c-text-dim)' : 'var(--c-accent)',
                   border: `1px solid ${sent ? 'var(--c-border-subtle)' : 'var(--c-accent-border)'}`,
                   background: 'transparent',
@@ -162,7 +162,7 @@ export default function ShareRoutineSheet({ routine, onClose }) {
       </p>
 
       {loading ? (
-        <div className="skeleton" aria-hidden="true" style={{ height: '52px', borderRadius: '12px' }} />
+        <div className="skeleton" aria-hidden="true" style={{ height: '52px', borderRadius: 'var(--r-md)' }} />
       ) : !share ? (
         <Button variant="primary" full size="lg" loading={working} disabled={working} onClick={handleCreate}>
           {working ? 'Generando...' : 'Crear enlace'}
@@ -172,7 +172,7 @@ export default function ShareRoutineSheet({ routine, onClose }) {
           {/* El enlace, legible y completo: quien lo manda debe poder verlo entero. */}
           <div style={{
             background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
-            borderRadius: '12px', padding: '12px 14px', marginBottom: '12px',
+            borderRadius: 'var(--r-md)', padding: '12px 14px', marginBottom: '12px',
           }}>
             <p style={{ ...eyebrow, marginBottom: '6px' }}>{t('Enlace')}</p>
             <p style={{
@@ -210,7 +210,7 @@ export default function ShareRoutineSheet({ routine, onClose }) {
           {confirmRevoke ? (
             <div style={{
               background: 'var(--c-surface)', border: '1px solid var(--c-action-border)',
-              borderRadius: '12px', padding: '14px',
+              borderRadius: 'var(--r-md)', padding: '14px',
             }}>
               <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 600, lineHeight: 1.5, marginBottom: '12px' }}>
                 El enlace dejará de funcionar para todo el mundo. Las copias que ya se
@@ -230,8 +230,7 @@ export default function ShareRoutineSheet({ routine, onClose }) {
               onClick={() => setConfirmRevoke(true)}
               style={{
                 width: '100%', minHeight: '44px',
-                color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
+                color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em',
               }}
             >
               {t('Desactivar enlace')}

@@ -31,7 +31,7 @@ function FeedRow({ item, onOpen }) {
       style={{
         display: 'flex', alignItems: 'center', gap: '12px', width: '100%', textAlign: 'left',
         padding: '12px 14px', background: 'var(--c-surface)',
-        border: '1px solid var(--c-border-subtle)', borderRadius: '12px', marginBottom: '6px',
+        border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)', marginBottom: '6px',
         minHeight: '44px', cursor: 'pointer', transition: 'border-color 150ms var(--ease-out)',
       }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-border)' }}
@@ -51,7 +51,7 @@ function FeedRow({ item, onOpen }) {
             {item.clientName}
           </span>
           {item.isPR && (
-            <span style={{ flexShrink: 0, background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '2px 5px', borderRadius: '2px' }}>
+            <span style={{ flexShrink: 0, background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '8px', fontWeight: 900, letterSpacing: '-0.01em', padding: '2px 5px', borderRadius: '4px' }}>
               PR
             </span>
           )}
@@ -60,7 +60,7 @@ function FeedRow({ item, onOpen }) {
           {item.name} · {item.volume > 0 ? `${fmtVol(item.volume, locale)} kg` : `${item.exerciseCount} ej.`}
         </span>
       </div>
-      <span style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', letterSpacing: '0.02em' }}>
+      <span style={{ flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', letterSpacing: '-0.01em' }}>
         {relativeDate(item.startedAt, t, locale)}
       </span>
     </button>
@@ -84,9 +84,9 @@ function UnreadBadge({ count }) {
 }
 
 const SECTION_LABEL = {
-  fontFamily: 'var(--font-mono)',
-  color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700,
-  textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px',
+  fontFamily: 'var(--font-sans)',
+  color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700,
+  letterSpacing: '-0.01em', marginBottom: '10px',
 }
 
 // ── Modal: generar / mostrar código de invitación ─────────────────────────
@@ -130,10 +130,10 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
 
         {code ? (
           <div style={{
-            padding: '20px', background: 'var(--c-surface)', borderRadius: '14px',
+            padding: '20px', background: 'var(--c-surface)', borderRadius: 'var(--r-md)',
             border: '1px solid var(--c-accent-border)', textAlign: 'center', marginBottom: '16px',
           }}>
-            <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px' }}>
+            <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '10px' }}>
               {t('Código generado')}
             </p>
             <p style={{ color: 'var(--c-text)', fontSize: '28px', fontWeight: 900, letterSpacing: '0.1em', marginBottom: '14px' }}>
@@ -165,15 +165,15 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
                 <div key={inv.id} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '10px 12px', background: 'var(--c-surface)',
-                  border: '1px solid var(--c-border-subtle)', borderRadius: '10px',
+                  border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-sm)',
                 }}>
-                  <span style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '0.08em' }}>
+                  <span style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em' }}>
                     {inv.code}
                   </span>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <button
                       onClick={() => copy(inv.code)}
-                      style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                      style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em' }}
                     >
                       {t('Copiar')}
                     </button>
@@ -207,7 +207,7 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
     <div style={{
       display: 'flex', alignItems: 'center', gap: '12px',
       padding: '14px 16px', background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)', borderRadius: '14px', marginBottom: '6px',
+      border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)', marginBottom: '6px',
     }}>
       <button
         onClick={onOpen}
@@ -241,7 +241,7 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
         <button
           onClick={() => onChat(client.clientId)}
           aria-label="Chat"
-          style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', border: '1px solid var(--c-accent-border)', padding: '5px 10px', borderRadius: '8px' }}
+          style={{ color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 800, letterSpacing: '-0.01em', border: '1px solid var(--c-accent-border)', padding: '5px 10px', borderRadius: 'var(--r-xs)' }}
           onMouseEnter={e => e.currentTarget.style.background = 'var(--c-accent-dim)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
@@ -250,7 +250,7 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
         {confirm ? (
           <button
             onClick={() => onRevoke(client.linkId)}
-            style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+            style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, letterSpacing: '-0.01em' }}
           >
             {t('Confirmar')}
           </button>
@@ -310,7 +310,7 @@ export default function Coach() {
               <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
                 {t('Clientes')}
               </h1>
-              <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '6px' }}>
+              <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '6px' }}>
                 {t('Panel de entrenador')}
               </p>
             </div>
@@ -320,8 +320,8 @@ export default function Coach() {
         {/* Aviso si el rol no está activo */}
         {!loading && !isTrainer && (
           <div className="fade-in" style={{
-            padding: '16px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-            borderRadius: '14px', marginBottom: '20px',
+            padding: '16px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+            borderRadius: 'var(--r-md)', marginBottom: '20px',
           }}>
             <p style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
               {t('Activa el modo entrenador')}
@@ -338,7 +338,7 @@ export default function Coach() {
             variant="primary"
             full
             onClick={() => setShowInvite(true)}
-            style={{ textTransform: 'uppercase', letterSpacing: '0.04em' }}
+            style={{ letterSpacing: '-0.01em' }}
           >
             + Invitar cliente
           </Button>
@@ -352,7 +352,7 @@ export default function Coach() {
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {[...Array(3)].map((_, i) => (
-              <div key={i} style={{ height: '70px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '14px', opacity: 1 - i * 0.25 }} />
+              <div key={i} style={{ height: '70px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)', opacity: 1 - i * 0.25 }} />
             ))}
           </div>
         )}
@@ -366,7 +366,7 @@ export default function Coach() {
             {feedLoading ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} style={{ height: '58px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', opacity: 1 - i * 0.25 }} />
+                  <div key={i} style={{ height: '58px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)', opacity: 1 - i * 0.25 }} />
                 ))}
               </div>
             ) : (
@@ -404,9 +404,9 @@ export default function Coach() {
               <div className="fade-in" style={{
                 textAlign: 'center', padding: '48px 20px',
                 background: 'var(--c-surface)', border: '2px dashed var(--c-border)',
-                borderRadius: '16px', animationDelay: '40ms',
+                borderRadius: 'var(--r-lg)', animationDelay: '40ms',
               }}>
-                <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em' }}>
                   {t('Sin clientes todavía')}
                 </p>
                 <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '8px' }}>

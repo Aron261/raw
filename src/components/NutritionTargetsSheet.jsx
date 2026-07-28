@@ -148,8 +148,8 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
   }
 
   const tabStyle = (active) => ({
-    flex: 1, padding: '9px 4px', borderRadius: '8px',
-    fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em',
+    flex: 1, padding: '9px 4px', borderRadius: 'var(--r-xs)',
+    fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em',
     background: active ? 'var(--c-accent)' : 'var(--c-surface-2)',
     color: active ? 'var(--c-on-action)' : 'var(--c-text-dim)',
     border: `1px solid ${active ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
@@ -214,7 +214,7 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
       )}
 
       {rec ? (
-        <div style={{ background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: '12px', padding: '14px', marginBottom: '12px' }}>
+        <div style={{ background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-md)', padding: '14px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', gap: '12px' }}>
             {[
               { label: 'Proteína', g: rec.protein_g, per: 4 },
@@ -222,13 +222,13 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
               { label: 'Grasa',    g: rec.fat_g,     per: 9 },
             ].map(x => (
               <div key={x.label} style={{ flex: 1 }}>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--c-text-dim)', marginBottom: '4px' }}>
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginBottom: '4px' }}>
                   {x.label}
                 </p>
                 <p className="tnum" style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
                   {x.g}<span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--c-text-muted)' }}> g</span>
                 </p>
-                <p className="tnum" style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', marginTop: '2px' }}>
+                <p className="tnum" style={{ fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', marginTop: '2px' }}>
                   {pct(x.g, x.per, rec.kcal)}%
                 </p>
               </div>

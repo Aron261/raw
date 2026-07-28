@@ -5,7 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#F3F4F6" id="theme-color-meta" />
+    <meta name="theme-color" content="#E7E7E4" id="theme-color-meta" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Raw" />
@@ -13,25 +13,19 @@
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <title>Raw</title>
     <script>
-      // Resolve theme + palette before first paint to avoid a flash.
+      // Resuelve el modo antes del primer pintado para que no haya destello.
+      // Una sola paleta desde el rediseño: aquí ya no se elige nada más.
       (function () {
         try {
           var saved = localStorage.getItem('raw-theme'); // 'light' | 'dark' | 'auto' | null
           var dark = saved === 'dark' ||
             ((!saved || saved === 'auto') &&
               window.matchMedia('(prefers-color-scheme: dark)').matches);
-          var palette = localStorage.getItem('raw-palette') === 'riso' ? 'riso' : 'slate';
-          var el = document.documentElement;
-          el.setAttribute('data-theme', dark ? 'dark' : 'light');
-          el.setAttribute('data-palette', palette);
-          var bg = palette === 'riso'
-            ? (dark ? '#0E0F0C' : '#EAE7DE')
-            : (dark ? '#15171B' : '#F3F4F6');
+          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
           var m = document.getElementById('theme-color-meta');
-          if (m) m.setAttribute('content', bg);
+          if (m) m.setAttribute('content', dark ? '#121316' : '#E7E7E4');
         } catch (e) {
           document.documentElement.setAttribute('data-theme', 'light');
-          document.documentElement.setAttribute('data-palette', 'slate');
         }
       })();
     </script>

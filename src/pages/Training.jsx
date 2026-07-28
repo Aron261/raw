@@ -12,7 +12,7 @@ import { useGoals } from '../hooks/useGoals'
 import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { useInvites } from '../hooks/useInvites'
-import { useTheme } from '../hooks/useTheme'
+import { useChartColors } from '../lib/chartColors'
 import { useSchedule } from '../hooks/useSchedule'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
@@ -23,14 +23,6 @@ import DaySheet from '../components/calendar/DaySheet'
 import { computeStreak, mondayOf, KINDS } from '../lib/calendar'
 import { useLang } from '../hooks/useLang'
 import { calc1RM } from '../lib/progress'
-
-// Chart colors must be literal hex — CSS vars don't resolve in recharts SVG attrs.
-const CHART_COLORS = {
-  'slate-light': { axis: '#565C64', bar: '#3E5C76', today: '#1A1D21', empty: '#DDE0E4' },
-  'slate-dark':  { axis: '#9AA0A8', bar: '#7FA0BE', today: '#E9EBEE', empty: '#2F343B' },
-  'riso-light':  { axis: '#5A584F', bar: '#2438FF', today: '#FF2E7E', empty: '#D5D2C7' },
-  'riso-dark':   { axis: '#A2A096', bar: '#6E7BFF', today: '#FF3D86', empty: '#26271F' },
-}
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
@@ -66,9 +58,9 @@ function ChartTooltip({ active, payload, label }) {
   return (
     <div style={{
       background: 'var(--c-surface)', border: '1px solid var(--c-border)',
-      borderRadius: '8px', padding: '6px 10px',
+      borderRadius: 'var(--r-xs)', padding: '6px 10px',
       fontSize: '10px', fontWeight: 700, color: 'var(--c-text)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+      boxShadow: 'var(--e-2)',
     }}>
       {label}: {val > 0 ? `${(val / 1000).toFixed(1)}k kg` : '—'}
     </div>
@@ -81,8 +73,8 @@ function WeeklyChart({ chartData, height = 150, title, subtitle, colors }) {
   return (
     <div style={{
       background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)',
-      borderRadius: '16px',
+      border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+      borderRadius: 'var(--r-lg)',
       paddingBottom: '12px',
       overflow: 'hidden',
     }}>
@@ -116,19 +108,19 @@ function WeeklyChart({ chartData, height = 150, title, subtitle, colors }) {
               />
               <YAxis hide />
               <Tooltip content={<ChartTooltip />} cursor={{ fill: 'transparent' }} />
-              <Bar dataKey="vol" radius={[5, 5, 0, 0]}>
+              {/* Un solo tono para toda la serie: hoy va a plena intensidad y
+                  el resto de la semana baja la opacidad. Antes hoy usaba un
+                  color propio, y con una sola paleta eso pedía inventarse un
+                  segundo azul solo para una barra. */}
+              <Bar dataKey="vol" radius={[6, 6, 0, 0]}>
                 {chartData.map((entry, i) => {
                   const isToday = i === ((new Date().getDay() + 6) % 7)
+                  const empty = entry.future || entry.vol === 0
                   return (
                     <Cell
                       key={i}
-                      fill={
-                        entry.future
-                          ? colors.empty
-                          : entry.vol > 0
-                            ? (isToday ? colors.today : colors.bar)
-                            : colors.empty
-                      }
+                      fill={empty ? colors.empty : colors.bar}
+                      fillOpacity={empty || isToday ? 1 : 0.42}
                     />
                   )
                 })}
@@ -182,8 +174,8 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
               key={opt.value}
               onClick={() => setType(opt.value)}
               style={{
-                flex: 1, padding: '10px 8px', borderRadius: '8px',
-                fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em',
+                flex: 1, padding: '10px 8px', borderRadius: 'var(--r-xs)',
+                fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em',
                 background: type === opt.value ? 'var(--c-accent)' : 'var(--c-surface-2)',
                 color: type === opt.value ? 'var(--c-on-action)' : 'var(--c-text-dim)',
                 border: `1px solid ${type === opt.value ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
@@ -276,21 +268,21 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
       background: hasExercises ? 'var(--c-action)' : 'var(--c-surface)',
       border: hasExercises ? 'none' : '1px solid var(--c-border-subtle)',
       color: hasExercises ? 'var(--c-on-action)' : 'var(--c-text)',
-      borderRadius: '16px',
+      borderRadius: 'var(--r-lg)',
       padding: '18px',
       marginBottom: '16px',
     }}>
       {/* Label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: hasExercises ? 0.85 : 1, color: hasExercises ? 'var(--c-on-action)' : 'var(--c-action-text)' }}>
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', opacity: hasExercises ? 0.85 : 1, color: hasExercises ? 'var(--c-on-action)' : 'var(--c-action-text)' }}>
           {fromCoach ? `Recomendado por ${coachName || 'tu entrenador'}` : 'Entreno de hoy'}
         </p>
         {fromCoach && (
           <span style={{
             background: hasExercises ? 'var(--c-on-action)' : 'var(--c-action-dim)',
             color: hasExercises ? 'var(--c-action)' : 'var(--c-action-text)',
-            fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
-            padding: '2px 7px', borderRadius: '6px',
+            fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em',
+            padding: '2px 7px', borderRadius: 'var(--r-xs)',
           }}>
             Coach
           </span>
@@ -308,7 +300,7 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
       </p>
 
       {/* Detalle: ejercicios + focus */}
-      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', marginBottom: '14px', opacity: hasExercises ? 0.75 : 1, color: hasExercises ? 'var(--c-on-action)' : 'var(--c-text-muted)' }}>
+      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', marginBottom: '14px', opacity: hasExercises ? 0.75 : 1, color: hasExercises ? 'var(--c-on-action)' : 'var(--c-text-muted)' }}>
         {hasExercises
           ? `${exCount} ${exCount === 1 ? 'ejercicio' : 'ejercicios'}${day.focus ? ' · ' + day.focus : ''}`
           : 'Sin ejercicios todavía'
@@ -323,9 +315,9 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
           background: hasExercises ? 'var(--c-on-action)' : 'var(--c-surface-2)',
           color: hasExercises ? 'var(--c-action)' : 'var(--c-text-muted)',
           border: hasExercises ? 'none' : '1px solid var(--c-border-subtle)',
-          borderRadius: '10px',
+          borderRadius: 'var(--r-sm)',
           padding: '13px',
-          fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 800, letterSpacing: '0.02em', textTransform: 'uppercase',
+          fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em',
           cursor: hasExercises && !starting ? 'pointer' : 'default',
           transition: 'opacity 150ms',
           opacity: starting ? 0.6 : 1,
@@ -351,8 +343,8 @@ function Chip({ label, value, hint, live, index = 0, onClick }) {
         '--i': index,
         flex: '1 1 30%', minWidth: '96px', textAlign: 'left',
         display: 'flex', flexDirection: 'column', gap: '4px',
-        background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
-        borderRadius: '12px', padding: '11px 12px', minHeight: '44px',
+        background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+        borderRadius: 'var(--r-md)', padding: '11px 12px', minHeight: '44px',
         cursor: 'pointer',
         transition: `border-color 150ms var(--ease-out), ${PRESS_TRANSITION}`,
       }}
@@ -363,8 +355,8 @@ function Chip({ label, value, hint, live, index = 0, onClick }) {
     >
       <span style={{
         display: 'flex', alignItems: 'center', gap: '5px',
-        fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px',
-        fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
+        fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px',
+        fontWeight: 700, letterSpacing: '-0.01em',
       }}>
         {live && <span className="live-dot" aria-hidden="true" style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--c-action)', flexShrink: 0 }} />}
         {label}
@@ -403,12 +395,12 @@ function GoalsCard({ goals, onAdd, onDelete }) {
   return (
     <div style={{
       background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)',
-      borderRadius: '16px',
+      border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+      borderRadius: 'var(--r-lg)',
       padding: '20px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em' }}>
           {t('Mis metas')}
         </p>
         <button
@@ -432,7 +424,7 @@ function GoalsCard({ goals, onAdd, onDelete }) {
         /* Empty state humanizado */
         <div style={{
           background: 'var(--c-surface-2)',
-          borderRadius: '12px',
+          borderRadius: 'var(--r-md)',
           padding: '18px 16px',
         }}>
           <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
@@ -447,7 +439,7 @@ function GoalsCard({ goals, onAdd, onDelete }) {
               background: 'transparent',
               color: 'var(--c-action-text)',
               border: '1px solid var(--c-action-border)',
-              borderRadius: '8px',
+              borderRadius: 'var(--r-xs)',
               padding: '8px 14px',
               fontSize: '11px',
               fontWeight: 700,
@@ -555,8 +547,7 @@ export default function Training() {
   const { activeRoutine, routines } = useRoutines()
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
   const { trainers } = useInvites()
-  const { resolved, palette } = useTheme()
-  const chartColors = CHART_COLORS[`${palette}-${resolved}`] || CHART_COLORS['slate-light']
+  const chartColors = useChartColors()
 
   const kcalToday = Math.round(nutritionTotals?.kcal || 0)
   const kcalTarget = nutritionTargets?.kcal || DEFAULT_TARGETS.kcal
@@ -893,8 +884,10 @@ export default function Training() {
             los dos son pestaña de la barra inferior. ── */}
         <div className="fade-in flex items-start mb-6 md:mb-8">
           <div style={{ minWidth: 0 }}>
-            {/* Fecha — eyebrow mono en azul (dato) */}
-            <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-data)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
+            {/* La fecha iba en el azul de acción. El acento es caro: si lo
+                gasta un dato que nadie va a tocar, deja de significar "aquí
+                se actúa" cuando aparece en el botón de abajo. */}
+            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '6px' }}>
               {todayLabel(locale)}
             </p>
             <h1 className="text-[30px] md:text-[36px]" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
@@ -909,25 +902,25 @@ export default function Training() {
         {loading && (
           <div aria-hidden="true" style={{ marginBottom: '24px' }}>
             {/* CTA */}
-            <div className="skeleton" style={{ height: '56px', borderRadius: '14px', marginBottom: '28px' }} />
+            <div className="skeleton" style={{ height: '56px', borderRadius: 'var(--r-md)', marginBottom: '28px' }} />
             {/* Resumen semanal: eyebrow + 2 números */}
-            <div className="skeleton" style={{ height: '10px', width: '96px', borderRadius: '6px', marginBottom: '16px' }} />
+            <div className="skeleton" style={{ height: '10px', width: '96px', borderRadius: 'var(--r-xs)', marginBottom: '16px' }} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '20px' }}>
               {[...Array(2)].map((_, i) => (
                 <div key={i}>
-                  <div className="skeleton" style={{ height: '38px', borderRadius: '10px', marginBottom: '8px' }} />
-                  <div className="skeleton" style={{ height: '8px', width: '70%', borderRadius: '6px' }} />
+                  <div className="skeleton" style={{ height: '38px', borderRadius: 'var(--r-sm)', marginBottom: '8px' }} />
+                  <div className="skeleton" style={{ height: '8px', width: '70%', borderRadius: 'var(--r-xs)' }} />
                 </div>
               ))}
             </div>
             {/* Fila de chips */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '32px' }}>
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="skeleton" style={{ flex: 1, height: '60px', borderRadius: '12px' }} />
+                <div key={i} className="skeleton" style={{ flex: 1, height: '60px', borderRadius: 'var(--r-md)' }} />
               ))}
             </div>
             {/* Gráfico */}
-            <div className="skeleton" style={{ height: '210px', borderRadius: '16px' }} />
+            <div className="skeleton" style={{ height: '210px', borderRadius: 'var(--r-lg)' }} />
           </div>
         )}
 
@@ -939,7 +932,7 @@ export default function Training() {
               style={{
                 flexShrink: 0,
                 color: 'var(--c-action-text)', fontSize: '12px', fontWeight: 700,
-                border: '1px solid var(--c-accent-border)', borderRadius: '8px',
+                border: '1px solid var(--c-accent-border)', borderRadius: 'var(--r-xs)',
                 padding: '6px 12px', background: 'transparent',
               }}
             >
@@ -974,11 +967,11 @@ export default function Training() {
                   background: 'var(--c-surface)',
                   color: 'var(--c-action-text)',
                   border: '2px solid var(--c-action)',
-                  borderRadius: '14px',
+                  borderRadius: 'var(--r-md)',
                   padding: '16px',
                   fontFamily: 'var(--font-sans)', fontSize: '14px',
-                  fontWeight: 800, textTransform: 'uppercase',
-                  letterSpacing: '0.02em',
+                  fontWeight: 800,
+                  letterSpacing: '-0.01em',
                   transition: 'opacity 150ms',
                   opacity: startingWorkout ? 0.6 : 1,
                 }}
@@ -995,11 +988,11 @@ export default function Training() {
                   background: 'var(--c-accent)',
                   color: 'var(--c-on-action)',
                   border: '2px solid transparent',
-                  borderRadius: '14px',
+                  borderRadius: 'var(--r-md)',
                   padding: '16px',
                   fontFamily: 'var(--font-sans)', fontSize: '14px',
-                  fontWeight: 800, textTransform: 'uppercase',
-                  letterSpacing: '0.02em',
+                  fontWeight: 800,
+                  letterSpacing: '-0.01em',
                   transition: 'opacity 150ms',
                   opacity: startingWorkout ? 0.6 : 1,
                 }}
@@ -1044,39 +1037,40 @@ export default function Training() {
           <div className="fade-in" style={{ marginBottom: '28px', animationDelay: '40ms' }}>
             {workouts.length > 0 && (
               <>
-                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
+                <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '14px' }}>
                   {t('Esta semana')}
                 </p>
-                {/* Antes eran dos cifras de 42px lado a lado, y una tercera de
-                    40px en la tarjeta de al lado: tres cosas empatadas a héroe,
-                    que es lo mismo que no tener ninguno. Manda una —los entrenos
-                    de esta semana, la señal honesta de constancia— y el resto
-                    baja un escalón. El volumen ya vive en su propio gráfico. */}
-                <p
-                  className="rise-in"
-                  style={{
-                    color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900,
-                    fontSize: '56px', letterSpacing: '-0.045em', lineHeight: 0.85,
-                    fontVariantNumeric: 'tabular-nums', marginBottom: '6px',
-                    animationDelay: '60ms',
-                  }}
-                >
-                  {stats.count}
-                </p>
-                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
-                  {t(stats.count === 1 ? 'entreno' : 'entrenos')}
-                </p>
+                {/* Manda una cifra —los entrenos de esta semana, la señal
+                    honesta de constancia— y el resto baja un escalón. El
+                    volumen ya vive en su propio gráfico.
 
-                {/* El mes es contexto del dato de arriba, no un segundo titular. */}
-                <p style={{
-                  marginTop: '12px', paddingTop: '10px',
-                  borderTop: '1px solid var(--c-border-subtle)',
-                  fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 400,
-                  color: 'var(--c-text-muted)', letterSpacing: '0.02em',
-                }}>
-                  <span style={{ color: 'var(--c-text)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{stats.thisMonth}</span>
-                  {' '}{t('días este mes')}
-                </p>
+                    Antes esto eran cuatro bloques apilados (etiqueta, número,
+                    unidad, filete y mes) que gastaban 190px en decir dos
+                    cosas. Ahora la unidad y el contexto del mes se apoyan al
+                    costado del número, a su misma altura: la jerarquía es la
+                    misma y ocupa la mitad. */}
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px' }}>
+                  <p
+                    className="rise-in"
+                    style={{
+                      color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900,
+                      fontSize: '56px', letterSpacing: '-0.045em', lineHeight: 0.82,
+                      fontVariantNumeric: 'tabular-nums',
+                      animationDelay: '60ms',
+                    }}
+                  >
+                    {stats.count}
+                  </p>
+                  <div style={{ paddingBottom: '4px', minWidth: 0 }}>
+                    <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-secondary)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.015em', lineHeight: 1.2 }}>
+                      {t(stats.count === 1 ? 'entreno' : 'entrenos')}
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: 500, color: 'var(--c-text-muted)', letterSpacing: '-0.01em', lineHeight: 1.3, marginTop: '2px' }}>
+                      <span style={{ color: 'var(--c-text-secondary)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{stats.thisMonth}</span>
+                      {' '}{t('días este mes')}
+                    </p>
+                  </div>
+                </div>
               </>
             )}
 
@@ -1092,21 +1086,21 @@ export default function Training() {
             >
               <Chip
                 index={0}
-                label={t('racha')}
+                label={t('Racha')}
                 value={streak > 0 ? `${streak} ${t(streak === 1 ? 'semana' : 'semanas')}` : '—'}
                 hint={streak > 0 ? null : t('Entrena esta semana')}
                 onClick={() => navigate('/progreso')}
               />
               <Chip
                 index={1}
-                label={t('kcal hoy')}
+                label={t('Kcal hoy')}
                 value={kcalToday > 0 ? `${kcalToday.toLocaleString(locale)} / ${kcalTarget.toLocaleString(locale)}` : '—'}
                 hint={kcalToday > 0 ? null : t('Registra tu comida')}
                 onClick={() => navigate('/nutrition')}
               />
               <Chip
                 index={2}
-                label={t('peso corporal')}
+                label={t('Peso corporal')}
                 value={latestWeight ? `${latestWeight.weight} ${latestWeight.unit}` : '—'}
                 hint={latestWeight ? null : t('Aún sin registrar')}
                 onClick={() => navigate('/profile?s=caracteristicas')}
@@ -1114,7 +1108,7 @@ export default function Training() {
               {profile?.is_trainer && (
                 <Chip
                   index={3}
-                  label={t('coach')}
+                  label={t('Coach')}
                   live={unread > 0}
                   value={unread > 0 ? `${unread} ${t('sin leer')}` : t('Tus clientes')}
                   onClick={() => navigate('/coach')}
@@ -1128,15 +1122,15 @@ export default function Training() {
         {!loading && !error && coachSingleDays.length > 0 && (
           <section className="fade-in" style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <p style={{ color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, letterSpacing: '-0.01em' }}>
                 {[...new Set(coachSingleDays.map(r => r.assigned_by))].length === 1
                   ? `De ${coachName(coachSingleDays[0].assigned_by)}`
                   : 'De tu entrenador'}
               </p>
               <span style={{
                 background: 'var(--c-accent-dim)', color: 'var(--c-action-text)',
-                fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em',
-                padding: '2px 7px', borderRadius: '20px', border: '1px solid var(--c-accent-border)',
+                fontSize: '9px', fontWeight: 800, letterSpacing: '-0.01em',
+                padding: '2px 7px', borderRadius: 'var(--r-xl)', border: '1px solid var(--c-accent-border)',
               }}>
                 Coach
               </span>
@@ -1151,7 +1145,7 @@ export default function Training() {
                   <div key={routine.id} style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
                     background: 'var(--c-surface)', border: '1px solid var(--c-accent-border)',
-                    borderRadius: '14px', padding: '14px 16px',
+                    borderRadius: 'var(--r-md)', padding: '14px 16px',
                   }}>
                     <div style={{ minWidth: 0 }}>
                       <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1168,7 +1162,7 @@ export default function Training() {
                       style={{
                         flexShrink: 0,
                         background: 'var(--c-accent)', color: 'var(--c-on-action)',
-                        border: 'none', borderRadius: '10px', padding: '10px 16px',
+                        border: 'none', borderRadius: 'var(--r-sm)', padding: '10px 16px',
                         fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em',
                         opacity: starting ? 0.6 : 1, transition: 'opacity 150ms',
                       }}
@@ -1184,7 +1178,7 @@ export default function Training() {
 
         {/* ── Empty state — first run ── */}
         {!loading && !error && workouts.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px' }}>
+          <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-lg)' }}>
             <p style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 800, letterSpacing: '-0.01em', marginBottom: '8px' }}>
               {t('Registra tu primer entreno')}
             </p>
@@ -1207,54 +1201,44 @@ export default function Training() {
               >
 
                 {/* ── Señal ganada: PR de la semana, o highlight si no hay PR ── */}
+                {/* El récord es lo único de la portada que se ganó esta
+                    semana, así que es lo único que sube un paso de elevación.
+                    Antes lo señalaba un filete de 3px arriba: con una sola
+                    paleta ese filete era una barra azul que competía con el
+                    botón de acción sin ser accionable. Ahora lo dice un punto
+                    y la cifra en azul, y el relieve hace el resto. */}
                 {stats.weekPR ? (
-                  <div style={{
-                    background: 'var(--c-surface)',
-                    border: '1px solid var(--c-border-subtle)',
-                    borderTop: '3px solid var(--c-record)',
-                    borderRadius: '16px',
-                    padding: '20px',
-                  }}>
-                    <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
-                      {t('Mejor marca esta semana')}
-                    </p>
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '5px',
-                      background: 'var(--c-record)',
-                      color: 'var(--c-record-ink)',
-                      borderRadius: '6px',
-                      padding: '4px 9px',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '9px', fontWeight: 700,
-                      textTransform: 'uppercase', letterSpacing: '0.1em',
-                      marginBottom: '10px',
-                    }}>
-                      ▲ {t('Nuevo récord')}
-                    </span>
-                    <p className="font-display" style={{ color: 'var(--c-text)', fontSize: '24px', lineHeight: 1, marginBottom: '8px' }}>
+                  <div className="material material-raised" style={{ padding: '22px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <span aria-hidden="true" style={{ width: '7px', height: '7px', borderRadius: '999px', background: 'var(--c-record)', flexShrink: 0 }} />
+                      <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-secondary)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.015em' }}>
+                        {t('Nuevo récord')} · {t('Mejor marca esta semana')}
+                      </p>
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, color: 'var(--c-text)', fontSize: '22px', letterSpacing: '-0.035em', lineHeight: 1.12, marginBottom: '10px' }}>
                       {stats.weekPR.exercise}
                     </p>
-                    <p style={{ color: 'var(--c-text-dim)', fontSize: '15px', fontWeight: 700, marginBottom: '4px' }}>
+                    <p style={{ color: 'var(--c-record)', fontSize: '26px', fontWeight: 900, letterSpacing: '-0.045em', fontVariantNumeric: 'tabular-nums', marginBottom: '6px' }}>
                       {stats.weekPR.weight} × {stats.weekPR.reps} reps
                     </p>
-                    <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, marginBottom: '10px' }}>
+                    <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 500, marginBottom: '12px' }}>
                       1RM estimado:{' '}
-                      <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>
+                      <span style={{ color: 'var(--c-text-secondary)', fontWeight: 700 }}>
                         {stats.weekPR.rm} {stats.weekPR.unit === 'lb' ? 'lb' : 'kg'}
                       </span>
                     </p>
-                    <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, borderTop: '1px solid var(--c-border-subtle)', paddingTop: '10px', lineHeight: 1.5 }}>
+                    <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 500, borderTop: '1px solid var(--c-border-subtle)', paddingTop: '12px', lineHeight: 1.5 }}>
                       {t('Superaste tu mejor registro en este ejercicio.')}
                     </p>
                   </div>
                 ) : todayHighlight ? (
                   <div style={{
                     background: 'var(--c-surface)',
-                    border: '1px solid var(--c-border-subtle)',
-                    borderRadius: '16px',
+                    border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+                    borderRadius: 'var(--r-lg)',
                     padding: '20px',
                   }}>
-                    <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
+                    <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '10px' }}>
                       {t(todayHighlight.label)}
                     </p>
                     <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 600, marginBottom: '4px', lineHeight: 1.3 }}>
@@ -1332,7 +1316,7 @@ export default function Training() {
             {/* Lo que viene — la entrada a planear un día concreto. */}
             <div style={{ display: 'flex', alignItems: 'stretch', marginTop: '10px' }}>
               <Chip
-                label={t('próximo')}
+                label={t('Próximo')}
                 value={nextPlanned ? (nextPlanned.title || KINDS[nextPlanned.kind]?.label || '—') : '—'}
                 hint={nextPlanned ? null : t('Toca un día para planear')}
                 onClick={() => setSelectedDay(

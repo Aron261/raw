@@ -103,7 +103,7 @@ export default function DaySheet({
       {/* ── Entrenos registrados (solo lectura) ── */}
       {workouts.length > 0 && (
         <div style={{ marginBottom: '18px' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+          <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '8px' }}>
             {t('Registrado')}
           </p>
           {workouts.map(w => (
@@ -113,7 +113,7 @@ export default function DaySheet({
               style={{
                 width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px',
                 background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
-                borderRadius: '10px', padding: '11px 12px', marginBottom: '6px',
+                borderRadius: 'var(--r-sm)', padding: '11px 12px', marginBottom: '6px',
               }}
             >
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--c-accent)', flexShrink: 0 }} />
@@ -129,7 +129,7 @@ export default function DaySheet({
       {/* ── Sesiones planificadas ── */}
       {sessions.length > 0 && (
         <div style={{ marginBottom: '18px' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+          <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '8px' }}>
             {t('Planeado')}
           </p>
           {sessions.map(s => {
@@ -141,7 +141,7 @@ export default function DaySheet({
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
-                  borderRadius: '10px', padding: '10px 12px', marginBottom: '6px',
+                  borderRadius: 'var(--r-sm)', padding: '10px 12px', marginBottom: '6px',
                   opacity: busy ? 0.5 : s.status === 'skipped' ? 0.55 : 1,
                 }}
               >
@@ -170,7 +170,7 @@ export default function DaySheet({
                     disabled={busy}
                     style={{
                       flexShrink: 0, background: 'var(--c-accent)', color: 'var(--c-on-action)',
-                      border: 'none', borderRadius: '8px', padding: '7px 10px',
+                      border: 'none', borderRadius: 'var(--r-xs)', padding: '7px 10px',
                       fontSize: '10px', fontWeight: 800,
                     }}
                   >

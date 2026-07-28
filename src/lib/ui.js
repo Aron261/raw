@@ -61,8 +61,7 @@ export function hoverColor(active = '#fff', base = '#444') {
 export const LABEL_STYLE = {
   fontSize: '10px',
   fontWeight: 700,
-  textTransform: 'uppercase',
-  letterSpacing: '0.09em',
+  letterSpacing: '-0.01em',
   color: 'var(--c-text-dim)',
 }
 
@@ -73,6 +72,6 @@ export const ERROR_STYLE = {
   color: 'var(--c-action-text)',
   fontSize: '12px',
   padding: '10px 12px',
-  borderRadius: '10px',
+  borderRadius: 'var(--r-sm)',
   lineHeight: 1.4,
 }

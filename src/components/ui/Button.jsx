@@ -11,10 +11,12 @@ const VARIANTS = {
   danger:    { background: 'transparent',       color: 'var(--c-action-text)', border: '1px solid var(--c-action-border)' },
 }
 
+// Más aire que antes: en "Cuerpo" un control es una cosa que se toca, y el
+// área táctil forma parte de cómo se siente. lg queda en 52px de alto.
 const SIZES = {
-  sm: { padding: '8px 14px',  fontSize: '11px' },
-  md: { padding: '12px 16px', fontSize: '13px' },
-  lg: { padding: '16px',      fontSize: '14px' },
+  sm: { padding: '10px 16px', fontSize: '12px', borderRadius: 'var(--r-sm)' },
+  md: { padding: '14px 18px', fontSize: '13px', borderRadius: 'var(--r-md)' },
+  lg: { padding: '18px',      fontSize: '15px', borderRadius: 'var(--r-lg)' },
 }
 
 const Button = forwardRef(function Button(
@@ -31,17 +33,19 @@ const Button = forwardRef(function Button(
     <motion.button
       ref={ref}
       disabled={isOff}
-      whileTap={isOff || reduce ? undefined : { scale: 0.96 }}
+      whileTap={isOff || reduce ? undefined : { scale: 0.975 }}
       transition={SPRING_PRESS}
       style={{
         ...v, ...s,
         width: full ? '100%' : undefined,
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-        fontFamily: 'var(--font-sans)', fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1,
-        borderRadius: 'var(--r-md)',
+        fontFamily: 'var(--font-sans)', fontWeight: 800, letterSpacing: '-0.015em', lineHeight: 1,
+        // El primario tiene cuerpo: sube un paso sobre la superficie en la que
+        // se apoya. Los demás son planos a propósito — si todo flota, nada flota.
+        boxShadow: variant === 'primary' && !isOff ? 'var(--e-1)' : 'none',
         cursor: isOff ? 'default' : 'pointer',
         opacity: disabled ? 0.4 : 1,
-        transition: 'opacity 160ms var(--ease-out)',
+        transition: 'opacity 160ms var(--ease-out), box-shadow 200ms var(--ease-out)',
         ...style,
       }}
       {...rest}
