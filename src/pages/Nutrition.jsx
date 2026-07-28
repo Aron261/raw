@@ -33,6 +33,17 @@ function labelForISO(iso, t = (x) => x, locale = 'es-CO') {
 
 const fmt = (n, locale = 'es-CO') => Math.round(n).toLocaleString(locale)
 
+// Los botones de día: fantasma dentro de la tarjeta del resumen, no dos
+// superficies elevadas propias compitiendo con ella.
+const dayNavBtn = (disabled) => ({
+  width: '36px', height: '36px', flexShrink: 0,
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  color: disabled ? 'var(--c-text-ghost)' : 'var(--c-text-dim)',
+  fontSize: '17px', background: 'transparent', border: 'none',
+  borderRadius: '999px', opacity: disabled ? 0.5 : 1,
+  cursor: disabled ? 'default' : 'pointer',
+})
+
 // ── Sheet: agregar / editar comida ───────────────────────────────────────
 const PORTIONS = [
   { m: 0.5, label: '½' },
@@ -425,38 +436,6 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           />
         )}
 
-        {/* ── Navegación de día ── */}
-        <div className="fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '22px' }}>
-          <button
-            onClick={() => setDateISO(shiftISO(dateISO, -1))}
-            aria-label="Día anterior"
-            style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text-dim)', fontSize: '18px', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)', background: 'var(--c-surface)' }}
-          >
-            ‹
-          </button>
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '12.5px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text)' }}>
-              {labelForISO(dateISO, t, locale)}
-            </p>
-            {!isToday && (
-              <button
-                onClick={() => setDateISO(today)}
-                style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, color: 'var(--c-action-text)', marginTop: '2px', letterSpacing: '-0.01em' }}
-              >
-                {t('Volver a hoy')}
-              </button>
-            )}
-          </div>
-          <button
-            onClick={() => !isToday && setDateISO(shiftISO(dateISO, 1))}
-            aria-label="Día siguiente"
-            disabled={isToday}
-            style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isToday ? 'var(--c-text-ghost)' : 'var(--c-text-dim)', fontSize: '18px', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)', background: 'var(--c-surface)', opacity: isToday ? 0.5 : 1 }}
-          >
-            ›
-          </button>
-        </div>
-
         {error && (
           <div style={{ ...ERROR_STYLE, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
             <span>{readOnly ? t('No pudimos cargar sus comidas.') : t('No pudimos cargar tus comidas.')}</span>
@@ -469,8 +448,45 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           </div>
         )}
 
-        {/* ── Hero: kcal del día ── */}
-        <div className="fade-in" style={{ marginBottom: '26px', animationDelay: '40ms' }}>
+        {/* ── El día ──
+            El resumen —calorías, progreso y macros— es lo que se viene a ver
+            y estaba suelto sobre el fondo, mientras las comidas de abajo sí
+            tenían estructura. Ahora es una superficie del sistema, y la
+            navegación de día entra en su cabecera: eran 90px de cromo (dos
+            botones de 44px con elevación propia) para un control que se toca
+            mucho menos que «+». */}
+        <div className="fade-in material" style={{ padding: '18px', marginBottom: '22px', animationDelay: '40ms' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '16px' }}>
+            <button
+              onClick={() => setDateISO(shiftISO(dateISO, -1))}
+              aria-label={t('Día anterior')}
+              style={dayNavBtn(false)}
+            >
+              ‹
+            </button>
+            <div style={{ textAlign: 'center', minWidth: 0 }}>
+              <p style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
+                {labelForISO(dateISO, t, locale)}
+              </p>
+              {!isToday && (
+                <button
+                  onClick={() => setDateISO(today)}
+                  style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, color: 'var(--c-action-text)', marginTop: '2px', letterSpacing: '-0.01em' }}
+                >
+                  {t('Volver a hoy')}
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => !isToday && setDateISO(shiftISO(dateISO, 1))}
+              aria-label={t('Día siguiente')}
+              disabled={isToday}
+              style={dayNavBtn(isToday)}
+            >
+              ›
+            </button>
+          </div>
+
           <p className="tnum" style={{ lineHeight: 0.9, marginBottom: '10px' }}>
             <span style={{ fontFamily: 'var(--font-sans)', fontSize: '52px', fontWeight: 900, letterSpacing: '-0.05em', color: kcalOver ? 'var(--c-action-text)' : 'var(--c-text)' }}>
               {fmt(shownTotals.kcal)}
@@ -528,16 +544,13 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           </div>
         ) : (
           <div className="fade-in" style={{ animationDelay: '80ms' }}>
-            {/* Primer día vacío: enseña el bucle de registro rápido */}
+            {/* El bloque de «Registra tu primera comida» ocupaba 250px para
+                decir lo mismo que ya dicen las cuatro filas de abajo, cada una
+                con su «Toca + para añadir». Se queda una línea. */}
             {!readOnly && visibleCount === 0 && (
-              <div style={{ textAlign: 'center', padding: '28px 20px', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-lg)', marginBottom: '24px' }}>
-                <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em', marginBottom: '6px' }}>
-                  {t('Registra tu primera comida')}
-                </p>
-                <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', lineHeight: 1.5, maxWidth: '32ch', margin: '0 auto' }}>
-                  {t('Toca + en cualquier comida, busca un alimento y regístralo en segundos.')}
-                </p>
-              </div>
+              <p style={{ color: 'var(--c-text-muted)', fontSize: '12.5px', lineHeight: 1.5, marginBottom: '18px' }}>
+                {t('Toca + en cualquier comida, busca un alimento y regístralo en segundos.')}
+              </p>
             )}
             {MEALS.map(m => {
               const list = byMeal[m.id]
@@ -578,7 +591,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
 
                   {!isCollapsed && (list.length === 0 ? (
                     <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', padding: '8px 0 2px', borderTop: '1px solid var(--c-border-subtle)' }}>
-                      {t('Nada anotado todavía. Toca «+» para añadir.')}
+                      {t('Nada anotado')}
                     </p>
                   ) : (
                     <div>

@@ -722,6 +722,8 @@ const EN = {
   'Sugerencias · toca para llenar, + para registrar ya': 'Suggestions · tap to fill, + to log right away',
   'Porción': 'Portion',
   'porción': 'portion',
+  'Día anterior': 'Previous day',
+  'Día siguiente': 'Next day',
   'Volver a hoy': 'Back to today',
   'tu cliente': 'your client',
   'Plan': 'Plan',
@@ -737,6 +739,7 @@ const EN = {
 
   // ── Nutrición ──
   'Nutrición': 'Nutrition',
+  'Nada anotado': 'Nothing logged',
   'Nada anotado todavía. Toca «+» para añadir.': 'Nothing logged yet. Tap "+" to add.',
   'Añadir comida': 'Add food',
   'Registrar peso': 'Log weight',
