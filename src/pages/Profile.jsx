@@ -711,12 +711,12 @@ export function ClaudeSection() {
           {[['Puede', CAN_DO, '✓', 'var(--c-action-text)'],
             ['No puede', CANNOT_DO, '✕', 'var(--c-text-muted)']].map(([title, items, mark, color]) => (
             <div key={title} style={{ marginBottom: '12px' }}>
-              <p style={{ ...LABEL, marginBottom: '6px' }}>{title}</p>
+              <p style={{ ...LABEL, marginBottom: '6px' }}>{t(title)}</p>
               <ul style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                {items.map(t => (
-                  <li key={t} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                {items.map(item => (
+                  <li key={item} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
                     <span aria-hidden="true" style={{ color, fontSize: '11px', lineHeight: 1.5, flexShrink: 0 }}>{mark}</span>
-                    <span style={{ color: 'var(--c-text-secondary)', fontSize: '12px', lineHeight: 1.5 }}>{t}</span>
+                    <span style={{ color: 'var(--c-text-secondary)', fontSize: '12px', lineHeight: 1.5 }}>{t(item)}</span>
                   </li>
                 ))}
               </ul>

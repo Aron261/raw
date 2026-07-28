@@ -66,6 +66,16 @@ describe('la app en inglés', () => {
     expect(en('Dar beta')).toBe('Grant beta')
   })
 
+  it('traduce la autorización y la rutina compartida', () => {
+    expect(en('Autorizar')).toBe('Authorise')
+    expect(en('Conectar RAW con')).toBe('Connect RAW with')
+    expect(en('No podrá')).toBe('It will not be able to')
+    expect(en('Ver datos de otras personas')).toBe("See other people's data")
+    expect(en('Rutina compartida')).toBe('Shared routine')
+    expect(en('Guardar en mis rutinas')).toBe('Save to my routines')
+    expect(en('Este enlace ya no está disponible')).toBe('This link is no longer available')
+  })
+
   it('el plural funciona en las dos formas', () => {
     expect(en('entreno')).toBe('workout')
     expect(en('entrenos')).toBe('workouts')

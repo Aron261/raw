@@ -6,6 +6,7 @@ import { useBetaGate } from '../hooks/useBetaGate'
 import { ERROR_STYLE } from '../lib/ui'
 import { Button, Logo } from '../components/ui'
 import BetaGate from './BetaGate'
+import { useLang } from '../hooks/useLang'
 
 // Pantalla de autorización OAuth.
 //
@@ -42,6 +43,7 @@ const CANNOT = [
 ]
 
 function Section({ title, items, tone }) {
+  const { t } = useLang()
   const color = tone === 'no' ? 'var(--c-text-muted)' : 'var(--c-text-secondary)'
   const mark = tone === 'no' ? '✕' : '✓'
   const markColor = tone === 'no' ? 'var(--c-text-muted)' : 'var(--c-accent)'
@@ -55,10 +57,10 @@ function Section({ title, items, tone }) {
         {title}
       </p>
       <ul style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {items.map(t => (
-          <li key={t} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+        {items.map(item => (
+          <li key={item} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
             <span aria-hidden="true" style={{ color: markColor, fontSize: '11px', lineHeight: 1.5, flexShrink: 0 }}>{mark}</span>
-            <span style={{ color, fontSize: '12px', lineHeight: 1.5 }}>{t}</span>
+            <span style={{ color, fontSize: '12px', lineHeight: 1.5 }}>{t(item)}</span>
           </li>
         ))}
       </ul>
@@ -67,6 +69,7 @@ function Section({ title, items, tone }) {
 }
 
 export default function OAuthConsent() {
+  const { t } = useLang()
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
@@ -101,7 +104,7 @@ export default function OAuthConsent() {
       }
       setDetails(data)
     } catch (err) {
-      setError(err.message || 'No se pudo cargar la solicitud de autorización.')
+      setError(err.message || t('No se pudo cargar la solicitud de autorización.'))
     } finally {
       setLoading(false)
     }
@@ -121,7 +124,7 @@ export default function OAuthConsent() {
       if (data?.redirect_url) window.location.href = data.redirect_url
       else navigate('/', { replace: true })
     } catch (err) {
-      setError(err.message || 'No se pudo completar la autorización.')
+      setError(err.message || t('No se pudo completar la autorización.'))
       setWorking(null)
     }
   }
@@ -137,13 +140,13 @@ export default function OAuthConsent() {
   if (!authorizationId) {
     return (
       <Shell>
-        <h1 style={H1}>Solicitud incompleta</h1>
+        <h1 style={H1}>{t('Solicitud incompleta')}</h1>
         <p style={P}>
           Falta el identificador de autorización. Vuelve a intentar la conexión desde la
           aplicación que quieres conectar.
         </p>
         <Button onClick={() => navigate('/')} variant="secondary" style={{ marginTop: '18px' }}>
-          Ir a RAW
+          {t('Ir a RAW')}
         </Button>
       </Shell>
     )
@@ -157,7 +160,7 @@ export default function OAuthConsent() {
   if (!details) {
     return (
       <Shell>
-        <h1 style={H1}>No se pudo cargar la solicitud</h1>
+        <h1 style={H1}>{t('No se pudo cargar la solicitud')}</h1>
         <p style={P}>
           No hemos podido verificar quién pide acceso, así que no se muestra nada que autorizar.
           Vuelve a intentarlo desde la aplicación que quieres conectar.
@@ -170,13 +173,13 @@ export default function OAuthConsent() {
     )
   }
 
-  const clientName = details?.client?.client_name || details?.client_name || 'Una aplicación externa'
+  const clientName = details?.client?.client_name || details?.client_name || t('Una aplicación externa')
   const redirectUri = details?.redirect_uri || details?.client?.redirect_uri
 
   return (
     <Shell>
       <h1 style={H1}>
-        Conectar RAW con <span style={{ color: 'var(--c-action-text)' }}>{clientName}</span>
+        {t('Conectar RAW con')} <span style={{ color: 'var(--c-action-text)' }}>{clientName}</span>
       </h1>
       <p style={P}>
         Le darás acceso a tus datos de entrenamiento para que puedas planificar desde ahí.
@@ -185,9 +188,9 @@ export default function OAuthConsent() {
 
       <div style={{ height: '1px', background: 'var(--c-border-subtle)', margin: '20px 0' }} />
 
-      <Section title="Podrá leer" items={CAN_READ} />
-      <Section title="Podrá escribir" items={CAN_WRITE} />
-      <Section title="No podrá" items={CANNOT} tone="no" />
+      <Section title={t('Podrá leer')} items={CAN_READ} />
+      <Section title={t('Podrá escribir')} items={CAN_WRITE} />
+      <Section title={t('No podrá')} items={CANNOT} tone="no" />
 
       {redirectUri && (
         <div style={{
@@ -199,7 +202,7 @@ export default function OAuthConsent() {
             letterSpacing: '0.14em', textTransform: 'uppercase',
             color: 'var(--c-text-dim)', marginBottom: '4px',
           }}>
-            Te devolverá a
+            {t('Te devolverá a')}
           </p>
           {/* Se muestra tal cual: si no reconoces este destino, no autorices. */}
           <p style={{
@@ -215,10 +218,10 @@ export default function OAuthConsent() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <Button onClick={() => decide('approve')} disabled={!!working} loading={working === 'approve'}>
-          Autorizar
+          {t('Autorizar')}
         </Button>
         <Button onClick={() => decide('deny')} disabled={!!working} variant="secondary">
-          Cancelar
+          {t('Cancelar')}
         </Button>
       </div>
 
@@ -226,7 +229,7 @@ export default function OAuthConsent() {
         color: 'var(--c-text-dim)', fontSize: '10px', lineHeight: 1.5,
         marginTop: '16px', textAlign: 'center',
       }}>
-        Si no has sido tú quien inició esta conexión, cancela.
+        {t('Si no has sido tú quien inició esta conexión, cancela.')}
       </p>
     </Shell>
   )
@@ -241,6 +244,7 @@ const H1 = {
 const P = { color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.5 }
 
 function Shell({ children }) {
+  const { t } = useLang()
   return (
     <div className="min-h-dvh" style={{ background: 'var(--c-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div className="fade-in" style={{ width: '100%', maxWidth: '380px' }}>
@@ -248,7 +252,7 @@ function Shell({ children }) {
           <Logo size={64} />
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '34px', letterSpacing: '0.02em', color: 'var(--c-text)', lineHeight: 1 }}>RAW</span>
           <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-            Autorización
+            {t('Autorización')}
           </p>
         </div>
         <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: '16px', padding: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
@@ -260,6 +264,7 @@ function Shell({ children }) {
 }
 
 function Splash() {
+  const { t } = useLang()
   return (
     <div className="min-h-dvh" style={{ background: 'var(--c-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <span style={{ color: 'var(--c-text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.2em' }} className="animate-pulse">

@@ -7,6 +7,7 @@ import { useBetaGate } from '../hooks/useBetaGate'
 import { sharedRoutineToInput, sharePath, countExercises } from '../lib/share'
 import { ERROR_STYLE } from '../lib/ui'
 import { Button, Logo } from '../components/ui'
+import { useLang } from '../hooks/useLang'
 
 // Pantalla pública de una rutina compartida (/r/:token).
 //
@@ -21,6 +22,7 @@ const eyebrow = {
 }
 
 function Shell({ children }) {
+  const { t } = useLang()
   return (
     <div className="min-h-dvh" style={{ background: 'var(--c-bg)' }}>
       <div style={{ padding: '0 16px 140px', maxWidth: '480px', margin: '0 auto', width: '100%' }}>
@@ -31,6 +33,7 @@ function Shell({ children }) {
 }
 
 function Splash() {
+  const { t } = useLang()
   return (
     <div className="min-h-dvh" style={{ background: 'var(--c-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <span className="animate-pulse" style={{ color: 'var(--c-text-muted)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
@@ -41,6 +44,7 @@ function Splash() {
 }
 
 function Brand() {
+  const { t } = useLang()
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '32px', paddingBottom: '24px' }}>
       <Logo size={22} />
@@ -54,6 +58,7 @@ function Brand() {
 // Un día del plan, en solo lectura: el nombre, el enfoque y sus ejercicios con
 // las series objetivo. Mismo lenguaje visual que la tarjeta del ciclo activo.
 function DayCard({ day, index }) {
+  const { t } = useLang()
   const exercises = day.exercises || []
   return (
     <div style={{
@@ -70,7 +75,7 @@ function DayCard({ day, index }) {
       </div>
 
       {exercises.length === 0 ? (
-        <p style={{ color: 'var(--c-text-muted)', fontSize: '12px' }}>Sin ejercicios.</p>
+        <p style={{ color: 'var(--c-text-muted)', fontSize: '12px' }}>{t('Sin ejercicios.')}</p>
       ) : (
         exercises.map((ex, i) => (
           <div key={i} style={{
@@ -93,6 +98,7 @@ function DayCard({ day, index }) {
 }
 
 export default function SharedRoutine() {
+  const { t } = useLang()
   const { token } = useParams()
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
@@ -112,12 +118,12 @@ export default function SharedRoutine() {
       <Shell>
         <Brand />
         <h1 style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '8px' }}>
-          Este enlace ya no está disponible
+          {t(t('Este enlace ya no está disponible'))}
         </h1>
         <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', lineHeight: 1.5, marginBottom: '20px' }}>
-          Puede que quien lo compartió lo haya desactivado. Pídele uno nuevo.
+          {t('Puede que quien lo compartió lo haya desactivado. Pídele uno nuevo.')}
         </p>
-        <Button variant="secondary" onClick={() => navigate('/')}>Ir a RAW</Button>
+        <Button variant="secondary" onClick={() => navigate('/')}>{t('Ir a RAW')}</Button>
       </Shell>
     )
   }
@@ -155,7 +161,7 @@ export default function SharedRoutine() {
       // porque esta pantalla desaparece en el mismo tick.
       navigate('/rutinas', { state: { imported: shared.name } })
     } catch (e) {
-      setSaveError(e.message || 'No se pudo guardar la rutina')
+      setSaveError(e.message || t('No se pudo guardar la rutina'))
       setSaving(false)
     }
   }
@@ -166,14 +172,14 @@ export default function SharedRoutine() {
 
       <div className="fade-in">
         <p style={{ ...eyebrow, marginBottom: '8px' }}>
-          {isCycle ? 'Ciclo compartido' : 'Rutina compartida'}
+          {t(isCycle ? 'Ciclo compartido' : 'Rutina compartida')}
         </p>
         <h1 style={{ color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
           {shared.name}
         </h1>
         {shared.shared_by && (
           <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', marginTop: '8px' }}>
-            Compartida por <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>{shared.shared_by}</span>
+            {t('Compartida por')} <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>{shared.shared_by}</span>
           </p>
         )}
 
@@ -217,12 +223,12 @@ export default function SharedRoutine() {
             disabled={saving || checkingAccess}
             onClick={handleSave}
           >
-            {saving ? 'Guardando...' : canSave ? 'Guardar en mis rutinas' : 'Entrar y guardarla'}
+            {t(saving ? 'Guardando...' : canSave ? 'Guardar en mis rutinas' : 'Entrar y guardarla')}
           </Button>
           <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', lineHeight: 1.45, textAlign: 'center', marginTop: '8px' }}>
             {canSave
-              ? 'Se guarda como una copia tuya: edítala sin tocar la original.'
-              : 'Necesitas una cuenta de RAW para guardarla.'}
+              ? t('Se guarda como una copia tuya: edítala sin tocar la original.')
+              : t('Necesitas una cuenta de RAW para guardarla.')}
           </p>
         </div>
       </div>
