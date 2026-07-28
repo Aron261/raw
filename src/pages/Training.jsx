@@ -1039,23 +1039,36 @@ export default function Training() {
                 <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
                   Esta semana
                 </p>
-                {/* El volumen ya no vive aquí: es el subtítulo de su propio
-                    gráfico, que muestra exactamente la misma semana. */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                  {[
-                    { value: stats.count, label: stats.count === 1 ? 'entreno' : 'entrenos' },
-                    { value: stats.thisMonth, label: 'días este mes' },
-                  ].map((s, i) => (
-                    <div key={s.label} style={{ paddingLeft: i > 0 ? '16px' : 0, borderLeft: i > 0 ? '1px solid var(--c-border-subtle)' : 'none' }}>
-                      <p className="rise-in" style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '42px', letterSpacing: '-0.04em', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', marginBottom: '8px', animationDelay: `${60 + i * 70}ms` }}>
-                        {s.value}
-                      </p>
-                      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
-                        {s.label}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                {/* Antes eran dos cifras de 42px lado a lado, y una tercera de
+                    40px en la tarjeta de al lado: tres cosas empatadas a héroe,
+                    que es lo mismo que no tener ninguno. Manda una —los entrenos
+                    de esta semana, la señal honesta de constancia— y el resto
+                    baja un escalón. El volumen ya vive en su propio gráfico. */}
+                <p
+                  className="rise-in"
+                  style={{
+                    color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900,
+                    fontSize: '56px', letterSpacing: '-0.045em', lineHeight: 0.85,
+                    fontVariantNumeric: 'tabular-nums', marginBottom: '6px',
+                    animationDelay: '60ms',
+                  }}
+                >
+                  {stats.count}
+                </p>
+                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
+                  {stats.count === 1 ? 'entreno' : 'entrenos'}
+                </p>
+
+                {/* El mes es contexto del dato de arriba, no un segundo titular. */}
+                <p style={{
+                  marginTop: '12px', paddingTop: '10px',
+                  borderTop: '1px solid var(--c-border-subtle)',
+                  fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 400,
+                  color: 'var(--c-text-muted)', letterSpacing: '0.02em',
+                }}>
+                  <span style={{ color: 'var(--c-text)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{stats.thisMonth}</span>
+                  {' '}días este mes
+                </p>
               </>
             )}
 
@@ -1239,7 +1252,7 @@ export default function Training() {
                     <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 600, marginBottom: '4px', lineHeight: 1.3 }}>
                       {todayHighlight.title}
                     </p>
-                    <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '40px', letterSpacing: '-0.04em', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', marginBottom: '8px' }}>
+                    <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '32px', letterSpacing: '-0.04em', lineHeight: 0.9, fontVariantNumeric: 'tabular-nums', marginBottom: '8px' }}>
                       {todayHighlight.value}
                     </p>
                     <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, lineHeight: 1.5 }}>
