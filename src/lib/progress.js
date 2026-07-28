@@ -63,36 +63,35 @@ export function compareSet(current, previous) {
   return { verdict: d > 0 ? 'beat' : 'short', axis: 'e1rm', delta: d }
 }
 
-const num = (n) => Math.abs(n).toLocaleString('es-CO', { maximumFractionDigits: 1 })
+const num = (n, locale = 'es-CO') => Math.abs(n).toLocaleString(locale, { maximumFractionDigits: 1 })
 
 /**
  * La etiqueta corta que va en la fila. Vive junto a la unidad de la serie, así
  * que el eje "peso" no repite kg dos veces si no hace falta — pero sí lo dice,
  * porque una fila con "+2,5" suelto se confunde con reps.
  */
-export function formatDelta(cmp, unit = 'kg') {
+export function formatDelta(cmp, unit = 'kg', t = (s) => s, locale = 'es-CO') {
   if (!cmp) return null
   if (cmp.verdict === 'matched') return '='
   const sign = cmp.delta > 0 ? '+' : '−'
   if (cmp.axis === 'reps') {
-    return `${sign}${num(cmp.delta)} ${Math.abs(cmp.delta) === 1 ? 'rep' : 'reps'}`
+    return `${sign}${num(cmp.delta, locale)} ${t(Math.abs(cmp.delta) === 1 ? 'rep' : 'reps')}`
   }
-  if (cmp.axis === 'e1rm') return `${sign}${num(cmp.delta)} ${unit} 1RM`
-  return `${sign}${num(cmp.delta)} ${unit}`
+  if (cmp.axis === 'e1rm') return `${sign}${num(cmp.delta, locale)} ${unit} 1RM`
+  return `${sign}${num(cmp.delta, locale)} ${unit}`
 }
 
 /**
  * Lo que oye quien no ve la pantalla. El signo y el color no le llegan, así que
  * la frase tiene que decir el veredicto con palabras.
  */
-export function describeDelta(cmp, unit = 'kg') {
+export function describeDelta(cmp, unit = 'kg', t = (s) => s, locale = 'es-CO') {
   if (!cmp) return null
-  if (cmp.verdict === 'matched') return 'Igual que la vez anterior'
-  const more = cmp.delta > 0
-  const tail = more ? 'más que la vez anterior' : 'menos que la vez anterior'
+  if (cmp.verdict === 'matched') return t('Igual que la vez anterior')
+  const tail = t(cmp.delta > 0 ? 'más que la vez anterior' : 'menos que la vez anterior')
   if (cmp.axis === 'reps') {
-    return `${num(cmp.delta)} ${Math.abs(cmp.delta) === 1 ? 'repetición' : 'repeticiones'} ${tail}`
+    return `${num(cmp.delta, locale)} ${t(Math.abs(cmp.delta) === 1 ? 'repetición' : 'repeticiones')} ${tail}`
   }
-  if (cmp.axis === 'e1rm') return `${num(cmp.delta)} ${unit} de 1RM estimado ${tail}`
-  return `${num(cmp.delta)} ${unit} ${tail}`
+  if (cmp.axis === 'e1rm') return `${num(cmp.delta, locale)} ${unit} ${t('de 1RM estimado')} ${tail}`
+  return `${num(cmp.delta, locale)} ${unit} ${tail}`
 }

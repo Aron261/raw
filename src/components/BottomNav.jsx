@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { hasTabBar } from '../lib/sections'
+import { useLang } from '../hooks/useLang'
 
 // ── Icons ──────────────────────────────────────────────────────────────
 function PerfilIcon() {
@@ -97,12 +98,12 @@ function TabItem({ to, label, Icon, exact }) {
 }
 
 // ── Center Start action ───────────────────────────────────────────────
-function StartAction({ onClick }) {
+function StartAction({ onClick, label }) {
   return (
     <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
       <button
         onClick={onClick}
-        aria-label="Agregar"
+        aria-label={label}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           width: '48px', height: '48px', borderRadius: '16px',
@@ -138,6 +139,7 @@ function StartAction({ onClick }) {
 // "Menú" desapareció antes: Inicio absorbió aquel índice.
 export default function BottomNav({ onStart }) {
   const { pathname } = useLocation()
+  const { t } = useLang()
   if (!hasTabBar(pathname)) return null
 
   return (
@@ -166,11 +168,11 @@ export default function BottomNav({ onStart }) {
         maxWidth: '480px', margin: '0 auto',
         height: '60px', padding: '0 4px',
       }}>
-        <TabItem to="/"         label="Inicio"   Icon={BarbellIcon} exact />
-        <TabItem to="/progreso" label="Progreso" Icon={HistoryIcon} />
-        <StartAction onClick={onStart} />
-        <TabItem to="/rutinas"  label="Rutinas"  Icon={ProgramaIcon} />
-        <TabItem to="/profile"  label="Perfil"   Icon={PerfilIcon} />
+        <TabItem to="/"         label={t('Inicio')}   Icon={BarbellIcon} exact />
+        <TabItem to="/progreso" label={t('Progreso')} Icon={HistoryIcon} />
+        <StartAction onClick={onStart} label={t('Agregar')} />
+        <TabItem to="/rutinas"  label={t('Rutinas')}  Icon={ProgramaIcon} />
+        <TabItem to="/profile"  label={t('Perfil')}   Icon={PerfilIcon} />
       </div>
     </nav>
   )

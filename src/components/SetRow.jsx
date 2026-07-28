@@ -5,13 +5,14 @@ import PRBadge from './PRBadge'
 import { calc1RM } from '../hooks/useWorkout'
 import { compareSet, formatDelta, describeDelta } from '../lib/progress'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
+import { useLang } from '../hooks/useLang'
 import { pressable, PRESS_TRANSITION } from '../lib/ui'
 
 // ── Delta contra la misma serie de la vez anterior ───────────────────────
 // Azul de dato, no lima: la lima está reservada a un récord absoluto y superar
 // tu serie de la semana pasada no lo es. Y quedarse corto se dice en gris, no
 // en rojo: bajar el peso en una semana de descarga es el plan, no un fallo.
-function SetDelta({ cmp, unit }) {
+function SetDelta({ cmp, unit, t, locale }) {
   if (!cmp) return null
   const beat = cmp.verdict === 'beat'
   return (
@@ -34,7 +35,7 @@ function SetDelta({ cmp, unit }) {
           whiteSpace: 'nowrap',
         }}
       >
-        {formatDelta(cmp, unit)}
+        {formatDelta(cmp, unit, t, locale)}
       </span>
       <span
         aria-hidden="true"
@@ -44,9 +45,9 @@ function SetDelta({ cmp, unit }) {
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}
       >
-        vs. la vez anterior
+        {t('vs. la vez anterior')}
       </span>
-      <span className="sr-only">{describeDelta(cmp, unit)}</span>
+      <span className="sr-only">{describeDelta(cmp, unit, t, locale)}</span>
     </div>
   )
 }
@@ -83,6 +84,7 @@ export default function SetRow({
   const [saveError, setSaveError] = useState(false)
   const pendingMarkDone = useRef(false)
   const online = useOnlineStatus()
+  const { t, locale } = useLang()
   const reduce = useReducedMotion()
   // When ✓ / ✕ is the element being pressed, it steals focus from the inputs
   // and fires their onBlur. This flag tells blur to stand down so we don't
@@ -236,7 +238,7 @@ export default function SetRow({
         {isPR && <PRBadge small />}
         {set1RM > 0 && <span style={rmStyle}>~{set1RM}</span>}
       </div>
-      <SetDelta cmp={compareSet({ reps: set.reps, weight: set.weight }, previousSet)} unit={unit} />
+      <SetDelta cmp={compareSet({ reps: set.reps, weight: set.weight }, previousSet)} unit={unit} t={t} locale={locale} />
       </>
     )
   }
@@ -361,7 +363,7 @@ export default function SetRow({
       </button>
     </div>
 
-    <SetDelta cmp={comparison} unit={unit} />
+    <SetDelta cmp={comparison} unit={unit} t={t} locale={locale} />
 
     {saveError && (
       <div role="alert" style={errorCaptionStyle}>

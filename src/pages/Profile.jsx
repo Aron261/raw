@@ -11,6 +11,7 @@ import { useTrainer } from '../hooks/useTrainer'
 import { useInvites } from '../hooks/useInvites'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { useTheme } from '../hooks/useTheme'
+import { useLang } from '../hooks/useLang'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Button, Sheet, UnitToggle } from '../components/ui'
 
@@ -462,6 +463,7 @@ function BodyWeightSummary({ unit, onOpen }) {
 // ── Appearance: mode + palette ───────────────────────────────────────────
 function ThemeSection() {
   const { preference, setPreference, palette, setPalette } = useTheme()
+  const { t } = useLang()
   const modeOpts = [
     { value: 'auto',  label: 'Auto',   icon: '◐' },
     { value: 'light', label: 'Claro',  icon: '☀' },
@@ -517,13 +519,52 @@ function ThemeSection() {
       </div>
 
       <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '16px 0 10px' }}>
-        Nombre de los ejercicios
+        {t('Idioma de la app')}
+      </p>
+      <AppLangPicker cell={cell} />
+      <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '8px' }}>
+        {t('Cambia los textos de la app. No toca los nombres de los ejercicios.')}
+      </p>
+
+      <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '16px 0 10px' }}>
+        {t('Nombre de los ejercicios')}
       </p>
       <ExerciseLangPicker cell={cell} />
       <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '8px' }}>
         Solo cambia cómo se llaman. Tu historial y tus récords son los mismos en cualquier idioma.
       </p>
     </>
+  )
+}
+
+// Idioma de la interfaz. Independiente del de los nombres de ejercicio: se
+// puede tener la app en español y los lifts en inglés, y al revés.
+function AppLangPicker({ cell }) {
+  const { lang, setLang, saving } = useLang()
+  const opts = [
+    { value: 'es', label: 'Español', sub: 'Esta semana' },
+    { value: 'en', label: 'English', sub: 'This week' },
+  ]
+  return (
+    <div role="group" aria-label="Idioma de la app" style={{ display: 'flex', gap: '8px', opacity: saving ? 0.6 : 1 }}>
+      {opts.map(o => {
+        const active = lang === o.value
+        return (
+          <button
+            key={o.value}
+            type="button"
+            disabled={saving}
+            onClick={() => { if (!active) setLang(o.value) }}
+            aria-pressed={active}
+            {...pressable(0.97)}
+            style={cell(active)}
+          >
+            {o.label}
+            <span style={{ fontSize: '9px', fontWeight: 500, color: 'var(--c-text-muted)' }}>{o.sub}</span>
+          </button>
+        )
+      })}
+    </div>
   )
 }
 

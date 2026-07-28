@@ -50,15 +50,19 @@ export function weekDays(date) {
 
 // Etiqueta del rango de una semana: "13 – 19 de julio", y cuando cruza de mes
 // (o de año) nombra ambos: "29 de junio – 5 de julio".
-export function weekRangeLabel(date) {
+export function weekRangeLabel(date, locale = 'es-CO') {
   const days = weekDays(date)
   const a = days[0]
   const b = days[6]
-  const month = (d) => MONTHS_ES[d.getMonth()]
+  const month = (d) => monthName(d.getMonth(), locale)
   const sameMonth = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()
+  // El español mete un "de" entre el día y el mes y el inglés no: traducir solo
+  // el nombre del mes dejaría "13 – 19 de July".
+  const es = locale.startsWith('es')
+  const dayMonth = (d) => (es ? `${d.getDate()} de ${month(d)}` : `${d.getDate()} ${month(d)}`)
   const label = sameMonth
-    ? `${a.getDate()} – ${b.getDate()} de ${month(b)}`
-    : `${a.getDate()} de ${month(a)} – ${b.getDate()} de ${month(b)}`
+    ? (es ? `${a.getDate()} – ${b.getDate()} de ${month(b)}` : `${a.getDate()} – ${b.getDate()} ${month(b)}`)
+    : `${dayMonth(a)} – ${dayMonth(b)}`
   return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
@@ -104,14 +108,18 @@ export const KIND_ORDER = ['strength', 'cardio', 'mobility', 'rest', 'deload', '
 // Color del punto de un entreno completado.
 export const DONE_COLOR = 'var(--c-accent)'
 
-const MONTHS_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
-export function monthLabel(year, month) {
-  const s = `${MONTHS_ES[month]} ${year}`
+// Los nombres de mes salen del propio Intl en vez de una lista en español,
+// para que cambiar el idioma no deje "julio 2026" en una app en inglés.
+export function monthName(month, locale = 'es-CO') {
+  return new Date(2000, month, 1).toLocaleDateString(locale, { month: 'long' })
+}
+export function monthLabel(year, month, locale = 'es-CO') {
+  const s = `${monthName(month, locale)} ${year}`
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 // "Lunes, 21 de julio" (sentence case).
-export function longDate(date) {
-  const s = new Date(date).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })
+export function longDate(date, locale = 'es-CO') {
+  const s = new Date(date).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
   return s.charAt(0).toUpperCase() + s.slice(1)
 }

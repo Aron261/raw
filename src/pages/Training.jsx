@@ -21,6 +21,7 @@ import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import Calendar from '../components/calendar/Calendar'
 import DaySheet from '../components/calendar/DaySheet'
 import { computeStreak, mondayOf, KINDS } from '../lib/calendar'
+import { useLang } from '../hooks/useLang'
 import { calc1RM } from '../lib/progress'
 
 // Chart colors must be literal hex — CSS vars don't resolve in recharts SVG attrs.
@@ -36,14 +37,14 @@ const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 // Se resuelve en cada render, no al cargar el módulo: la PWA puede quedar
 // abierta toda la noche y la portada no puede seguir diciendo "ayer".
 // Sentence case: "lunes, 2 de junio" → "Lunes, 2 de junio"
-function todayLabel() {
-  const s = new Date().toLocaleDateString('es-CO', {
+function todayLabel(locale) {
+  const s = new Date().toLocaleDateString(locale, {
     weekday: 'long', month: 'long', day: 'numeric',
   })
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-function getGreeting() {
+function greetingKey() {
   const h = new Date().getHours()
   if (h < 12) return 'Buenos días'
   if (h < 19) return 'Buenas tardes'
@@ -75,6 +76,7 @@ function ChartTooltip({ active, payload, label }) {
 
 // ── WeeklyChart ───────────────────────────────────────────────────────────
 function WeeklyChart({ chartData, height = 150, title, subtitle, colors }) {
+  const { t } = useLang()
   return (
     <div style={{
       background: 'var(--c-surface)',
@@ -100,7 +102,7 @@ function WeeklyChart({ chartData, height = 150, title, subtitle, colors }) {
       <div style={{ paddingTop: title ? '16px' : '20px', paddingLeft: '8px', paddingRight: '8px' }}>
         {chartData.every(d => d.vol === 0) ? (
           <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--c-text-muted)', fontSize: '11px' }}>
-            Sin entrenos registrados esta semana
+            {t('Sin entrenos registrados esta semana')}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={height}>
@@ -393,6 +395,7 @@ const getMotivationColor = (pct) => (pct >= 100 ? 'var(--c-success)' : 'var(--c-
 // Vive fuera del bloque "hay entrenos": definir una meta es justo lo que hace
 // alguien que todavía no ha registrado nada, y antes estaba fuera de alcance.
 function GoalsCard({ goals, onAdd, onDelete }) {
+  const { t } = useLang()
   return (
     <div style={{
       background: 'var(--c-surface)',
@@ -402,7 +405,7 @@ function GoalsCard({ goals, onAdd, onDelete }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-          Mis metas
+          {t('Mis metas')}
         </p>
         <button
           onClick={onAdd}
@@ -414,8 +417,8 @@ function GoalsCard({ goals, onAdd, onDelete }) {
           }}
           onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
           onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-          aria-label="Agregar meta"
-          title="Agregar meta"
+          aria-label={t('Agregar meta')}
+          title={t('Agregar meta')}
         >
           +
         </button>
@@ -429,10 +432,10 @@ function GoalsCard({ goals, onAdd, onDelete }) {
           padding: '18px 16px',
         }}>
           <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-            Todavía no tienes metas activas.
+            {t('Todavía no tienes metas activas.')}
           </p>
           <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 400, lineHeight: 1.5, marginBottom: '14px' }}>
-            Define una meta de fuerza o frecuencia para medir tu progreso real.
+            {t('Define una meta de fuerza o frecuencia para medir tu progreso real.')}
           </p>
           <button
             onClick={onAdd}
@@ -449,7 +452,7 @@ function GoalsCard({ goals, onAdd, onDelete }) {
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-action-dim)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
           >
-            Crear meta
+            {t('Crear meta')}
           </button>
         </div>
       ) : (
@@ -463,7 +466,7 @@ function GoalsCard({ goals, onAdd, onDelete }) {
                     {goal.label}
                   </p>
                   <p style={{ color: getMotivationColor(goal.pct), fontSize: '11px', fontWeight: 500 }}>
-                    {getMotivation(goal.pct)}
+                    {t(getMotivation(goal.pct))}
                   </p>
                 </div>
                 <button
@@ -471,8 +474,8 @@ function GoalsCard({ goals, onAdd, onDelete }) {
                   style={{ color: 'var(--c-text-muted)', fontSize: '13px', minWidth: '44px', minHeight: '44px', margin: '-12px -10px -12px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 120ms' }}
                   onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                   onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
-                  aria-label={`Eliminar meta: ${goal.label}`}
-                  title="Eliminar meta"
+                  aria-label={`${t('Eliminar')}: ${goal.label}`}
+                  title={t('Eliminar')}
                 >
                   ✕
                 </button>
@@ -499,7 +502,7 @@ function GoalsCard({ goals, onAdd, onDelete }) {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500 }}>
                   {goal.type === 'days_trained'
-                    ? `${goal.current} / ${goal.target_value} días este mes`
+                    ? `${goal.current} / ${goal.target_value} ${t('días este mes')}`
                     : goal.target_reps
                       ? `${goal.current} / ${goal.target_value} ${goal.unit} × ${goal.target_reps} reps`
                       : `${goal.current} / ${goal.target_value} ${goal.unit} (1RM est.)`
@@ -523,6 +526,7 @@ function GoalsCard({ goals, onAdd, onDelete }) {
 // cen como una línea de hoy: son de otras secciones, pero son de hoy.
 export default function Training() {
   const navigate = useNavigate()
+  const { t, locale } = useLang()
   const { workouts, loading, error, createWorkout, fetchWorkouts } = useWorkouts()
   const { goals, createGoal, deleteGoal } = useGoals()
   const { profile } = useProfile()
@@ -887,10 +891,10 @@ export default function Training() {
           <div style={{ minWidth: 0 }}>
             {/* Fecha — eyebrow mono en azul (dato) */}
             <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-data)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '6px' }}>
-              {todayLabel()}
+              {todayLabel(locale)}
             </p>
             <h1 className="text-[30px] md:text-[36px]" style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
-              {getGreeting()}{firstName ? `, ${firstName}` : ''}
+              {t(greetingKey())}{firstName ? `, ${firstName}` : ''}
             </h1>
           </div>
         </div>
@@ -925,7 +929,7 @@ export default function Training() {
 
         {error && (
           <div style={{ ...ERROR_STYLE, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-            <span>No pudimos cargar tus entrenos.</span>
+            <span>{t('No pudimos cargar tus entrenos.')}</span>
             <button
               onClick={fetchWorkouts}
               style={{
@@ -935,7 +939,7 @@ export default function Training() {
                 padding: '6px 12px', background: 'transparent',
               }}
             >
-              Reintentar
+              {t('Reintentar')}
             </button>
           </div>
         )}
@@ -975,7 +979,7 @@ export default function Training() {
                   opacity: startingWorkout ? 0.6 : 1,
                 }}
               >
-                Continuar entreno
+                {t('Continuar entreno')}
               </button>
             ) : !showCycleCard ? (
               /* Sin ciclo activo: empezar entreno libre */
@@ -996,7 +1000,7 @@ export default function Training() {
                   opacity: startingWorkout ? 0.6 : 1,
                 }}
               >
-                {startingWorkout ? 'Creando entreno...' : 'Empezar entreno'}
+                {startingWorkout ? t('Creando entreno...') : t('Empezar entreno')}
               </button>
             ) : (
               /* Con ciclo activo la tarjeta ya es el CTA; el entreno libre baja
@@ -1022,7 +1026,7 @@ export default function Training() {
                   onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)' }}
                   onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)' }}
                 >
-                  {startingWorkout ? 'Creando entreno...' : 'Empezar entreno libre'}
+                  {startingWorkout ? t('Creando entreno...') : t('Empezar entreno libre')}
                 </button>
               </div>
             )}
@@ -1037,7 +1041,7 @@ export default function Training() {
             {workouts.length > 0 && (
               <>
                 <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
-                  Esta semana
+                  {t('Esta semana')}
                 </p>
                 {/* Antes eran dos cifras de 42px lado a lado, y una tercera de
                     40px en la tarjeta de al lado: tres cosas empatadas a héroe,
@@ -1056,7 +1060,7 @@ export default function Training() {
                   {stats.count}
                 </p>
                 <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 400, letterSpacing: '0.03em', lineHeight: 1.3 }}>
-                  {stats.count === 1 ? 'entreno' : 'entrenos'}
+                  {t(stats.count === 1 ? 'entreno' : 'entrenos')}
                 </p>
 
                 {/* El mes es contexto del dato de arriba, no un segundo titular. */}
@@ -1067,7 +1071,7 @@ export default function Training() {
                   color: 'var(--c-text-muted)', letterSpacing: '0.02em',
                 }}>
                   <span style={{ color: 'var(--c-text)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{stats.thisMonth}</span>
-                  {' '}días este mes
+                  {' '}{t('días este mes')}
                 </p>
               </>
             )}
@@ -1084,31 +1088,31 @@ export default function Training() {
             >
               <Chip
                 index={0}
-                label="racha"
-                value={streak > 0 ? `${streak} ${streak === 1 ? 'semana' : 'semanas'}` : '—'}
-                hint={streak > 0 ? null : 'Entrena esta semana'}
+                label={t('racha')}
+                value={streak > 0 ? `${streak} ${t(streak === 1 ? 'semana' : 'semanas')}` : '—'}
+                hint={streak > 0 ? null : t('Entrena esta semana')}
                 onClick={() => navigate('/progreso')}
               />
               <Chip
                 index={1}
-                label="kcal hoy"
+                label={t('kcal hoy')}
                 value={kcalToday > 0 ? `${kcalToday.toLocaleString('es-CO')} / ${kcalTarget.toLocaleString('es-CO')}` : '—'}
-                hint={kcalToday > 0 ? null : 'Registra tu comida'}
+                hint={kcalToday > 0 ? null : t('Registra tu comida')}
                 onClick={() => navigate('/nutrition')}
               />
               <Chip
                 index={2}
-                label="peso corporal"
+                label={t('peso corporal')}
                 value={latestWeight ? `${latestWeight.weight} ${latestWeight.unit}` : '—'}
-                hint={latestWeight ? null : 'Aún sin registrar'}
+                hint={latestWeight ? null : t('Aún sin registrar')}
                 onClick={() => navigate('/profile?s=caracteristicas')}
               />
               {profile?.is_trainer && (
                 <Chip
                   index={3}
-                  label="coach"
+                  label={t('coach')}
                   live={unread > 0}
-                  value={unread > 0 ? `${unread} sin leer` : 'Tus clientes'}
+                  value={unread > 0 ? `${unread} ${t('sin leer')}` : t('Tus clientes')}
                   onClick={() => navigate('/coach')}
                 />
               )}
@@ -1178,10 +1182,10 @@ export default function Training() {
         {!loading && !error && workouts.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px' }}>
             <p style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 800, letterSpacing: '-0.01em', marginBottom: '8px' }}>
-              Registra tu primer entreno
+              {t('Registra tu primer entreno')}
             </p>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '13px', lineHeight: 1.5, maxWidth: '34ch', margin: '0 auto' }}>
-              Anota tus series y Raw te dice al instante si superas tu última marca. Toca «Empezar entreno» arriba.
+              {t('Anota tus series y Raw te dice al instante si superas tu última marca. Toca «Empezar entreno» arriba.')}
             </p>
           </div>
         )}
@@ -1208,7 +1212,7 @@ export default function Training() {
                     padding: '20px',
                   }}>
                     <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>
-                      Mejor marca esta semana
+                      {t('Mejor marca esta semana')}
                     </p>
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: '5px',
@@ -1221,7 +1225,7 @@ export default function Training() {
                       textTransform: 'uppercase', letterSpacing: '0.1em',
                       marginBottom: '10px',
                     }}>
-                      ▲ Nuevo récord
+                      ▲ {t('Nuevo récord')}
                     </span>
                     <p className="font-display" style={{ color: 'var(--c-text)', fontSize: '24px', lineHeight: 1, marginBottom: '8px' }}>
                       {stats.weekPR.exercise}
@@ -1236,7 +1240,7 @@ export default function Training() {
                       </span>
                     </p>
                     <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, borderTop: '1px solid var(--c-border-subtle)', paddingTop: '10px', lineHeight: 1.5 }}>
-                      Superaste tu mejor registro en este ejercicio.
+                      {t('Superaste tu mejor registro en este ejercicio.')}
                     </p>
                   </div>
                 ) : todayHighlight ? (
@@ -1247,7 +1251,7 @@ export default function Training() {
                     padding: '20px',
                   }}>
                     <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
-                      {todayHighlight.label}
+                      {t(todayHighlight.label)}
                     </p>
                     <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 600, marginBottom: '4px', lineHeight: 1.3 }}>
                       {todayHighlight.title}
@@ -1281,8 +1285,8 @@ export default function Training() {
                 <WeeklyChart
                   chartData={stats.chartData}
                   height={160}
-                  title="Volumen semanal"
-                  subtitle={`${formatVolume(stats.weekVolume)} kg esta semana`}
+                  title={t('Volumen semanal')}
+                  subtitle={`${formatVolume(stats.weekVolume)} kg · ${t('Esta semana').toLowerCase()}`}
                   colors={chartColors}
                 />
               </div>
@@ -1324,9 +1328,9 @@ export default function Training() {
             {/* Lo que viene — la entrada a planear un día concreto. */}
             <div style={{ display: 'flex', alignItems: 'stretch', marginTop: '10px' }}>
               <Chip
-                label="próximo"
+                label={t('próximo')}
                 value={nextPlanned ? (nextPlanned.title || KINDS[nextPlanned.kind]?.label || '—') : '—'}
-                hint={nextPlanned ? null : 'Toca un día para planear'}
+                hint={nextPlanned ? null : t('Toca un día para planear')}
                 onClick={() => setSelectedDay(
                   nextPlanned ? new Date(`${nextPlanned.date}T00:00:00`) : new Date()
                 )}

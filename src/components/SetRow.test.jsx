@@ -10,6 +10,8 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 vi.mock('../hooks/useOnlineStatus', () => ({ useOnlineStatus: () => true }))
 vi.mock('motion/react', () => ({ animate: () => {}, useReducedMotion: () => true }))
 vi.mock('../hooks/useWorkout', () => ({ calc1RM: (w, r) => (r ? Math.round(w * (1 + r / 30)) : w) }))
+// useLang cuelga de useProfile → supabase. Aquí solo hace falta que traduzca.
+vi.mock('../hooks/useLang', () => ({ useLang: () => ({ t: (x) => x, locale: 'es-CO', lang: 'es' }) }))
 
 import SetRow from './SetRow'
 
