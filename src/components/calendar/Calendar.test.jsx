@@ -7,6 +7,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 
+// useLang cuelga de useProfile → supabase; aquí solo hace falta que traduzca.
+vi.mock('../../hooks/useLang', () => ({ useLang: () => ({ t: (x) => x, locale: 'es-CO', lang: 'es' }) }))
+
 vi.mock('motion/react', async () => {
   const React = await import('react')
   return {

@@ -7,6 +7,7 @@ import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } 
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { hoverColor, ERROR_STYLE, pressable } from '../lib/ui'
+import { useLang } from '../hooks/useLang'
 import { useWorkouts } from '../hooks/useWorkout'
 import { Sheet, Button, LiveRegion, UndoSnackbar } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
@@ -48,6 +49,7 @@ function WorkoutTimer({ startedAt }) {
 
 /* ── Finish Confirm Modal ───────────────────────────────────────────── */
 function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) {
+  const { t } = useLang()
   // Calcular duración desde started_at hasta ahora
   const durationLabel = () => {
     if (!workout?.started_at) return '—'
@@ -61,13 +63,13 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
   const totalSets = workoutExercises.reduce((acc, we) => acc + (we.sets?.length || 0), 0)
 
   const stats = [
-    { label: 'Duración', value: durationLabel() },
+    { label: t('Duración'), value: durationLabel() },
     { label: 'Ejercicios', value: workoutExercises.length },
-    { label: 'Series totales', value: totalSets },
+    { label: t('Series totales'), value: totalSets },
   ]
 
   return (
-    <Sheet title="Finalizar entreno" onClose={onCancel}>
+    <Sheet title={t('Finalizar entreno')} onClose={onCancel}>
       <div style={{ background: 'var(--c-surface-2)', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
         {stats.map(s => (
           <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', lineHeight: 2 }}>
@@ -82,12 +84,12 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
       </div>
 
       <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', textAlign: 'center', marginBottom: '16px' }}>
-        Esta acción no se puede deshacer.
+        {t('Esta acción no se puede deshacer.')}
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <Button variant="primary" full size="lg" onClick={onConfirm}>Sí, finalizar</Button>
-        <Button variant="secondary" full size="lg" onClick={onCancel}>Cancelar</Button>
+        <Button variant="primary" full size="lg" onClick={onConfirm}>{t('Sí, finalizar')}</Button>
+        <Button variant="secondary" full size="lg" onClick={onCancel}>{t('Cancelar')}</Button>
       </div>
     </Sheet>
   )
@@ -95,17 +97,18 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
 
 /* ── Discard Confirm Modal ──────────────────────────────────────────── */
 function DiscardConfirmModal({ onConfirm, onCancel, busy }) {
+  const { t } = useLang()
   return (
     <Sheet title="Descartar entreno" onClose={onCancel}>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
-        Se eliminará esta sesión y todo lo que llevas registrado en ella. Esta acción no se puede deshacer.
+        {t('Se eliminará esta sesión y todo lo que llevas registrado en ella. Esta acción no se puede deshacer.')}
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <Button variant="primary" full size="lg" loading={busy} disabled={busy} onClick={onConfirm}>
-          {busy ? 'Descartando...' : 'Sí, descartar'}
+          {busy ? t('Descartando...') : t('Sí, descartar')}
         </Button>
         <Button variant="secondary" full size="lg" disabled={busy} onClick={onCancel}>
-          Seguir entrenando
+          {t('Seguir entrenando')}
         </Button>
       </div>
     </Sheet>
@@ -114,6 +117,7 @@ function DiscardConfirmModal({ onConfirm, onCancel, busy }) {
 
 /* ── Delete finished workout modal ──────────────────────────────────── */
 function DeleteWorkoutModal({ name, onConfirm, onCancel, busy }) {
+  const { t } = useLang()
   return (
     <Sheet title="Eliminar entreno" onClose={onCancel}>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
@@ -121,9 +125,9 @@ function DeleteWorkoutModal({ name, onConfirm, onCancel, busy }) {
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <Button variant="primary" full size="lg" loading={busy} disabled={busy} onClick={onConfirm}>
-          {busy ? 'Eliminando...' : 'Sí, eliminar'}
+          {busy ? t('Eliminando...') : t('Sí, eliminar')}
         </Button>
-        <Button variant="secondary" full size="lg" disabled={busy} onClick={onCancel}>Cancelar</Button>
+        <Button variant="secondary" full size="lg" disabled={busy} onClick={onCancel}>{t('Cancelar')}</Button>
       </div>
     </Sheet>
   )
@@ -132,6 +136,7 @@ function DeleteWorkoutModal({ name, onConfirm, onCancel, busy }) {
 
 /* ── Exercise history sheet ─────────────────────────────────────────── */
 function ExerciseHistorySheet({ exercise, userId, onClose }) {
+  const { t } = useLang()
   const { prSets, allTimePR, loading } = useExercisePR(exercise?.name, userId)
   const sessions = [...(prSets || [])].reverse() // most recent first
   const bestRM = allTimePR?.best1RM || 0
@@ -150,7 +155,7 @@ function ExerciseHistorySheet({ exercise, userId, onClose }) {
         </div>
       ) : sessions.length === 0 ? (
         <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', textAlign: 'center', padding: '24px 0' }}>
-          Aún no hay sesiones registradas de este ejercicio.
+          {t('Aún no hay sesiones registradas de este ejercicio.')}
         </p>
       ) : (
         <div style={{ maxHeight: '60vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '8px' }}>
@@ -198,6 +203,7 @@ function ExerciseHistorySheet({ exercise, userId, onClose }) {
 
 /* ── Session summary (on finish) ────────────────────────────────────── */
 function SessionSummary({ workout, workoutExercises, userId, onClose }) {
+  const { t } = useLang()
   const [prIds, setPrIds] = useState(null) // Set<exercise_id> beating a prior best; null = loading
   const [prevBests, setPrevBests] = useState({}) // exercise_id → best 1RM before this session
 
@@ -263,7 +269,7 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
         borderRadius: '12px', overflow: 'hidden', marginBottom: '14px',
       }}>
         <SummaryStat value={totalVolume.toLocaleString('es-ES')} unit="kg" label="Volumen" valueColor="var(--c-data)" />
-        <SummaryStat value={durationLabel()} label="Duración" />
+        <SummaryStat value={durationLabel()} label={t('Duración')} />
         <SummaryStat value={totalSets} label="Series" />
       </div>
 
@@ -297,7 +303,7 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
                 <span style={{ flexShrink: 0, background: 'var(--c-record)', color: 'var(--c-record-ink)', fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '2px 6px', borderRadius: '2px' }}>PR</span>
               ) : delta !== null && (
                 <span
-                  aria-label={delta > 0 ? `Superaste tu 1RM anterior por ${delta}` : delta === 0 ? 'Igualaste tu 1RM anterior' : `Por debajo de tu 1RM anterior por ${-delta}`}
+                  aria-label={delta > 0 ? `Superaste tu 1RM anterior por ${delta}` : delta === 0 ? t('Igualaste tu 1RM anterior') : `Por debajo de tu 1RM anterior por ${-delta}`}
                   style={{
                     flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
                     letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums',
@@ -340,6 +346,7 @@ function SummaryStat({ value, unit, label, valueColor = 'var(--c-text)' }) {
 const LOGGING_PRIMER_KEY = 'raw_onboard_logging'
 
 function LoggingPrimer({ onDismiss }) {
+  const { t } = useLang()
   const chip = {
     flexShrink: 0, width: '26px', height: '26px', borderRadius: '8px',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -365,7 +372,7 @@ function LoggingPrimer({ onDismiss }) {
       </button>
 
       <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}>
-        Cómo registrar
+        {t('Cómo registrar')}
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
@@ -374,7 +381,7 @@ function LoggingPrimer({ onDismiss }) {
           <span style={{ ...chip, background: 'var(--c-success)', color: '#fff' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
           </span>
-          <span style={text}>Marca la serie como hecha e inicia el descanso.</span>
+          <span style={text}>{t('Marca la serie como hecha e inicia el descanso.')}</span>
         </div>
 
         {/* auto-save */}
@@ -382,7 +389,7 @@ function LoggingPrimer({ onDismiss }) {
           <span style={{ ...chip, background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', color: 'var(--c-text-dim)' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4" /><path d="M5 21h14" /></svg>
           </span>
-          <span style={text}>Tus reps y peso se guardan solos al salir del campo.</span>
+          <span style={text}>{t('Tus reps y peso se guardan solos al salir del campo.')}</span>
         </div>
 
         {/* ghost previous value */}
@@ -390,7 +397,7 @@ function LoggingPrimer({ onDismiss }) {
           <span style={{ ...chip, background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', color: 'var(--c-text-ghost)', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700 }}>
             8×
           </span>
-          <span style={text}>El número tenue en cada campo es tu última vez.</span>
+          <span style={text}>{t('El número tenue en cada campo es tu última vez.')}</span>
         </div>
       </div>
     </div>
@@ -400,6 +407,7 @@ function LoggingPrimer({ onDismiss }) {
 /* ── Main page ──────────────────────────────────────────────────────── */
 export default function ActiveWorkout() {
   const { id } = useParams()
+  const { t } = useLang()
   const navigate = useNavigate()
   const { user } = useAuth()
   const { deleteWorkout } = useWorkouts()
@@ -594,7 +602,7 @@ export default function ActiveWorkout() {
     return (
       <Layout hideNav>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100dvh', gap: '16px', padding: '24px' }}>
-          <p style={{ color: 'var(--c-action-text)', fontSize: '13px' }}>{error || 'Entreno no encontrado.'}</p>
+          <p style={{ color: 'var(--c-action-text)', fontSize: '13px' }}>{error || t('Entreno no encontrado.')}</p>
           <Button variant="secondary" onClick={handleBack}>← Atrás</Button>
         </div>
       </Layout>
@@ -630,7 +638,7 @@ export default function ActiveWorkout() {
             {!isFinished && workout.started_at && <WorkoutTimer startedAt={workout.started_at} />}
             {isFinished && (
               <span style={{ fontFamily: 'var(--font-mono)', color: isEditing ? 'var(--c-action-text)' : 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                {isEditing ? 'Editando' : 'Finalizado'}
+                {isEditing ? t('Editando') : t('Finalizado')}
               </span>
             )}
           </div>
@@ -652,7 +660,7 @@ export default function ActiveWorkout() {
               fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
               textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)',
             }}>
-              Estás editando tu historial — los cambios se guardan solos
+              {t('Estás editando tu historial — los cambios se guardan solos')}
             </span>
           </div>
         )}
@@ -751,11 +759,11 @@ export default function ActiveWorkout() {
         {visibleExercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '14px', marginBottom: '16px' }}>
             <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
-              Sin ejercicios aún
+              {t('Sin ejercicios aún')}
             </p>
             {!isFinished && (
               <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px', lineHeight: 1.5 }}>
-                Agrega tu primer ejercicio para empezar a registrar tus series.
+                {t('Agrega tu primer ejercicio para empezar a registrar tus series.')}
               </p>
             )}
           </div>
@@ -836,7 +844,7 @@ export default function ActiveWorkout() {
             </Button>
             {isEditing ? (
               <Button variant="primary" full size="lg" onClick={() => setIsEditing(false)}>
-                Guardar y cerrar edición
+                {t('Guardar y cerrar edición')}
               </Button>
             ) : (
               <Button
@@ -847,7 +855,7 @@ export default function ActiveWorkout() {
                 disabled={finishing}
                 onClick={() => setShowFinishConfirm(true)}
               >
-                {finishing ? 'Finalizando...' : 'Finalizar entreno'}
+                {finishing ? t('Finalizando...') : t('Finalizar entreno')}
               </Button>
             )}
             {!isEditing && (
@@ -865,7 +873,7 @@ export default function ActiveWorkout() {
                   onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-ghost)' },
                 })}
               >
-                Descartar entreno
+                {t('Descartar entreno')}
               </button>
             )}
           </div>
@@ -892,15 +900,15 @@ export default function ActiveWorkout() {
                   onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' },
                 })}
               >
-                Editar entreno
+                {t('Editar entreno')}
               </button>
             ) : (
               <>
                 <Button variant="primary" full size="lg" onClick={() => setIsEditing(false)}>
-                  Guardar cambios
+                  {t('Guardar cambios')}
                 </Button>
                 <Button variant="secondary" full size="lg" onClick={() => setIsEditing(false)}>
-                  Cancelar edición
+                  {t('Cancelar edición')}
                 </Button>
               </>
             )}
@@ -919,7 +927,7 @@ export default function ActiveWorkout() {
                 onMouseLeave: e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' },
               })}
             >
-              Eliminar este entreno
+              {t('Eliminar este entreno')}
             </button>
           </div>
         )}

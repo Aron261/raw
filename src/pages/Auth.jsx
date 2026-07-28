@@ -4,8 +4,10 @@ import { useAuth } from '../hooks/useAuth'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { ERROR_STYLE, pressProps } from '../lib/ui'
 import { Button, Logo } from '../components/ui'
+import { useLang } from '../hooks/useLang'
 
 export default function Auth() {
+  const { t } = useLang()
   const { signIn, signUp, sendPasswordReset } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -41,16 +43,16 @@ export default function Auth() {
       } else {
         const { data } = await signUp(email, password)
         if (data?.user?.identities?.length === 0) {
-          setError('Este email ya está registrado. Inicia sesión.')
+          setError(t('Este email ya está registrado. Inicia sesión.'))
         } else if (data?.session) {
           navigate(redirectTo, { replace: true })
         } else {
-          setMessage('Cuenta creada. Revisa tu email para confirmar y luego inicia sesión.')
+          setMessage(t('Cuenta creada. Revisa tu email para confirmar y luego inicia sesión.'))
           setMode('login')
         }
       }
     } catch (err) {
-      setError(err.message || 'Algo salió mal.')
+      setError(err.message || t('Algo salió mal.'))
     } finally {
       setLoading(false)
     }
@@ -193,7 +195,7 @@ export default function Auth() {
                   color: mode === m ? 'var(--c-text)' : 'var(--c-text-dim)',
                 }}
               >
-                {m === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+                {t(m === 'login' ? 'Iniciar sesión' : 'Crear cuenta')}
               </button>
             ))}
           </div>
@@ -237,7 +239,7 @@ export default function Auth() {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
             <label style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
-              Email
+              {t('Email')}
             </label>
             <input
               type="email"
@@ -253,7 +255,7 @@ export default function Auth() {
           {mode !== 'reset' && (
             <div>
               <label style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
-                Contraseña
+                {t('Contraseña')}
               </label>
               <input
                 type="password"
@@ -277,7 +279,7 @@ export default function Auth() {
             disabled={loading}
             style={{ marginTop: '4px' }}
           >
-            {loading ? 'Cargando...' : mode === 'reset' ? 'Enviar enlace' : mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+            {t(loading ? 'Cargando...' : mode === 'reset' ? 'Enviar enlace' : mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta')}
           </Button>
         </form>
 
@@ -289,7 +291,7 @@ export default function Auth() {
               onClick={() => switchMode('reset')}
               style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', background: 'transparent' }}
             >
-              ¿Olvidaste tu contraseña?
+              {t('¿Olvidaste tu contraseña?')}
             </button>
           )}
           {mode === 'reset' && (

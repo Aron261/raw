@@ -11,6 +11,9 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 
 vi.mock('recharts', () => ({}))
+// useLang cuelga de useProfile → supabase. Con la identidad basta: las
+// aserciones son sobre el español, que es la clave.
+vi.mock('../hooks/useLang', () => ({ useLang: () => ({ t: (x) => x, locale: 'es-CO', lang: 'es' }) }))
 
 import { ClaudeSection } from './Profile'
 

@@ -109,6 +109,7 @@ function ReorderList({ order, enabled, onToggle, onReorder }) {
 // to see the same window for that client (read-only, no customize/classify).
 // `embedded` renders just the modules (no Layout, no title) inside Progreso.
 export default function Stats({ userId = null, readOnly = false, embedded = false }) {
+  const { t } = useLang()
   const navigate = useNavigate()
   const { data, loading, error, refetch } = useStats(userId)
   const { enabled, order, toggle, setOrder } = useStatPrefs()
@@ -202,7 +203,7 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
             {visible.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px' }}>
                 <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', fontWeight: 600, lineHeight: 1.5, marginBottom: '12px' }}>
-                  No tienes ningún módulo activo. Elige cuáles quieres ver y aparecerán aquí.
+                  {t('No tienes ningún módulo activo. Elige cuáles quieres ver y aparecerán aquí.')}
                 </p>
                 <button
                   onClick={() => setCustomizing(true)}

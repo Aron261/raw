@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { SPRING_PRESS } from '../../lib/motion'
 import Segmented from '../stats/Segmented'
+import { useLang } from '../../hooks/useLang'
 import {
   monthMatrix, monthLabel, weekDays, weekRangeLabel, longDate,
   toLocalISODate, weekKey, mondayOf, KINDS, DONE_COLOR,
@@ -154,7 +155,7 @@ function DayChip({ color, filled, label, detail, struck }) {
 // El acercamiento: la semana como siete columnas, una por día, para leer la
 // programación de un vistazo — lunes a domingo de izquierda a derecha, igual
 // que la rejilla del mes. Cada columna es tocable y abre la hoja del día.
-function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, dayById, onSelectDay, reduce }) {
+function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, dayById, onSelectDay, reduce, t }) {
   const days = useMemo(() => weekDays(anchor), [anchor])
   const isDeloadWeek = deloadWeeks.has(weekKey(anchor))
 
@@ -171,7 +172,7 @@ function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, da
             fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-text-dim)',
           }}>
-            Semana de descarga
+            {t('Semana de descarga')}
           </span>
         </div>
       )}
@@ -273,6 +274,7 @@ function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, da
 // la semana que ves es la del mes que estabas mirando.
 export default function Calendar({ workouts = [], sessions = [], routines = [], onSelectDay }) {
   const reduce = useReducedMotion()
+  const { t, locale } = useLang()
   const today = new Date()
   const [mode, setMode] = useState('mes')
   const [anchor, setAnchor] = useState(() => new Date(today.getFullYear(), today.getMonth(), today.getDate()))
@@ -334,7 +336,7 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
 
   return (
     <section
-      aria-label="Calendario de entrenamiento"
+      aria-label={t('Calendario de entrenamiento')}
       style={{
         background: 'var(--c-surface)',
         border: '1px solid var(--c-border-subtle)',
@@ -346,7 +348,7 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '12px' }}>
         <div style={{ minWidth: 0 }}>
           <p className="font-display" style={{ fontSize: isWeek ? '19px' : '22px', lineHeight: 1.05, color: 'var(--c-text)' }}>
-            {isWeek ? weekRangeLabel(anchor) : monthLabel(anchor.getFullYear(), anchor.getMonth())}
+            {isWeek ? weekRangeLabel(anchor, locale) : monthLabel(anchor.getFullYear(), anchor.getMonth(), locale)}
           </p>
           {!showingNow && (
             <button
@@ -356,37 +358,37 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
                 textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--c-action-text)', background: 'transparent',
               }}
             >
-              Ir a hoy
+              {t('Ir a hoy')}
             </button>
           )}
         </div>
         <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-          <button onClick={() => move(-1)} aria-label={isWeek ? 'Semana anterior' : 'Mes anterior'} style={navBtn}>←</button>
-          <button onClick={() => move(1)} aria-label={isWeek ? 'Semana siguiente' : 'Mes siguiente'} style={navBtn}>→</button>
+          <button onClick={() => move(-1)} aria-label={t(isWeek ? 'Semana anterior' : 'Mes anterior')} style={navBtn}>←</button>
+          <button onClick={() => move(1)} aria-label={t(isWeek ? 'Semana siguiente' : 'Mes siguiente')} style={navBtn}>→</button>
         </div>
       </div>
 
       <div style={{ marginBottom: '12px' }}>
         <Segmented
-          ariaLabel="Acercamiento del calendario"
+          ariaLabel={t('Acercamiento del calendario')}
           value={mode}
           onChange={setMode}
-          options={[{ id: 'mes', label: 'Mes' }, { id: 'semana', label: 'Semana' }]}
+          options={[{ id: 'mes', label: t('Mes') }, { id: 'semana', label: t('Semana') }]}
         />
       </div>
 
       {isWeek
-        ? <WeekColumns {...{ anchor, todayISO, doneByDate, planByDate, deloadWeeks, dayById, onSelectDay, reduce }} />
+        ? <WeekColumns {...{ anchor, todayISO, doneByDate, planByDate, deloadWeeks, dayById, onSelectDay, reduce, t }} />
         : <MonthGrid {...{ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSelectDay, reduce }} />}
 
       {/* Leyenda — mínima, solo lo que aparece en la rejilla */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--c-border-subtle)' }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-muted)' }}>
-          <Dot color={DONE_COLOR} filled /> Hecho
+          <Dot color={DONE_COLOR} filled /> {t('Hecho')}
         </span>
         {['strength', 'cardio', 'mobility', 'deload'].map(k => (
           <span key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-mono)', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--c-text-muted)' }}>
-            <Dot color={KINDS[k].color} /> {KINDS[k].label}
+            <Dot color={KINDS[k].color} /> {t(KINDS[k].label)}
           </span>
         ))}
       </div>

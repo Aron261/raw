@@ -8,6 +8,7 @@ import RecommendedPlanWizard from '../components/RecommendedPlanWizard'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button, LiveRegion, UndoSnackbar, Toast } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
+import { useLang } from '../hooks/useLang'
 import CycleMuscleDistribution from '../components/CycleMuscleDistribution'
 import ShareRoutineSheet from '../components/ShareRoutineSheet'
 
@@ -937,6 +938,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
 
 // ── Página principal ───────────────────────────────────────────────────────
 export default function Rutinas() {
+  const { t } = useLang()
   const navigate = useNavigate()
   const location = useLocation()
   const {
@@ -1118,10 +1120,10 @@ export default function Rutinas() {
                 borderRadius: '16px', animationDelay: '40ms',
               }}>
                 <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Sin rutinas guardadas
+                  {t('Sin rutinas guardadas')}
                 </p>
                 <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '8px' }}>
-                  Crea un ciclo semanal o una rutina puntual para empezar.
+                  {t('Crea un ciclo semanal o una rutina puntual para empezar.')}
                 </p>
               </div>
             )}

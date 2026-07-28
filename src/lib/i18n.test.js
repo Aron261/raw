@@ -3,6 +3,7 @@
 // ni como una clave cruda.
 
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { translate, localeFor, normalizeLang, dictionaryFor, LANGS } from './i18n'
 
 describe('translate', () => {
@@ -69,11 +70,24 @@ describe('diccionario inglés', () => {
   it('ninguna entrada se quedó igual que el español por descuido', () => {
     // Algunas coinciden de verdad ("Cardio", "reps", "coach"); el resto sería
     // una traducción sin hacer que pasaría desapercibida.
-    const SAME_ON_PURPOSE = new Set(['Cardio', 'reps', 'rep', 'coach', 'Auto', 'kcal hoy'])
+    const SAME_ON_PURPOSE = new Set(['Cardio', 'reps', 'rep', 'coach', 'Auto', 'kcal hoy', 'Email', 'Snacks'])
     const suspicious = Object.entries(en)
       .filter(([k, v]) => k === v && !SAME_ON_PURPOSE.has(k))
       .map(([k]) => k)
     expect(suspicious).toEqual([])
+  })
+
+  it('no tiene claves duplicadas', () => {
+    // Un literal de 400 entradas se presta a repetir una clave sin darse
+    // cuenta: JS se queda con la última en silencio y la primera traducción
+    // desaparece. Pasó con tres al ampliar el diccionario.
+    const src = readFileSync(new URL('./i18n.js', import.meta.url), 'utf8')
+    const body = src.slice(src.indexOf('const EN = {'))
+    const keys = [...body.matchAll(/^ {2}'((?:[^'\\]|\\.)*)':/gm)].map(m => m[1])
+    const seen = new Set()
+    const dups = keys.filter(k => (seen.has(k) ? true : (seen.add(k), false)))
+    expect(dups).toEqual([])
+    expect(keys.length).toBe(Object.keys(en).length)
   })
 
   it('conserva los marcadores de interpolación de la clave', () => {

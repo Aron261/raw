@@ -298,6 +298,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
 // Vista propia por defecto; un entrenador pasa userId + readOnly para ver el
 // registro de ese cliente (solo lectura) y planificar sus objetivos.
 export default function Nutrition({ userId = null, readOnly = false }) {
+  const { t } = useLang()
   const navigate = useNavigate()
   const today = toLocalISODate()
   const [dateISO, setDateISO] = useState(today)
@@ -307,7 +308,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
   const { foods, saveFood } = useMyFoods()
   const { targets, saveTargets, hasCustomTargets } = useNutritionTargets(userId)
   const { profile: clientProfile } = useClientDetail(readOnly ? userId : null)
-  const t = targets || DEFAULT_TARGETS
+  const tgt = targets || DEFAULT_TARGETS
 
   const [sheet, setSheet] = useState(null)   // { entry?, meal? } | 'targets' | null
 
@@ -340,8 +341,8 @@ export default function Nutrition({ userId = null, readOnly = false }) {
     : totals
   const visibleCount = entries.length - (pend ? 1 : 0)
 
-  const kcalPct = t.kcal > 0 ? Math.min(100, (shownTotals.kcal / t.kcal) * 100) : 0
-  const kcalOver = shownTotals.kcal > t.kcal
+  const kcalPct = tgt.kcal > 0 ? Math.min(100, (shownTotals.kcal / tgt.kcal) * 100) : 0
+  const kcalOver = shownTotals.kcal > tgt.kcal
 
   const handleSaveEntry = async (fields, food) => {
     if (sheet?.entry) {
@@ -473,7 +474,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
               {fmt(shownTotals.kcal)}
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '10px' }}>
-              / {fmt(t.kcal)} kcal
+              / {fmt(tgt.kcal)} kcal
             </span>
           </p>
           <div
@@ -492,8 +493,8 @@ export default function Nutrition({ userId = null, readOnly = false }) {
 
           <p className="tnum" style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.03em', color: kcalOver ? 'var(--c-action-text)' : 'var(--c-text-dim)', margin: '-10px 0 18px' }}>
             {kcalOver
-              ? `${fmt(shownTotals.kcal - t.kcal)} kcal por encima`
-              : `Quedan ${fmt(t.kcal - shownTotals.kcal)} kcal`}
+              ? `${fmt(shownTotals.kcal - tgt.kcal)} kcal por encima`
+              : `Quedan ${fmt(tgt.kcal - shownTotals.kcal)} kcal`}
           </p>
 
           {/* Meta por defecto: invita a fijar objetivos propios (solo si no los tiene) */}
@@ -507,9 +508,9 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           )}
 
           <div style={{ display: 'flex', gap: '18px' }}>
-            <MacroBar label="Proteína" current={shownTotals.protein} target={t.protein_g} />
-            <MacroBar label="Carbos"   current={shownTotals.carbs}   target={t.carbs_g} />
-            <MacroBar label="Grasa"    current={shownTotals.fat}     target={t.fat_g} />
+            <MacroBar label="Proteína" current={shownTotals.protein} target={tgt.protein_g} />
+            <MacroBar label="Carbos"   current={shownTotals.carbs}   target={tgt.carbs_g} />
+            <MacroBar label="Grasa"    current={shownTotals.fat}     target={tgt.fat_g} />
           </div>
         </div>
 
@@ -575,7 +576,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
 
                   {!isCollapsed && (list.length === 0 ? (
                     <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', padding: '8px 0 2px', borderTop: '1px solid var(--c-border-subtle)' }}>
-                      Nada anotado todavía. Toca «+» para añadir.
+                      {t('Nada anotado todavía. Toca «+» para añadir.')}
                     </p>
                   ) : (
                     <div>

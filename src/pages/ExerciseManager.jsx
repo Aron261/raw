@@ -6,6 +6,7 @@ import { useUnlinkedExercises } from '../hooks/useExerciseLinking'
 import { useExerciseLang } from '../hooks/useExerciseLang'
 import LinkExerciseSheet from '../components/LinkExerciseSheet'
 import { MUSCLE_GROUPS, LEGACY_GROUPS } from '../lib/muscleGroups'
+import { useLang } from '../hooks/useLang'
 
 const UNCLASSIFIED = 'Sin clasificar'
 const eyebrow = { fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }
@@ -108,6 +109,7 @@ function UnlinkedSection({ items, onPick }) {
 }
 
 export default function ExerciseManager() {
+  const { t } = useLang()
   const navigate = useNavigate()
   const { lang } = useExerciseLang()
   const { exercises, needsAttention, loading, classify, refresh } = useExerciseGroups(lang)
@@ -157,11 +159,10 @@ export default function ExerciseManager() {
         {!loading && exercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px 24px', border: '1px dashed var(--c-border)', borderRadius: '16px' }}>
             <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em' }}>
-              Todavía no hay ejercicios
+              {t('Todavía no hay ejercicios')}
             </p>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px', lineHeight: 1.5, maxWidth: '32ch', marginInline: 'auto' }}>
-              Aparecen aquí solos en cuanto registras tu primer entreno. Desde
-              aquí los ordenas por grupo muscular.
+              {t('Aparecen aquí solos en cuanto registras tu primer entreno. Desde aquí los ordenas por grupo muscular.')}
             </p>
           </div>
         )}

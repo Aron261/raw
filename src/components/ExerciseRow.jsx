@@ -8,6 +8,7 @@ import { calc1RM, useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWo
 import { useAuth } from '../hooks/useAuth'
 import { useExerciseLang } from '../hooks/useExerciseLang'
 import { UnitToggle } from './ui'
+import { useLang } from '../hooks/useLang'
 import { pressable, PRESS_TRANSITION } from '../lib/ui'
 
 // Rest between sets: the routine's prescription wins, then the lifter's own
@@ -40,6 +41,7 @@ export default function ExerciseRow({
   readOnly = false,
 }) {
   const { user } = useAuth()
+  const { t } = useLang()
   const reduce = useReducedMotion()
   const { label: exLabel } = useExerciseLang()
   const storageKey = `raw_ex_expanded_${workoutExercise.id}`
@@ -243,7 +245,7 @@ export default function ExerciseRow({
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-text)'; e.currentTarget.style.borderColor = 'var(--c-border)' }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
           >
-            Reabrir
+            {t('Reabrir')}
           </button>
         </div>
       </div>
@@ -274,7 +276,7 @@ export default function ExerciseRow({
         <div style={{ display: 'flex', alignItems: 'center', padding: '12px 14px', gap: '10px' }}>
           <button
             onClick={toggleExpand}
-            aria-label="Mostrar series"
+            aria-label={t('Mostrar series')}
             aria-expanded={expanded}
             {...pressable(0.985)}
             style={{
@@ -295,7 +297,7 @@ export default function ExerciseRow({
               </span>
             ) : (
               <span style={{ flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, letterSpacing: '0.04em', color: 'var(--c-text-ghost)' }}>
-                nuevo
+                {t('nuevo')}
               </span>
             )}
 
@@ -362,12 +364,12 @@ export default function ExerciseRow({
                 >
                   {previousSets.length > 0 && (
                     <MenuItem onClick={() => { setPrefillToken(t => t + 1); setExpanded(true); setShowMenu(false) }}>
-                      Repetir la vez pasada
+                      {t('Repetir la vez pasada')}
                     </MenuItem>
                   )}
                   {onShowHistory && (
                     <MenuItem onClick={() => { onShowHistory(exercise); setShowMenu(false) }}>
-                      Ver historial
+                      {t('Ver historial')}
                     </MenuItem>
                   )}
                   {/* Cycles presets in place — the menu stays open so the
@@ -379,12 +381,12 @@ export default function ExerciseRow({
                   )}
                   {onMove && canMoveUp && (
                     <MenuItem onClick={() => { onMove(workoutExercise.id, 'up'); setShowMenu(false) }}>
-                      Mover arriba
+                      {t('Mover arriba')}
                     </MenuItem>
                   )}
                   {onMove && canMoveDown && (
                     <MenuItem onClick={() => { onMove(workoutExercise.id, 'down'); setShowMenu(false) }}>
-                      Mover abajo
+                      {t('Mover abajo')}
                     </MenuItem>
                   )}
                   {onUpdateNotes && (
@@ -397,11 +399,11 @@ export default function ExerciseRow({
                   )}
                   {onSwapExercise && (
                     <MenuItem onClick={() => { onSwapExercise(workoutExercise.id); setShowMenu(false) }}>
-                      Cambiar ejercicio
+                      {t('Cambiar ejercicio')}
                     </MenuItem>
                   )}
                   <MenuItem color="var(--c-action-text)" onClick={() => { onRemoveExercise(workoutExercise.id); setShowMenu(false) }}>
-                    Eliminar ejercicio
+                    {t('Eliminar ejercicio')}
                   </MenuItem>
                 </motion.div>,
                 document.body

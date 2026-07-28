@@ -3,12 +3,14 @@ import Layout from '../components/Layout'
 import Segmented from '../components/stats/Segmented'
 import History from './History'
 import Stats from './Stats'
+import { useLang } from '../hooks/useLang'
 
 // Progreso — one destination for "what have I done?": the session timeline
 // (Historial) and the aggregates (Estadísticas) as two views of the same
 // question. The active view lives in ?tab= so links and back/forward work.
 export default function Progreso() {
   const [params, setParams] = useSearchParams()
+  const { t } = useLang()
   const tab = params.get('tab') === 'stats' ? 'stats' : 'historial'
 
   const setTab = (id) => {
@@ -21,15 +23,15 @@ export default function Progreso() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '40px', paddingBottom: '20px' }}>
           <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '30px', letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1.02 }}>
-            Progreso
+            {t('Progreso')}
           </h1>
           <Segmented
-            ariaLabel="Vista de progreso"
+            ariaLabel={t('Vista de progreso')}
             value={tab}
             onChange={setTab}
             options={[
-              { id: 'historial', label: 'Historial' },
-              { id: 'stats', label: 'Estadísticas' },
+              { id: 'historial', label: t('Historial') },
+              { id: 'stats', label: t('Estadísticas') },
             ]}
           />
         </div>

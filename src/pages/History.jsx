@@ -4,6 +4,7 @@ import Layout from '../components/Layout'
 import WorkoutCard from '../components/WorkoutCard'
 import { LiveRegion, UndoSnackbar } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
+import { useLang } from '../hooks/useLang'
 import { useWorkouts, calc1RM, calcVolume } from '../hooks/useWorkout'
 
 const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : v.toLocaleString())
@@ -12,6 +13,7 @@ const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : v.toLocaleStri
 // no page title) for composition inside Progreso.
 export default function History({ embedded = false }) {
   const navigate = useNavigate()
+  const { t } = useLang()
   const { workouts, loading, error, fetchWorkouts, deleteWorkout, duplicateWorkout } = useWorkouts()
 
   // Undoable delete (shared primitive) — hide optimistically, commit after a
@@ -102,9 +104,9 @@ export default function History({ embedded = false }) {
         {/* Empty state */}
         {!loading && !error && visibleWorkouts.length === 0 && (
           <div className="text-center py-16" style={{ border: '1px dashed var(--c-border)', borderRadius: '16px', padding: '48px 24px' }}>
-            <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em' }}>Sin entrenos aún</p>
+            <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em' }}>{t('Sin entrenos aún')}</p>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px', lineHeight: 1.5, maxWidth: '30ch', marginInline: 'auto' }}>
-              Cada sesión que registres aparece aquí, agrupada por mes.
+              {t('Cada sesión que registres aparece aquí, agrupada por mes.')}
             </p>
             <button
               onClick={() => navigate('/')}

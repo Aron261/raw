@@ -220,11 +220,12 @@ function SummaryRow({ label, value, onClick, isFirst }) {
 
 // ── Sheet: Mis características (identity + físico + nivel) ──────────────────
 function CharacteristicsSheet({ form, set, age, saving, onSave, onClose }) {
+  const { t } = useLang()
   return (
-    <Sheet title="Mis características" subtitle="Datos que cambian poco. Edítalos cuando haga falta." onClose={onClose} maxHeight="92dvh">
+    <Sheet title={t('Mis características')} subtitle="Datos que cambian poco. Edítalos cuando haga falta." onClose={onClose} maxHeight="92dvh">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div>
-          <label style={LABEL}>Nombre</label>
+          <label style={LABEL}>{t('Nombre')}</label>
           <input
             type="text" value={form.name}
             onChange={e => set('name', e.target.value)}
@@ -233,7 +234,7 @@ function CharacteristicsSheet({ form, set, age, saving, onSave, onClose }) {
         </div>
 
         <div>
-          <label style={LABEL}>Fecha de nacimiento</label>
+          <label style={LABEL}>{t('Fecha de nacimiento')}</label>
           <input
             type="date" value={form.birth_date}
             onChange={e => set('birth_date', e.target.value)}
@@ -245,12 +246,12 @@ function CharacteristicsSheet({ form, set, age, saving, onSave, onClose }) {
         </div>
 
         <div>
-          <label style={LABEL}>Sexo</label>
+          <label style={LABEL}>{t('Sexo')}</label>
           <PillGroup options={['Masculino', 'Femenino', 'Otro']} value={form.sex} onChange={v => set('sex', v)} />
         </div>
 
         <div>
-          <label style={LABEL}>Altura</label>
+          <label style={LABEL}>{t('Altura')}</label>
           <NumberWithUnit
             value={form.height} unit={form.height_unit}
             onValueChange={v => set('height', v)} onUnitChange={u => set('height_unit', u)}
@@ -259,19 +260,19 @@ function CharacteristicsSheet({ form, set, age, saving, onSave, onClose }) {
         </div>
 
         <div>
-          <label style={LABEL}>Peso de referencia</label>
+          <label style={LABEL}>{t('Peso de referencia')}</label>
           <NumberWithUnit
             value={form.weight} unit={form.weight_unit}
             onValueChange={v => set('weight', v)} onUnitChange={u => set('weight_unit', u)}
             units={['kg', 'lb']} placeholder="0"
           />
           <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '6px', lineHeight: 1.4 }}>
-            Tu peso base. El seguimiento diario va en «Peso corporal».
+            {t('Tu peso base. El seguimiento diario va en «Peso corporal».')}
           </p>
         </div>
 
         <div>
-          <label style={LABEL}>Nivel de entrenamiento</label>
+          <label style={LABEL}>{t('Nivel de entrenamiento')}</label>
           <PillGroup options={['Principiante', 'Intermedio', 'Avanzado']} value={form.level} onChange={v => set('level', v)} />
         </div>
       </div>
@@ -317,6 +318,7 @@ function relativeDay(iso) {
 
 // ── Sheet: body-weight history (chart + full log + add) ───────────────────
 function BodyWeightSheet({ unit, onClose }) {
+  const { t } = useLang()
   const { resolved, palette } = useTheme()
   const cc = PROFILE_CHART[`${palette}-${resolved}`] || PROFILE_CHART['slate-light']
   const { logs, chartData, latestLog, loading, adding, addLog, deleteLog } = useBodyWeight()
@@ -425,6 +427,7 @@ function BodyWeightSheet({ unit, onClose }) {
 
 // ── Body-weight summary (collapsed) — latest only, taps to open sheet ──────
 function BodyWeightSummary({ unit, onOpen }) {
+  const { t } = useLang()
   const { latestLog, loading } = useBodyWeight()
 
   return (
@@ -484,7 +487,7 @@ function ThemeSection() {
   return (
     <>
       <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
-        Tema
+        {t('Tema')}
       </p>
       <div role="group" aria-label="Modo de color" style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
         {modeOpts.map(o => {
@@ -499,7 +502,7 @@ function ThemeSection() {
       </div>
 
       <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
-        Paleta
+        {t('Paleta')}
       </p>
       <div role="group" aria-label="Paleta de color" style={{ display: 'flex', gap: '8px' }}>
         {paletteOpts.map(o => {
@@ -531,7 +534,7 @@ function ThemeSection() {
       </p>
       <ExerciseLangPicker cell={cell} />
       <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '8px' }}>
-        Solo cambia cómo se llaman. Tu historial y tus récords son los mismos en cualquier idioma.
+        {t('Solo cambia cómo se llaman. Tu historial y tus récords son los mismos en cualquier idioma.')}
       </p>
     </>
   )
@@ -618,6 +621,7 @@ const CANNOT_DO = [
 ]
 
 export function ClaudeSection() {
+  const { t } = useLang()
   const [copied, setCopied] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -664,7 +668,7 @@ export function ClaudeSection() {
             letterSpacing: '0.06em', cursor: 'pointer',
           }}
         >
-          {copied ? 'Copiada' : 'Copiar'}
+          {t(copied ? 'Copiada' : 'Copiar')}
         </button>
       </div>
 
@@ -699,7 +703,7 @@ export function ClaudeSection() {
           color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700,
         }}
       >
-        {open ? 'Ocultar permisos' : '¿Qué puede hacer Claude?'}
+        {t(open ? 'Ocultar permisos' : '¿Qué puede hacer Claude?')}
       </button>
 
       {open && (
@@ -730,6 +734,7 @@ export function ClaudeSection() {
 
 // ── Trainer / coach section ─────────────────────────────────────────────
 function TrainerSection() {
+  const { t } = useLang()
   const navigate = useNavigate()
   const { isTrainer, toggleTrainer, error: trainerError } = useTrainer()
   const { trainers, redeemCode, removeTrainer, redeeming, error: inviteError } = useInvites()
@@ -768,9 +773,9 @@ function TrainerSection() {
       {/* Toggle: soy entrenador */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div style={{ flex: 1, paddingRight: '12px' }}>
-          <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700 }}>Soy entrenador</p>
+          <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700 }}>{t('Soy entrenador')}</p>
           <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '2px', lineHeight: 1.4 }}>
-            Activa el panel «Coach» para invitar clientes y asignarles rutinas y metas.
+            {t('Activa el panel «Coach» para invitar clientes y asignarles rutinas y metas.')}
           </p>
         </div>
         <button
@@ -863,7 +868,7 @@ function TrainerSection() {
                     onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
                     onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-dim)'}
                   >
-                    Quitar
+                    {t('Quitar')}
                   </button>
                 </div>
               </div>
@@ -898,6 +903,7 @@ function AccountRow({ label, hint, danger, onClick, isFirst }) {
 
 // ── Sheet: cambiar contraseña ─────────────────────────────────────────────
 function ChangePasswordSheet({ onClose }) {
+  const { t } = useLang()
   const { updatePassword } = useAuth()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
@@ -943,6 +949,7 @@ function ChangePasswordSheet({ onClose }) {
 
 // ── Sheet: cambiar email ──────────────────────────────────────────────────
 function ChangeEmailSheet({ currentEmail, onClose }) {
+  const { t } = useLang()
   const { updateEmail } = useAuth()
   const [email, setEmail] = useState('')
   const [saving, setSaving] = useState(false)
@@ -985,6 +992,7 @@ function ChangeEmailSheet({ currentEmail, onClose }) {
 
 // ── Sheet: eliminar cuenta ────────────────────────────────────────────────
 function DeleteAccountSheet({ onClose }) {
+  const { t } = useLang()
   const { deleteAccount } = useAuth()
   const navigate = useNavigate()
   const [confirmText, setConfirmText] = useState('')
@@ -1021,7 +1029,7 @@ function DeleteAccountSheet({ onClose }) {
         loading={deleting} disabled={deleting || !ready} onClick={submit}
         style={{ background: ready ? 'var(--c-danger, #C0392B)' : undefined }}
       >
-        {deleting ? 'Eliminando…' : 'Eliminar mi cuenta'}
+        {t(deleting ? 'Eliminando…' : 'Eliminar mi cuenta')}
       </Button>
     </Sheet>
   )
@@ -1029,6 +1037,7 @@ function DeleteAccountSheet({ onClose }) {
 
 // ── Account / security section ────────────────────────────────────────────
 function AccountSection({ email }) {
+  const { t } = useLang()
   const [sheet, setSheet] = useState(null)   // 'password' | 'email' | 'delete' | null
   return (
     <>
@@ -1046,6 +1055,7 @@ function AccountSection({ email }) {
 // ── Main page ──────────────────────────────────────────────────────────
 export default function Profile() {
   const navigate = useNavigate()
+  const { t } = useLang()
   const { user, signOut } = useAuth()
   const { profile, loading, saving, saveError, saveSuccess, saveProfile, age } = useProfile()
   const { preference: themePreference, palette: themePalette } = useTheme()
@@ -1178,7 +1188,7 @@ export default function Profile() {
 
             <div style={{ minWidth: 0 }}>
               <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1.02 }}>
-                {form.name || 'Tu perfil'}
+                {form.name || t('Tu perfil')}
               </h1>
               {age !== null && (
                 <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', marginTop: '4px' }}>
@@ -1199,7 +1209,7 @@ export default function Profile() {
           {/* ── Mis características (incluye el peso corporal) ── */}
           <Disclosure
             title="Mis características"
-            summary={charsSummary || 'Añade tus datos'}
+            summary={charsSummary || t('Añade tus datos')}
             open={isOpen('caracteristicas')}
             onToggle={() => toggle('caracteristicas')}
           >
@@ -1228,7 +1238,7 @@ export default function Profile() {
 
           {/* ── Entrenamiento — objetivo, frecuencia, ejercicios y entrenador ── */}
           <Disclosure
-            title="Entrenamiento"
+            title={t('Entrenamiento')}
             summary={trainingSummary}
             open={isOpen('entrenamiento')}
             onToggle={() => toggle('entrenamiento')}
@@ -1236,7 +1246,7 @@ export default function Profile() {
             <form onSubmit={saveTraining}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div>
-                  <label style={LABEL}>Objetivo principal</label>
+                  <label style={LABEL}>{t('Objetivo principal')}</label>
                   <PillGroup
                     options={['Ganar músculo', 'Perder grasa', 'Fuerza', 'Resistencia', 'Mantener']}
                     value={form.goal}
@@ -1245,7 +1255,7 @@ export default function Profile() {
                 </div>
 
                 <div>
-                  <label style={LABEL}>Días que entrenas por semana</label>
+                  <label style={LABEL}>{t('Días que entrenas por semana')}</label>
                   <DaysPicker value={form.days_per_week} onChange={v => set('days_per_week', v)} />
                 </div>
               </div>
@@ -1267,7 +1277,7 @@ export default function Profile() {
                 una pestaña de la barra inferior, donde competía con Inicio. */}
             <div style={{ borderTop: '1px solid var(--c-border-subtle)', marginTop: '20px', paddingTop: '18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <LinkRow
-                label="Mis ejercicios"
+                label={t('Mis ejercicios')}
                 hint="Clasifica por grupo muscular y vincula los que no reconoció"
                 onClick={() => navigate('/ejercicios')}
               />
@@ -1281,7 +1291,7 @@ export default function Profile() {
 
           {/* ── Apariencia ── */}
           <Disclosure
-            title="Apariencia"
+            title={t('Apariencia')}
             summary={appearanceSummary}
             open={isOpen('apariencia')}
             onToggle={() => toggle('apariencia')}
@@ -1291,7 +1301,7 @@ export default function Profile() {
 
           {/* ── Cuenta (incluye el conector de Claude) ── */}
           <Disclosure
-            title="Cuenta"
+            title={t('Cuenta')}
             summary={user?.email}
             open={isOpen('cuenta')}
             onToggle={() => toggle('cuenta')}
@@ -1316,7 +1326,7 @@ export default function Profile() {
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--c-action-text)'; e.currentTarget.style.borderColor = 'var(--c-accent)' }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--c-text-dim)'; e.currentTarget.style.borderColor = 'var(--c-border-subtle)' }}
               >
-                Cerrar sesión
+                {t('Cerrar sesión')}
               </button>
             </div>
           </Disclosure>
@@ -1337,10 +1347,10 @@ export default function Profile() {
               >
                 <span style={{ minWidth: 0 }}>
                   <span style={{ display: 'block', color: 'var(--c-text)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em' }}>
-                    Panel de administración
+                    {t('Panel de administración')}
                   </span>
                   <span style={{ display: 'block', color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '3px' }}>
-                    Estado de la app, usuarios y actividad
+                    {t('Estado de la app, usuarios y actividad')}
                   </span>
                 </span>
                 <span aria-hidden="true" style={{ flexShrink: 0, color: 'var(--c-action-text)', fontSize: '15px', fontWeight: 800 }}>›</span>
