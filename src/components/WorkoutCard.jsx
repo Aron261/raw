@@ -19,9 +19,9 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
     const exerciseCount = workout.workout_exercises?.length || 0
 
     const date = new Date(workout.started_at)
-    const dateStr = date.toLocaleDateString(locale, {
-      weekday: 'short', month: 'short', day: 'numeric',
-    })
+    // Sin día de la semana: la lista ya viene agrupada por mes, así que
+    // "mar," solo gastaba el ancho que necesitaba la línea de cifras.
+    const dateStr = date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
 
     const duration = workout.ended_at
       ? formatDuration(workout.started_at, workout.ended_at)
@@ -63,72 +63,72 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
           border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
           borderRadius: 'var(--r-lg)',
           padding: '14px 16px',
-          paddingRight: (onDelete || onDuplicate) ? '52px' : '16px', // room for action btns
+          paddingRight: (onDelete || onDuplicate) ? '92px' : '16px', // sitio para las acciones
           display: 'block',
           width: '100%',
           transition: `transform 160ms var(--ease-out), border-color 150ms var(--ease-out)`,
         }}
         {...pressProps(0.985)}
       >
-        {/* Top row */}
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '3px' }}>
-              {dateStr}
-            </p>
-            <h3 style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-              {workout.name}
-            </h3>
-          </div>
+        {/* La fila era una cabecera con fecha y nombre apilados, y debajo tres
+            columnas rotuladas —Duración, Volumen, Ejercicios— repitiendo las
+            mismas tres etiquetas en las treinta tarjetas de la lista. Eran
+            250px por sesión para decir cinco cosas.
+
+            Ahora el nombre manda, la fecha se apoya a su lado y las tres
+            cifras van en una sola línea leída: «1h 15m · 5.535 kg · 6
+            ejercicios». Las etiquetas se caen porque las unidades ya las
+            dicen, y la tarjeta baja a la mitad de alto. */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
+          <h3 style={{ color: 'var(--c-text)', fontSize: '16px', fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1.15, minWidth: 0 }}>
+            {workout.name}
+          </h3>
 
           {isActive ? (
             <span style={{
-              display: 'flex', alignItems: 'center', gap: '5px',
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
               background: 'var(--c-accent-dim)', border: '1px solid var(--c-accent-border)',
-              color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 900,
+              color: 'var(--c-action-text)', fontSize: '10px', fontWeight: 900,
               letterSpacing: '-0.01em',
-              padding: '3px 7px', borderRadius: 'var(--r-xs)',
+              padding: '3px 8px', borderRadius: '999px', flexShrink: 0,
             }}>
               <span className="live-dot" style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--c-accent)', display: 'inline-block' }} />
               Live
             </span>
           ) : hasPR ? (
+            /* El PR iba en una ficha azul rellena, y como casi toda sesión
+               trae alguno, treinta fichas azules seguidas no señalaban nada.
+               Un punto y una palabra en el color del récord bastan. */
             <span style={{
-              background: 'var(--c-record)', color: 'var(--c-record-ink)',
-              fontSize: '9px', fontWeight: 900, letterSpacing: '-0.01em',
-              padding: '3px 7px', borderRadius: 'var(--r-xs)',
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              color: 'var(--c-record)', fontSize: '11px', fontWeight: 800,
+              letterSpacing: '-0.01em', flexShrink: 0,
             }}>
+              <span aria-hidden="true" style={{ width: '5px', height: '5px', borderRadius: '999px', background: 'var(--c-record)' }} />
               PR
             </span>
           ) : null}
         </div>
 
-        {/* Stats row */}
-        <div style={{ display: 'flex', gap: '20px', borderTop: '1px solid var(--c-border-subtle)', paddingTop: '10px' }}>
-          {duration && (
-            <div>
-              <p style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>{t('Duración')}</p>
-              <p style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{duration}</p>
-            </div>
+        <p style={{
+          color: 'var(--c-text-muted)', fontSize: '12.5px', fontWeight: 500,
+          letterSpacing: '-0.01em', lineHeight: 1.4,
+        }}>
+          {dateStr}
+          {duration && <> · <span style={{ fontVariantNumeric: 'tabular-nums' }}>{duration}</span></>}
+          {totalVolume > 0 && (
+            <> · <span style={{ color: 'var(--c-text-secondary)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+              {formatVolume(totalVolume, locale)} {unit}
+            </span></>
           )}
-          <div>
-            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>{t('Volumen')}</p>
-            <p style={{ color: 'var(--c-data)', fontSize: '18px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-              {formatVolume(totalVolume, locale)}
-              {totalVolume > 0 && <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '3px' }}>{unit}</span>}
-            </p>
-          </div>
-          <div>
-            <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>{t('Ejercicios')}</p>
-            <p style={{ color: 'var(--c-text-secondary)', fontSize: '14px', fontWeight: 800, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>{exerciseCount}</p>
-          </div>
-        </div>
+          {exerciseCount > 0 && <> · {exerciseCount} {t(exerciseCount === 1 ? 'ejercicio' : 'ejercicios')}</>}
+        </p>
       </button>
 
       {/* Action buttons — sit outside the main button to avoid nesting.
           Delete is hidden while Live so an in-progress session can't be
           dropped from the list. */}
-      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '6px 4px' }}>
+      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '2px', padding: '0 6px' }}>
         {onDuplicate && (
           <button
             onClick={handleDuplicate}
