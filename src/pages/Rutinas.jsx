@@ -158,21 +158,26 @@ function ActiveCycleCard({ routine, weeksActive = 0, onDeactivate, onEdit, onSha
         </div>
       )}
 
+      {/* Los días iban en dos columnas: el nombre a la izquierda y el enfoque
+          pegado al borde derecho, que con «Cuádriceps + pecho + espalda +
+          aductores» dejaba el texto apretado contra el margen y a 10px.
+
+          Ahora se apilan —nombre encima, enfoque debajo— con filete entre días
+          en vez de tres bloques grises. El enfoque puede respirar y la lista se
+          lee de un tirón. */}
       {(routine.routine_days || []).length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '14px' }}>
+        <div style={{ marginBottom: '14px', borderTop: '1px solid var(--c-border-subtle)' }}>
           {routine.routine_days.map(day => (
             <div key={day.id} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '7px 10px',
-              background: 'var(--c-surface-2)',
-              borderRadius: 'var(--r-xs)',
+              padding: '11px 2px',
+              borderBottom: '1px solid var(--c-border-subtle)',
             }}>
-              <span style={{ color: 'var(--c-text)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em' }}>
+              <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, letterSpacing: '-0.02em' }}>
                 {day.day_name}
-              </span>
-              <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>
-                {day.focus ? day.focus : `${(day.routine_day_exercises || []).length} ejercicios`}
-              </span>
+              </p>
+              <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', lineHeight: 1.4, marginTop: '2px' }}>
+                {day.focus ? day.focus : `${(day.routine_day_exercises || []).length} ${t('ejercicios')}`}
+              </p>
             </div>
           ))}
         </div>
@@ -1039,20 +1044,27 @@ export default function Rutinas() {
     <Layout>
       <div style={{ padding: '0 16px', maxWidth: '480px', margin: '0 auto', width: '100%' }}>
 
-        {/* Header */}
-        <div className="fade-in" style={{ paddingTop: '40px', paddingBottom: '28px' }}>
+        {/* Cabecera.
+            Antes eran 430px antes de ver una sola rutina: título, subtítulo
+            («Ciclos y plantillas», que repite lo que ya dice el título), un
+            botón azul a todo lo ancho y otra etiqueta.
+
+            El botón baja a secundario y se pone al lado del título. Crear una
+            rutina es lo que menos se hace aquí —se entra a mirar el ciclo que
+            está corriendo—, y el azul relleno lo estaba gritando por encima
+            del contenido. */}
+        <div
+          className="fade-in"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: '12px', paddingTop: '40px', paddingBottom: '20px',
+          }}
+        >
           <h1 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text)', fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.02 }}>
             {t('Rutinas')}
           </h1>
-          <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '6px' }}>
-            {t('Ciclos y plantillas')}
-          </p>
-        </div>
-
-        {/* CTA */}
-        <div className="fade-in" style={{ marginBottom: '28px', animationDelay: '20ms' }}>
-          <Button variant="primary" full onClick={() => setModal('type')} style={{ letterSpacing: '-0.01em' }}>
-            + Nueva rutina
+          <Button variant="secondary" size="sm" onClick={() => setModal('type')} style={{ flexShrink: 0 }}>
+            + {t('Nueva')}
           </Button>
         </div>
 

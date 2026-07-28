@@ -652,6 +652,7 @@ const EN = {
   'Sin rutinas guardadas': 'No saved routines',
   'Crea un ciclo semanal o una rutina puntual para empezar.': 'Create a weekly cycle or a one-off routine to get started.',
   'Nuevo ciclo': 'New cycle',
+  'Nueva': 'New',
   'Nueva rutina': 'New routine',
   'Ciclo': 'Cycle',
   'Activar': 'Activate',
