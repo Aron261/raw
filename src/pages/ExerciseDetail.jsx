@@ -1,35 +1,19 @@
 import { useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
-} from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import Layout from '../components/Layout'
 import PRBadge from '../components/PRBadge'
 import { useExercisePR, calc1RM } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
-import { useTheme } from '../hooks/useTheme'
 import { useLang } from '../hooks/useLang'
 import { useChartColors } from '../lib/chartColors'
+import {
+  gridProps, axisProps, ChartTooltip,
+  AreaFillDefs, useAreaFillId, lastPointDot,
+} from '../components/charts/chartTheme'
 
 
 // Custom tooltip — light theme
-function CustomTooltip({ active, payload, label }) {
-  const { t } = useLang()
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{
-      background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
-      padding: '8px 12px',
-      borderRadius: 'var(--r-sm)',
-      fontSize: '11px',
-    }}>
-      <p style={{ color: 'var(--c-text-dim)', letterSpacing: '-0.01em', marginBottom: '2px' }}>{label}</p>
-      <p style={{ color: 'var(--c-text)', fontWeight: 700 }}>{payload[0].value} 1RM</p>
-    </div>
-  )
-}
-
 // Rep ranges to highlight in the PR table
 const REP_RANGES = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20]
 
@@ -39,6 +23,7 @@ export default function ExerciseDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const cc = useChartColors()
+  const fillId = useAreaFillId()
 
   const exerciseName = decodeURIComponent(name)
   const { prSets, allTimePR, loading } = useExercisePR(exerciseName, user?.id)
@@ -137,31 +122,27 @@ export default function ExerciseDetail() {
                 {t('Progresión 1RM')}
               </p>
               <div style={{ height: '180px', width: '100%' }}>
+                <AreaFillDefs id={fillId} colors={cc} />
                 <ResponsiveContainer width="100%" height="100%">
-                  {/* Hex values — CSS vars no funcionan en atributos SVG; ver CHART */}
-                  <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                    <CartesianGrid stroke={cc.grid} strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fill: cc.axis, fontSize: 10 }}
-                      axisLine={{ stroke: cc.grid }}
-                      tickLine={false}
+                  {/* Hex literal — var() no resuelve dentro de un atributo SVG */}
+                  <AreaChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
+                      <CartesianGrid {...gridProps(cc)} />
+                    <XAxis {...axisProps(cc)} dataKey="date" />
+                    <YAxis {...axisProps(cc)} width={38} />
+                    <Tooltip
+                      content={<ChartTooltip format={(v) => `${v} 1RM`} />}
+                      cursor={{ stroke: cc.grid, strokeWidth: 1 }}
                     />
-                    <YAxis
-                      tick={{ fill: cc.axis, fontSize: 10 }}
-                      axisLine={{ stroke: cc.grid }}
-                      tickLine={false}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line
+                    <Area
                       type="monotone"
                       dataKey="1RM"
                       stroke={cc.line}
-                      strokeWidth={2}
-                      dot={{ fill: cc.line, r: 3, strokeWidth: 0 }}
-                      activeDot={{ fill: cc.line, r: 5, strokeWidth: 0 }}
+                      strokeWidth={2.4}
+                      fill={`url(#${fillId})`}
+                      dot={lastPointDot(cc)}
+                      activeDot={{ fill: cc.line, r: 5, strokeWidth: 2, stroke: 'var(--c-surface)' }}
                     />
-                  </LineChart>
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>

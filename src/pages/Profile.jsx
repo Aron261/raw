@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
-} from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import Layout from '../components/Layout'
 import { useProfile } from '../hooks/useProfile'
 import { useAuth } from '../hooks/useAuth'
@@ -15,6 +13,10 @@ import { useLang } from '../hooks/useLang'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Button, Sheet, UnitToggle } from '../components/ui'
 import { useChartColors } from '../lib/chartColors'
+import {
+  gridProps, axisProps, ChartTooltip,
+  AreaFillDefs, useAreaFillId, lastPointDot,
+} from '../components/charts/chartTheme'
 
 
 // ── Shared label styles ───────────────────────────────────────────────────
@@ -289,22 +291,6 @@ function CharacteristicsSheet({ form, set, age, saving, onSave, onClose }) {
 }
 
 // ── Weight chart tooltip ────────────────────────────────────────────────
-function WeightTooltip({ active, payload, label }) {
-  const { t } = useLang()
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{
-      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
-      padding: '7px 11px', borderRadius: 'var(--r-sm)', fontSize: '11px',
-    }}>
-      <p style={{ color: 'var(--c-text-dim)', letterSpacing: '-0.01em', marginBottom: '2px' }}>{label}</p>
-      <p style={{ color: 'var(--c-text)', fontWeight: 700 }}>
-        {payload[0].value} {payload[0].payload.unit}
-      </p>
-    </div>
-  )
-}
-
 // Relative-time label: "hoy", "ayer", "hace 3 días", or a date
 function relativeDay(iso, t = (x) => x, locale = 'es-CO') {
   if (!iso) return ''
@@ -321,6 +307,7 @@ function relativeDay(iso, t = (x) => x, locale = 'es-CO') {
 function BodyWeightSheet({ unit, onClose }) {
   const { t, locale } = useLang()
   const cc = useChartColors()
+  const fillId = useAreaFillId()
   const { logs, chartData, latestLog, loading, adding, addLog, deleteLog } = useBodyWeight()
   const [inputWeight, setInputWeight] = useState('')
 
@@ -373,15 +360,27 @@ function BodyWeightSheet({ unit, onClose }) {
       {/* Chart */}
       {!loading && chartData.length >= 2 && (
         <div style={{ height: '160px', width: '100%', marginBottom: '20px' }}>
+          <AreaFillDefs id={fillId} colors={cc} />
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-              <CartesianGrid stroke={cc.grid} strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
-              <Tooltip content={<WeightTooltip />} />
-              <Line type="monotone" dataKey="peso" stroke={cc.line} strokeWidth={2}
-                dot={{ fill: cc.line, r: 3, strokeWidth: 0 }} activeDot={{ fill: cc.line, r: 5, strokeWidth: 0 }} />
-            </LineChart>
+            {/* Hex literal — var() no resuelve dentro de un atributo SVG */}
+            <AreaChart data={chartData} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid {...gridProps(cc)} />
+              <XAxis {...axisProps(cc, { size: 9 })} dataKey="date" />
+              <YAxis {...axisProps(cc, { size: 9 })} width={34} domain={['auto', 'auto']} />
+              <Tooltip
+                content={<ChartTooltip format={(v) => `${v} ${unit}`} />}
+                cursor={{ stroke: cc.grid, strokeWidth: 1 }}
+              />
+              <Area
+                type="monotone"
+                dataKey="peso"
+                stroke={cc.line}
+                strokeWidth={2.4}
+                fill={`url(#${fillId})`}
+                dot={lastPointDot(cc)}
+                activeDot={{ fill: cc.line, r: 5, strokeWidth: 2, stroke: 'var(--c-surface)' }}
+              />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       )}

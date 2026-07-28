@@ -2,33 +2,18 @@ import { useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell,
 } from 'recharts'
-import { useTheme } from '../../hooks/useTheme'
 import SectionHeader from './SectionHeader'
 import Segmented from './Segmented'
 import { useLang } from '../../hooks/useLang'
 import { useChartColors } from '../../lib/chartColors'
+import { ChartTooltip } from '../charts/chartTheme'
+import { formatVolume } from '../../lib/format'
 
-
-function ChartTooltip({ active, payload, label }) {
-  const { t } = useLang()
-  if (!active || !payload?.length) return null
-  const val = payload[0]?.value || 0
-  return (
-    <div style={{
-      background: 'var(--c-surface)', border: '1px solid var(--c-border)',
-      borderRadius: 'var(--r-xs)', padding: '6px 10px',
-      fontSize: '10px', fontWeight: 700, color: 'var(--c-text)',
-      boxShadow: 'var(--e-2)',
-    }}>
-      {label}: {val > 0 ? `${(val / 1000).toFixed(1)}k kg` : '—'}
-    </div>
-  )
-}
 
 const RANGE_OPTIONS = [{ id: '6', label: '6M' }, { id: '12', label: '12M' }]
 
 export default function VolumeTrendModule({ data }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const colors = useChartColors()
   const [range, setRange] = useState('12')
 
@@ -87,11 +72,34 @@ export default function VolumeTrendModule({ data }) {
           <BarChart data={chartData} barSize={range === '6' ? 26 : 16} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
             <XAxis dataKey="label" tick={renderTick} axisLine={false} tickLine={false} interval={0} height={24} />
             <YAxis hide />
-            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'transparent' }} />
-            <Bar dataKey="volume" radius={[5, 5, 0, 0]}>
-              {chartData.map((entry, i) => (
-                <Cell key={i} fill={entry.volume > 0 ? (i === lastIdx ? colors.current : colors.bar) : colors.empty} />
-              ))}
+            <Tooltip
+              content={<ChartTooltip format={(v) => `${formatVolume(v, locale, { empty: '0' })} kg`} />}
+              cursor={{ fill: colors.cursor }}
+            />
+            {/* Un solo tono: el mes en curso a plena intensidad y los demás
+                bajando la opacidad. Antes el actual usaba un color propio, y
+                con una sola paleta eso obligaba a inventarse un segundo azul
+                para una barra. */}
+            {/* minPointSize como función deja un tocón de 3px en los meses a
+                cero. Sin él, una barra de altura cero no dibuja nada y nueve
+                meses sin entrenar se leían como una gráfica rota en vez de
+                como nueve meses sin entrenar. */}
+            <Bar
+              dataKey="volume"
+              radius={[6, 6, 0, 0]}
+              isAnimationActive={false}
+              minPointSize={(v) => (v > 0 ? 2 : 3)}
+            >
+              {chartData.map((entry, i) => {
+                const empty = entry.volume === 0
+                return (
+                  <Cell
+                    key={i}
+                    fill={empty ? colors.empty : colors.bar}
+                    fillOpacity={empty || i === lastIdx ? 1 : 0.42}
+                  />
+                )
+              })}
             </Bar>
           </BarChart>
         </ResponsiveContainer>

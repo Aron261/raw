@@ -8,10 +8,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 
 vi.mock('recharts', () => ({
+  // El mock cubre lo que monta chartTheme además de lo que monta la pantalla:
+  // GridThemed/AreaThemed importan de recharts por su cuenta, así que un mock
+  // parcial revienta al renderizar aunque la pantalla no use esa pieza.
+  BarChart: ({ children }) => <div>{children}</div>,
   LineChart: ({ children }) => <div>{children}</div>,
-  Line: () => null, XAxis: () => null, YAxis: () => null,
-  CartesianGrid: () => null, Tooltip: () => null,
+  AreaChart: ({ children }) => <div>{children}</div>,
   ResponsiveContainer: ({ children }) => <div>{children}</div>,
+  Bar: () => null, Line: () => null, Area: () => null,
+  XAxis: () => null, YAxis: () => null, CartesianGrid: () => null,
+  Tooltip: () => null, Cell: () => null, Legend: () => null,
 }))
 
 const navigate = vi.fn()

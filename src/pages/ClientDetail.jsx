@@ -16,6 +16,8 @@ import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button, UnitToggle } from '../components/ui'
 import { useLang } from '../hooks/useLang'
 import { useChartColors } from '../lib/chartColors'
+import { gridProps, axisProps, ChartTooltip } from '../components/charts/chartTheme'
+import { formatVolume } from '../lib/format'
 
 
 const SECTION_LABEL = {
@@ -695,11 +697,14 @@ export default function ClientDetail() {
               <div style={{ height: '120px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dash.weeklyData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-                    <CartesianGrid stroke={cc.grid} strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="label" tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: cc.axis, fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <Tooltip cursor={{ fill: cc.cursor }} />
-                    <Bar dataKey="volume" fill={cc.bar} radius={[3, 3, 0, 0]} />
+                    <CartesianGrid {...gridProps(cc)} />
+                    <XAxis {...axisProps(cc, { size: 9 })} dataKey="label" />
+                    <YAxis {...axisProps(cc, { size: 9 })} width={34} />
+                    <Tooltip
+                      content={<ChartTooltip format={(v) => `${formatVolume(v, locale, { empty: '0' })} kg`} />}
+                      cursor={{ fill: cc.cursor }}
+                    />
+                    <Bar dataKey="volume" fill={cc.bar} radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

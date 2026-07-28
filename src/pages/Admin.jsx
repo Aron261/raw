@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useAdmin } from '../hooks/useAdmin'
 import { useProfile } from '../hooks/useProfile'
 import { useTheme } from '../hooks/useTheme'
@@ -8,6 +8,7 @@ import { ERROR_STYLE } from '../lib/ui'
 import { Toast } from '../components/ui'
 import { useLang } from '../hooks/useLang'
 import { useChartColors } from '../lib/chartColors'
+import { gridProps, axisProps, ChartTooltip } from '../components/charts/chartTheme'
 
 
 const CARD = {
@@ -44,19 +45,17 @@ function Metric({ label, value, sub }) {
   )
 }
 
-function MiniChart({ data, color, axis }) {
+function MiniChart({ data, colors }) {
   const { t, locale } = useLang()
   return (
     <div style={{ height: '150px', width: '100%' }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-          <XAxis dataKey="day" tickFormatter={dayLabel} tick={{ fill: axis, fontSize: 9 }} axisLine={false} tickLine={false} interval={6} />
-          <YAxis allowDecimals={false} tick={{ fill: axis, fontSize: 9 }} axisLine={false} tickLine={false} />
-          <Tooltip
-            labelFormatter={dayLabel}
-            contentStyle={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)', fontSize: '11px' }}
-          />
-          <Bar dataKey="count" fill={color} radius={[3, 3, 0, 0]} />
+          <CartesianGrid {...gridProps(colors)} />
+          <XAxis {...axisProps(colors, { size: 9 })} dataKey="day" tickFormatter={dayLabel} interval={6} />
+          <YAxis {...axisProps(colors, { size: 9 })} width={34} allowDecimals={false} />
+          <Tooltip labelFormatter={dayLabel} content={<ChartTooltip />} cursor={{ fill: colors.cursor }} />
+          <Bar dataKey="count" fill={colors.bar} radius={[6, 6, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -191,11 +190,11 @@ export default function Admin() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
               <section style={CARD}>
                 <p style={SECTION_TITLE}>{t('Registros · últimos 30 días')}</p>
-                <MiniChart data={overview?.signups_series || []} color={cc.bar} axis={cc.axis} />
+                <MiniChart data={overview?.signups_series || []} colors={cc} />
               </section>
               <section style={CARD}>
                 <p style={SECTION_TITLE}>{t('Entrenos · últimos 30 días')}</p>
-                <MiniChart data={overview?.workouts_series || []} color={cc.bar} axis={cc.axis} />
+                <MiniChart data={overview?.workouts_series || []} colors={cc} />
               </section>
             </div>
 

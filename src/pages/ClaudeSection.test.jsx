@@ -10,7 +10,18 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 
-vi.mock('recharts', () => ({}))
+vi.mock('recharts', () => ({
+  // El mock cubre lo que monta chartTheme además de lo que monta la pantalla:
+  // GridThemed/AreaThemed importan de recharts por su cuenta, así que un mock
+  // parcial revienta al renderizar aunque la pantalla no use esa pieza.
+  BarChart: ({ children }) => <div>{children}</div>,
+  LineChart: ({ children }) => <div>{children}</div>,
+  AreaChart: ({ children }) => <div>{children}</div>,
+  ResponsiveContainer: ({ children }) => <div>{children}</div>,
+  Bar: () => null, Line: () => null, Area: () => null,
+  XAxis: () => null, YAxis: () => null, CartesianGrid: () => null,
+  Tooltip: () => null, Cell: () => null, Legend: () => null,
+}))
 // useLang cuelga de useProfile → supabase. Con la identidad basta: las
 // aserciones son sobre el español, que es la clave.
 vi.mock('../hooks/useLang', () => ({ useLang: () => ({ t: (x) => x, locale: 'es-CO', lang: 'es' }) }))

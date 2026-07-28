@@ -5,9 +5,9 @@ import WorkoutCard from '../components/WorkoutCard'
 import { LiveRegion, UndoSnackbar } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import { useLang } from '../hooks/useLang'
+import { formatVolume } from '../lib/format'
 import { useWorkouts, calc1RM, calcVolume } from '../hooks/useWorkout'
 
-const fmtVol = (v) => (v >= 10000 ? `${(v / 1000).toFixed(1)}k` : v.toLocaleString())
 
 // Standalone page by default; `embedded` renders just the content (no Layout,
 // no page title) for composition inside Progreso.
@@ -126,7 +126,7 @@ export default function History({ embedded = false }) {
                   <h2 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', letterSpacing: '-0.01em' }}>{month}</h2>
                   <p style={{ fontFamily: 'var(--font-sans)', fontSize: '10px', letterSpacing: '-0.01em', color: 'var(--c-text-muted)' }}>
                     {items.length} {items.length === 1 ? 'entreno' : 'entrenos'}
-                    {volume > 0 && <> · <span style={{ color: 'var(--c-data)', fontWeight: 700 }}>{fmtVol(Math.round(volume))} kg</span></>}
+                    {volume > 0 && <> · <span style={{ color: 'var(--c-data)', fontWeight: 700 }}>{formatVolume(volume, locale)} kg</span></>}
                   </p>
                 </div>
                 <div className="space-y-3">

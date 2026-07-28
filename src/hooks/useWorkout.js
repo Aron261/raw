@@ -4,6 +4,7 @@ import { useAuth } from './useAuth'
 import { useCachedResource } from '../lib/swr'
 import { getOrCreateExerciseId, resolveExerciseIds as resolveExerciseIdsCanonical } from '../lib/exercises'
 import { outbox } from '../lib/outbox'
+import { calc1RM } from '../lib/progress'
 
 // How many set writes are still queued (unsynced) for a workout — drives the
 // "N series sin sincronizar" indicator. Re-reads whenever the outbox changes.
@@ -30,7 +31,14 @@ const newSetId = () => {
 
 // Epley vive en lib/progress (módulo puro, junto a la comparación que lo usa).
 // Se reexporta aquí porque media app la importa de este hook.
-export { calc1RM } from '../lib/progress'
+//
+// Ojo con la forma: `export { calc1RM } from '...'` reexporta el símbolo para
+// quien importe ESTE módulo, pero NO lo mete en el ámbito del módulo — y aquí
+// dentro se usa cuatro veces. El resultado era un ReferenceError dentro de
+// useExercisePR y useExerciseAllTimeBest que se tragaba el catch: el detalle
+// de un ejercicio decía "Sin datos aún" para ejercicios con años de historial.
+// El import de arriba lo mete en ámbito; esto solo lo vuelve a exponer.
+export { calc1RM }
 
 // Calculate total volume for a list of sets, normalizado a kg.
 // Si el set tiene unit='lb', convierte antes de sumar.

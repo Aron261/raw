@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { formatDuration, calcVolume } from '../hooks/useWorkout'
 import { pressProps } from '../lib/ui'
 import { useLang } from '../hooks/useLang'
+import { formatVolume } from '../lib/format'
 
 export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = false }) {
   const { t, locale } = useLang()
@@ -113,7 +114,7 @@ export default function WorkoutCard({ workout, onDelete, onDuplicate, hasPR = fa
           <div>
             <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>{t('Volumen')}</p>
             <p style={{ color: 'var(--c-data)', fontSize: '18px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-              {totalVolume > 0 ? totalVolume.toLocaleString() : '—'}
+              {formatVolume(totalVolume, locale)}
               {totalVolume > 0 && <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '3px' }}>{unit}</span>}
             </p>
           </div>

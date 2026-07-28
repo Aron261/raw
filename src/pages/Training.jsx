@@ -13,6 +13,8 @@ import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { useInvites } from '../hooks/useInvites'
 import { useChartColors } from '../lib/chartColors'
+import { formatVolume } from '../lib/format'
+import { ChartTooltip } from '../components/charts/chartTheme'
 import { useSchedule } from '../hooks/useSchedule'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
@@ -41,30 +43,6 @@ function greetingKey() {
   if (h < 12) return 'Buenos días'
   if (h < 19) return 'Buenas tardes'
   return 'Buenas noches'
-}
-
-// ── Format volume ─────────────────────────────────────────────────────────
-function formatVolume(v) {
-  if (!v) return '—'
-  if (v >= 10000) return `${(v / 1000).toFixed(1)}k`
-  return v.toLocaleString()
-}
-
-// ── ChartTooltip ──────────────────────────────────────────────────────────
-function ChartTooltip({ active, payload, label }) {
-  const { t } = useLang()
-  if (!active || !payload?.length) return null
-  const val = payload[0]?.value || 0
-  return (
-    <div style={{
-      background: 'var(--c-surface)', border: '1px solid var(--c-border)',
-      borderRadius: 'var(--r-xs)', padding: '6px 10px',
-      fontSize: '10px', fontWeight: 700, color: 'var(--c-text)',
-      boxShadow: 'var(--e-2)',
-    }}>
-      {label}: {val > 0 ? `${(val / 1000).toFixed(1)}k kg` : '—'}
-    </div>
-  )
 }
 
 // ── WeeklyChart ───────────────────────────────────────────────────────────
@@ -102,17 +80,21 @@ function WeeklyChart({ chartData, height = 150, title, subtitle, colors }) {
             <BarChart data={chartData} barSize={22} margin={{ top: 0, right: 8, bottom: 0, left: -20 }}>
               <XAxis
                 dataKey="day"
-                tick={{ fill: colors.axis, fontSize: 10, fontWeight: 700 }}
+                tick={{ fill: colors.axis, fontSize: 10, fontWeight: 600, fontFamily: 'Archivo, system-ui, sans-serif' }}
                 axisLine={false}
                 tickLine={false}
+                tickMargin={8}
               />
               <YAxis hide />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'transparent' }} />
+              <Tooltip
+                content={<ChartTooltip format={(v) => `${formatVolume(v, locale, { empty: '0' })} kg`} />}
+                cursor={{ fill: colors.cursor }}
+              />
               {/* Un solo tono para toda la serie: hoy va a plena intensidad y
                   el resto de la semana baja la opacidad. Antes hoy usaba un
                   color propio, y con una sola paleta eso pedía inventarse un
                   segundo azul solo para una barra. */}
-              <Bar dataKey="vol" radius={[6, 6, 0, 0]}>
+              <Bar dataKey="vol" radius={[6, 6, 0, 0]} minPointSize={(v) => (v > 0 ? 2 : 3)}>
                 {chartData.map((entry, i) => {
                   const isToday = i === ((new Date().getDay() + 6) % 7)
                   const empty = entry.future || entry.vol === 0

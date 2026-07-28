@@ -3,16 +3,13 @@ import { useExerciseGroups } from '../../hooks/useExerciseGroups'
 import { CATCH_ALL } from '../../lib/muscleGroups'
 import SectionHeader from './SectionHeader'
 import { useLang } from '../../hooks/useLang'
+import { formatVolume } from '../../lib/format'
 
 // All-time volume distribution across muscle groups, shown as proportional
 // horizontal bars (relative to the most-trained group).
-function formatVolume(v) {
-  if (v >= 10000) return `${(v / 1000).toFixed(1)}k`
-  return v.toLocaleString()
-}
 
 export default function MuscleBalanceModule({ data, readOnly = false }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const navigate = useNavigate()
   const { needsAttention } = useExerciseGroups()
 
@@ -48,7 +45,7 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
                   {g.group}
                 </span>
                 <span style={{ flexShrink: 0, color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700 }}>
-                  {formatVolume(g.volume)} kg
+                  {formatVolume(g.volume, locale, { empty: '0' })} kg
                 </span>
               </div>
               <div style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
