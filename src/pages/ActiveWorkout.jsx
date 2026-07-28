@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import ExerciseRow from '../components/ExerciseRow'
 import ExerciseDeck from '../components/ExerciseDeck'
-import RestTimerPill from '../components/RestTimerPill'
+import RestTimerSheet from '../components/RestTimerSheet'
 import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } from '../hooks/useWorkout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -1068,7 +1068,7 @@ export default function ActiveWorkout() {
       {/* Rest pill — floats above the sticky actions while resting. Keyed per
           rest so each one mounts fresh; the pill animates its own exit. */}
       {rest && !isFinished && (
-        <RestTimerPill
+        <RestTimerSheet
           key={rest.id}
           restId={rest.id}
           endsAt={rest.endsAt}
