@@ -5,7 +5,7 @@ import AddExerciseModal from '../components/AddExerciseModal'
 import ShareRoutineSheet from '../components/ShareRoutineSheet'
 import { useRoutines } from '../hooks/useRoutines'
 import { useAuth } from '../hooks/useAuth'
-import { pressable } from '../lib/ui'
+import { pressable, clampLines } from '../lib/ui'
 import { useLang } from '../hooks/useLang'
 
 const eyebrow = { fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em' }
@@ -27,7 +27,7 @@ function ExerciseRowEditor({ exercise, onUpdate, onRemove }) {
   return (
     <div style={{ padding: '10px 0', borderTop: '1px solid var(--c-border-subtle)' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', ...clampLines(2) }}>
         {exercise.exercise_name}
       </span>
       <input

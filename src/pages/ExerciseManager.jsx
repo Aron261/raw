@@ -7,6 +7,7 @@ import { useExerciseLang } from '../hooks/useExerciseLang'
 import LinkExerciseSheet from '../components/LinkExerciseSheet'
 import { MUSCLE_GROUPS, LEGACY_GROUPS } from '../lib/muscleGroups'
 import { useLang } from '../hooks/useLang'
+import { clampLines } from '../lib/ui'
 
 const UNCLASSIFIED = 'Sin clasificar'
 const eyebrow = { fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em' }
@@ -23,7 +24,7 @@ function ExerciseRow({ ex, expanded, onToggle, onPick, busy }) {
         onClick={onToggle}
         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 0', textAlign: 'left', background: 'transparent' }}
       >
-        <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', ...clampLines(2) }}>
           {ex.name}
         </span>
         <span style={{
@@ -97,7 +98,7 @@ function UnlinkedSection({ items, onPick }) {
             borderTop: '1px solid var(--c-border-subtle)', minHeight: '44px', cursor: 'pointer',
           }}
         >
-          <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', ...clampLines(2) }}>
             {ex.name}
           </span>
           <span style={{ flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700, color: 'var(--c-text-dim)', fontVariantNumeric: 'tabular-nums' }}>

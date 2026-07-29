@@ -57,6 +57,26 @@ export function hoverColor(active = '#fff', base = '#444') {
   }
 }
 
+/*
+ * Recorte por líneas, no por puntos suspensivos.
+ *
+ * El nombre de un ejercicio es la etiqueta que hay que reconocer de un
+ * vistazo, y era justo la que se cortaba: «Elevaciones laterales con
+ * mancuernas» y «Extensión en polea alta con cuerda» comparten prefijo con
+ * media biblioteca, así que un ellipsis a una línea las deja indistinguibles
+ * —«Elevaciones laterales…» puede ser cuatro ejercicios distintos—.
+ *
+ * Dos líneas resuelven el 100% de los nombres reales de esta cuenta (el más
+ * largo tiene 36 caracteres). Se sigue recortando por si alguien escribe una
+ * frase, pero el corte pasa a ser el último recurso y no el caso normal.
+ */
+export const clampLines = (lines = 2) => ({
+  display: '-webkit-box',
+  WebkitLineClamp: lines,
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
+})
+
 // Common label style used throughout the app.
 export const LABEL_STYLE = {
   fontSize: '10px',

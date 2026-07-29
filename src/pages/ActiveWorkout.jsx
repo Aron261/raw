@@ -7,7 +7,7 @@ import RestTimerSheet from '../components/RestTimerSheet'
 import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } from '../hooks/useWorkout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { hoverColor, ERROR_STYLE, pressable } from '../lib/ui'
+import { hoverColor, ERROR_STYLE, pressable, clampLines } from '../lib/ui'
 import { useLang } from '../hooks/useLang'
 import { useWorkouts } from '../hooks/useWorkout'
 import { Sheet, Button, LiveRegion, UndoSnackbar } from '../components/ui'
@@ -297,7 +297,7 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
           const delta = prev > 0 && e.best1RM > 0 ? Math.round(e.best1RM - prev) : null
           return (
             <div key={e.exerciseId || i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 2px', borderBottom: '1px solid var(--c-border-subtle)' }}>
-              <span style={{ flex: 1, minWidth: 0, fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ flex: 1, minWidth: 0, fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', ...clampLines(2) }}>
                 {e.name}
               </span>
               {isPR ? (

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import SectionHeader from './SectionHeader'
 import Segmented from './Segmented'
 import { useLang } from '../../hooks/useLang'
+import { clampLines } from '../../lib/ui'
 
 const CAP = 6
 const SORT_OPTIONS = [{ id: 'rm', label: '1RM' }, { id: 'az', label: 'A-Z' }]
@@ -72,7 +73,7 @@ export default function AllLiftsModule({ data, readOnly = false }) {
             <span style={{ display: 'block', fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '4px' }}>
               ▲ Más fuerte
             </span>
-            <span style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+            <span style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', ...clampLines(2) }}>
               {featured.name}
             </span>
           </div>
@@ -100,7 +101,7 @@ export default function AllLiftsModule({ data, readOnly = false }) {
                 borderTop: i === 0 ? 'none' : '1px solid var(--c-border-subtle)',
               }}
             >
-              <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '14px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '14px', fontWeight: 700, letterSpacing: '-0.01em', ...clampLines(2) }}>
                 {lift.name}
               </span>
               <span style={{ flexShrink: 0, color: 'var(--c-text)', fontWeight: 800, fontSize: '14px' }}>

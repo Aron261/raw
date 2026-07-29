@@ -71,7 +71,11 @@ export default function ExerciseDetail() {
           >
             ←
           </button>
-          <h1 style={{ color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {/* Sin recorte: es el título de la pantalla y no compite con nada.
+              Iba a una línea con ellipsis, así que «Extensión en polea alta
+              con cuerda» se leía «Extensión en polea alta c…» — justo la parte
+              que la distingue de «…con barra». */}
+          <h1 style={{ color: 'var(--c-text)', fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.15, flex: 1, minWidth: 0 }}>
             {exerciseName}
           </h1>
         </div>

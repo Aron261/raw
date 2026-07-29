@@ -5,7 +5,7 @@ import { useRoutines } from '../hooks/useRoutines'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import RecommendedPlanWizard from '../components/RecommendedPlanWizard'
-import { pressProps, ERROR_STYLE } from '../lib/ui'
+import { pressProps, ERROR_STYLE, clampLines } from '../lib/ui'
 import { Sheet, Button, LiveRegion, UndoSnackbar, Toast } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import { useLang } from '../hooks/useLang'
@@ -224,10 +224,15 @@ function CycleCard({ routine, onActivate, onDelete, onEdit }) {
       borderRadius: 'var(--r-md)',
       marginBottom: '6px',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {routine.name}
-        </p>
+      {/* El nombre tenía que caber en lo que le dejara el grupo de botones
+          —unos 180px— y hay rutinas de 48 caracteres. Ahora ocupa su línea y
+          la meta comparte la de abajo con las acciones, que si no se quedaban
+          solas en una fila medio vacía. */}
+      <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.3, marginBottom: '8px' }}>
+        {routine.name}
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}><RoutineMeta routine={routine} /></div>
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, marginRight: '-6px' }}>
           <button onClick={onEdit} aria-label={`Editar ${routine.name}`} style={cardPillStyle(false)} {...cardPillHover(false)}>
             {t('Editar')}
@@ -240,7 +245,6 @@ function CycleCard({ routine, onActivate, onDelete, onEdit }) {
           </button>
         </div>
       </div>
-      <RoutineMeta routine={routine} />
     </div>
   )
 }
@@ -260,10 +264,23 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onE
       borderRadius: 'var(--r-md)',
       marginBottom: '6px',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-        <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {routine.name}
-        </p>
+      {/* El nombre tenía que caber en lo que le dejara el grupo de botones
+          —unos 180px— y hay rutinas de 48 caracteres. Ahora ocupa su línea y
+          la meta comparte la de abajo con las acciones, que si no se quedaban
+          solas en una fila medio vacía. */}
+      <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.3, marginBottom: '8px' }}>
+        {routine.name}
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>{t(sourceLabel(routine.source))}</span>
+          {exCount > 0 ? (
+            <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {exCount} {t('ejercicios')}</span>
+          ) : (
+            <span style={{ color: 'var(--c-text-ghost)', fontSize: '10px' }}>· {t('Sin ejercicios')}</span>
+          )}
+          {routine.assigned_by && <AssignedBadge />}
+        </div>
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, marginRight: '-6px' }}>
           <button onClick={onEdit} aria-label={`Editar ${routine.name}`} style={cardPillStyle(false)} {...cardPillHover(false)}>
             {t('Editar')}
@@ -288,22 +305,13 @@ function SingleDayCard({ routine, onDelete, onStart, starting, hasExercises, onE
               onMouseEnter={e => { if (canStart) e.currentTarget.style.background = 'var(--c-accent-dim)' }}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              {starting ? 'Creando...' : !hasExercises ? 'Sin ejercicios' : 'Empezar'}
+              {starting ? t('Creando...') : !hasExercises ? t('Sin ejercicios') : t('Empezar')}
             </button>
           )}
           <button onClick={onDelete} aria-label={`Eliminar ${routine.name}`} style={cardIconBtnStyle} {...cardIconBtnHover}>
             ✕
           </button>
         </div>
-      </div>
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>{sourceLabel(routine.source)}</span>
-        {exCount > 0 ? (
-          <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {exCount} ejercicios</span>
-        ) : (
-          <span style={{ color: 'var(--c-text-ghost)', fontSize: '10px' }}>· Sin ejercicios</span>
-        )}
-        {routine.assigned_by && <AssignedBadge />}
       </div>
     </div>
   )

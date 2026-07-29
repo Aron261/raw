@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useExerciseLang } from '../hooks/useExerciseLang'
 import { UnitToggle } from './ui'
 import { useLang } from '../hooks/useLang'
-import { pressable, PRESS_TRANSITION } from '../lib/ui'
+import { pressable, PRESS_TRANSITION, clampLines } from '../lib/ui'
 
 // Rest between sets: the routine's prescription wins, then the lifter's own
 // per-exercise choice (localStorage — a device preference, not history), then 90s.
@@ -234,7 +234,7 @@ export default function ExerciseRow({
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', ...clampLines(2) }}>
               {exLabel(exercise)}
             </p>
             <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 600, marginTop: '2px' }}>
