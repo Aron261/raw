@@ -77,7 +77,7 @@ export function useWorkouts() {
           id,
           exercise_id,
           unit,
-          exercises ( id, name, library_id, library:exercises_library ( name, name_en ) ),
+          exercises ( id, name, library_id, library:exercises_library ( name, name_en, gif_url, media_reviewed ) ),
           sets ( reps, weight )
         )
       `)
@@ -251,7 +251,7 @@ export function useActiveWorkout(workoutId) {
         .from('workout_exercises')
         .select(`
           id, sort_order, unit, notes,
-          exercises ( id, name, library_id, library:exercises_library ( name, name_en ) ),
+          exercises ( id, name, library_id, library:exercises_library ( name, name_en, gif_url, media_reviewed ) ),
           sets ( id, set_number, reps, weight, created_at )
         `)
         .eq('workout_id', workoutId)

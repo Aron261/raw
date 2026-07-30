@@ -6,6 +6,7 @@ import { MUSCLE_GROUPS } from '../lib/muscleGroups'
 import { useExerciseLang } from '../hooks/useExerciseLang'
 import { pressable } from '../lib/ui'
 import { useLang } from '../hooks/useLang'
+import ExerciseGif from './ExerciseGif'
 
 /* ── Add / Swap Exercise Modal ──────────────────────────────────────────
  * Reused by the active workout (add/swap) and the routine editor. onAdd is
@@ -56,8 +57,17 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
 
       // Buscar en paralelo: ejercicios propios del usuario + librería global
       const [{ data: own }, { data: lib }] = await Promise.all([
-        supabase.from('exercises').select('id, name').eq('user_id', userId).ilike('name', `%${q}%`).order('name').limit(10),
-        supabase.from('exercises_library').select('id, name').ilike('name', `%${q}%`).order('name').limit(10),
+        supabase.from('exercises')
+          .select('id, name, library:exercises_library ( gif_url, media_reviewed )')
+          .eq('user_id', userId).ilike('name', `%${q}%`).order('name').limit(10),
+        // is_active: un ejercicio retirado ya no es canon —
+        // resolve_library_exercise no lo mira—, así que elegirlo aquí crearía
+        // un ejercicio "custom" con el nombre de algo que la librería ya
+        // cubre. Justo el duplicado que retirarlo venía a quitar.
+        supabase.from('exercises_library')
+          .select('id, name, gif_url, media_reviewed')
+          .eq('is_active', true)
+          .ilike('name', `%${q}%`).order('name').limit(10),
       ])
 
       // Fusionar: primero los propios, luego la librería sin repetir nombres
@@ -158,21 +168,36 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
               style={{
                 width: '100%',
                 textAlign: 'left',
-                padding: '11px 10px',
+                padding: '7px 10px',
                 color: 'var(--c-text)',
                 fontSize: '13px',
                 fontWeight: 700,
                 letterSpacing: '-0.01em',
                 borderRadius: 'var(--r-xs)',
                 transition: `background 120ms var(--ease-out)`,
-                display: 'block',
+                // Miniatura y nombre en la misma línea. Aquí es donde el gif
+                // más vale: elegir entre «Press inclinado con barra», «…en
+                // Smith» y «…en máquina» se resuelve mirando, y equivocarse
+                // parte el historial en dos.
+                display: 'flex', alignItems: 'center', gap: '10px',
               }}
               {...pressable(0.97, {
                 onMouseEnter: e => e.currentTarget.style.background = 'var(--c-surface-2)',
                 onMouseLeave: e => e.currentTarget.style.background = 'transparent',
               })}
             >
-              {ex.name}
+              {/* El hueco se reserva siempre, haya animación o no: 32 de los
+                  137 ejercicios no tienen, y sin el hueco la lista salía
+                  dentada —unos nombres sangrados y otros pegados al borde—,
+                  que es peor para recorrerla con la vista que un hueco vacío. */}
+              <span style={{
+                width: '38px', height: '38px', flexShrink: 0,
+                borderRadius: '7px', background: 'var(--c-surface-2)',
+                display: 'grid', placeItems: 'center',
+              }}>
+                <ExerciseGif exercise={ex} size={38} rounded={7} />
+              </span>
+              <span style={{ minWidth: 0 }}>{ex.name}</span>
             </button>
           ))}
 

@@ -455,6 +455,8 @@ const EN = {
   'Sin ejercicios.': 'No exercises.',
 
   // ── Detalle de ejercicio ──
+  'Músculos': 'Muscles',
+  'Cómo se hace': 'How to do it',
   'Progresión 1RM': '1RM progression',
   'Mejor 1RM estimado': 'Best estimated 1RM',
   'Mejor peso por reps': 'Best weight by reps',

@@ -7,7 +7,8 @@ import PRBadge from './PRBadge'
 import { calc1RM, useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
 import { useExerciseLang } from '../hooks/useExerciseLang'
-import { UnitToggle } from './ui'
+import { UnitToggle, Sheet } from './ui'
+import ExerciseGif from './ExerciseGif'
 import { useLang } from '../hooks/useLang'
 import { pressable, PRESS_TRANSITION, clampLines } from '../lib/ui'
 
@@ -60,6 +61,7 @@ export default function ExerciseRow({
     }
   })
   const [showMenu, setShowMenu] = useState(false)
+  const [showGif, setShowGif] = useState(false)
   const [menuPos, setMenuPos] = useState(null)   // {top, right} for the portalled menu
   const menuRef = useRef(null)                    // wrapper around the ··· trigger
   const menuPanelRef = useRef(null)               // the portalled panel
@@ -90,6 +92,9 @@ export default function ExerciseRow({
   const exercise = workoutExercise.exercises
   const sets = workoutExercise.sets || []
   const unit = workoutExercise.unit
+
+  const lib = exercise?.library
+  const hasGif = Boolean(lib?.gif_url && lib?.media_reviewed)
 
   const { allTimeBestWeight } = useExerciseAllTimeBest(exercise?.id, user?.id)
   const { previousSets } = usePreviousSets(exercise?.id, workoutId, user?.id)
@@ -417,6 +422,15 @@ export default function ExerciseRow({
                       {t('Ver historial')}
                     </MenuItem>
                   )}
+                  {/* Bajo petición, no incrustado en la fila: durante la serie
+                      lo que hace falta es el número, y una animación en bucle
+                      al lado se lo come. Aquí no cuesta nada mientras no se
+                      abra, que es casi siempre. */}
+                  {hasGif && (
+                    <MenuItem onClick={() => { setShowGif(true); setShowMenu(false) }}>
+                      {t('Cómo se hace')}
+                    </MenuItem>
+                  )}
                   {/* Cycles presets in place — the menu stays open so the
                       lifter can tap through to the duration they want. */}
                   {onRestStart && (
@@ -533,6 +547,14 @@ export default function ExerciseRow({
           </div>
         )}
       </div>
+
+      {showGif && (
+        <Sheet title={exLabel(exercise)} onClose={() => setShowGif(false)}>
+          <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: '8px' }}>
+            <ExerciseGif exercise={exercise} size={264} rounded={14} />
+          </div>
+        </Sheet>
+      )}
     </div>
   )
 }

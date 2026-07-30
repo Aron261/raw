@@ -6,6 +6,9 @@ import PRBadge from '../components/PRBadge'
 import { useExercisePR, calc1RM } from '../hooks/useWorkout'
 import { useAuth } from '../hooks/useAuth'
 import { useLang } from '../hooks/useLang'
+import { useExerciseLang } from '../hooks/useExerciseLang'
+import { useExerciseMedia } from '../hooks/useExerciseMedia'
+import ExerciseGif from '../components/ExerciseGif'
 import { useChartColors } from '../lib/chartColors'
 import {
   gridProps, axisProps, ChartTooltip,
@@ -27,6 +30,16 @@ export default function ExerciseDetail() {
 
   const exerciseName = decodeURIComponent(name)
   const { prSets, allTimePR, loading } = useExercisePR(exerciseName, user?.id)
+  const media = useExerciseMedia(exerciseName)
+  const { term, lang } = useExerciseLang()
+
+  // Primarios y secundarios en una línea, traducidos y sin repetir. Los
+  // secundarios van detrás porque el primario es el que decide si es el
+  // ejercicio que buscabas.
+  const musclesLine = useMemo(() => {
+    const all = [...(media?.primary_muscles ?? []), ...(media?.secondary_muscles ?? [])]
+    return [...new Set(all.filter(Boolean).map(term))].join(' · ')
+  }, [media, term])
 
   // Chart: date + best 1RM per session
   const chartData = prSets.map(session => ({
@@ -79,6 +92,43 @@ export default function ExerciseDetail() {
             {exerciseName}
           </h1>
         </div>
+
+        {/* Cómo se hace: la animación y qué músculos entran. Arriba del todo
+            porque es lo que responde «¿es este el ejercicio?», y esa pregunta
+            va antes que cualquier número. Si la fila no tiene animación
+            aprobada, ExerciseGif devuelve null y no queda ni el hueco. */}
+        {media?.gif_url && media.media_reviewed && (
+          <div style={{
+            display: 'flex', gap: '14px', alignItems: 'center',
+            background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+            boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)',
+            padding: '12px', margin: '16px 0 0',
+          }}>
+            <ExerciseGif exercise={media} size={104} rounded={10} />
+            <div style={{ minWidth: 0 }}>
+              {musclesLine && (
+                <>
+                  <span style={{ color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', display: 'block' }}>
+                    {t('Músculos')}
+                  </span>
+                  <span style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>
+                    {musclesLine}
+                  </span>
+                </>
+              )}
+              {/* La descripción solo existe en español en la librería. Con la
+                  app en inglés se colaba tal cual bajo unos músculos ya
+                  traducidos, que es justo la pantalla mezclada que la app
+                  dejó de tener cuando el idioma pasó a mandar sobre todo.
+                  Hasta que haya description_en, en inglés no se enseña. */}
+              {lang === 'es' && media.description && (
+                <p style={{ color: 'var(--c-text-muted)', fontSize: '11.5px', lineHeight: 1.45, marginTop: musclesLine ? '6px' : 0 }}>
+                  {media.description}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* All-time PR callout */}
         {allTimePR && (
