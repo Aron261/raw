@@ -1,0 +1,15 @@
+# Datos de terceros y artefactos regenerables.
+#
+# corpus.json y candidates.tsv son, entre los dos, el dataset de ExerciseDB:
+# 1219 ejercicios con sus nombres y sus URLs. Guardarlos aquí sería
+# redistribuirlo, que es justo lo que evitamos enlazando su CDN en vez de
+# copiar los gifs. Se regeneran con harvest.js + match.js.
+#
+# review.html lo escribe review-ui.js a partir de media.tsv.
+#
+# media.tsv sí se commitea: son las decisiones de una persona sobre 137 filas
+# —qué animación vale, qué nombre lleva cada ejercicio— y eso es el trabajo,
+# no un derivado. library.json también: es la instantánea contra la que se curó.
+data/corpus.json
+review/candidates.tsv
+review/review.html

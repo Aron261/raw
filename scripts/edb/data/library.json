@@ -1,0 +1,1725 @@
+[
+ {
+  "name": "Curl con barra EZ",
+  "name_en": "Biceps EZ-Bar Curl",
+  "aliases": [
+   "ez bar curl",
+   "ez curl",
+   "EZ-Bar Curl"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Curl con barra recta",
+  "name_en": "Biceps Barbell Curl",
+  "aliases": [
+   "barbell curl",
+   "straight bar curl"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Curl con mancuernas sentado",
+  "name_en": "Seated Dumbbell Curl",
+  "aliases": [
+   "seated dumbbell curl",
+   "seated db curl"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Curl de Bíceps con Disco",
+  "name_en": "Plate Biceps Curl",
+  "aliases": [
+   "standing leg curl",
+   "Curl femoral de pie"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Curl de Bíceps con mancuernas de pie",
+  "name_en": "Standing Biceps Dumbbell Curl",
+  "aliases": [
+   "standing dumbbell curl",
+   "standing db curl",
+   "dumbbell curl",
+   "db curl",
+   "Curl con mancuernas de pie"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Curl de Bíceps en Polea",
+  "name_en": "Biceps Cable Curl",
+  "aliases": [
+   "cable curl",
+   "biceps cable curl",
+   "bicep cable curl",
+   "low cable curl",
+   "Curl en polea baja",
+   "Curl en polea alta",
+   "High Cable Curl"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Curl en máquina",
+  "name_en": "Machine Curl",
+  "aliases": [
+   "machine curl",
+   "machine bicep curl"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Curl inclinado de Bíceps con mancuernas",
+  "name_en": "Incline Dumbbell Biceps Curl",
+  "aliases": [
+   "incline dumbbell curl",
+   "incline db curl",
+   "Curl inclinado con mancuernas"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Curl martillo",
+  "name_en": "Hammer Curl",
+  "aliases": [
+   "hammer curl",
+   "hammer curls"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Curl Predicador con barra",
+  "name_en": "Preacher Curl",
+  "aliases": [
+   "preacher curl",
+   "ez preacher curl",
+   "Curl predicador con barra EZ",
+   "EZ-Bar Preacher Curl"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "barra",
+   "banco"
+  ]
+ },
+ {
+  "name": "Curl predicador con mancuerna",
+  "name_en": "Dumbbell Preacher Curl",
+  "aliases": [
+   "dumbbell preacher curl",
+   "db preacher curl"
+  ],
+  "muscle_group": "Bíceps",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Ab wheel",
+  "name_en": "Ab Wheel Rollout",
+  "aliases": [
+   "ab wheel",
+   "ab rollout",
+   "ab wheel rollout"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "rueda_abs"
+  ]
+ },
+ {
+  "name": "Bird dog",
+  "name_en": "Bird Dog",
+  "aliases": [],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Crunch",
+  "name_en": "Crunch",
+  "aliases": [
+   "crunch",
+   "crunches",
+   "Crunch tradicional"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Crunch en polea",
+  "name_en": "Cable Crunch",
+  "aliases": [
+   "cable crunch",
+   "kneeling cable crunch"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Crunch inverso",
+  "name_en": "Reverse Crunch",
+  "aliases": [
+   "reverse crunch"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Dead bug",
+  "name_en": "Dead Bug",
+  "aliases": [],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Dragon flag",
+  "name_en": "Dragon Flag",
+  "aliases": [],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal",
+   "banco"
+  ]
+ },
+ {
+  "name": "Elevación de piernas",
+  "name_en": "Hanging Leg Raise",
+  "aliases": [
+   "hanging leg raise",
+   "hanging leg raises",
+   "Elevación de piernas en barra"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "barra_dominadas"
+  ]
+ },
+ {
+  "name": "Elevación de piernas tumbado",
+  "name_en": "Lying Leg Raise",
+  "aliases": [
+   "lying leg raise",
+   "lying leg raises"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Farmer carry",
+  "name_en": "Farmer's Carry",
+  "aliases": [
+   "farmer carry",
+   "farmers carry",
+   "farmer's walk"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Hollow body hold",
+  "name_en": "Hollow Body Hold",
+  "aliases": [
+   "hollow hold"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Mountain climbers",
+  "name_en": "Mountain Climbers",
+  "aliases": [],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Pallof press",
+  "name_en": "Pallof Press",
+  "aliases": [],
+  "muscle_group": "Core",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Plancha con elevación de brazo",
+  "name_en": "Plank with Arm Raise",
+  "aliases": [
+   "plank with arm raise"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Plancha frontal",
+  "name_en": "Plank",
+  "aliases": [
+   "plank",
+   "front plank",
+   "Plancha"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Plancha lateral",
+  "name_en": "Side Plank",
+  "aliases": [
+   "side plank"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Rodillas al pecho en barra",
+  "name_en": "Hanging Knee Raise",
+  "aliases": [
+   "hanging knee raise",
+   "hanging knee raises"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "barra_dominadas"
+  ]
+ },
+ {
+  "name": "Russian twist",
+  "name_en": "Russian Twist",
+  "aliases": [],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Sit-up",
+  "name_en": "Sit-Up",
+  "aliases": [
+   "sit up",
+   "situp"
+  ],
+  "muscle_group": "Core",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Suitcase carry",
+  "name_en": "Suitcase Carry",
+  "aliases": [],
+  "muscle_group": "Core",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Aducción en máquina",
+  "name_en": "Hip Adduction Machine",
+  "aliases": [
+   "hip adduction",
+   "adduction machine",
+   "adductor machine",
+   "adduccion de cadera",
+   "hip adductor",
+   "aduccion de cadera",
+   "hip adduction machine"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Extensión de cuádriceps",
+  "name_en": "Leg Extension",
+  "aliases": [
+   "leg extension",
+   "leg extensions",
+   "quad extension",
+   "Extensión de cuádriceps en máquina"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Extensión de cuádriceps unilateral",
+  "name_en": "Single-Leg Extension",
+  "aliases": [
+   "single leg extension",
+   "single leg extensions",
+   "unilateral leg extension"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Hack squat",
+  "name_en": "Hack Squat",
+  "aliases": [
+   "hack squat",
+   "hack squat machine",
+   "Hack squat en máquina"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Prensa de pierna",
+  "name_en": "Leg Press",
+  "aliases": [
+   "leg press"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Prensa de pierna unilateral",
+  "name_en": "Single-Leg Press",
+  "aliases": [
+   "single leg press",
+   "unilateral leg press"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Sentadilla con barra",
+  "name_en": "Barbell Squat",
+  "aliases": [
+   "squat",
+   "squats",
+   "barbell squat",
+   "back squat"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Sentadilla en Smith",
+  "name_en": "Smith Machine Squat",
+  "aliases": [
+   "smith squat",
+   "smith machine squat"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "smith"
+  ]
+ },
+ {
+  "name": "Sentadilla frontal",
+  "name_en": "Front Squat",
+  "aliases": [
+   "front squat"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Sentadilla goblet",
+  "name_en": "Goblet Squat",
+  "aliases": [
+   "goblet squat"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Sentadilla hack con barra",
+  "name_en": "Barbell Hack Squat",
+  "aliases": [
+   "barbell hack squat"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Sissy squat",
+  "name_en": "Sissy Squat",
+  "aliases": [],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Zancada con barra",
+  "name_en": "Barbell Lunge",
+  "aliases": [
+   "barbell lunge",
+   "barbell lunges"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Zancada con mancuernas",
+  "name_en": "Dumbbell Lunge",
+  "aliases": [
+   "dumbbell lunge",
+   "db lunge",
+   "lunges",
+   "lunge"
+  ],
+  "muscle_group": "Cuádriceps",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Buenos días",
+  "name_en": "Good Morning",
+  "aliases": [
+   "good morning",
+   "good mornings"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Dominadas agarre prono",
+  "name_en": "Pull-Up",
+  "aliases": [
+   "pull up",
+   "pullup",
+   "pull ups",
+   "pullups"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "peso_corporal",
+   "barra_dominadas"
+  ]
+ },
+ {
+  "name": "Dominadas agarre supino",
+  "name_en": "Chin-Up",
+  "aliases": [
+   "chin up",
+   "chinup",
+   "chin ups"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "peso_corporal",
+   "barra_dominadas"
+  ]
+ },
+ {
+  "name": "Encogimientos con barra",
+  "name_en": "Barbell Shrug",
+  "aliases": [
+   "barbell shrug",
+   "barbell shrugs"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Encogimientos con mancuernas",
+  "name_en": "Dumbbell Shrug",
+  "aliases": [
+   "dumbbell shrug",
+   "db shrug"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Encogimientos en máquina",
+  "name_en": "Machine Shrug",
+  "aliases": [
+   "machine shrug"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Hiperextensiones en banco",
+  "name_en": "Back Extension",
+  "aliases": [
+   "back extension",
+   "hyperextension",
+   "hyperextensions"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Jalón a la Cara",
+  "name_en": "Face Pull",
+  "aliases": [
+   "high woodchop",
+   "Woodchop en polea alta",
+   "High Cable Woodchop",
+   "Face pull en polea",
+   "Face Pull"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Jalón al pecho agarre cerrado",
+  "name_en": "Close-Grip Lat Pulldown",
+  "aliases": [
+   "close grip pulldown",
+   "close grip lat pulldown"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Jalón al pecho en polea alta",
+  "name_en": "Lat Pulldown",
+  "aliases": [
+   "lat pulldown",
+   "lat pull down",
+   "pulldown"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Jalón en polea alta agarre supino",
+  "name_en": "Underhand Lat Pulldown",
+  "aliases": [
+   "underhand pulldown",
+   "supinated pulldown",
+   "reverse grip pulldown"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Pullover en polea alta",
+  "name_en": "Cable Lat Pullover",
+  "aliases": [
+   "cable pullover",
+   "lat pullover"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Remo Acostado",
+  "name_en": "Lying Row",
+  "aliases": [
+   "t bar row",
+   "tbar row",
+   "t-bar row",
+   "Remo T-bar"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Remo con barra",
+  "name_en": "Barbell Row",
+  "aliases": [
+   "barbell row",
+   "bent over row",
+   "barbell rows"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Remo con mancuerna unilateral",
+  "name_en": "Single-Arm Dumbbell Row",
+  "aliases": [
+   "dumbbell row",
+   "db row",
+   "one arm row",
+   "single arm row"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Remo en máquina",
+  "name_en": "Machine Row",
+  "aliases": [
+   "machine row",
+   "seated machine row"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Remo en polea baja",
+  "name_en": "Seated Cable Row",
+  "aliases": [
+   "cable row",
+   "seated cable row",
+   "low row"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Remo en polea baja agarre ancho",
+  "name_en": "Wide-Grip Cable Row",
+  "aliases": [
+   "wide grip cable row"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Remo en Smith",
+  "name_en": "Smith Machine Row",
+  "aliases": [
+   "smith row",
+   "smith machine row"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "smith"
+  ]
+ },
+ {
+  "name": "Remo invertido",
+  "name_en": "Inverted Row",
+  "aliases": [
+   "inverted row"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "peso_corporal",
+   "barra"
+  ]
+ },
+ {
+  "name": "Remo T-bar con pecho apoyado",
+  "name_en": "Chest-Supported T-Bar Row",
+  "aliases": [
+   "chest supported t bar row"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Remo unilateral en polea",
+  "name_en": "Single-Arm Cable Row",
+  "aliases": [
+   "single arm cable row",
+   "one arm cable row",
+   "remo a una mano en polea"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Straight-arm pulldown",
+  "name_en": "Straight-Arm Pulldown",
+  "aliases": [
+   "straight arm pulldown",
+   "straight arm pull down"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Elevación de talones de pie",
+  "name_en": "Standing Calf Raise",
+  "aliases": [
+   "standing calf raise",
+   "calf raises standing"
+  ],
+  "muscle_group": "Gemelos",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Elevación de talones en prensa",
+  "name_en": "Calf Press",
+  "aliases": [
+   "calf press",
+   "calf raise on leg press"
+  ],
+  "muscle_group": "Gemelos",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Elevación de talones sentado",
+  "name_en": "Seated Calf Raise",
+  "aliases": [
+   "seated calf raise",
+   "calf raises seated",
+   "calf raise seated"
+  ],
+  "muscle_group": "Gemelos",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Abducción en máquina",
+  "name_en": "Hip Abduction Machine",
+  "aliases": [
+   "hip abduction",
+   "abduction machine",
+   "glute abduction",
+   "abductor machine",
+   "abduccion de cadera",
+   "hip abduction machine"
+  ],
+  "muscle_group": "Glúteo",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Abducción unilateral",
+  "name_en": "Single-Leg Hip Abduction",
+  "aliases": [
+   "unilateral glute abduction",
+   "single leg hip abduction",
+   "abduccion unilateral"
+  ],
+  "muscle_group": "Glúteo",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Glute bridge",
+  "name_en": "Glute Bridge",
+  "aliases": [],
+  "muscle_group": "Glúteo",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Hip thrust con barra",
+  "name_en": "Barbell Hip Thrust",
+  "aliases": [
+   "hip thrust",
+   "barbell hip thrust"
+  ],
+  "muscle_group": "Glúteo",
+  "equipment": [
+   "barra",
+   "banco"
+  ]
+ },
+ {
+  "name": "Hip thrust en máquina",
+  "name_en": "Machine Hip Thrust",
+  "aliases": [
+   "machine hip thrust"
+  ],
+  "muscle_group": "Glúteo",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Hip thrust unilateral en Smith",
+  "name_en": "Single-Leg Smith Machine Hip Thrust",
+  "aliases": [
+   "smith hipthrust unilateral",
+   "single leg hip thrust",
+   "hip thrust unilateral"
+  ],
+  "muscle_group": "Glúteo",
+  "equipment": [
+   "smith",
+   "banco"
+  ]
+ },
+ {
+  "name": "Patada de glúteo en polea",
+  "name_en": "Cable Kickback",
+  "aliases": [
+   "cable kickback",
+   "glute kickback"
+  ],
+  "muscle_group": "Glúteo",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Step-up con mancuernas",
+  "name_en": "Dumbbell Step-Up",
+  "aliases": [
+   "step up",
+   "step ups",
+   "dumbbell step up"
+  ],
+  "muscle_group": "Glúteo",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Zancada búlgara",
+  "name_en": "Bulgarian Split Squat",
+  "aliases": [
+   "bulgarian split squat",
+   "bulgarian"
+  ],
+  "muscle_group": "Glúteo",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Zancada inversa",
+  "name_en": "Reverse Lunge",
+  "aliases": [
+   "reverse lunge",
+   "reverse lunges"
+  ],
+  "muscle_group": "Glúteo",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Curl femoral sentado",
+  "name_en": "Seated Leg Curl",
+  "aliases": [
+   "seated leg curl",
+   "leg curl seated"
+  ],
+  "muscle_group": "Hamstrings",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Curl femoral tumbado",
+  "name_en": "Lying Leg Curl",
+  "aliases": [
+   "lying leg curl",
+   "leg curl lying",
+   "leg curl"
+  ],
+  "muscle_group": "Hamstrings",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Curl femoral tumbado unilateral",
+  "name_en": "Single-Leg Lying Leg Curl",
+  "aliases": [
+   "single leg curl",
+   "single-leg leg curl",
+   "curl femoral unilateral",
+   "one leg curl"
+  ],
+  "muscle_group": "Hamstrings",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Curl Nórdico",
+  "name_en": "Nordic Curl",
+  "aliases": [
+   "nordic ham curl",
+   "Nordic curl"
+  ],
+  "muscle_group": "Hamstrings",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Peso muerto",
+  "name_en": "Deadlift",
+  "aliases": [
+   "deadlift",
+   "peso muerto convencional",
+   "conventional deadlift",
+   "barbell deadlift"
+  ],
+  "muscle_group": "Hamstrings",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Peso muerto piernas rígidas",
+  "name_en": "Stiff-Leg Deadlift",
+  "aliases": [
+   "stiff leg deadlift",
+   "sldl",
+   "straight leg deadlift"
+  ],
+  "muscle_group": "Hamstrings",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Peso muerto rumano",
+  "name_en": "Romanian Deadlift",
+  "aliases": [
+   "romanian deadlift",
+   "rdl"
+  ],
+  "muscle_group": "Hamstrings",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Elevaciones frontales con barra",
+  "name_en": "Barbell Front Raise",
+  "aliases": [
+   "barbell front raise"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Elevaciones frontales con mancuernas",
+  "name_en": "Dumbbell Front Raise",
+  "aliases": [
+   "front raise",
+   "dumbbell front raise",
+   "front raises"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Elevaciones frontales en polea baja",
+  "name_en": "Cable Front Raise",
+  "aliases": [
+   "cable front raise"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Elevaciones laterales con mancuernas",
+  "name_en": "Dumbbell Lateral Raise",
+  "aliases": [
+   "lateral raise",
+   "lateral raises",
+   "side raise",
+   "db lateral raise",
+   "dumbbell lateral raises"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Elevaciones laterales en máquina",
+  "name_en": "Machine Lateral Raise",
+  "aliases": [
+   "machine lateral raise",
+   "machine lateral raises"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Elevaciones laterales en polea baja",
+  "name_en": "Cable Lateral Raise",
+  "aliases": [
+   "cable lateral raise",
+   "cable lateral raises",
+   "cable side raise"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Press en Landmine",
+  "name_en": "Landmine Press",
+  "aliases": [
+   "machine shoulder press",
+   "shoulder press machine",
+   "Press en máquina de hombro",
+   "Press landmine",
+   "Landmine Press"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Press en Smith hombro",
+  "name_en": "Smith Machine Shoulder Press",
+  "aliases": [
+   "smith shoulder press"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "smith",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press militar con barra de pie",
+  "name_en": "Standing Barbell Overhead Press",
+  "aliases": [
+   "overhead press",
+   "ohp",
+   "military press",
+   "standing barbell press"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "barra"
+  ]
+ },
+ {
+  "name": "Press militar con barra sentado",
+  "name_en": "Seated Barbell Overhead Press",
+  "aliases": [
+   "seated barbell press",
+   "seated military press"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "barra",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press militar con mancuernas de pie",
+  "name_en": "Standing Dumbbell Shoulder Press",
+  "aliases": [
+   "standing dumbbell shoulder press"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "mancuerna"
+  ]
+ },
+ {
+  "name": "Press militar con mancuernas sentado",
+  "name_en": "Seated Dumbbell Shoulder Press",
+  "aliases": [
+   "seated dumbbell shoulder press",
+   "shoulder dumbbell press",
+   "dumbbell shoulder press",
+   "db shoulder press"
+  ],
+  "muscle_group": "Hombro",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Aperturas con mancuernas",
+  "name_en": "Flat Dumbbell Fly",
+  "aliases": [
+   "dumbbell fly",
+   "flat dumbbell fly",
+   "db fly",
+   "Aperturas con mancuernas plano"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Aperturas inclinadas con mancuernas",
+  "name_en": "Incline Dumbbell Fly",
+  "aliases": [
+   "incline dumbbell fly",
+   "incline fly"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Crossover en polea alta",
+  "name_en": "High Cable Crossover",
+  "aliases": [
+   "high cable crossover"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Crossover en polea baja",
+  "name_en": "Low Cable Crossover",
+  "aliases": [
+   "low cable crossover"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Crossover en polea media",
+  "name_en": "Cable Crossover",
+  "aliases": [
+   "cable crossover",
+   "crossover"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Flexión de Pecho Superman",
+  "name_en": "Superman Push-up",
+  "aliases": [
+   "Superman"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Flexiones",
+  "name_en": "Push-Up",
+  "aliases": [
+   "push up",
+   "pushup",
+   "push ups",
+   "pushups"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Flexiones declinadas",
+  "name_en": "Decline Push-Up",
+  "aliases": [
+   "decline push up"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "peso_corporal",
+   "banco"
+  ]
+ },
+ {
+  "name": "Flexiones diamante",
+  "name_en": "Diamond Push-Up",
+  "aliases": [
+   "diamond push up"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "peso_corporal"
+  ]
+ },
+ {
+  "name": "Flexiones inclinadas",
+  "name_en": "Incline Push-Up",
+  "aliases": [
+   "incline push up"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "peso_corporal",
+   "banco"
+  ]
+ },
+ {
+  "name": "Fondos en paralelas",
+  "name_en": "Chest Dip",
+  "aliases": [
+   "chest dip",
+   "dips",
+   "parallel bar dips"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "peso_corporal",
+   "barra_dominadas"
+  ]
+ },
+ {
+  "name": "Jalón de Pecho en Polea Baja",
+  "name_en": "Low Cable Chest Fly",
+  "aliases": [
+   "low woodchop",
+   "Woodchop en polea baja",
+   "Low Cable Woodchop"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Press de banca",
+  "name_en": "Barbell Bench Press",
+  "aliases": [
+   "bench press",
+   "barbell bench press",
+   "flat bench press",
+   "bench",
+   "Press de banca con barra"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "barra",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press de banca con mancuernas",
+  "name_en": "Dumbbell Bench Press",
+  "aliases": [
+   "dumbbell bench press",
+   "dumbbell chest press",
+   "db bench press",
+   "db chest press"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press de banca en Smith",
+  "name_en": "Smith Machine Bench Press",
+  "aliases": [
+   "smith bench press"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "smith",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press de Pecho en Máquina",
+  "name_en": "Machine Chest Press",
+  "aliases": [
+   "pec deck",
+   "pectoral fly machine",
+   "chest fly machine",
+   "butterfly",
+   "pec fly",
+   "Pec deck / Mariposa",
+   "Press en máquina pecho",
+   "Machine Chest Press"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Press de Pecho en Polea",
+  "name_en": "Cable Chest Press",
+  "aliases": [
+   "chest cable pullover",
+   "Pull-over en polea",
+   "Cable Chest Pullover"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Press de Pecho Inclinado en máquina",
+  "name_en": "Incline Machine Chest Press",
+  "aliases": [
+   "incline machine press",
+   "Press en máquina inclinado"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "maquina"
+  ]
+ },
+ {
+  "name": "Press declinado con barra",
+  "name_en": "Decline Barbell Press",
+  "aliases": [
+   "decline bench press",
+   "decline barbell press"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "barra",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press declinado con mancuernas",
+  "name_en": "Decline Dumbbell Press",
+  "aliases": [
+   "decline dumbbell press"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press inclinado con barra",
+  "name_en": "Incline Barbell Press",
+  "aliases": [
+   "incline bench press",
+   "incline barbell press"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "barra",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press inclinado con mancuernas",
+  "name_en": "Incline Dumbbell Press",
+  "aliases": [
+   "incline dumbbell press",
+   "incline db press"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press inclinado en Smith",
+  "name_en": "Incline Smith Machine Press",
+  "aliases": [
+   "incline smith press"
+  ],
+  "muscle_group": "Pecho",
+  "equipment": [
+   "smith",
+   "banco"
+  ]
+ },
+ {
+  "name": "Extensión de Tríceps con Cuerda",
+  "name_en": "Rope Triceps Pushdown",
+  "aliases": [
+   "rope pushdown",
+   "rope pushdowns",
+   "rope tricep extension",
+   "Extensión en polea alta con cuerda"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Extensión de Tríceps en polea baja",
+  "name_en": "Overhead Tricep Extension",
+  "aliases": [
+   "low cable tricep extension",
+   "Extensión en polea baja"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Extensión de Tríceps unilateral en polea",
+  "name_en": "Single-Arm Cable Triceps Extension",
+  "aliases": [
+   "single arm cable extension",
+   "unilateral tricep extension",
+   "Extensión unilateral en polea",
+   "Single-Arm Cable Extension"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Fondos en banco",
+  "name_en": "Bench Dip",
+  "aliases": [
+   "bench dip",
+   "bench dips"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "banco"
+  ]
+ },
+ {
+  "name": "Fondos en paralelas tríceps",
+  "name_en": "Tricep Dip",
+  "aliases": [
+   "tricep dip",
+   "triceps dip"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "peso_corporal",
+   "barra_dominadas"
+  ]
+ },
+ {
+  "name": "Katanas en polea baja",
+  "name_en": "Cable Overhead Tricep Extension",
+  "aliases": [
+   "katanas",
+   "overhead cable tricep extension"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Press cerrado con barra",
+  "name_en": "Close-Grip Bench Press",
+  "aliases": [
+   "close grip bench press",
+   "close grip bench"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "barra",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press cerrado en Smith",
+  "name_en": "Close-Grip Smith Press",
+  "aliases": [
+   "close grip smith press"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "smith",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press de Tríceps en Polea",
+  "name_en": "Tricep Pushdown",
+  "aliases": [
+   "tricep pushdown",
+   "triceps pushdown",
+   "pushdown",
+   "bar pushdown",
+   "Extensión en polea alta con barra"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "polea"
+  ]
+ },
+ {
+  "name": "Press francés con barra EZ tumbado",
+  "name_en": "Lying EZ-Bar Triceps Extension",
+  "aliases": [
+   "french press",
+   "lying ez bar extension"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "barra",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press francés con mancuerna tumbado",
+  "name_en": "Lying Dumbbell Triceps Extension",
+  "aliases": [
+   "lying dumbbell extension"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Press francés con mancuernas sentado",
+  "name_en": "Seated Dumbbell Triceps Extension",
+  "aliases": [
+   "seated dumbbell extension",
+   "overhead dumbbell extension"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ },
+ {
+  "name": "Skull crusher con barra EZ",
+  "name_en": "EZ-Bar Skull Crusher",
+  "aliases": [
+   "skull crusher",
+   "skullcrusher",
+   "skull crushers"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "barra",
+   "banco"
+  ]
+ },
+ {
+  "name": "Skull crusher con mancuernas",
+  "name_en": "Dumbbell Skull Crusher",
+  "aliases": [
+   "dumbbell skull crusher"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "mancuerna",
+   "banco"
+  ]
+ }
+]

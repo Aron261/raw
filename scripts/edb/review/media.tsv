@@ -1,0 +1,137 @@
+ok	grupo	grupo_nuevo	nombre	nombre_nuevo	name_en	name_en_nuevo	retirar_por	tier	score	edb_name	edb_equip	gif_url	edb_id
+OK	Bíceps		Curl con barra EZ		EZ-Bar Curl	Biceps EZ-Bar Curl		strong	0.80	ez barbell curl	ez barbell	https://static.exercisedb.dev/media/6TG6x2w.gif	6TG6x2w
+OK	Bíceps		Curl con barra recta		Barbell Curl	Biceps Barbell Curl		exact	1.00	barbell curl	barbell	https://static.exercisedb.dev/media/25GPyDY.gif	25GPyDY
+OK	Bíceps		Curl con mancuernas de pie	Curl de Bíceps con mancuernas de pie	Standing Dumbbell Curl	Standing Biceps Dumbbell Curl		strong	0.86	dumbbell standing biceps curl	dumbbell	https://static.exercisedb.dev/media/3s4NnTh.gif	3s4NnTh
+NO	Bíceps		Curl con mancuernas sentado		Seated Dumbbell Curl			strong (colisión)	0.86	dumbbell seated preacher curl	dumbbell	https://static.exercisedb.dev/media/7D5bgLT.gif	7D5bgLT
+NO	Bíceps		Curl en máquina		Machine Curl			strong	0.86	smith machine bicep curl	smith machine	https://static.exercisedb.dev/media/zILLZ98.gif	zILLZ98
+NO	Bíceps		Curl en polea alta	Curl de Bíceps en Polea	High Cable Curl		Curl en polea baja	strong (colisión)	0.80	cable curl	cable	https://static.exercisedb.dev/media/G08RZcQ.gif	G08RZcQ
+OK	Bíceps		Curl en polea baja	Curl de Bíceps en Polea	Cable Curl	Biceps Cable Curl		exact (colisión)	1.00	cable curl	cable	https://static.exercisedb.dev/media/G08RZcQ.gif	G08RZcQ
+OK	Bíceps		Curl inclinado con mancuernas	Curl inclinado de Bíceps con mancuernas	Incline Dumbbell Curl	Incline Dumbbell Biceps Curl		strong	1.00	dumbbell incline curl	dumbbell	https://static.exercisedb.dev/media/ae9UoXQ.gif	ae9UoXQ
+OK	Bíceps		Curl martillo		Hammer Curl			strong	0.80	dumbbell hammer curl v. 2	dumbbell	https://static.exercisedb.dev/media/2NpxjC1.gif	2NpxjC1
+OK	Bíceps		Curl predicador con barra EZ	Curl Predicador con barra	EZ-Bar Preacher Curl	Preacher Curl		strong	0.80	barbell preacher curl	barbell	https://static.exercisedb.dev/media/qOgPVf6.gif	qOgPVf6
+OK	Bíceps		Curl predicador con mancuerna		Dumbbell Preacher Curl			strong (colisión)	0.86	dumbbell seated preacher curl	dumbbell	https://static.exercisedb.dev/media/7D5bgLT.gif	7D5bgLT
+OK	Core		Ab wheel		Ab Wheel Rollout			weak	0.50	wheel rollerout	wheel roller	https://static.exercisedb.dev/media/NAgVB3t.gif	NAgVB3t
+NO	Core		Bird dog		Bird Dog			sin candidato					
+OK	Core		Crunch en polea		Cable Crunch			strong	1.00	cable kneeling crunch	cable	https://static.exercisedb.dev/media/WW95auq.gif	WW95auq
+NO	Core		Crunch inverso		Reverse Crunch			weak	0.80	roller reverse crunch	roller	https://static.exercisedb.dev/media/SKXQAx3.gif	SKXQAx3
+OK	Core		Crunch tradicional	Crunch	Crunch			strong	0.67	tuck crunch	body weight	https://static.exercisedb.dev/media/BMMolZ3.gif	BMMolZ3
+NO	Core		Dead bug		Dead Bug			sin candidato					
+OK	Core		Dragon flag		Dragon Flag			sin candidato					
+OK	Core		Elevación de piernas en barra	Elevación de piernas	Hanging Leg Raise			weak (colisión)	0.75	weighted hanging leg-hip raise	weighted	https://static.exercisedb.dev/media/QOA0FD0.gif	QOA0FD0
+OK	Core		Elevación de piernas tumbado		Lying Leg Raise			strong	0.86	lying leg-hip raise	body weight	https://static.exercisedb.dev/media/9IxJdtC.gif	9IxJdtC
+OK	Core		Farmer carry		Farmer's Carry			weak	0.50	farmers walk	dumbbell	https://static.exercisedb.dev/media/qPEzJjA.gif	qPEzJjA
+OK	Core		Hollow body hold		Hollow Body Hold			sin candidato					
+OK	Core		Mountain climbers		Mountain Climbers			weak	0.50	mountain climber	body weight	https://static.exercisedb.dev/media/RJgzwny.gif	RJgzwny
+NO	Core		Pallof press		Pallof Press			sin candidato					
+NO	Core		Plancha con elevación de brazo		Plank with Arm Raise			weak	0.50	raise single arm push-up	body weight	https://static.exercisedb.dev/media/13TpY4H.gif	13TpY4H
+OK	Core		Plancha frontal		Plank			weak	0.80	weighted front plank	weighted	https://static.exercisedb.dev/media/VBAWRPG.gif	VBAWRPG
+OK	Core		Plancha lateral		Side Plank			strong	0.67	side plank hip adduction	body weight	https://static.exercisedb.dev/media/VO2qeJg.gif	VO2qeJg
+NO	Core		Rodillas al pecho en barra		Hanging Knee Raise			weak (colisión)	0.50	weighted hanging leg-hip raise	weighted	https://static.exercisedb.dev/media/QOA0FD0.gif	QOA0FD0
+OK	Core		Russian twist		Russian Twist			weak	0.80	weighted russian twist	weighted	https://static.exercisedb.dev/media/fZFZ704.gif	fZFZ704
+OK	Core		Sit-up		Sit-Up			strong	1.00	3/4 sit-up	body weight	https://static.exercisedb.dev/media/2gPfomN.gif	2gPfomN
+OK	Core		Suitcase carry		Suitcase Carry			sin candidato					
+OK	Core	Espalda	Woodchop en polea alta	Jalón a la Cara	High Cable Woodchop	Face Pull		weak (colisión)	0.57	cable high row (kneeling)	cable	https://static.exercisedb.dev/media/ZSJNetl.gif	ZSJNetl
+OK	Core	Pecho	Woodchop en polea baja	Jalón de Pecho en Polea Baja	Low Cable Woodchop	Low Cable Chest Fly		strong (colisión)	0.67	cable low fly	cable	https://static.exercisedb.dev/media/FVmZVhk.gif	FVmZVhk
+OK	Cuádriceps		Aducción en máquina		Hip Adduction Machine			strong	0.67	lever seated hip adduction	leverage machine	https://static.exercisedb.dev/media/oHsrypV.gif	oHsrypV
+OK	Cuádriceps		Extensión de cuádriceps en máquina	Extensión de cuádriceps	Leg Extension			strong (colisión)	0.80	lever leg extension	leverage machine	https://static.exercisedb.dev/media/my33uHU.gif	my33uHU
+OK	Cuádriceps		Extensión de cuádriceps unilateral		Single-Leg Extension			weak (colisión)	0.67	lever leg extension	leverage machine	https://static.exercisedb.dev/media/my33uHU.gif	my33uHU
+OK	Cuádriceps		Hack squat en máquina	Hack squat	Hack Squat Machine	Hack Squat		strong	0.80	sled hack squat	sled machine	https://static.exercisedb.dev/media/Qa55kX1.gif	Qa55kX1
+OK	Cuádriceps		Prensa de pierna		Leg Press			strong (colisión)	0.67	lever alternate leg press	leverage machine	https://static.exercisedb.dev/media/V07qpXy.gif	V07qpXy
+OK	Cuádriceps		Prensa de pierna unilateral		Single-Leg Press			weak (colisión)	0.57	lever alternate leg press	leverage machine	https://static.exercisedb.dev/media/V07qpXy.gif	V07qpXy
+OK	Cuádriceps		Sentadilla con barra		Barbell Squat			strong	0.80	barbell bench squat	barbell	https://static.exercisedb.dev/media/W9pFVv1.gif	W9pFVv1
+OK	Cuádriceps		Sentadilla en Smith		Smith Machine Squat			exact	1.00	smith squat	smith machine	https://static.exercisedb.dev/media/jFtipLl.gif	jFtipLl
+OK	Cuádriceps		Sentadilla frontal		Front Squat			strong	0.67	barbell bench front squat	barbell	https://static.exercisedb.dev/media/Y7YcmIJ.gif	Y7YcmIJ
+OK	Cuádriceps		Sentadilla goblet		Goblet Squat			strong	0.80	dumbbell goblet squat	dumbbell	https://static.exercisedb.dev/media/yn8yg1r.gif	yn8yg1r
+NO	Cuádriceps		Sentadilla hack con barra		Barbell Hack Squat			exact	1.00	barbell hack squat	barbell	https://static.exercisedb.dev/media/5VCj6iH.gif	5VCj6iH
+OK	Cuádriceps		Sissy squat		Sissy Squat			exact	1.00	sissy squat	body weight	https://static.exercisedb.dev/media/xdYPUtE.gif	xdYPUtE
+OK	Cuádriceps		Zancada con barra		Barbell Lunge			strong	0.80	barbell lateral lunge	barbell	https://static.exercisedb.dev/media/py1HSzx.gif	py1HSzx
+OK	Cuádriceps		Zancada con mancuernas		Dumbbell Lunge			exact (colisión)	1.00	dumbbell lunge	dumbbell	https://static.exercisedb.dev/media/RRWFUcw.gif	RRWFUcw
+OK	Espalda		Buenos días		Good Morning			strong	0.80	barbell good morning	barbell	https://static.exercisedb.dev/media/XlZ4lAC.gif	XlZ4lAC
+OK	Espalda		Dominadas agarre prono		Pull-Up			weak	1.00	l-pull-up	body weight	https://static.exercisedb.dev/media/d1GgzTU.gif	d1GgzTU
+OK	Espalda		Dominadas agarre supino		Chin-Up			weak	1.00	chin-up	body weight	https://static.exercisedb.dev/media/T2mxWqc.gif	T2mxWqc
+OK	Espalda		Encogimientos con barra		Barbell Shrug			exact	1.00	barbell shrug	barbell	https://static.exercisedb.dev/media/dG7tG5y.gif	dG7tG5y
+OK	Espalda		Encogimientos con mancuernas		Dumbbell Shrug			exact	1.00	dumbbell shrug	dumbbell	https://static.exercisedb.dev/media/NJzBsGJ.gif	NJzBsGJ
+OK	Espalda		Encogimientos en máquina		Machine Shrug			weak	0.50	lever shrug	leverage machine	https://static.exercisedb.dev/media/ZZKbeMw.gif	ZZKbeMw
+NO	Espalda		Face pull en polea		Face Pull		Woodchop en polea alta	sin candidato					
+OK	Espalda		Hiperextensiones en banco		Back Extension			strong	0.80	lever back extension	leverage machine	https://static.exercisedb.dev/media/rUXfn3R.gif	rUXfn3R
+NO	Espalda		Jalón al pecho agarre cerrado		Close-Grip Lat Pulldown			weak	0.60	twin handle parallel grip lat pulldown	cable	https://static.exercisedb.dev/media/rkg41Fb.gif	rkg41Fb
+OK	Espalda		Jalón al pecho en polea alta		Lat Pulldown			strong	0.67	cable pulldown	cable	https://static.exercisedb.dev/media/RVwzP10.gif	RVwzP10
+OK	Espalda		Jalón en polea alta agarre supino		Underhand Lat Pulldown			strong	0.80	cable underhand pulldown	cable	https://static.exercisedb.dev/media/xBYcQHj.gif	xBYcQHj
+NO	Espalda		Pullover en polea alta		Cable Lat Pullover			weak (colisión)	0.50	cable curl	cable	https://static.exercisedb.dev/media/G08RZcQ.gif	G08RZcQ
+OK	Espalda		Remo con barra		Barbell Row			strong	0.86	barbell bent over row	barbell	https://static.exercisedb.dev/media/eZyBC3j.gif	eZyBC3j
+NO	Espalda		Remo con mancuerna unilateral		Single-Arm Dumbbell Row			weak	0.80	dumbbell upright row	dumbbell	https://static.exercisedb.dev/media/ainizkb.gif	ainizkb
+OK	Espalda		Remo en máquina		Machine Row			strong	0.67	lever seated row	leverage machine	https://static.exercisedb.dev/media/7I6LNUG.gif	7I6LNUG
+OK	Espalda		Remo en polea baja		Seated Cable Row			strong	1.00	cable seated row	cable	https://static.exercisedb.dev/media/fUBheHs.gif	fUBheHs
+OK	Espalda		Remo en polea baja agarre ancho		Wide-Grip Cable Row			strong	0.89	cable seated wide-grip row	cable	https://static.exercisedb.dev/media/qcY50ZD.gif	qcY50ZD
+OK	Espalda		Remo en Smith		Smith Machine Row			strong	0.80	smith narrow row	smith machine	https://static.exercisedb.dev/media/JGKowMS.gif	JGKowMS
+OK	Espalda		Remo invertido		Inverted Row			exact	1.00	inverted row	body weight	https://static.exercisedb.dev/media/bZGHsAZ.gif	bZGHsAZ
+OK	Espalda		Remo T-bar	Remo Acostado	T-Bar Row	Lying Row		strong	0.67	cambered bar lying row	barbell	https://static.exercisedb.dev/media/R5swFnc.gif	R5swFnc
+OK	Espalda		Remo T-bar con pecho apoyado		Chest-Supported T-Bar Row			weak	0.57	lever t bar row	leverage machine	https://static.exercisedb.dev/media/aaXr7ld.gif	aaXr7ld
+OK	Espalda		Straight-arm pulldown		Straight-Arm Pulldown			strong	0.86	cable straight arm pulldown	cable	https://static.exercisedb.dev/media/x69MAlq.gif	x69MAlq
+OK	Espalda	Pecho	Superman	Flexión de Pecho Superman	Superman	Superman Push-up		weak	0.50	superman push-up	body weight	https://static.exercisedb.dev/media/4GqRrAk.gif	4GqRrAk
+OK	Gemelos		Elevación de talones de pie		Standing Calf Raise			strong	0.86	bodyweight standing calf raise	body weight	https://static.exercisedb.dev/media/bJYHBIN.gif	bJYHBIN
+OK	Gemelos		Elevación de talones en prensa		Calf Press			strong	0.80	lever calf press	leverage machine	https://static.exercisedb.dev/media/7B4F5nZ.gif	7B4F5nZ
+OK	Gemelos		Elevación de talones sentado		Seated Calf Raise			strong	0.86	lever seated calf raise	leverage machine	https://static.exercisedb.dev/media/bOOdeyc.gif	bOOdeyc
+OK	Glúteo		Abducción en máquina		Hip Abduction Machine			strong	0.67	lever seated hip abduction	leverage machine	https://static.exercisedb.dev/media/CHpahtl.gif	CHpahtl
+OK	Glúteo		Glute bridge		Glute Bridge			strong	0.80	glute bridge march	body weight	https://static.exercisedb.dev/media/GibBPPg.gif	GibBPPg
+OK	Glúteo		Hip thrust con barra		Barbell Hip Thrust			sin candidato					
+OK	Glúteo		Hip thrust en máquina		Machine Hip Thrust			sin candidato					
+NO	Glúteo		Patada de glúteo en polea		Cable Kickback			exact	1.00	cable kickback	cable	https://static.exercisedb.dev/media/HEJ6DIX.gif	HEJ6DIX
+OK	Glúteo		Step-up con mancuernas		Dumbbell Step-Up			exact	1.00	dumbbell step-up	dumbbell	https://static.exercisedb.dev/media/aXtJhlg.gif	aXtJhlg
+OK	Glúteo		Zancada búlgara		Bulgarian Split Squat			weak	0.50	dumbbell single leg split squat	dumbbell	https://static.exercisedb.dev/media/qx4fgX7.gif	qx4fgX7
+NO	Glúteo		Zancada inversa		Reverse Lunge			weak (colisión)	0.50	dumbbell lunge	dumbbell	https://static.exercisedb.dev/media/RRWFUcw.gif	RRWFUcw
+OK	Hamstrings	Bíceps	Curl femoral de pie	Curl de Bíceps con Disco	Standing Leg Curl	Plate Biceps Curl		weak	0.67	weighted standing curl	weighted	https://static.exercisedb.dev/media/M5Y7GPg.gif	M5Y7GPg
+OK	Hamstrings		Curl femoral sentado		Seated Leg Curl			strong	0.86	lever seated leg curl	leverage machine	https://static.exercisedb.dev/media/Zg3XY7P.gif	Zg3XY7P
+OK	Hamstrings		Curl femoral tumbado		Lying Leg Curl			strong	0.86	lever lying leg curl	leverage machine	https://static.exercisedb.dev/media/17lJ1kr.gif	17lJ1kr
+OK	Hamstrings		Nordic curl	Curl Nórdico	Nordic Curl			sin candidato					
+OK	Hamstrings		Peso muerto piernas rígidas		Stiff-Leg Deadlift			strong	0.86	barbell straight leg deadlift	barbell	https://static.exercisedb.dev/media/hrVQWvE.gif	hrVQWvE
+OK	Hamstrings		Peso muerto rumano		Romanian Deadlift			strong	0.67	traditional barbell romanian deadlift	barbell	https://static.exercisedb.dev/media/o6LqKKP.gif	o6LqKKP
+OK	Hombro		Elevaciones frontales con barra		Barbell Front Raise			exact	1.00	barbell front raise	barbell	https://static.exercisedb.dev/media/b2Uoz54.gif	b2Uoz54
+OK	Hombro		Elevaciones frontales con mancuernas		Dumbbell Front Raise			exact	1.00	dumbbell front raise	dumbbell	https://static.exercisedb.dev/media/3eGE2JC.gif	3eGE2JC
+OK	Hombro		Elevaciones frontales en polea baja		Cable Front Raise			exact	1.00	cable front raise	cable	https://static.exercisedb.dev/media/u2X71Np.gif	u2X71Np
+OK	Hombro		Elevaciones laterales con mancuernas		Dumbbell Lateral Raise			exact	1.00	dumbbell lateral raise	dumbbell	https://static.exercisedb.dev/media/DsgkuIt.gif	DsgkuIt
+OK	Hombro		Elevaciones laterales en máquina		Machine Lateral Raise			strong	0.67	lever lateral raise	leverage machine	https://static.exercisedb.dev/media/dRTfGZT.gif	dRTfGZT
+OK	Hombro		Elevaciones laterales en polea baja		Cable Lateral Raise			exact	1.00	cable lateral raise	cable	https://static.exercisedb.dev/media/goJ6ezq.gif	goJ6ezq
+OK	Hombro		Press en máquina de hombro	Press en Landmine	Shoulder Press Machine	Landmine Press		strong	0.67	lever shoulder press	leverage machine	https://static.exercisedb.dev/media/67n3r98.gif	67n3r98
+OK	Hombro		Press en Smith hombro		Smith Machine Shoulder Press			exact	1.00	smith shoulder press	smith machine	https://static.exercisedb.dev/media/903mzG8.gif	903mzG8
+NO	Hombro		Press landmine		Landmine Press		Press en máquina de hombro	weak	0.50	landmine 180	barbell	https://static.exercisedb.dev/media/QYysSLV.gif	QYysSLV
+OK	Hombro		Press militar con barra de pie		Standing Barbell Overhead Press			strong	0.86	barbell standing bradford press	barbell	https://static.exercisedb.dev/media/dCPESfR.gif	dCPESfR
+OK	Hombro		Press militar con barra sentado		Seated Barbell Overhead Press			strong	1.00	barbell seated overhead press	barbell	https://static.exercisedb.dev/media/kTbSH9h.gif	kTbSH9h
+OK	Hombro		Press militar con mancuernas de pie		Standing Dumbbell Shoulder Press			strong	0.75	dumbbell standing overhead press	dumbbell	https://static.exercisedb.dev/media/A6wtbuL.gif	A6wtbuL
+OK	Hombro		Press militar con mancuernas sentado		Seated Dumbbell Shoulder Press			strong	0.80	dumbbell seated shoulder press (parallel grip)	dumbbell	https://static.exercisedb.dev/media/f1jf47L.gif	f1jf47L
+OK	Pecho		Aperturas con mancuernas plano	Aperturas con mancuernas	Flat Dumbbell Fly			strong	0.80	dumbbell rear fly	dumbbell	https://static.exercisedb.dev/media/8DiFDVA.gif	8DiFDVA
+OK	Pecho		Aperturas inclinadas con mancuernas		Incline Dumbbell Fly			strong	1.00	dumbbell incline fly	dumbbell	https://static.exercisedb.dev/media/ESOd5Pl.gif	ESOd5Pl
+NO	Pecho		Crossover en polea alta		High Cable Crossover			weak (colisión)	0.57	cable high row (kneeling)	cable	https://static.exercisedb.dev/media/ZSJNetl.gif	ZSJNetl
+NO	Pecho		Crossover en polea baja		Low Cable Crossover			strong (colisión)	0.67	cable low fly	cable	https://static.exercisedb.dev/media/FVmZVhk.gif	FVmZVhk
+NO	Pecho		Crossover en polea media		Cable Crossover			weak	0.57	cable rope crossover seated row	cable	https://static.exercisedb.dev/media/UFGF6gk.gif	UFGF6gk
+OK	Pecho		Flexiones		Push-Up			exact	1.00	push-up	body weight	https://static.exercisedb.dev/media/I4hDWkc.gif	I4hDWkc
+OK	Pecho		Flexiones declinadas		Decline Push-Up			exact	1.00	decline push-up	body weight	https://static.exercisedb.dev/media/i5cEhka.gif	i5cEhka
+OK	Pecho		Flexiones diamante		Diamond Push-Up			exact	1.00	diamond push-up	body weight	https://static.exercisedb.dev/media/soIB2rj.gif	soIB2rj
+OK	Pecho		Flexiones inclinadas		Incline Push-Up			exact	1.00	incline push-up	body weight	https://static.exercisedb.dev/media/B1EVP9F.gif	B1EVP9F
+OK	Pecho		Fondos en paralelas		Chest Dip			exact	1.00	chest dip	body weight	https://static.exercisedb.dev/media/9WTm7dq.gif	9WTm7dq
+OK	Pecho		Pec deck / Mariposa	Press de Pecho en Máquina	Pec Deck	Machine Chest Press		weak (colisión)	0.57	machine inner chest press	leverage machine	https://static.exercisedb.dev/media/wDN97Ca.gif	wDN97Ca
+OK	Pecho		Press de banca con barra	Press de banca	Barbell Bench Press			exact	1.00	barbell bench press	barbell	https://static.exercisedb.dev/media/EIeI8Vf.gif	EIeI8Vf
+NO	Pecho		Press de banca con mancuernas		Dumbbell Bench Press			strong	0.86	dumbbell bench seated press	dumbbell	https://static.exercisedb.dev/media/3d7wHyd.gif	3d7wHyd
+OK	Pecho		Press de banca en Smith		Smith Machine Bench Press			exact	1.00	smith bench press	smith machine	https://static.exercisedb.dev/media/trqKQv2.gif	trqKQv2
+OK	Pecho		Press declinado con barra		Decline Barbell Press			strong	0.86	barbell decline bench press	barbell	https://static.exercisedb.dev/media/GrO65fd.gif	GrO65fd
+OK	Pecho		Press declinado con mancuernas		Decline Dumbbell Press			strong	0.86	dumbbell decline bench press	dumbbell	https://static.exercisedb.dev/media/DwhEmmE.gif	DwhEmmE
+	Pecho		Press en máquina inclinado	Press de Pecho Inclinado en máquina	Incline Machine Press	Incline Machine Chest Press		weak	0.57	lever incline chest press	leverage machine	https://static.exercisedb.dev/media/jHAnWmT.gif	jHAnWmT
+NO	Pecho		Press en máquina pecho		Machine Chest Press		Pec deck / Mariposa	strong (colisión)	0.86	machine inner chest press	leverage machine	https://static.exercisedb.dev/media/wDN97Ca.gif	wDN97Ca
+OK	Pecho		Press inclinado con barra		Incline Barbell Press			strong	0.86	barbell incline bench press	barbell	https://static.exercisedb.dev/media/3TZduzM.gif	3TZduzM
+OK	Pecho		Press inclinado con mancuernas		Incline Dumbbell Press			strong	0.86	dumbbell incline bench press	dumbbell	https://static.exercisedb.dev/media/ns0SIbU.gif	ns0SIbU
+OK	Pecho		Press inclinado en Smith		Incline Smith Machine Press			strong	0.86	smith incline bench press	smith machine	https://static.exercisedb.dev/media/5v7KYld.gif	5v7KYld
+OK	Pecho		Pull-over en polea	Press de Pecho en Polea	Cable Chest Pullover	Cable Chest Press		weak	0.57	cable seated chest press	cable	https://static.exercisedb.dev/media/nIR4Rwl.gif	nIR4Rwl
+OK	Tríceps		Extensión en polea alta con barra	Press de Tríceps en Polea	Tricep Pushdown			strong	0.67	cable pushdown	cable	https://static.exercisedb.dev/media/3ZflifB.gif	3ZflifB
+OK	Tríceps		Extensión en polea alta con cuerda	Extensión de Tríceps con Cuerda	Rope Pushdown	Rope Triceps Pushdown		strong	0.67	cable pushdown (with rope attachment)	cable	https://static.exercisedb.dev/media/dU605di.gif	dU605di
+OK	Tríceps		Extensión en polea baja	Extensión de Tríceps en polea baja	Low Cable Tricep Extension	Overhead Tricep Extension		weak (colisión)	0.60	cable high pulley overhead tricep extension	cable	https://static.exercisedb.dev/media/1xHyxys.gif	1xHyxys
+OK	Tríceps		Extensión unilateral en polea	Extensión de Tríceps unilateral en polea	Single-Arm Cable Extension	Single-Arm Cable Triceps Extension		weak	0.60	cable standing one arm triceps extension	cable	https://static.exercisedb.dev/media/sYCcnon.gif	sYCcnon
+OK	Tríceps		Fondos en banco		Bench Dip			weak	0.80	bench dip on floor	body weight	https://static.exercisedb.dev/media/9RT8oQW.gif	9RT8oQW
+NO	Tríceps		Fondos en paralelas tríceps		Tricep Dip			strong	0.67	triceps dip (bench leg)	body weight	https://static.exercisedb.dev/media/VuoerH0.gif	VuoerH0
+NO	Tríceps		Katanas en polea baja		Cable Overhead Tricep Extension			strong (colisión)	0.80	cable high pulley overhead tricep extension	cable	https://static.exercisedb.dev/media/1xHyxys.gif	1xHyxys
+OK	Tríceps		Press cerrado con barra		Close-Grip Bench Press			strong	0.89	barbell close-grip bench press	barbell	https://static.exercisedb.dev/media/J6Dx1Mu.gif	J6Dx1Mu
+OK	Tríceps		Press cerrado en Smith		Close-Grip Smith Press			strong	0.89	smith close-grip bench press	smith machine	https://static.exercisedb.dev/media/WcHl7ru.gif	WcHl7ru
+OK	Tríceps		Press francés con barra EZ tumbado		Lying EZ-Bar Triceps Extension			weak	0.71	ez bar lying close grip triceps extension behind head	ez barbell	https://static.exercisedb.dev/media/6CKUx7o.gif	6CKUx7o
+OK	Tríceps		Press francés con mancuerna tumbado		Lying Dumbbell Triceps Extension			strong	1.00	dumbbell lying triceps extension	dumbbell	https://static.exercisedb.dev/media/mpKZGWz.gif	mpKZGWz
+OK	Tríceps		Press francés con mancuernas sentado		Seated Dumbbell Triceps Extension			strong	1.00	dumbbell seated triceps extension	dumbbell	https://static.exercisedb.dev/media/kont8Ut.gif	kont8Ut
+OK	Tríceps		Skull crusher con barra EZ		EZ-Bar Skull Crusher			weak	0.50	barbell lying triceps extension skull crusher	barbell	https://static.exercisedb.dev/media/h8LFzo9.gif	h8LFzo9
+NO	Tríceps		Skull crusher con mancuernas		Dumbbell Skull Crusher			sin candidato					
