@@ -55,19 +55,19 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
       setSearching(true)
       const q = query.trim()
 
-      // Buscar en paralelo: ejercicios propios del usuario + librería global
+      // Buscar en paralelo: ejercicios propios del usuario + librería global.
+      //
+      // La librería va por RPC y no por `ilike`: buscaba solo contra `name`, o
+      // sea solo el nombre en español, así que con la app en inglés "bench
+      // press" no encontraba "Press de banca" — y `ilike` tampoco ignora los
+      // acentos, de modo que "jalon" no encontraba "Jalón".
+      // search_exercise_library mira nombre, nombre en inglés y alias con el
+      // mismo criterio que usa el resolutor, y deja fuera lo retirado.
       const [{ data: own }, { data: lib }] = await Promise.all([
         supabase.from('exercises')
           .select('id, name, library:exercises_library ( gif_url, media_reviewed )')
           .eq('user_id', userId).ilike('name', `%${q}%`).order('name').limit(10),
-        // is_active: un ejercicio retirado ya no es canon —
-        // resolve_library_exercise no lo mira—, así que elegirlo aquí crearía
-        // un ejercicio "custom" con el nombre de algo que la librería ya
-        // cubre. Justo el duplicado que retirarlo venía a quitar.
-        supabase.from('exercises_library')
-          .select('id, name, gif_url, media_reviewed')
-          .eq('is_active', true)
-          .ilike('name', `%${q}%`).order('name').limit(10),
+        supabase.rpc('search_exercise_library', { q, lim: 12 }),
       ])
 
       // Fusionar: primero los propios, luego la librería sin repetir nombres
