@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { calc1RM, calcVolume } from './useWorkout'
 import { useLang } from './useLang'
-import { CATCH_ALL } from '../lib/muscleGroups'
+import { attributeSplit, totalOf, indexLibrary, resolveMuscles } from '../lib/volumeAttribution'
 import { useCachedResource } from '../lib/swr'
 
 // Month key (YYYY-MM) + short label for a given date.
@@ -44,7 +44,7 @@ export function useStats(targetUserId = null) {
             id, started_at, ended_at,
             workout_exercises (
               unit,
-              exercises ( name, muscle_group ),
+              exercises ( name, muscle_group, library_id ),
               sets ( weight, reps )
             )
           `)
@@ -115,29 +115,43 @@ export function useStats(targetUserId = null) {
         const allLifts = Object.values(liftMap).sort((a, b) => b.best1RM - a.best1RM)
 
         // ── Volume by muscle group (all-time) ─────────────────────────
-        const names = [...new Set(
-          list.flatMap(w => (w.workout_exercises || []).map(we => we.exercises?.name).filter(Boolean))
-        )]
-        const groupByName = {}
-        if (names.length > 0) {
-          const { data: lib } = await supabase
-            .from('exercises_library')
-            .select('name, muscle_group')
-            .in('name', names)
-          ;(lib || []).forEach(e => { groupByName[e.name] = e.muscle_group })
-        }
-        const groupVolume = {}
+        // El tonelaje de un ejercicio se le acredita entero a su músculo
+        // principal y a la mitad a cada secundario: los kilos del press de
+        // banca los mueve también el tríceps, aunque el ejercicio se llame de
+        // pecho.
+        const rows = list.flatMap(w => (w.workout_exercises || []).map(we => we.exercises).filter(Boolean))
+        const names = [...new Set(rows.map(e => e.name).filter(Boolean))]
+        const libIds = [...new Set(rows.map(e => e.library_id).filter(Boolean))]
+
+        // Por nombre y por library_id: el enlace es la unión fiable, pero un
+        // ejercicio enlazado puede seguir guardado con el nombre que tecleó
+        // quien lo creó, así que hacen falta las dos vías.
+        const LIB_COLS = 'id, name, muscle_group, secondary_muscles'
+        const [byName, byId] = await Promise.all([
+          names.length
+            ? supabase.from('exercises_library').select(LIB_COLS).in('name', names)
+            : { data: [] },
+          libIds.length
+            ? supabase.from('exercises_library').select(LIB_COLS).in('id', libIds)
+            : { data: [] },
+        ])
+        const { lookup } = indexLibrary([...(byName.data || []), ...(byId.data || [])])
+
+        const byGroup = {}
         list.forEach(w => {
           ;(w.workout_exercises || []).forEach(we => {
-            // Precedence: user's own classification → library → catch-all.
-            const group = we.exercises?.muscle_group || groupByName[we.exercises?.name] || CATCH_ALL
             const vol = calcVolume((we.sets || []).map(s => ({ ...s, unit: we.unit || 'kg' })))
             if (vol === 0) return
-            groupVolume[group] = (groupVolume[group] || 0) + vol
+            attributeSplit(vol, resolveMuscles(we.exercises, lookup(we.exercises)), byGroup)
           })
         })
-        const muscleBalance = Object.entries(groupVolume)
-          .map(([group, volume]) => ({ group, volume: Math.round(volume) }))
+        const muscleBalance = Object.entries(byGroup)
+          .map(([group, e]) => ({
+            group,
+            volume: Math.round(totalOf(e)),
+            direct: Math.round(e.direct),
+            indirect: Math.round(e.indirect),
+          }))
           .sort((a, b) => b.volume - a.volume)
 
         return { totals, volumeByMonth, allLifts, muscleBalance }

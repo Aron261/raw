@@ -105,7 +105,8 @@ function BackLink({ onClick }) {
 // ── Preview ─────────────────────────────────────────────────────────────────
 
 function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
+  const { term } = useExerciseLang()
   // Fila con el selector de alternativas abierto: 'dayIdx-exIdx' | null
   const [swapOpen, setSwapOpen] = useState(null)
 
@@ -119,14 +120,17 @@ function PlanPreview({ plan, notesVisible = true, getAlternatives, onSwap }) {
         )}
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
         {Object.entries(plan.weeklyVolume).map(([group, sets]) => (
           <span key={group} style={{ padding: '4px 10px', borderRadius: '999px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700 }}>
-            {group} {sets}
+            {term(group)} {sets.toLocaleString(locale, { maximumFractionDigits: 1 })}
           </span>
         ))}
-        <span style={{ padding: '4px 10px', borderRadius: '999px', color: 'var(--c-text-dim)', fontSize: '10px' }}>series/semana</span>
+        <span style={{ padding: '4px 10px', borderRadius: '999px', color: 'var(--c-text-dim)', fontSize: '10px' }}>{t('series/semana')}</span>
       </div>
+      <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, lineHeight: 1.45, marginBottom: '16px' }}>
+        {t('Cada serie cuenta entera para el músculo principal del ejercicio y media para cada músculo secundario.')}
+      </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {plan.days.map((day, i) => (

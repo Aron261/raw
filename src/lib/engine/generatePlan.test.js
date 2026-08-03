@@ -188,6 +188,22 @@ describe('historial', () => {
     expect(h.undertrainedGroups).not.toContain('Pecho' in h.weeklyVolumeByGroup ? '__nope__' : 'Pecho')
   })
 
+  it('el volumen real acredita los músculos secundarios a media serie', () => {
+    // 3 series de press de banca en 4 semanas → 0,75/semana de pecho, y la
+    // mitad de eso para el tríceps y el hombro que también trabajaron.
+    const h = analyzeHistory(workouts, { level: 'Intermedio', library })
+    expect(h.weeklyVolumeByGroup['Pecho']).toBe(0.8)      // 3/4 redondeado a un decimal
+    expect(h.weeklyVolumeByGroup['Tríceps']).toBe(0.4)    // 1,5/4
+    expect(h.weeklyVolumeByGroup['Hombro']).toBe(0.4)
+    expect(h.weeklyDirectByGroup['Tríceps']).toBe(0)      // nunca fue el principal
+  })
+
+  it('sin biblioteca solo cuenta el músculo principal, como antes', () => {
+    const h = analyzeHistory(workouts, { level: 'Intermedio' })
+    expect(h.weeklyVolumeByGroup['Pecho']).toBe(0.8)
+    expect(h.weeklyVolumeByGroup['Tríceps']).toBeUndefined()
+  })
+
   it('con historial: pesos sugeridos en ejercicios conocidos y familiar flag', () => {
     const history = analyzeHistory(workouts, { level: 'Intermedio' })
     const plan = gen({ useHistory: true, history, goal: 'Fuerza', daysPerWeek: 4 })
