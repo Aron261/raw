@@ -51,7 +51,7 @@ const fmt = (n, locale = 'es-CO') => Math.round(n).toLocaleString(locale)
 // ── Sección de nutrición del cliente ────────────────────────────────────────
 // Plan (objetivos de kcal/macros que fija el entrenador) + seguimiento de lo
 // que el cliente registró hoy y en los últimos 7 días.
-function NutritionSection({ clientId, clientName, onOpenLog }) {
+function NutritionSection({ clientId, clientName, clientProfile, onOpenLog }) {
   const { t, locale } = useLang()
   const { targets, hasCustomTargets, loading, saveTargets } = useNutritionTargets(clientId)
   const [showPlan, setShowPlan] = useState(false)
@@ -131,6 +131,7 @@ function NutritionSection({ clientId, clientName, onOpenLog }) {
         <NutritionTargetsSheet
           targets={targets}
           userId={clientId}
+          profile={clientProfile}
           title="Plan de nutrición"
           subtitle={`Calorías y macros diarios para ${clientName}.`}
           onSave={async (fields) => { await saveTargets(fields); setShowPlan(false) }}
@@ -730,6 +731,7 @@ export default function ClientDetail() {
         <NutritionSection
           clientId={clientId}
           clientName={name}
+          clientProfile={profile}
           onOpenLog={() => navigate(`/coach/cliente/${clientId}/nutricion`)}
         />
 

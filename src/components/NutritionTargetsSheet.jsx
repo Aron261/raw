@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { Sheet, Field, Button } from './ui'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { calcAge } from '../hooks/useProfile'
 import { DEFAULT_TARGETS, recommendMacros } from '../hooks/useNutrition'
 import { useLang } from '../hooks/useLang'
+import { NUTRIENTS, CEILINGS, sanitizeMicros } from '../lib/nutrients'
+import { recommendPlan, computeMicroTargets, toKg, toCm } from '../lib/nutritionPlan'
 
 const fmt = (n, locale = 'es-CO') => Math.round(n).toLocaleString(locale)
-const LB_TO_KG = 0.4536
 
 // Balances de macros estilo MyFitnessPal (% de las calorías). 'peso' es la
 // recomendación propia (2 g/kg), 'custom' es % libre y 'gramos' es exacto.
@@ -22,11 +24,181 @@ const BALANCES = [
 
 const KCAL_OF = (p, c, f) => Math.round(p * 4 + c * 4 + f * 9)
 
+const CEILING_KEYS = new Set(CEILINGS.map(n => n.key))
+
+// ── Tarjeta de recomendación ─────────────────────────────────────────────
+// No es un octavo modo de reparto: los siete de abajo responden «cómo reparto
+// las calorías» y esto responde «cuántas calorías». Presentarlos como
+// alternativas haría creer que son lo mismo.
+//
+// «Usar esto» NO guarda. Rellena el editor de gramos y deja al usuario dentro,
+// con los números puestos y libertad para tocarlos. Guardar sigue siendo un
+// gesto aparte y explícito.
+function RecommendationCard({ t, locale, plan, onApply, onOpenProfile }) {
+  const [open, setOpen] = useState(false)
+
+  // Algunas variables son a su vez claves del diccionario («Moderado»,
+  // «Ganar volumen»). Hay que traducirlas ANTES de interpolarlas o en inglés
+  // sale la frase traducida con la palabra en español dentro.
+  const frase = (m) => {
+    if (!m.tvars) return t(m.key, m.vars)
+    const vars = { ...m.vars }
+    for (const k of m.tvars) if (vars[k]) vars[k] = t(vars[k])
+    return t(m.key, vars)
+  }
+
+  const box = {
+    background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
+    borderRadius: 'var(--r-md)', padding: '14px', marginBottom: '16px',
+  }
+
+  if (!plan.ok) {
+    const falta = {
+      weightKg: t('tu peso'),
+      heightCm: t('tu altura'),
+      age: t('tu fecha de nacimiento'),
+    }
+    return (
+      <div style={box}>
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: 800, letterSpacing: '-0.01em', color: 'var(--c-text)', marginBottom: '5px' }}>
+          {t('Podemos calcularlo por ti')}
+        </p>
+        <p style={{ color: 'var(--c-text-muted)', fontSize: '11.5px', lineHeight: 1.5 }}>
+          {t('Nos falta {campos}.', { campos: plan.missing.map(m => falta[m] || m).join(', ') })}
+        </p>
+        {onOpenProfile && (
+          <button
+            onClick={onOpenProfile}
+            style={{ marginTop: '10px', fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-action-text)', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
+          >
+            {t('Completar en Perfil →')}
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div style={box}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
+      >
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginBottom: '4px' }}>
+          {t('Recomendado para ti')} <span aria-hidden style={{ display: 'inline-block', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 150ms var(--ease-out)' }}>›</span>
+        </p>
+        <p className="tnum" style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--c-text)' }}>
+          {fmt(plan.kcal, locale)}
+          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--c-text-muted)' }}> kcal</span>
+          <span className="tnum" style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--c-text-dim)', marginLeft: '10px' }}>
+            P {plan.protein_g} · C {plan.carbs_g} · G {plan.fat_g}
+          </span>
+        </p>
+      </button>
+
+      {open && (
+        <div style={{ marginTop: '12px' }}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {plan.reasons.map(r => (
+              <li key={r.id} style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.55, paddingLeft: '11px', position: 'relative' }}>
+                <span aria-hidden style={{ position: 'absolute', left: 0 }}>·</span>
+                {frase(r)}
+              </li>
+            ))}
+          </ul>
+          {plan.warnings.length > 0 && (
+            <ul style={{ listStyle: 'none', padding: 0, margin: '9px 0 0' }}>
+              {plan.warnings.map(w => (
+                <li key={w.id} style={{ color: 'var(--c-action-text)', fontSize: '11px', lineHeight: 1.55, paddingLeft: '11px', position: 'relative' }}>
+                  <span aria-hidden style={{ position: 'absolute', left: 0 }}>·</span>
+                  {frase(w)}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Píldora con borde de acento, no un Button primario: la acción
+          principal de la hoja sigue siendo Guardar, y dos botones sólidos
+          compitiendo dejarían al usuario sin saber cuál cierra el trámite.
+          `secondary` tampoco vale — es del mismo color que esta tarjeta. */}
+      <button
+        onClick={onApply}
+        style={{
+          marginTop: '12px', width: '100%', padding: '11px 14px',
+          fontFamily: 'var(--font-sans)', fontSize: '12.5px', fontWeight: 700,
+          letterSpacing: '-0.01em', color: 'var(--c-action-text)',
+          background: 'transparent', border: '1px solid var(--c-accent-border)',
+          borderRadius: 'var(--r-sm)', cursor: 'pointer',
+        }}
+      >
+        {t('Usar esto')}
+      </button>
+    </div>
+  )
+}
+
+// ── Objetivos de micros ──────────────────────────────────────────────────
+// Cerrado por defecto: son dieciséis campos que casi nadie va a tocar a mano,
+// porque lo normal es traerlos de la recomendación.
+function MicroTargetsSection({ t, values, onChange, onReset }) {
+  const [open, setOpen] = useState(false)
+  const puestos = NUTRIENTS.filter(n => Number(values[n.key]) > 0).length
+
+  return (
+    <div style={{ marginBottom: '14px' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        style={{ display: 'flex', alignItems: 'center', gap: '7px', background: 'transparent', border: 'none', padding: '4px 0', cursor: 'pointer' }}
+      >
+        <span aria-hidden style={{ color: 'var(--c-text-dim)', fontSize: '10px', display: 'inline-block', transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform 150ms var(--ease-out)' }}>▾</span>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: 800, letterSpacing: '-0.01em', color: 'var(--c-text)' }}>
+          {t('Micros')}
+        </span>
+        <span className="tnum" style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, color: 'var(--c-text-muted)' }}>
+          {puestos}/{NUTRIENTS.length}
+        </span>
+      </button>
+
+      {open && (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px', margin: '8px 0 10px' }}>
+            {NUTRIENTS.map(n => (
+              <label key={n.key} style={{ display: 'block' }}>
+                <span style={{ display: 'block', fontFamily: 'var(--font-sans)', fontSize: '10.5px', fontWeight: 700, letterSpacing: '-0.01em', color: CEILING_KEYS.has(n.key) ? 'var(--c-action-text)' : 'var(--c-text-dim)', marginBottom: '3px' }}>
+                  {t(n.label)} <span style={{ color: 'var(--c-text-muted)', fontWeight: 600 }}>
+                    {n.unit}{CEILING_KEYS.has(n.key) ? ` · ${t('techo')}` : ''}
+                  </span>
+                </span>
+                <input
+                  className="input-field tnum" type="number" inputMode="decimal" placeholder="0"
+                  value={values[n.key] ?? ''}
+                  onChange={e => onChange(n.key, e.target.value)}
+                  style={{ height: '38px' }}
+                />
+              </label>
+            ))}
+          </div>
+          <button
+            onClick={onReset}
+            style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-action-text)', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer' }}
+          >
+            {t('Recalcular con estas calorías')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Sheet para fijar los objetivos diarios de calorías y macros. Sin userId
 // edita los del propio usuario; un entrenador pasa el userId del cliente
 // para planificar su nutrición (el prefill de peso usa el peso del cliente).
-export default function NutritionTargetsSheet({ targets, onSave, onClose, userId = null, title = 'Objetivos diarios', subtitle = 'Tu meta de calorías y macros para cada día.' }) {
-  const { t } = useLang()
+export default function NutritionTargetsSheet({ targets, onSave, onClose, userId = null, profile = null, onOpenProfile = null, title = 'Objetivos diarios', subtitle = 'Tu meta de calorías y macros para cada día.' }) {
+  const { t, locale } = useLang()
   const tgt = targets || DEFAULT_TARGETS
   const { user } = useAuth()
   const ownerId = userId || user?.id
@@ -57,11 +229,57 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
         .order('logged_at', { ascending: false })
         .limit(1)
       if (!alive || !data?.[0]) return
-      const kg = data[0].unit === 'lb' ? data[0].weight * LB_TO_KG : data[0].weight
+      const kg = toKg(data[0].weight, data[0].unit)
       setWeight(prev => (prev === '' ? String(Math.round(kg)) : prev))
     })()
     return () => { alive = false }
   }, [ownerId])
+
+  // Objetivos de micros. Viven FUERA del useMemo de `rec`: ese se recalcula en
+  // cada tecla y cada cambio de modo, y se llevaría por delante lo que el
+  // usuario acabara de poner aquí.
+  const [microTargets, setMicroTargets] = useState(() => targets?.micros || {})
+  const setMicro = (key, v) => setMicroTargets(prev => ({ ...prev, [key]: v }))
+
+  // La recomendación se calcula del perfil de QUIEN va a comer. Por eso llega
+  // por props y no de useProfile(): ese hook siempre devuelve el del usuario
+  // conectado, así que un entrenador habría planificado a su cliente con su
+  // propio cuerpo.
+  const plan = useMemo(() => recommendPlan({
+    weightKg: parseFloat(weight) || toKg(profile?.weight, profile?.weight_unit) || null,
+    heightCm: toCm(profile?.height, profile?.height_unit),
+    age: profile?.birth_date ? calcAge(profile.birth_date) : null,
+    sex: profile?.sex,
+    bodyFatPct: profile?.body_fat_pct,
+    bodyFatSource: profile?.body_fat_source,
+    activityId: profile?.activity_level,
+    phaseId: profile?.nutrition_phase,
+    daysPerWeek: profile?.days_per_week,
+    goal: profile?.goal,
+  }), [weight, profile])
+
+  const applyRecommendation = () => {
+    if (!plan.ok) return
+    setKcal(String(plan.kcal))
+    setGP(String(plan.protein_g))
+    setGC(String(plan.carbs_g))
+    setGF(String(plan.fat_g))
+    setMicroTargets(plan.micros)
+    setMode('gramos')
+  }
+
+  // Recalcula los micros con las calorías que hay AHORA en el campo, no con
+  // las de la recomendación: fibra, azúcar y grasa saturada dependen de ellas,
+  // así que tocar las kcal deja esos tres desfasados.
+  const resetMicros = () => {
+    const k = parseInt(kcal, 10)
+    if (!Number.isFinite(k) || k <= 0) return
+    setMicroTargets(computeMicroTargets({
+      kcal: k,
+      sex: profile?.sex,
+      age: profile?.birth_date ? calcAge(profile.birth_date) : null,
+    }))
+  }
 
   // Objetivo calculado según el modo activo.
   const rec = useMemo(() => {
@@ -141,7 +359,7 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
     if (saving || !rec) return
     setSaving(true)
     try {
-      await onSave(rec)
+      await onSave({ ...rec, micros: sanitizeMicros(microTargets) })
     } finally {
       setSaving(false)
     }
@@ -158,6 +376,12 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
 
   return (
     <Sheet title={title} subtitle={subtitle} onClose={onClose}>
+      <RecommendationCard
+        t={t} locale={locale} plan={plan}
+        onApply={applyRecommendation}
+        onOpenProfile={onOpenProfile}
+      />
+
       <Field label="Balance de macros">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {BALANCES.map(b => (
@@ -252,6 +476,11 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
             : 'Ingresa la meta de calorías y el reparto de macros.'}
         </p>
       )}
+
+      <MicroTargetsSection
+        t={t} values={microTargets}
+        onChange={setMicro} onReset={resetMicros}
+      />
 
       <Button
         variant="primary" full size="lg"

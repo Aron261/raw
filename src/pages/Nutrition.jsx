@@ -4,13 +4,16 @@ import Layout from '../components/Layout'
 import { Sheet, Field, Button, PageHeader, LiveRegion, UndoSnackbar } from '../components/ui'
 import MacroBar from '../components/MacroBar'
 import NutritionTargetsSheet from '../components/NutritionTargetsSheet'
+import NutritionMicrosSheet from '../components/NutritionMicrosSheet'
+import { NUTRIENTS, MICRO_KEYS, NUTRIENT_BY_KEY, nonZeroKeys, sanitizeMicros, scaleFood } from '../lib/nutrients'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import { ERROR_STYLE } from '../lib/ui'
 import { searchFoods, normalizeFood, parseServing } from '../lib/foodLibrary'
 import { useClientDetail } from '../hooks/useClientDetail'
+import { useProfile } from '../hooks/useProfile'
 import { useLang } from '../hooks/useLang'
 import {
-  useNutritionDay, useNutritionTargets, useMyFoods,
+  useNutritionDay, useNutritionTargets, useMyFoods, totalsOf,
   toLocalISODate, MEALS, DEFAULT_TARGETS,
 } from '../hooks/useNutrition'
 
@@ -70,12 +73,16 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
   const [protein, setProtein] = useState(initial ? String(initial.protein_g) : '')
   const [carbs, setCarbs] = useState(initial ? String(initial.carbs_g) : '')
   const [fat, setFat] = useState(initial ? String(initial.fat_g) : '')
+  // Los micros van en un solo objeto y no en dieciséis estados de texto: son
+  // demasiados para editarlos uno a uno y casi siempre llegan ya puestos,
+  // desde una sugerencia o desde lo que registró Claude.
+  const [micros, setMicros] = useState(initial?.micros || {})
   const [saving, setSaving] = useState(false)
 
   // Base para porciones: la comida elegida (o la entrada al editar), con su
   // porción de referencia. `amount` es la cantidad editable en esa unidad.
   const [base, setBase] = useState(initial
-    ? { qty: 1, unit: 'porción', kcal: Number(initial.kcal), protein_g: Number(initial.protein_g), carbs_g: Number(initial.carbs_g), fat_g: Number(initial.fat_g) }
+    ? { qty: 1, unit: 'porción', kcal: Number(initial.kcal), protein_g: Number(initial.protein_g), carbs_g: Number(initial.carbs_g), fat_g: Number(initial.fat_g), micros: initial.micros || {} }
     : null)
   const [amount, setAmount] = useState('1')
   const [picked, setPicked] = useState(editing)
@@ -86,13 +93,13 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
   const kcalFinal = kcal === '' ? kcalComputed : num(kcal)
   const canSave = name.trim() && (kcalFinal > 0 || num(protein) > 0 || num(carbs) > 0 || num(fat) > 0)
 
-  const scale1 = (v, m) => Math.round(Number(v) * m * 10) / 10
-
   const applyBase = (b, m) => {
-    setProtein(b.protein_g ? String(scale1(b.protein_g, m)) : '')
-    setCarbs(b.carbs_g ? String(scale1(b.carbs_g, m)) : '')
-    setFat(b.fat_g ? String(scale1(b.fat_g, m)) : '')
-    setKcal(b.kcal ? String(Math.round(b.kcal * m)) : '')
+    const s = scaleFood(b, m)
+    setProtein(s.protein_g ? String(s.protein_g) : '')
+    setCarbs(s.carbs_g ? String(s.carbs_g) : '')
+    setFat(s.fat_g ? String(s.fat_g) : '')
+    setKcal(s.kcal ? String(s.kcal) : '')
+    setMicros(s.micros)
   }
 
   // Porción de referencia de una sugerencia: de la biblioteca personal
@@ -101,7 +108,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
     const { qty, unit } = f.serving_qty != null
       ? { qty: Number(f.serving_qty), unit: f.serving_unit }
       : parseServing(f.serving)
-    return { qty, unit, kcal: Number(f.kcal), protein_g: Number(f.protein_g), carbs_g: Number(f.carbs_g), fat_g: Number(f.fat_g) }
+    return { qty, unit, kcal: Number(f.kcal), protein_g: Number(f.protein_g), carbs_g: Number(f.carbs_g), fat_g: Number(f.fat_g), micros: f.micros || {} }
   }
 
   const pickSuggestion = (f) => {
@@ -129,6 +136,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
   const foodFields = (b, foodName) => ({
     name: foodName.trim(), serving_qty: b.qty, serving_unit: b.unit,
     kcal: b.kcal, protein_g: b.protein_g, carbs_g: b.carbs_g, fat_g: b.fat_g,
+    micros: b.micros || {},
   })
 
   const doSave = async (fields, food) => {
@@ -139,23 +147,32 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
 
   const handleSave = () => {
     if (!canSave) return
-    const entry = { name: name.trim(), meal, kcal: kcalFinal, protein_g: num(protein), carbs_g: num(carbs), fat_g: num(fat) }
+    const limpios = sanitizeMicros(micros)
+    const entry = { name: name.trim(), meal, kcal: kcalFinal, protein_g: num(protein), carbs_g: num(carbs), fat_g: num(fat), micros: limpios }
     // Toda comida nueva queda en la biblioteca personal: con su porción de
     // referencia si vino de una sugerencia, o tal cual (1 porción) si es nueva.
     const food = editing ? null : (base
       ? foodFields(base, name)
-      : { name: name.trim(), serving_qty: 1, serving_unit: 'porción', kcal: kcalFinal, protein_g: num(protein), carbs_g: num(carbs), fat_g: num(fat) })
+      : { name: name.trim(), serving_qty: 1, serving_unit: 'porción', kcal: kcalFinal, protein_g: num(protein), carbs_g: num(carbs), fat_g: num(fat), micros: limpios })
     doSave(entry, food)
   }
 
   // Registro instantáneo de una sugerencia, tal cual (porción base).
   const quickAdd = (f) => doSave(
-    { name: f.name, meal, kcal: Number(f.kcal), protein_g: Number(f.protein_g), carbs_g: Number(f.carbs_g), fat_g: Number(f.fat_g) },
+    { name: f.name, meal, kcal: Number(f.kcal), protein_g: Number(f.protein_g), carbs_g: Number(f.carbs_g), fat_g: Number(f.fat_g), micros: sanitizeMicros(f.micros) },
     foodFields(baseFromSuggestion(f), f.name)
   )
 
   // Editar un macro a mano desengancha la cantidad: los campos mandan.
   const manual = (setter) => (e) => { setter(e.target.value); setAmount('') }
+
+  // Micros a mano. Solo se enseñan los que tienen valor más los que el usuario
+  // haya pedido añadir: dieciséis campos vacíos serían un muro que nadie
+  // rellena, y casi siempre llegan ya puestos desde una sugerencia o del MCP.
+  const [microsOpen, setMicrosOpen] = useState(false)
+  const [extraKeys, setExtraKeys] = useState([])
+  const shownMicros = MICRO_KEYS.filter(k => Number(micros[k]) > 0 || extraKeys.includes(k))
+  const setMicro = (key, v) => { setMicros(prev => ({ ...prev, [key]: v })); setAmount('') }
 
   return (
     <Sheet title={t(editing ? 'Editar comida' : 'Agregar comida')} onClose={onClose}>
@@ -285,6 +302,63 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
         </Field>
       </div>
 
+      <div style={{ marginBottom: '14px' }}>
+        <button
+          onClick={() => setMicrosOpen(o => !o)}
+          aria-expanded={microsOpen}
+          style={{ display: 'flex', alignItems: 'center', gap: '7px', background: 'transparent', border: 'none', padding: '4px 0', cursor: 'pointer' }}
+        >
+          <span aria-hidden style={{ color: 'var(--c-text-dim)', fontSize: '10px', display: 'inline-block', transform: microsOpen ? 'none' : 'rotate(-90deg)', transition: 'transform 150ms var(--ease-out)' }}>▾</span>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: 800, letterSpacing: '-0.01em', color: 'var(--c-text)' }}>
+            {t('Micronutrientes')}
+          </span>
+          {nonZeroKeys(micros).length > 0 && (
+            <span className="tnum" style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, color: 'var(--c-text-muted)' }}>
+              {nonZeroKeys(micros).length}
+            </span>
+          )}
+        </button>
+
+        {microsOpen && (
+          <div style={{ marginTop: '8px' }}>
+            {shownMicros.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 12px', marginBottom: '10px' }}>
+                {shownMicros.map(key => (
+                  <label key={key} style={{ display: 'block' }}>
+                    <span style={{ display: 'block', fontFamily: 'var(--font-sans)', fontSize: '10.5px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginBottom: '3px' }}>
+                      {t(NUTRIENT_BY_KEY[key].label)}
+                      <span style={{ color: 'var(--c-text-muted)', fontWeight: 600 }}> {NUTRIENT_BY_KEY[key].unit}</span>
+                    </span>
+                    <input
+                      className="input-field tnum" type="number" inputMode="decimal" placeholder="0"
+                      value={micros[key] ?? ''}
+                      onChange={e => setMicro(key, e.target.value)}
+                      style={{ height: '38px' }}
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {NUTRIENTS.filter(n => !shownMicros.includes(n.key)).map(n => (
+                <button
+                  key={n.key}
+                  onClick={() => setExtraKeys(prev => [...prev, n.key])}
+                  style={{
+                    padding: '6px 10px', borderRadius: '999px',
+                    fontFamily: 'var(--font-sans)', fontSize: '10.5px', fontWeight: 700, letterSpacing: '-0.01em',
+                    background: 'var(--c-surface-2)', color: 'var(--c-text-dim)',
+                    border: '1px solid var(--c-border-subtle)', cursor: 'pointer',
+                  }}
+                >
+                  + {t(n.label)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       <Button
         variant="primary" full size="lg"
         loading={saving} disabled={saving || !canSave}
@@ -317,10 +391,14 @@ export default function Nutrition({ userId = null, readOnly = false }) {
   const [dateISO, setDateISO] = useState(today)
   const isToday = dateISO === today
 
-  const { entries, totals, loading, error, refetch, addEntry, updateEntry, deleteEntry } = useNutritionDay(dateISO, userId)
+  const { entries, loading, error, refetch, addEntry, updateEntry, deleteEntry } = useNutritionDay(dateISO, userId)
   const { foods, saveFood } = useMyFoods()
   const { targets, saveTargets, hasCustomTargets } = useNutritionTargets(userId)
   const { profile: clientProfile } = useClientDetail(readOnly ? userId : null)
+  const { profile: myProfile } = useProfile()
+  // El perfil de quien come, no el de quien mira: un entrenador planificando a
+  // un cliente tiene que ver el cálculo hecho con el cuerpo del cliente.
+  const planProfile = readOnly ? clientProfile : myProfile
   const tgt = targets || DEFAULT_TARGETS
 
   const [sheet, setSheet] = useState(null)   // { entry?, meal? } | 'targets' | null
@@ -340,22 +418,38 @@ export default function Nutrition({ userId = null, readOnly = false }) {
     return next
   })
 
-  // Oculta la entrada pendiente de borrado (ventana de deshacer).
+  // Oculta la entrada pendiente de borrado (ventana de deshacer). El héroe,
+  // las barras y las secciones parten todos de la misma lista filtrada: antes
+  // los totales se recalculaban restando campo a campo, y cada dato nuevo
+  // (ahora los micros) había que acordarse de restarlo también.
+  const visibleEntries = useMemo(
+    () => entries.filter(e => e.id !== pendingId),
+    [entries, pendingId]
+  )
   const byMeal = useMemo(() => {
     const map = Object.fromEntries(MEALS.map(m => [m.id, []]))
-    for (const e of entries) { if (e.id === pendingId) continue; (map[e.meal] || map.snack).push(e) }
+    for (const e of visibleEntries) (map[e.meal] || map.snack).push(e)
     return map
-  }, [entries, pendingId])
+  }, [visibleEntries])
 
-  // El héroe y las barras restan la entrada oculta para no desincronizarse.
-  const pend = entryDelete.pending
-  const shownTotals = pend
-    ? { kcal: totals.kcal - Number(pend.kcal || 0), protein: totals.protein - Number(pend.protein_g || 0), carbs: totals.carbs - Number(pend.carbs_g || 0), fat: totals.fat - Number(pend.fat_g || 0) }
-    : totals
-  const visibleCount = entries.length - (pend ? 1 : 0)
+  const shownTotals = useMemo(() => totalsOf(visibleEntries), [visibleEntries])
+  const visibleCount = visibleEntries.length
 
   const kcalPct = tgt.kcal > 0 ? Math.min(100, (shownTotals.kcal / tgt.kcal) * 100) : 0
   const kcalOver = shownTotals.kcal > tgt.kcal
+
+  // Cuántos micros están donde deben. Un techo se cumple por debajo y un piso
+  // por encima, así que no se puede contar con una sola comparación.
+  const microStats = useMemo(() => {
+    const tm = tgt.micros || {}
+    const conObjetivo = MICRO_KEYS.filter(k => Number(tm[k]) > 0)
+    const ok = conObjetivo.filter(k => {
+      const cur = Number(shownTotals.micros?.[k]) || 0
+      const obj = Number(tm[k])
+      return NUTRIENT_BY_KEY[k].dir === 'ceiling' ? cur <= obj : cur >= obj
+    }).length
+    return { total: conObjetivo.length, ok }
+  }, [tgt, shownTotals])
 
   const handleSaveEntry = async (fields, food) => {
     if (sheet?.entry) {
@@ -530,6 +624,34 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             <MacroBar label="Carbos"   current={shownTotals.carbs}   target={tgt.carbs_g} />
             <MacroBar label="Grasa"    current={shownTotals.fat}     target={tgt.fat_g} />
           </div>
+
+          {/* Los micros son dieciséis barras y esta tarjeta ya pelea por cada
+              píxel de alto. Aquí va solo el titular —y la cobertura, que es lo
+              que dice cuánto vale el titular—; el detalle vive en su hoja. */}
+          <button
+            onClick={() => setSheet('micros')}
+            style={{
+              display: 'block', width: '100%', textAlign: 'left',
+              marginTop: '16px', paddingTop: '14px',
+              background: 'transparent',
+              border: 'none', borderTop: '1px solid var(--c-border-subtle)',
+              fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700,
+              letterSpacing: '-0.01em', color: 'var(--c-action-text)',
+              cursor: 'pointer',
+            }}
+          >
+            {/* Sin comidas, «4 de 16 en objetivo» sería cierto —no te has
+                pasado de ningún techo— pero se lee como si llevaras algo
+                hecho. Con el día en blanco no se cuenta nada. */}
+            {microStats.total === 0
+              ? t('Micros · sin objetivos todavía ›')
+              : visibleCount === 0
+                ? t('Micros · nada registrado hoy ›')
+                : t('Micros · {ok} de {total} en objetivo · {cov} de {n} comidas con datos ›', {
+                    ok: microStats.ok, total: microStats.total,
+                    cov: shownTotals.covered, n: visibleCount,
+                  })}
+          </button>
         </div>
 
         {/* ── Comidas del día ── */}
@@ -637,6 +759,8 @@ export default function Nutrition({ userId = null, readOnly = false }) {
         <NutritionTargetsSheet
           targets={targets}
           userId={userId}
+          profile={planProfile}
+          onOpenProfile={readOnly ? null : () => navigate('/profile?s=caracteristicas')}
           title={t(readOnly ? 'Plan de nutrición' : 'Objetivos diarios')}
           subtitle={readOnly
             ? `Calorías y macros diarios para ${clientProfile?.name || 'tu cliente'}.`
@@ -645,7 +769,17 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           onClose={() => setSheet(null)}
         />
       )}
-      {!readOnly && sheet && sheet !== 'targets' && (
+      {sheet === 'micros' && (
+        <NutritionMicrosSheet
+          totals={shownTotals}
+          targets={tgt}
+          entryCount={visibleCount}
+          coveredCount={shownTotals.covered}
+          onOpenTargets={() => setSheet('targets')}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {!readOnly && sheet && sheet !== 'targets' && sheet !== 'micros' && (
         <EntrySheet
           initial={sheet.entry}
           defaultMeal={sheet.meal}

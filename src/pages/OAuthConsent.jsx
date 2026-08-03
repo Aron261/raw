@@ -32,7 +32,7 @@ const CAN_READ = [
 const CAN_WRITE = [
   'Crear y editar rutinas y ciclos',
   'Crear y borrar objetivos',
-  'Registrar comidas y peso corporal',
+  'Registrar comidas, guardar alimentos y peso corporal',
 ]
 
 const CANNOT = [

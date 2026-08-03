@@ -88,4 +88,63 @@ describe('guardas del servidor MCP', () => {
       }
     }
   })
+
+  // Caso propio, aunque el de arriba ya lo cubra: los objetivos de macros y
+  // micros salen de un cálculo sobre el cuerpo de la persona, y la pantalla de
+  // consentimiento promete literalmente que un agente no puede cambiarlos. Si
+  // alguien añade una herramienta para «ajustar el plan», que falle aquí.
+  it('nutrition_targets solo se lee, nunca se escribe', () => {
+    const tools = sources.find(s => s.file === 'tools.ts')
+    const usos = [...tools.code.matchAll(/from\('nutrition_targets'\)\s*\.(\w+)\(/g)].map(m => m[1])
+    expect(usos.length).toBeGreaterThan(0)
+    expect(usos.every(op => op === 'select'), `nutrition_targets se usa con: ${usos.join(', ')}`).toBe(true)
+  })
+
+  // El CHECK de la base solo acepta estos cuatro. Sin el enum en el esquema de
+  // la herramienta, un "breakfast" bien intencionado acababa en una violación
+  // de restricción traducida a un «Los datos no son válidos» que no dice nada.
+  it('el momento del día va restringido a los valores que acepta la base', () => {
+    const tools = sources.find(s => s.file === 'tools.ts')
+    const m = tools.code.match(/const MEALS = \[([^\]]+)\]/)
+    expect(m, 'no se encuentra la lista MEALS en tools.ts').toBeTruthy()
+    const valores = [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1])
+    expect(valores).toEqual(['desayuno', 'almuerzo', 'cena', 'snack'])
+
+    for (const tool of ['log_nutrition_entry', 'update_nutrition_entry']) {
+      const bloque = tools.code.slice(tools.code.indexOf(`${tool}: {`))
+      expect(bloque.slice(0, 1200), `${tool} no restringe meal`).toMatch(/meal:\s*\{[^}]*enum:\s*MEALS/)
+    }
+  })
+})
+
+// La Edge Function no puede importar de src/, así que la lista de nutrientes
+// existe dos veces. Esta prueba es lo ÚNICO que separa las dos copias de irse
+// cada una por su lado en silencio: el día que se añada un nutriente a la app
+// y no aquí, el servidor lo descartaría de toda escritura del agente sin decir
+// una palabra, y la pantalla mostraría un hueco que nadie sabría explicar.
+describe('paridad del registro de nutrientes', () => {
+  const jsCode = readFileSync(join(DIR, '../../../src/lib/nutrients.js'), 'utf8')
+  const tsCode = readFileSync(join(DIR, 'nutrients.ts'), 'utf8')
+
+  const desdeJs = [...jsCode.matchAll(/\{\s*key:\s*'(\w+)',[^}]*?unit:\s*'(\w+)',[^}]*?max:\s*(\d+)/g)]
+    .map(m => ({ key: m[1], unit: m[2], max: Number(m[3]) }))
+  const desdeTs = [...tsCode.matchAll(/^\s{2}(\w+):\s*\{\s*unit:\s*'(\w+)',\s*max:\s*(\d+)/gm)]
+    .map(m => ({ key: m[1], unit: m[2], max: Number(m[3]) }))
+
+  it('las dos listas se han podido leer', () => {
+    expect(desdeJs.length).toBe(16)
+    expect(desdeTs.length).toBe(16)
+  })
+
+  it('mismas claves en los dos lados', () => {
+    expect([...desdeTs.map(n => n.key)].sort()).toEqual([...desdeJs.map(n => n.key)].sort())
+  })
+
+  it('misma unidad y mismo máximo para cada clave', () => {
+    const ts = Object.fromEntries(desdeTs.map(n => [n.key, n]))
+    for (const n of desdeJs) {
+      expect(ts[n.key].unit, `${n.key}: unidad distinta`).toBe(n.unit)
+      expect(ts[n.key].max, `${n.key}: máximo distinto`).toBe(n.max)
+    }
+  })
 })

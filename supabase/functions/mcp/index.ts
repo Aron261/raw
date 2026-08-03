@@ -68,10 +68,11 @@ async function handleMessage(msg: any, req: Request): Promise<unknown | null> {
       instructions: [
         'Datos de entrenamiento de RAW para esta persona usuaria.',
         'Puedes leer todo: entrenos, series, progreso, nutrición y perfil.',
-        'Solo puedes escribir rutinas y ciclos, objetivos, comidas y peso corporal.',
-        'No puedes registrar entrenos ni series (eso se hace en la app), ni cambiar el perfil o los objetivos de macros, ni conceder permisos de administrador.',
+        'Solo puedes escribir rutinas y ciclos, objetivos, comidas, alimentos y peso corporal.',
+        'No puedes registrar entrenos ni series (eso se hace en la app), ni cambiar el perfil o los objetivos de macros y micros, ni conceder permisos de administrador.',
         'Antes de crear o editar una rutina, busca los ejercicios con search_exercise_library: guardar un nombre que no está en la biblioteca rompe el seguimiento del progreso. Si un término es ambiguo ("sentadillas"), pregunta cuál variante quiere.',
         'Después de escribir una rutina, revisa el campo "normalized" y comenta cualquier nombre que se haya guardado distinto.',
+        'Al registrar comidas, manda solo los micronutrientes que conozcas: una clave ausente significa "desconocido", no cero, y la app cuenta cuántas comidas traen datos para saber cuánto vale el total del día.',
       ].join(' '),
     })
   }

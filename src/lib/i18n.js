@@ -428,7 +428,7 @@ const EN = {
   'Tu nutrición y tus alimentos guardados': 'Your nutrition and saved foods',
   'Crear y editar rutinas y ciclos': 'Create and edit routines and cycles',
   'Crear y borrar objetivos': 'Create and delete goals',
-  'Registrar comidas y peso corporal': 'Log meals and body weight',
+  'Registrar comidas, guardar alimentos y peso corporal': 'Log meals, save foods and body weight',
   'Registrar o modificar entrenos y series': 'Log or change workouts and sets',
   'Cambiar tu perfil o tus objetivos de macros': 'Change your profile or your macro targets',
   'Ver datos de otras personas': "See other people's data",
@@ -746,6 +746,127 @@ const EN = {
   'Registrar peso': 'Log weight',
   'Crear rutina': 'Create routine',
   'Tu peso corporal de hoy': "Today's body weight",
+
+  // ── Nutrición · micronutrientes ──
+  // «Zinc», «Omega-3» y «Micros» se escriben igual en los dos idiomas y por eso
+  // NO están aquí: translate() cae a la clave, que ya es el inglés correcto.
+  // Ponerlas las marcaría como traducción sin hacer.
+  'Azúcar': 'Sugar',
+  'Grasa saturada': 'Saturated fat',
+  'Sodio': 'Sodium',
+  'Colesterol': 'Cholesterol',
+  'Fibra': 'Fiber',
+  'Potasio': 'Potassium',
+  'Calcio': 'Calcium',
+  'Hierro': 'Iron',
+  'Magnesio': 'Magnesium',
+  'Vitamina C': 'Vitamin C',
+  'Vitamina B12': 'Vitamin B12',
+  'Vitamina A': 'Vitamin A',
+  'Vitamina D': 'Vitamin D',
+  'Folato': 'Folate',
+  'Micronutrientes': 'Micronutrients',
+  'Micros del día': "Today's micros",
+  'No pasarse': "Don't exceed",
+  'Alcanzar': 'Reach',
+  'techo': 'cap',
+  'Micros · sin objetivos todavía ›': 'Micros · no targets yet ›',
+  'Micros · nada registrado hoy ›': 'Micros · nothing logged today ›',
+  'Micros · {ok} de {total} en objetivo · {cov} de {n} comidas con datos ›':
+    'Micros · {ok} of {total} on target · {cov} of {n} meals with data ›',
+  '{n} de {total} comidas de hoy traen micros. Lo que falta no cuenta como cero: sencillamente no lo sabemos.':
+    "{n} of {total} of today's meals carry micros. What's missing isn't zero — we simply don't know it.",
+  'Son estimaciones a partir de lo que comes, no una medición.':
+    'These are estimates based on what you eat, not a measurement.',
+  'Todavía no has registrado nada hoy.': "You haven't logged anything today.",
+  'Todavía no tienes objetivos de micros. La app puede calcularlos con tu peso, tu grasa y tu fase.':
+    'You have no micro targets yet. The app can work them out from your weight, body fat and phase.',
+  'Calcular objetivos →': 'Work out targets →',
+  'Recalcular con estas calorías': 'Recalculate with these calories',
+
+  // ── Nutrición · objetivos recomendados ──
+  'Recomendado para ti': 'Recommended for you',
+  'Usar esto': 'Use this',
+  'Podemos calcularlo por ti': 'We can work it out for you',
+  'Nos falta {campos}.': 'We still need {campos}.',
+  'Completar en Perfil →': 'Complete it in Profile →',
+  'tu peso': 'your weight',
+  'tu altura': 'your height',
+  'tu fecha de nacimiento': 'your date of birth',
+  'Katch-McArdle con {bf}% de grasa: {lbm} kg de masa magra, {bmr} kcal en reposo.':
+    'Katch-McArdle with {bf}% body fat: {lbm} kg of lean mass, {bmr} kcal at rest.',
+  'Mifflin-St Jeor con peso, altura y edad: {bmr} kcal en reposo.':
+    'Mifflin-St Jeor from weight, height and age: {bmr} kcal at rest.',
+  'Actividad {label} (×{factor}): {tdee} kcal para mantenerte.':
+    '{label} activity (×{factor}): {tdee} kcal to maintain.',
+  'Mantener: sin ajuste sobre ese gasto.': 'Maintain: no adjustment to that expenditure.',
+  'Fase {label}: {pct}% sobre el gasto.': '{label} phase: {pct}% on expenditure.',
+  'Proteína a {perKg} g por kg de masa magra: {g} g.':
+    'Protein at {perKg} g per kg of lean mass: {g} g.',
+  'Proteína a {perKg} g por kg de peso: {g} g.': 'Protein at {perKg} g per kg of body weight: {g} g.',
+  'Grasa al piso de 0,6 g/kg ({g} g) para no tocar las hormonas.':
+    'Fat at the 0.6 g/kg floor ({g} g) to leave hormones alone.',
+  'Grasa al 22% de las calorías: {g} g.': 'Fat at 22% of calories: {g} g.',
+  'Los carbos son lo que queda: {g} g.': 'Carbs are whatever is left: {g} g.',
+  'Fibra a 14 g por cada 1.000 kcal: {g} g.': 'Fiber at 14 g per 1,000 kcal: {g} g.',
+  'Sodio, azúcar, grasa saturada y colesterol son techos, no metas.':
+    'Sodium, sugar, saturated fat and cholesterol are caps, not goals.',
+  'Actividad deducida de tus {n} días por semana. Ajústala en Perfil.':
+    'Activity inferred from your {n} days per week. Adjust it in Profile.',
+  'Sin nivel de actividad, se asume moderado. Ajústalo en Perfil.':
+    'With no activity level set, moderate is assumed. Adjust it in Profile.',
+  'Fase deducida de tu meta «{goal}».': 'Phase inferred from your goal "{goal}".',
+  'El déficit se recortó: por debajo de {floor} kcal estarías comiendo menos de lo que gastas en reposo.':
+    "The deficit was trimmed: below {floor} kcal you'd be eating less than you burn at rest.",
+  'Con esas calorías, la proteína y la grasa no dejan sitio para carbos. Sube las calorías o baja la proteína.':
+    'At those calories, protein and fat leave no room for carbs. Raise the calories or lower the protein.',
+  'El % de grasa es una estimación visual: cuenta con ±5 puntos.':
+    'Body fat is a visual estimate: expect ±5 points.',
+  'Añade tu % de grasa en Perfil y el cálculo pasa a usar tu masa magra.':
+    'Add your body fat in Profile and the maths switches to your lean mass.',
+  'Sin sexo en el perfil se usan los valores más exigentes de micros.':
+    'With no sex set in the profile, the strictest micro values are used.',
+
+  // ── Perfil · composición corporal ──
+  'Composición corporal': 'Body composition',
+  'Porcentaje de grasa': 'Body fat percentage',
+  'Nivel de actividad': 'Activity level',
+  'Fase': 'Phase',
+  'grasa': 'body fat',
+  'Grasa, actividad y fase · para calcular tus calorías':
+    'Body fat, activity and phase · to work out your calories',
+  'Sin elegir, se deduce de tu objetivo: {fase}.': 'If left blank, it follows your goal: {fase}.',
+  'Sedentario': 'Sedentary',
+  'Ligero': 'Light',
+  'Moderado': 'Moderate',
+  'Alto': 'High',
+  'Muy alto': 'Very high',
+  'Escritorio, sin entrenar': 'Desk job, no training',
+  '1-3 entrenos por semana': '1-3 workouts per week',
+  '3-5 entrenos por semana': '3-5 workouts per week',
+  '6-7 entrenos por semana': '6-7 workouts per week',
+  'Trabajo físico y entreno diario': 'Physical job and daily training',
+  'Definición': 'Cutting',
+  'Ganar volumen': 'Bulking',
+  'Elige tu sexo en «Mis características» para ver la escala: los tramos no son los mismos.':
+    'Set your sex in "My details" to see the scale — the ranges are not the same.',
+  'Elige el que más se parezca a como te ves hoy.': 'Pick the one closest to how you look today.',
+  'Sin especificar': 'Not set',
+  'No sé / prefiero no decirlo': "I don't know / prefer not to say",
+  'Abdominales marcados y venas en los brazos': 'Sharp abs and visible arm veins',
+  'Abdominales visibles en reposo': 'Abs visible at rest',
+  'Se marcan algo, sobre todo con buena luz': 'Slightly visible, mostly in good light',
+  'Cintura definida, pero sin abdominales': 'Defined waist, but no abs',
+  'Barriga blanda, cintura poco marcada': 'Soft belly, waist barely defined',
+  'Barriga clara y cara más llena': 'Clear belly and fuller face',
+  'Barriga marcada y cintura ancha': 'Pronounced belly and wide waist',
+  'Abdominales visibles, muy definida': 'Abs visible, very defined',
+  'Atlética, con algo de definición': 'Athletic, with some definition',
+  'Firme, sin definición marcada': 'Firm, without sharp definition',
+  'Cintura visible, caderas suaves': 'Visible waist, soft hips',
+  'Cintura poco marcada': 'Waist barely defined',
+  'Barriga y caderas más llenas': 'Fuller belly and hips',
+  'Cintura ancha': 'Wide waist',
 
   // ── Auth ──
   'Iniciar sesión': 'Sign in',

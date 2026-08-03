@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { useCachedResource, mutateCache } from '../lib/swr'
+import { sumMicros, sanitizeMicros, nonZeroKeys } from '../lib/nutrients'
 
 // Fecha local YYYY-MM-DD — una comida a las 11pm es de hoy, no de mañana UTC.
 // La implementación vive en lib/calendar.js (módulo puro); se reexporta aquí
@@ -67,8 +68,19 @@ export function useNutritionDay(dateISO, targetUserId = null) {
     mutateCache(key, prev => (prev || []).filter(e => e.id !== id))
   }, [key])
 
-  // Totales del día
-  const totals = useMemo(() => entries.reduce(
+  // Totales del día. `covered` es cuántas comidas traen algún micro: sin ese
+  // dato, «el sodio de hoy» es en realidad «el sodio que conocemos», y la
+  // pantalla no tendría forma de decirlo.
+  const totals = useMemo(() => totalsOf(entries), [entries])
+
+  return { entries, totals, loading, error, refetch, addEntry, updateEntry, deleteEntry }
+}
+
+// Totales de una lista de comidas. Fuera del hook porque la pantalla también
+// los necesita sobre una lista filtrada (la entrada pendiente de deshacer).
+export function totalsOf(entries) {
+  const list = entries || []
+  const base = list.reduce(
     (acc, e) => ({
       kcal:    acc.kcal    + Number(e.kcal || 0),
       protein: acc.protein + Number(e.protein_g || 0),
@@ -76,9 +88,13 @@ export function useNutritionDay(dateISO, targetUserId = null) {
       fat:     acc.fat     + Number(e.fat_g || 0),
     }),
     { kcal: 0, protein: 0, carbs: 0, fat: 0 }
-  ), [entries])
-
-  return { entries, totals, loading, error, refetch, addEntry, updateEntry, deleteEntry }
+  )
+  return {
+    ...base,
+    micros: sumMicros(list.map(e => e.micros)),
+    count: list.length,
+    covered: list.filter(e => nonZeroKeys(e.micros).length > 0).length,
+  }
 }
 
 // Biblioteca personal: cada comida registrada queda guardada con su porción
@@ -111,6 +127,7 @@ export function useMyFoods() {
       serving_qty: food.serving_qty,
       serving_unit: food.serving_unit,
       kcal: food.kcal, protein_g: food.protein_g, carbs_g: food.carbs_g, fat_g: food.fat_g,
+      micros: sanitizeMicros(food.micros),
       last_used_at: new Date().toISOString(),
     }
     const { data: existing } = await supabase
@@ -134,7 +151,7 @@ export function useMyFoods() {
   return { foods: data || [], loading, saveFood }
 }
 
-export const DEFAULT_TARGETS = { kcal: 2500, protein_g: 160, carbs_g: 280, fat_g: 80 }
+export const DEFAULT_TARGETS = { kcal: 2500, protein_g: 160, carbs_g: 280, fat_g: 80, micros: {} }
 
 // Recomendación de macros a partir de meta calórica y peso ideal:
 // proteína = 2 g × kg de peso ideal, grasa = 25% de las calorías,

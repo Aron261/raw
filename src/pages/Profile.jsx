@@ -12,6 +12,8 @@ import { useTheme } from '../hooks/useTheme'
 import { useLang } from '../hooks/useLang'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Button, Sheet, UnitToggle } from '../components/ui'
+import BodyFatPicker from '../components/BodyFatPicker'
+import { ACTIVITY_LEVELS, PHASES, PHASE_BY_ID, PHASE_FROM_GOAL } from '../lib/nutritionPlan'
 import { useChartColors } from '../lib/chartColors'
 import {
   gridProps, axisProps, ChartTooltip,
@@ -276,6 +278,92 @@ function CharacteristicsSheet({ form, set, age, saving, onSave, onClose }) {
         <div>
           <label style={LABEL}>{t('Nivel de entrenamiento')}</label>
           <PillGroup options={['Principiante', 'Intermedio', 'Avanzado']} value={form.level} onChange={v => set('level', v)} />
+        </div>
+      </div>
+
+      <Button
+        type="button" variant="primary" full size="lg"
+        loading={saving} disabled={saving} onClick={onSave}
+        style={{ marginTop: '24px' }}
+      >
+        {saving ? 'Guardando...' : 'Guardar'}
+      </Button>
+    </Sheet>
+  )
+}
+
+// ── Composición corporal ────────────────────────────────────────────────
+// Los tres insumos que faltaban para poder calcular unas calorías en vez de
+// pedirlas. Van dentro de «Mis características» y no en un apartado propio:
+// es donde ya se dice cuánto mides y cuánto pesas.
+function BodyCompositionSheet({ form, set, saving, onSave, onClose }) {
+  const { t } = useLang()
+
+  const pill = (active) => ({
+    padding: '7px 14px', borderRadius: '999px',
+    fontSize: '12px', fontWeight: 700, textAlign: 'left',
+    border: `1px solid ${active ? 'var(--c-accent)' : 'var(--c-border)'}`,
+    background: active ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
+    color: active ? 'var(--c-action-text)' : 'var(--c-text-dim)',
+    transition: 'all 150ms var(--ease-out)', cursor: 'pointer',
+  })
+
+  const faseSugerida = PHASE_FROM_GOAL[form.goal]
+
+  return (
+    <Sheet
+      title={t('Composición corporal')}
+      subtitle="Con esto la app puede calcular tus calorías en vez de pedírtelas."
+      onClose={onClose}
+      maxHeight="92dvh"
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+        <div>
+          <label style={LABEL}>{t('Porcentaje de grasa')}</label>
+          <BodyFatPicker
+            sex={form.sex}
+            value={form.body_fat_pct}
+            onChange={(pct) => {
+              set('body_fat_pct', pct)
+              set('body_fat_source', pct == null ? null : 'estimado')
+            }}
+          />
+        </div>
+
+        <div>
+          <label style={LABEL}>{t('Nivel de actividad')}</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+            {ACTIVITY_LEVELS.map(a => (
+              <button
+                key={a.id} type="button"
+                onClick={() => set('activity_level', a.id)}
+                style={pill(form.activity_level === a.id)}
+              >
+                {t(a.label)}
+                <span style={{ color: 'var(--c-text-muted)', fontWeight: 600 }}> · {t(a.hint)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label style={LABEL}>{t('Fase')}</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {PHASES.map(p => (
+              <button
+                key={p.id} type="button"
+                onClick={() => set('nutrition_phase', p.id)}
+                style={pill(form.nutrition_phase === p.id)}
+              >
+                {t(p.label)}
+              </button>
+            ))}
+          </div>
+          {!form.nutrition_phase && faseSugerida && (
+            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '7px', lineHeight: 1.4 }}>
+              {t('Sin elegir, se deduce de tu objetivo: {fase}.', { fase: t(PHASE_BY_ID[faseSugerida].label) })}
+            </p>
+          )}
         </div>
       </div>
 
@@ -1006,7 +1094,7 @@ export default function Profile() {
     navigate('/login', { replace: true })
   }
 
-  // sheet: null | 'characteristics' | 'weight'
+  // sheet: null | 'characteristics' | 'composition' | 'weight'
   const [sheet, setSheet] = useState(null)
 
   // Apartados abiertos. Se entra con todo cerrado; `?s=<id>` abre uno concreto
@@ -1030,6 +1118,8 @@ export default function Profile() {
     weight: null, weight_unit: 'kg',
     height: null, height_unit: 'cm',
     level: null, goal: null, days_per_week: null,
+    body_fat_pct: null, body_fat_source: null,
+    activity_level: null, nutrition_phase: null,
   })
 
   // Sync from loaded profile
@@ -1046,6 +1136,10 @@ export default function Profile() {
         level:         profile.level         ?? null,
         goal:          profile.goal          ?? null,
         days_per_week: profile.days_per_week ?? null,
+        body_fat_pct:    profile.body_fat_pct    ?? null,
+        body_fat_source: profile.body_fat_source ?? null,
+        activity_level:  profile.activity_level  ?? null,
+        nutrition_phase: profile.nutrition_phase ?? null,
       })
     }
   }, [profile])
@@ -1068,10 +1162,22 @@ export default function Profile() {
     setSheet(null)
   }
 
+  const saveComposition = async () => {
+    await persist(['body_fat_pct', 'body_fat_source', 'activity_level', 'nutrition_phase'])
+    setSheet(null)
+  }
+
   const saveTraining = (e) => {
     e.preventDefault()
     persist(['goal', 'days_per_week'])
   }
+
+  // Resumen de composición. Sin nada puesto invita en vez de mostrar un vacío.
+  const compSummary = [
+    form.body_fat_pct != null ? `${form.body_fat_pct}% ${t('grasa')}` : null,
+    form.activity_level ? t(ACTIVITY_LEVELS.find(a => a.id === form.activity_level)?.label) : null,
+    form.nutrition_phase ? t(PHASE_BY_ID[form.nutrition_phase].label) : null,
+  ].filter(Boolean).join(' · ')
 
   const weightUnit = form.weight_unit || 'kg'
 
@@ -1169,6 +1275,29 @@ export default function Profile() {
                   {t('Editar ›')}
                 </span>
               </button>
+
+              <div style={{ borderTop: '1px solid var(--c-border-subtle)', paddingTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setSheet('composition')}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    width: '100%', textAlign: 'left', cursor: 'pointer', minHeight: '44px',
+                  }}
+                >
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: 'block', fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginBottom: '3px' }}>
+                      {t('Composición corporal')}
+                    </span>
+                    <span style={{ display: 'block', color: compSummary ? 'var(--c-text)' : 'var(--c-text-ghost)', fontSize: '13px', fontWeight: 600, lineHeight: 1.5 }}>
+                      {compSummary || t('Grasa, actividad y fase · para calcular tus calorías')}
+                    </span>
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em', flexShrink: 0, marginLeft: '12px' }}>
+                    {t('Editar ›')}
+                  </span>
+                </button>
+              </div>
 
               <div style={{ borderTop: '1px solid var(--c-border-subtle)', paddingTop: '16px' }}>
                 <BodyWeightSummary unit={weightUnit} onOpen={() => setSheet('weight')} />
@@ -1305,6 +1434,13 @@ export default function Profile() {
         <CharacteristicsSheet
           form={form} set={set} age={age}
           saving={saving} onSave={saveCharacteristics}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet === 'composition' && (
+        <BodyCompositionSheet
+          form={form} set={set}
+          saving={saving} onSave={saveComposition}
           onClose={() => setSheet(null)}
         />
       )}

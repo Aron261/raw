@@ -7,6 +7,9 @@
 //   2. Nada que escriba en profiles, nutrition_targets, workouts, sets,
 //      exercises_library, app_settings ni trainer_clients. Además de no existir
 //      aquí, la guardia de supabase/agent_audit.sql lo rechaza en Postgres.
+//      En particular los objetivos de macros y micros se fijan SOLO en la app,
+//      que los calcula del peso, la grasa corporal y la fase: aquí se leen
+//      (get_nutrition_day) y se leen sus insumos (get_profile), nada más.
 //   3. Los entrenos registrados son de SOLO LECTURA. El outbox offline
 //      (src/lib/outbox.js) puede reenviar una escritura vieja horas después y
 //      pisar o resucitar filas; escribir sets desde fuera corrompería ese flujo.
@@ -14,6 +17,7 @@
 //      puede tocar datos de otra persona.
 
 import type { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
+import { MICRO_HINT, sanitizeMicros, sumMicros, countCovered } from './nutrients.ts'
 
 type Ctx = { supabase: SupabaseClient; userId: string }
 type Tool = {
@@ -28,6 +32,18 @@ const obj = (props: Record<string, unknown>, required: string[] = []) => ({
 const str = (description: string) => ({ type: 'string', description })
 const num = (description: string) => ({ type: 'number', description })
 const bool = (description: string) => ({ type: 'boolean', description })
+
+// Los micros llegan como objeto suelto para no tener que declarar dieciséis
+// argumentos. La última frase de la descripción hace trabajo de verdad: sin
+// ella un modelo servicial rellena las dieciséis claves con ceros y destruye
+// la cuenta de cuántas comidas traen datos reales.
+const MICROS_ARG = {
+  type: 'object',
+  description: `Micronutrientes con su unidad fija: ${MICRO_HINT}. Omite las que no conozcas — una clave ausente significa "desconocido", NO cero. No inventes valores: si solo sabes fibra y sodio, manda solo esos dos.`,
+  additionalProperties: { type: 'number' },
+}
+
+const MEALS = ['desayuno', 'almuerzo', 'cena', 'snack']
 
 const clamp = (n: unknown, def: number, max: number) => {
   const v = typeof n === 'number' && Number.isFinite(n) ? Math.floor(n) : def
@@ -70,11 +86,11 @@ export const TOOLS: Record<string, Tool> = {
   // ── LECTURA ─────────────────────────────────────────────────────────────
 
   get_profile: {
-    description: 'Perfil de la persona usuaria: nombre, nivel, objetivo, días por semana, sexo, altura y peso. Útil para adaptar un plan. Solo lectura: el perfil no se puede modificar desde aquí.',
+    description: 'Perfil de la persona usuaria: nombre, nivel, objetivo, días por semana, sexo, altura, peso y composición corporal (grasa, nivel de actividad, fase de nutrición). Solo lectura: el perfil no se puede modificar desde aquí. Estos son los INSUMOS con los que la app calcula los objetivos de macros; los objetivos ya aceptados están en get_nutrition_day.',
     inputSchema: obj({}),
     handler: async (_a, { supabase, userId }) =>
       unwrap(await supabase.from('profiles')
-        .select('id,name,birth_date,sex,weight,weight_unit,height,height_unit,level,goal,days_per_week,is_trainer,exercise_lang')
+        .select('id,name,birth_date,sex,weight,weight_unit,height,height_unit,level,goal,days_per_week,is_trainer,exercise_lang,app_lang,body_fat_pct,body_fat_source,activity_level,nutrition_phase')
         .eq('id', userId).maybeSingle()),
   },
 
@@ -173,7 +189,7 @@ export const TOOLS: Record<string, Tool> = {
   },
 
   get_nutrition_day: {
-    description: 'Comidas registradas de un día, con los totales y los objetivos de macros. Los objetivos son de solo lectura.',
+    description: 'Comidas registradas de un día, con los totales (macros y micros) y los objetivos. Los objetivos son de SOLO LECTURA: se fijan en la app, donde se calculan a partir del peso, la grasa corporal y la fase. `micros_coverage` dice de cuántas comidas se conocen micros — sin ese dato, un total de micros bajo puede ser falta de información y no falta de nutrientes.',
     inputSchema: obj({ date: str('Fecha YYYY-MM-DD. Por defecto, hoy.') }),
     handler: async (a, { supabase, userId }) => {
       const day = a.date || new Date().toISOString().slice(0, 10)
@@ -186,14 +202,19 @@ export const TOOLS: Record<string, Tool> = {
       return {
         date: day,
         entries: rows,
-        totals: { kcal: sum('kcal'), protein_g: sum('protein_g'), carbs_g: sum('carbs_g'), fat_g: sum('fat_g') },
+        totals: {
+          kcal: sum('kcal'), protein_g: sum('protein_g'),
+          carbs_g: sum('carbs_g'), fat_g: sum('fat_g'),
+          micros: sumMicros(rows.map(r => r.micros)),
+        },
+        micros_coverage: { with_micros: countCovered(rows.map(r => r.micros)), total: rows.length },
         targets: unwrap(targets),
       }
     },
   },
 
   list_nutrition_foods: {
-    description: 'Alimentos guardados por la persona usuaria, con sus macros. Reutilízalos al registrar comidas para no inventar valores.',
+    description: 'Alimentos guardados por la persona usuaria, con sus macros y micros por porción de referencia. Reutilízalos al registrar comidas para no inventar valores.',
     inputSchema: obj({ query: str('Filtra por nombre'), limit: num('Máximo (por defecto 30, máximo 100)') }),
     handler: async (a, { supabase }) => {
       let q = supabase.from('nutrition_foods').select('*')
@@ -341,12 +362,13 @@ export const TOOLS: Record<string, Tool> = {
   },
 
   log_nutrition_entry: {
-    description: 'Registra una comida. Consulta antes list_nutrition_foods para reutilizar macros ya guardadas en vez de estimarlas.',
+    description: 'Registra una comida, con macros y micronutrientes. Consulta antes list_nutrition_foods para reutilizar valores ya guardados en vez de estimarlos. Después, save_nutrition_food deja el alimento en la biblioteca personal para la próxima vez.',
     inputSchema: obj({
       name: str('Nombre de la comida o alimento'),
-      meal: str('Momento del día: "desayuno", "almuerzo", "cena", "snack"'),
+      meal: { ...str('Momento del día'), enum: MEALS },
       kcal: num('Calorías'), protein_g: num('Proteína en gramos'),
       carbs_g: num('Carbohidratos en gramos'), fat_g: num('Grasa en gramos'),
+      micros: MICROS_ARG,
       date: str('Fecha YYYY-MM-DD. Por defecto, hoy.'),
       note: str('Nota opcional'),
     }, ['name', 'meal']),
@@ -355,27 +377,69 @@ export const TOOLS: Record<string, Tool> = {
         user_id: userId, name: a.name, meal: a.meal,
         kcal: a.kcal ?? 0, protein_g: a.protein_g ?? 0,
         carbs_g: a.carbs_g ?? 0, fat_g: a.fat_g ?? 0,
+        micros: sanitizeMicros(a.micros),
         note: a.note ?? null,
         ...(a.date ? { eaten_on: a.date } : {}),
       }).select().maybeSingle()),
   },
 
   update_nutrition_entry: {
-    description: 'Modifica una comida ya registrada.',
+    description: 'Modifica una comida ya registrada. Ojo con `micros`: REEMPLAZA el objeto entero, no lo fusiona — manda todos los micros que quieras conservar, no solo los que cambian.',
     inputSchema: obj({
       entry_id: str('ID de la comida'),
-      name: str('Nuevo nombre'), meal: str('Nuevo momento del día'),
+      name: str('Nuevo nombre'),
+      meal: { ...str('Nuevo momento del día'), enum: MEALS },
       kcal: num('Calorías'), protein_g: num('Proteína'),
-      carbs_g: num('Carbohidratos'), fat_g: num('Grasa'), note: str('Nota'),
+      carbs_g: num('Carbohidratos'), fat_g: num('Grasa'),
+      micros: MICROS_ARG,
+      note: str('Nota'),
     }, ['entry_id']),
     handler: async (a, { supabase }) => {
       const patch: Record<string, unknown> = {}
       for (const k of ['name', 'meal', 'kcal', 'protein_g', 'carbs_g', 'fat_g', 'note']) {
         if (a[k] != null) patch[k] = a[k]
       }
+      if (a.micros != null) patch.micros = sanitizeMicros(a.micros)
       if (!Object.keys(patch).length) throw new Error('No hay nada que cambiar.')
       return unwrap(await supabase.from('nutrition_entries').update(patch)
         .eq('id', a.entry_id).select().maybeSingle())
+    },
+  },
+
+  save_nutrition_food: {
+    description: 'Guarda un alimento en la biblioteca personal con su porción de referencia, para reutilizarlo sin volver a estimar valores. Si ya existe uno con ese nombre, lo actualiza. Úsalo después de registrar una comida nueva: si no, la próxima vez la app no la recordará y habrá que estimarla otra vez.',
+    inputSchema: obj({
+      name: str('Nombre del alimento'),
+      serving_qty: num('Cantidad de la porción de referencia (por defecto 1)'),
+      serving_unit: str('Unidad de la porción: "g", "unidad", "taza"… (por defecto "porción")'),
+      kcal: num('Calorías de esa porción'), protein_g: num('Proteína'),
+      carbs_g: num('Carbohidratos'), fat_g: num('Grasa'),
+      micros: MICROS_ARG,
+    }, ['name']),
+    handler: async (a, { supabase, userId }) => {
+      // Misma normalización que la app (useNutrition.js): el índice único es
+      // (user_id, name_norm), así que separarse de ese criterio haría reventar
+      // el insert en vez de actualizar la fila que ya existe.
+      const name = String(a.name).trim()
+      const norm = name.toLowerCase()
+      const patch = {
+        name,
+        serving_qty: a.serving_qty ?? 1,
+        serving_unit: a.serving_unit ?? 'porción',
+        kcal: a.kcal ?? 0, protein_g: a.protein_g ?? 0,
+        carbs_g: a.carbs_g ?? 0, fat_g: a.fat_g ?? 0,
+        micros: sanitizeMicros(a.micros),
+        last_used_at: new Date().toISOString(),
+      }
+      const existing = unwrap(await supabase.from('nutrition_foods')
+        .select('id,times_used').eq('user_id', userId).eq('name_norm', norm).maybeSingle()) as any
+      if (existing) {
+        return unwrap(await supabase.from('nutrition_foods')
+          .update({ ...patch, times_used: existing.times_used + 1 })
+          .eq('id', existing.id).select().maybeSingle())
+      }
+      return unwrap(await supabase.from('nutrition_foods')
+        .insert({ user_id: userId, name_norm: norm, ...patch }).select().maybeSingle())
     },
   },
 
