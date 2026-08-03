@@ -99,7 +99,7 @@ OK	Hombro		Press militar con barra de pie		Standing Barbell Overhead Press			str
 OK	Hombro		Press militar con barra sentado		Seated Barbell Overhead Press			strong	1.00	barbell seated overhead press	barbell	https://static.exercisedb.dev/media/kTbSH9h.gif	kTbSH9h
 OK	Hombro		Press militar con mancuernas de pie		Standing Dumbbell Shoulder Press			strong	0.75	dumbbell standing overhead press	dumbbell	https://static.exercisedb.dev/media/A6wtbuL.gif	A6wtbuL
 OK	Hombro		Press militar con mancuernas sentado		Seated Dumbbell Shoulder Press			strong	0.80	dumbbell seated shoulder press (parallel grip)	dumbbell	https://static.exercisedb.dev/media/f1jf47L.gif	f1jf47L
-OK	Pecho		Aperturas con mancuernas plano	Aperturas con mancuernas	Flat Dumbbell Fly			strong	0.80	dumbbell rear fly	dumbbell	https://static.exercisedb.dev/media/8DiFDVA.gif	8DiFDVA
+NO	Pecho		Aperturas con mancuernas plano	Aperturas con mancuernas	Flat Dumbbell Fly			strong	0.80	dumbbell rear fly	dumbbell	https://static.exercisedb.dev/media/8DiFDVA.gif	8DiFDVA
 OK	Pecho		Aperturas inclinadas con mancuernas		Incline Dumbbell Fly			strong	1.00	dumbbell incline fly	dumbbell	https://static.exercisedb.dev/media/ESOd5Pl.gif	ESOd5Pl
 NO	Pecho		Crossover en polea alta		High Cable Crossover			weak (colisión)	0.57	cable high row (kneeling)	cable	https://static.exercisedb.dev/media/ZSJNetl.gif	ZSJNetl
 NO	Pecho		Crossover en polea baja		Low Cable Crossover			strong (colisión)	0.67	cable low fly	cable	https://static.exercisedb.dev/media/FVmZVhk.gif	FVmZVhk

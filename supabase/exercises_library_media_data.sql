@@ -4,7 +4,7 @@
 
 begin;
 
--- ── Media para ejercicios existentes (104) ──
+-- ── Media para ejercicios existentes (103) ──
 update exercises_library l set
   gif_url = v.gif, media_source = 'exercisedb-oss', media_source_id = v.src,
   media_reviewed = true, updated_at = now()
@@ -86,7 +86,6 @@ from (values
   ('Press militar con barra sentado', 'https://static.exercisedb.dev/media/kTbSH9h.gif', 'kTbSH9h'),
   ('Press militar con mancuernas de pie', 'https://static.exercisedb.dev/media/A6wtbuL.gif', 'A6wtbuL'),
   ('Press militar con mancuernas sentado', 'https://static.exercisedb.dev/media/f1jf47L.gif', 'f1jf47L'),
-  ('Aperturas con mancuernas plano', 'https://static.exercisedb.dev/media/8DiFDVA.gif', '8DiFDVA'),
   ('Aperturas inclinadas con mancuernas', 'https://static.exercisedb.dev/media/ESOd5Pl.gif', 'ESOd5Pl'),
   ('Flexiones', 'https://static.exercisedb.dev/media/I4hDWkc.gif', 'I4hDWkc'),
   ('Flexiones declinadas', 'https://static.exercisedb.dev/media/i5cEhka.gif', 'i5cEhka'),
