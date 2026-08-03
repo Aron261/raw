@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useLang } from '../hooks/useLang'
 
 /*
@@ -99,6 +100,13 @@ export default function BodyFatPicker({ sex, value, onChange }) {
   const { t } = useLang()
   const sk = sex === 'Femenino' ? 'f' : sex === 'Masculino' ? 'm' : null
 
+  // Campo libre: los tramos son para quien no sabe su número, pero quien sí lo
+  // sabe —de una báscula, un plicómetro o simplemente por tenerlo medido— no
+  // tiene por qué redondear al tramo más cercano. Estado propio porque
+  // mientras se teclea «14» se pasa por «1», que está fuera de rango.
+  const [libre, setLibre] = useState(value == null ? '' : String(value))
+  useEffect(() => { setLibre(value == null ? '' : String(value)) }, [value])
+
   if (!sk) {
     return (
       <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', lineHeight: 1.5 }}>
@@ -108,13 +116,27 @@ export default function BodyFatPicker({ sex, value, onChange }) {
   }
 
   const scale = SCALES[sk]
-  const current = scale.find(s => s.pct === Number(value))
+  const val = value == null || value === '' ? null : Number(value)
+  const exact = scale.find(s => s.pct === val)
+  // Con un valor que no cae en ningún tramo (14%, por ejemplo) se describe el
+  // más cercano: dejar la línea en blanco sería peor que aproximar.
+  const current = exact || (val == null
+    ? null
+    : scale.reduce((a, b) => (Math.abs(b.pct - val) < Math.abs(a.pct - val) ? b : a)))
+
+  const onLibre = (e) => {
+    const v = e.target.value
+    setLibre(v)
+    if (v === '') return onChange(null)
+    const n = parseFloat(v)
+    if (Number.isFinite(n) && n >= 3 && n <= 70) onChange(Math.round(n * 10) / 10)
+  }
 
   return (
     <div>
       <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px', margin: '0 -2px' }}>
         {scale.map(s => {
-          const active = Number(value) === s.pct
+          const active = val === s.pct
           return (
             <button
               key={s.pct}
@@ -147,17 +169,31 @@ export default function BodyFatPicker({ sex, value, onChange }) {
         {current ? t(current.desc) : t('Elige el que más se parezca a como te ves hoy.')}
       </p>
 
+      {/* Quien ya conoce su número no tiene por qué redondearlo a un tramo. */}
+      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)', flexShrink: 0 }}>
+          {t('O el tuyo exacto')}
+        </span>
+        <input
+          className="input-field tnum" type="number" inputMode="decimal"
+          placeholder="14" value={libre} onChange={onLibre}
+          style={{ flex: '0 0 84px', width: '84px', height: '38px' }}
+          aria-label={t('Porcentaje de grasa')}
+        />
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: 700, color: 'var(--c-text-muted)' }}>%</span>
+      </label>
+
       <button
         type="button"
         onClick={() => onChange(null)}
         style={{
-          marginTop: '8px', fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+          marginTop: '10px', fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
           letterSpacing: '-0.01em',
-          color: value == null ? 'var(--c-text-dim)' : 'var(--c-action-text)',
+          color: val == null ? 'var(--c-text-dim)' : 'var(--c-action-text)',
           background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
         }}
       >
-        {value == null ? t('Sin especificar') : t('No sé / prefiero no decirlo')}
+        {val == null ? t('Sin especificar') : t('No sé / prefiero no decirlo')}
       </button>
     </div>
   )

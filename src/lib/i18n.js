@@ -851,6 +851,7 @@ const EN = {
   'Elige tu sexo en «Mis características» para ver la escala: los tramos no son los mismos.':
     'Set your sex in "My details" to see the scale — the ranges are not the same.',
   'Elige el que más se parezca a como te ves hoy.': 'Pick the one closest to how you look today.',
+  'O el tuyo exacto': 'Or your exact one',
   'Sin especificar': 'Not set',
   'No sé / prefiero no decirlo': "I don't know / prefer not to say",
   'Abdominales marcados y venas en los brazos': 'Sharp abs and visible arm veins',
