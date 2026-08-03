@@ -46,6 +46,39 @@ function dice(a, b) {
   return (2 * shared) / (A.size + B.size)
 }
 
+/*
+ * Los mejores candidatos compatibles, no solo el mejor.
+ *
+ * La primera ronda proponía uno por ejercicio, y cuando ese uno estaba mal —
+ * "Crossover en polea alta" con un remo, "Press de banca con mancuernas" con
+ * un press sentado— la fila se quedaba sin nada, aunque en el corpus hubiera
+ * otro que sí valía. Rechazar el primero no debería costar la ronda entera:
+ * con 1219 ejercicios casi siempre hay dos o tres razonables, y elegir entre
+ * ellos mirando es justo lo que la persona hace mejor que el emparejador.
+ */
+function topMatches(row, corpus, n = 4) {
+  const libProfile = profile(row.name, row.name_en, row.aliases ?? [], row.equipment ?? [])
+  const libTexts = [row.name_en, row.name, ...(row.aliases ?? [])].filter(Boolean)
+  const libNorms = new Set(libTexts.map(norm))
+
+  const scored = []
+  for (const ex of corpus) {
+    const exProfile = profile(ex.name, ex.equipments ?? [])
+    if (conflicts(libProfile, exProfile).length) continue
+
+    const exTokens = content(ex.name)
+    let score = 0
+    for (const text of libTexts) score = Math.max(score, dice(content(text), exTokens))
+    if (libNorms.has(norm(ex.name))) score = 1
+    if (score < WEAK) continue
+
+    const blando = softMismatch(libProfile, exProfile).length > 0
+    scored.push({ ex, score, blando })
+  }
+
+  return scored.sort((a, b) => b.score - a.score).slice(0, n)
+}
+
 function bestMatch(row, corpus) {
   const libProfile = profile(row.name, row.name_en, row.aliases ?? [], row.equipment ?? [])
   // Se puntúa contra el nombre español, el inglés y cada alias: el alias suele
@@ -146,11 +179,60 @@ async function main() {
     })
     .sort((a, b) => Number(b.fits) - Number(a.fits) || a.group.localeCompare(b.group) || a.ex.name.localeCompare(b.ex.name))
 
+  /*
+   * Hoja de la ronda siguiente: solo lo que sigue sin animación aprobada, y
+   * con varios candidatos por ejercicio en vez de uno.
+   *
+   * Va aparte de media.tsv a propósito. media.tsv es el registro de lo ya
+   * decidido —qué animación vale, qué nombre lleva cada ejercicio— y
+   * regenerarlo encima borraría ese trabajo; aquí solo interesa lo que quedó
+   * pendiente. `media_reviewed` en el snapshot dice cuáles son.
+   */
+  const pendientes = library.filter(r => !r.media_reviewed)
+  const opcionesRows = []
+  let sinNada = 0
+  for (const row of pendientes) {
+    const opciones = topMatches(row, corpus)
+    if (!opciones.length) {
+      sinNada++
+      opcionesRows.push(['', row.muscle_group, row.name, row.name_en, '', '', 'sin candidato', '', '', '', ''])
+      continue
+    }
+    opciones.forEach((o, i) => opcionesRows.push([
+      '', row.muscle_group, row.name, row.name_en,
+      String(i + 1), o.score.toFixed(2), o.blando ? 'revisar agarre/lado' : '',
+      o.ex.name, (o.ex.equipments ?? []).join('+'), o.ex.gifUrl, o.ex.exerciseId,
+    ]))
+  }
+
   await mkdir(REVIEW, { recursive: true })
-  await writeFile(join(REVIEW, 'media.tsv'), tsv([
-    ['ok', 'grupo', 'nombre', 'name_en', 'tier', 'score', 'edb_name', 'edb_equip', 'gif_url', 'edb_id'],
-    ...mediaRows,
+  await writeFile(join(REVIEW, 'pendientes.tsv'), tsv([
+    ['ok', 'grupo', 'nombre', 'name_en', 'opcion', 'score', 'aviso',
+     'edb_name', 'edb_equip', 'gif_url', 'edb_id'],
+    ...opcionesRows,
   ]))
+  process.stderr.write(
+    `pendientes: ${pendientes.length} ejercicios · ` +
+    `${opcionesRows.length - sinNada} candidatos · ${sinNada} sin ninguno\n`)
+
+  /*
+   * media.tsv solo se escribe en la primera ronda.
+   *
+   * Es el registro de lo decidido a mano —qué animación vale, qué nombre lleva
+   * cada ejercicio— y volver a generarlo lo borraría entero. En cuanto el
+   * snapshot trae `media_reviewed`, ya hay decisiones tomadas y este archivo
+   * pasa a ser de solo lectura para la herramienta: lo que falte va por
+   * pendientes.tsv.
+   */
+  const yaCurado = library.some(r => r.media_reviewed)
+  if (yaCurado) {
+    process.stderr.write('media.tsv no se toca: ya tiene decisiones de una ronda anterior\n')
+  } else {
+    await writeFile(join(REVIEW, 'media.tsv'), tsv([
+      ['ok', 'grupo', 'nombre', 'name_en', 'tier', 'score', 'edb_name', 'edb_equip', 'gif_url', 'edb_id'],
+      ...mediaRows,
+    ]))
+  }
   await writeFile(join(REVIEW, 'candidates.tsv'), tsv([
     ['ok', 'nombre_es', 'grupo', 'equipamiento', 'edb_name', 'edb_target', 'edb_equip', 'encaja', 'gif_url', 'edb_id'],
     ...candidates.map(c => [

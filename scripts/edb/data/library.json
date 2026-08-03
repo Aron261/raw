@@ -10,7 +10,9 @@
   "muscle_group": "Bíceps",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "6TG6x2w"
  },
  {
   "name": "Curl con barra recta",
@@ -22,7 +24,9 @@
   "muscle_group": "Bíceps",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "25GPyDY"
  },
  {
   "name": "Curl con mancuernas sentado",
@@ -35,7 +39,8 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Curl de Bíceps con Disco",
@@ -47,7 +52,9 @@
   "muscle_group": "Bíceps",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "M5Y7GPg"
  },
  {
   "name": "Curl de Bíceps con mancuernas de pie",
@@ -62,7 +69,9 @@
   "muscle_group": "Bíceps",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "3s4NnTh"
  },
  {
   "name": "Curl de Bíceps en Polea",
@@ -79,7 +88,9 @@
   "muscle_group": "Bíceps",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "G08RZcQ"
  },
  {
   "name": "Curl en máquina",
@@ -91,7 +102,8 @@
   "muscle_group": "Bíceps",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Curl inclinado de Bíceps con mancuernas",
@@ -105,7 +117,9 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "ae9UoXQ"
  },
  {
   "name": "Curl martillo",
@@ -117,7 +131,9 @@
   "muscle_group": "Bíceps",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "2NpxjC1"
  },
  {
   "name": "Curl Predicador con barra",
@@ -132,7 +148,9 @@
   "equipment": [
    "barra",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "qOgPVf6"
  },
  {
   "name": "Curl predicador con mancuerna",
@@ -145,7 +163,9 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "7D5bgLT"
  },
  {
   "name": "Ab wheel",
@@ -158,7 +178,9 @@
   "muscle_group": "Core",
   "equipment": [
    "rueda_abs"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "NAgVB3t"
  },
  {
   "name": "Bird dog",
@@ -167,7 +189,8 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Crunch",
@@ -180,7 +203,9 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "BMMolZ3"
  },
  {
   "name": "Crunch en polea",
@@ -192,7 +217,9 @@
   "muscle_group": "Core",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "WW95auq"
  },
  {
   "name": "Crunch inverso",
@@ -203,7 +230,8 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Dead bug",
@@ -212,7 +240,8 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Dragon flag",
@@ -222,7 +251,8 @@
   "equipment": [
    "peso_corporal",
    "banco"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Elevación de piernas",
@@ -235,7 +265,9 @@
   "muscle_group": "Core",
   "equipment": [
    "barra_dominadas"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "QOA0FD0"
  },
  {
   "name": "Elevación de piernas tumbado",
@@ -247,7 +279,9 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "9IxJdtC"
  },
  {
   "name": "Farmer carry",
@@ -260,7 +294,9 @@
   "muscle_group": "Core",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "qPEzJjA"
  },
  {
   "name": "Hollow body hold",
@@ -271,7 +307,8 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Mountain climbers",
@@ -280,7 +317,9 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "RJgzwny"
  },
  {
   "name": "Pallof press",
@@ -289,7 +328,8 @@
   "muscle_group": "Core",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Plancha con elevación de brazo",
@@ -300,7 +340,8 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Plancha frontal",
@@ -313,7 +354,9 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "VBAWRPG"
  },
  {
   "name": "Plancha lateral",
@@ -324,7 +367,9 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "VO2qeJg"
  },
  {
   "name": "Rodillas al pecho en barra",
@@ -336,7 +381,8 @@
   "muscle_group": "Core",
   "equipment": [
    "barra_dominadas"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Russian twist",
@@ -345,7 +391,9 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "fZFZ704"
  },
  {
   "name": "Sit-up",
@@ -357,7 +405,9 @@
   "muscle_group": "Core",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "2gPfomN"
  },
  {
   "name": "Suitcase carry",
@@ -366,7 +416,8 @@
   "muscle_group": "Core",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Aducción en máquina",
@@ -383,7 +434,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "oHsrypV"
  },
  {
   "name": "Extensión de cuádriceps",
@@ -397,7 +450,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "my33uHU"
  },
  {
   "name": "Extensión de cuádriceps unilateral",
@@ -410,7 +465,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "my33uHU"
  },
  {
   "name": "Hack squat",
@@ -423,7 +480,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "Qa55kX1"
  },
  {
   "name": "Prensa de pierna",
@@ -434,7 +493,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "V07qpXy"
  },
  {
   "name": "Prensa de pierna unilateral",
@@ -446,7 +507,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "V07qpXy"
  },
  {
   "name": "Sentadilla con barra",
@@ -460,7 +523,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "W9pFVv1"
  },
  {
   "name": "Sentadilla en Smith",
@@ -472,7 +537,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "smith"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "jFtipLl"
  },
  {
   "name": "Sentadilla frontal",
@@ -483,7 +550,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "Y7YcmIJ"
  },
  {
   "name": "Sentadilla goblet",
@@ -494,7 +563,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "yn8yg1r"
  },
  {
   "name": "Sentadilla hack con barra",
@@ -505,7 +576,8 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Sissy squat",
@@ -514,7 +586,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "xdYPUtE"
  },
  {
   "name": "Zancada con barra",
@@ -526,7 +600,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "py1HSzx"
  },
  {
   "name": "Zancada con mancuernas",
@@ -540,7 +616,9 @@
   "muscle_group": "Cuádriceps",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "RRWFUcw"
  },
  {
   "name": "Buenos días",
@@ -552,7 +630,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "XlZ4lAC"
  },
  {
   "name": "Dominadas agarre prono",
@@ -567,7 +647,9 @@
   "equipment": [
    "peso_corporal",
    "barra_dominadas"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "d1GgzTU"
  },
  {
   "name": "Dominadas agarre supino",
@@ -581,7 +663,9 @@
   "equipment": [
    "peso_corporal",
    "barra_dominadas"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "T2mxWqc"
  },
  {
   "name": "Encogimientos con barra",
@@ -593,7 +677,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "dG7tG5y"
  },
  {
   "name": "Encogimientos con mancuernas",
@@ -605,7 +691,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "NJzBsGJ"
  },
  {
   "name": "Encogimientos en máquina",
@@ -616,7 +704,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "ZZKbeMw"
  },
  {
   "name": "Hiperextensiones en banco",
@@ -629,7 +719,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "rUXfn3R"
  },
  {
   "name": "Jalón a la Cara",
@@ -644,7 +736,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "ZSJNetl"
  },
  {
   "name": "Jalón al pecho agarre cerrado",
@@ -656,7 +750,8 @@
   "muscle_group": "Espalda",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Jalón al pecho en polea alta",
@@ -669,7 +764,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "RVwzP10"
  },
  {
   "name": "Jalón en polea alta agarre supino",
@@ -682,7 +779,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "xBYcQHj"
  },
  {
   "name": "Pullover en polea alta",
@@ -694,7 +793,8 @@
   "muscle_group": "Espalda",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Remo Acostado",
@@ -708,7 +808,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "R5swFnc"
  },
  {
   "name": "Remo con barra",
@@ -721,7 +823,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "eZyBC3j"
  },
  {
   "name": "Remo con mancuerna unilateral",
@@ -736,7 +840,23 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": false
+ },
+ {
+  "name": "Remo con pecho apoyado",
+  "name_en": "Chest Supported Row",
+  "aliases": [
+   "chest supported row",
+   "remo con pecho apoyado",
+   "remo pecho apoyado"
+  ],
+  "muscle_group": "Espalda",
+  "equipment": [
+   "maquina",
+   "banco"
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Remo en máquina",
@@ -748,7 +868,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "7I6LNUG"
  },
  {
   "name": "Remo en polea baja",
@@ -761,7 +883,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "fUBheHs"
  },
  {
   "name": "Remo en polea baja agarre ancho",
@@ -772,7 +896,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "qcY50ZD"
  },
  {
   "name": "Remo en Smith",
@@ -784,7 +910,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "smith"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "JGKowMS"
  },
  {
   "name": "Remo invertido",
@@ -796,7 +924,9 @@
   "equipment": [
    "peso_corporal",
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "bZGHsAZ"
  },
  {
   "name": "Remo T-bar con pecho apoyado",
@@ -807,7 +937,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "aaXr7ld"
  },
  {
   "name": "Remo unilateral en polea",
@@ -820,7 +952,8 @@
   "muscle_group": "Espalda",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Straight-arm pulldown",
@@ -832,7 +965,9 @@
   "muscle_group": "Espalda",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "x69MAlq"
  },
  {
   "name": "Elevación de talones de pie",
@@ -844,7 +979,9 @@
   "muscle_group": "Gemelos",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "bJYHBIN"
  },
  {
   "name": "Elevación de talones en prensa",
@@ -856,7 +993,9 @@
   "muscle_group": "Gemelos",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "7B4F5nZ"
  },
  {
   "name": "Elevación de talones sentado",
@@ -869,7 +1008,9 @@
   "muscle_group": "Gemelos",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "bOOdeyc"
  },
  {
   "name": "Abducción en máquina",
@@ -885,7 +1026,9 @@
   "muscle_group": "Glúteo",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "CHpahtl"
  },
  {
   "name": "Abducción unilateral",
@@ -898,7 +1041,8 @@
   "muscle_group": "Glúteo",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Glute bridge",
@@ -907,7 +1051,9 @@
   "muscle_group": "Glúteo",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "GibBPPg"
  },
  {
   "name": "Hip thrust con barra",
@@ -920,7 +1066,8 @@
   "equipment": [
    "barra",
    "banco"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Hip thrust en máquina",
@@ -931,7 +1078,8 @@
   "muscle_group": "Glúteo",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Hip thrust unilateral en Smith",
@@ -945,7 +1093,8 @@
   "equipment": [
    "smith",
    "banco"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Patada de glúteo en polea",
@@ -957,7 +1106,8 @@
   "muscle_group": "Glúteo",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Step-up con mancuernas",
@@ -971,7 +1121,9 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "aXtJhlg"
  },
  {
   "name": "Zancada búlgara",
@@ -984,7 +1136,9 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "qx4fgX7"
  },
  {
   "name": "Zancada inversa",
@@ -996,7 +1150,8 @@
   "muscle_group": "Glúteo",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Curl femoral sentado",
@@ -1008,7 +1163,9 @@
   "muscle_group": "Hamstrings",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "Zg3XY7P"
  },
  {
   "name": "Curl femoral tumbado",
@@ -1021,7 +1178,9 @@
   "muscle_group": "Hamstrings",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "17lJ1kr"
  },
  {
   "name": "Curl femoral tumbado unilateral",
@@ -1035,7 +1194,8 @@
   "muscle_group": "Hamstrings",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Curl Nórdico",
@@ -1047,7 +1207,8 @@
   "muscle_group": "Hamstrings",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Peso muerto",
@@ -1061,7 +1222,9 @@
   "muscle_group": "Hamstrings",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "ila4NZS"
  },
  {
   "name": "Peso muerto piernas rígidas",
@@ -1074,7 +1237,9 @@
   "muscle_group": "Hamstrings",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "hrVQWvE"
  },
  {
   "name": "Peso muerto rumano",
@@ -1086,7 +1251,9 @@
   "muscle_group": "Hamstrings",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "o6LqKKP"
  },
  {
   "name": "Elevaciones frontales con barra",
@@ -1097,7 +1264,9 @@
   "muscle_group": "Hombro",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "b2Uoz54"
  },
  {
   "name": "Elevaciones frontales con mancuernas",
@@ -1110,7 +1279,9 @@
   "muscle_group": "Hombro",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "3eGE2JC"
  },
  {
   "name": "Elevaciones frontales en polea baja",
@@ -1121,7 +1292,9 @@
   "muscle_group": "Hombro",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "u2X71Np"
  },
  {
   "name": "Elevaciones laterales con mancuernas",
@@ -1136,7 +1309,9 @@
   "muscle_group": "Hombro",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "DsgkuIt"
  },
  {
   "name": "Elevaciones laterales en máquina",
@@ -1148,7 +1323,9 @@
   "muscle_group": "Hombro",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "dRTfGZT"
  },
  {
   "name": "Elevaciones laterales en polea baja",
@@ -1161,7 +1338,9 @@
   "muscle_group": "Hombro",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "goJ6ezq"
  },
  {
   "name": "Press en Landmine",
@@ -1176,7 +1355,9 @@
   "muscle_group": "Hombro",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "67n3r98"
  },
  {
   "name": "Press en Smith hombro",
@@ -1188,7 +1369,9 @@
   "equipment": [
    "smith",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "903mzG8"
  },
  {
   "name": "Press militar con barra de pie",
@@ -1202,7 +1385,9 @@
   "muscle_group": "Hombro",
   "equipment": [
    "barra"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "dCPESfR"
  },
  {
   "name": "Press militar con barra sentado",
@@ -1215,7 +1400,9 @@
   "equipment": [
    "barra",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "kTbSH9h"
  },
  {
   "name": "Press militar con mancuernas de pie",
@@ -1226,7 +1413,9 @@
   "muscle_group": "Hombro",
   "equipment": [
    "mancuerna"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "A6wtbuL"
  },
  {
   "name": "Press militar con mancuernas sentado",
@@ -1241,7 +1430,9 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "f1jf47L"
  },
  {
   "name": "Aperturas con mancuernas",
@@ -1256,7 +1447,8 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Aperturas inclinadas con mancuernas",
@@ -1269,7 +1461,9 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "ESOd5Pl"
  },
  {
   "name": "Crossover en polea alta",
@@ -1280,7 +1474,8 @@
   "muscle_group": "Pecho",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Crossover en polea baja",
@@ -1291,7 +1486,8 @@
   "muscle_group": "Pecho",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Crossover en polea media",
@@ -1303,7 +1499,8 @@
   "muscle_group": "Pecho",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Flexión de Pecho Superman",
@@ -1314,7 +1511,9 @@
   "muscle_group": "Pecho",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "4GqRrAk"
  },
  {
   "name": "Flexiones",
@@ -1328,7 +1527,9 @@
   "muscle_group": "Pecho",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "I4hDWkc"
  },
  {
   "name": "Flexiones declinadas",
@@ -1340,7 +1541,9 @@
   "equipment": [
    "peso_corporal",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "i5cEhka"
  },
  {
   "name": "Flexiones diamante",
@@ -1351,7 +1554,9 @@
   "muscle_group": "Pecho",
   "equipment": [
    "peso_corporal"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "soIB2rj"
  },
  {
   "name": "Flexiones inclinadas",
@@ -1363,7 +1568,9 @@
   "equipment": [
    "peso_corporal",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "B1EVP9F"
  },
  {
   "name": "Fondos en paralelas",
@@ -1377,7 +1584,9 @@
   "equipment": [
    "peso_corporal",
    "barra_dominadas"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "9WTm7dq"
  },
  {
   "name": "Jalón de Pecho en Polea Baja",
@@ -1390,7 +1599,9 @@
   "muscle_group": "Pecho",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "FVmZVhk"
  },
  {
   "name": "Press de banca",
@@ -1406,7 +1617,9 @@
   "equipment": [
    "barra",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "EIeI8Vf"
  },
  {
   "name": "Press de banca con mancuernas",
@@ -1421,7 +1634,8 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Press de banca en Smith",
@@ -1433,7 +1647,9 @@
   "equipment": [
    "smith",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "trqKQv2"
  },
  {
   "name": "Press de Pecho en Máquina",
@@ -1451,7 +1667,9 @@
   "muscle_group": "Pecho",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "wDN97Ca"
  },
  {
   "name": "Press de Pecho en Polea",
@@ -1464,7 +1682,9 @@
   "muscle_group": "Pecho",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "nIR4Rwl"
  },
  {
   "name": "Press de Pecho Inclinado en máquina",
@@ -1476,7 +1696,8 @@
   "muscle_group": "Pecho",
   "equipment": [
    "maquina"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Press declinado con barra",
@@ -1489,7 +1710,9 @@
   "equipment": [
    "barra",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "GrO65fd"
  },
  {
   "name": "Press declinado con mancuernas",
@@ -1501,7 +1724,9 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "DwhEmmE"
  },
  {
   "name": "Press inclinado con barra",
@@ -1514,7 +1739,9 @@
   "equipment": [
    "barra",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "3TZduzM"
  },
  {
   "name": "Press inclinado con mancuernas",
@@ -1527,7 +1754,9 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "ns0SIbU"
  },
  {
   "name": "Press inclinado en Smith",
@@ -1539,7 +1768,9 @@
   "equipment": [
    "smith",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "5v7KYld"
  },
  {
   "name": "Extensión de Tríceps con Cuerda",
@@ -1553,7 +1784,24 @@
   "muscle_group": "Tríceps",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "dU605di"
+ },
+ {
+  "name": "Extensión de Tríceps cruzada en polea",
+  "name_en": "Triceps Cable Crossed Extensions",
+  "aliases": [
+   "cable crossed extensions",
+   "crossed extensions",
+   "extensiones cruzadas en polea",
+   "triceps cable crossed extensions"
+  ],
+  "muscle_group": "Tríceps",
+  "equipment": [
+   "polea"
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Extensión de Tríceps en polea baja",
@@ -1565,7 +1813,9 @@
   "muscle_group": "Tríceps",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "1xHyxys"
  },
  {
   "name": "Extensión de Tríceps unilateral en polea",
@@ -1579,7 +1829,9 @@
   "muscle_group": "Tríceps",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "sYCcnon"
  },
  {
   "name": "Fondos en banco",
@@ -1591,7 +1843,9 @@
   "muscle_group": "Tríceps",
   "equipment": [
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "9RT8oQW"
  },
  {
   "name": "Fondos en paralelas tríceps",
@@ -1604,7 +1858,8 @@
   "equipment": [
    "peso_corporal",
    "barra_dominadas"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Katanas en polea baja",
@@ -1616,7 +1871,8 @@
   "muscle_group": "Tríceps",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": false
  },
  {
   "name": "Press cerrado con barra",
@@ -1629,7 +1885,9 @@
   "equipment": [
    "barra",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "J6Dx1Mu"
  },
  {
   "name": "Press cerrado en Smith",
@@ -1641,7 +1899,9 @@
   "equipment": [
    "smith",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "WcHl7ru"
  },
  {
   "name": "Press de Tríceps en Polea",
@@ -1656,7 +1916,9 @@
   "muscle_group": "Tríceps",
   "equipment": [
    "polea"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "3ZflifB"
  },
  {
   "name": "Press francés con barra EZ tumbado",
@@ -1669,7 +1931,9 @@
   "equipment": [
    "barra",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "6CKUx7o"
  },
  {
   "name": "Press francés con mancuerna tumbado",
@@ -1681,7 +1945,9 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "mpKZGWz"
  },
  {
   "name": "Press francés con mancuernas sentado",
@@ -1694,7 +1960,9 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "kont8Ut"
  },
  {
   "name": "Skull crusher con barra EZ",
@@ -1708,7 +1976,9 @@
   "equipment": [
    "barra",
    "banco"
-  ]
+  ],
+  "media_reviewed": true,
+  "media_source_id": "h8LFzo9"
  },
  {
   "name": "Skull crusher con mancuernas",
@@ -1720,6 +1990,7 @@
   "equipment": [
    "mancuerna",
    "banco"
-  ]
+  ],
+  "media_reviewed": false
  }
 ]

@@ -46,6 +46,30 @@ descarta con <kbd>R</kbd> sobre la tarjeta que tengas bajo el ratón, filtra por
 tier o grupo, y edita los nombres in situ. Todo se guarda en localStorage según
 lo haces; al final, "Exportar TSV" y pegar sobre `review/media.tsv`.
 
+### Rondas siguientes
+
+Cuando el snapshot ya trae decisiones (`media_reviewed`), `match.js` deja de
+tocar `media.tsv` —es el registro de lo curado y regenerarlo lo borraría— y
+escribe `review/pendientes.tsv`: solo lo que sigue sin animación, y con hasta
+**cuatro candidatos por ejercicio** en vez de uno.
+
+Esa es la lección de la primera ronda: proponer uno solo hacía que rechazarlo
+costara la ronda entera, aunque en el corpus hubiera otro que sí valía.
+
+```bash
+node scripts/edb/match.js             # → review/pendientes.tsv
+node scripts/edb/review-pendientes.js # → review/pendientes.html
+#   ← elige una miniatura por ejercicio, o "Ninguna"
+node scripts/edb/emit-sql.js
+```
+
+`emit-sql` rechaza dos cosas antes de emitir nada: más de una animación
+elegida para el mismo ejercicio, y una animación que **ya ilustra otro
+ejercicio**. Lo segundo hace falta porque la página de pendientes solo ve lo
+que falta —no la librería entera— y desde ahí se puede elegir tranquilamente
+un gif que ya está en uso. La comprobación sale de `media_source_id` en el
+snapshot, así que no consulta la base.
+
 ### Columnas que se editan a mano en media.tsv
 
 `review.html` cubre `ok`, `nombre_nuevo` y `name_en_nuevo`. Dos más se escriben

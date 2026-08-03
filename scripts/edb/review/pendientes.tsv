@@ -1,0 +1,97 @@
+ok	grupo	nombre	name_en	opcion	score	aviso	edb_name	edb_equip	gif_url	edb_id
+	Bíceps	Curl con mancuernas sentado	Seated Dumbbell Curl	1	0.86		dumbbell seated preacher curl	dumbbell	https://static.exercisedb.dev/media/7D5bgLT.gif	7D5bgLT
+OK	Bíceps	Curl con mancuernas sentado	Seated Dumbbell Curl	2	0.75		dumbbell alternate seated hammer curl	dumbbell	https://static.exercisedb.dev/media/6em2Dxj.gif	6em2Dxj
+	Bíceps	Curl con mancuernas sentado	Seated Dumbbell Curl	3	0.67		dumbbell hammer curl v. 2	dumbbell	https://static.exercisedb.dev/media/2NpxjC1.gif	2NpxjC1
+	Bíceps	Curl con mancuernas sentado	Seated Dumbbell Curl	4	0.67		dumbbell seated kickback	dumbbell	https://static.exercisedb.dev/media/en550rk.gif	en550rk
+	Bíceps	Curl en máquina	Machine Curl	1	0.86		smith machine bicep curl	smith machine	https://static.exercisedb.dev/media/zILLZ98.gif	zILLZ98
+	Bíceps	Curl en máquina	Machine Curl	2	0.67		lever bicep curl	leverage machine	https://static.exercisedb.dev/media/q6y3OhV.gif	q6y3OhV
+	Bíceps	Curl en máquina	Machine Curl	3	0.44		inverse leg curl (on pull-up cable machine)	body weight	https://static.exercisedb.dev/media/0rHfvy9.gif	0rHfvy9
+	Bíceps	Curl en máquina	Machine Curl	4	0.44		weighted seated bicep curl (on stability ball)	medicine ball	https://static.exercisedb.dev/media/b4b6afT.gif	b4b6afT
+	Core	Bird dog	Bird Dog			sin candidato				
+	Core	Crunch inverso	Reverse Crunch	1	0.80		roller reverse crunch	roller	https://static.exercisedb.dev/media/SKXQAx3.gif	SKXQAx3
+	Core	Crunch inverso	Reverse Crunch	2	0.50		reverse dip	body weight	https://static.exercisedb.dev/media/NZ5Qqkz.gif	NZ5Qqkz
+	Core	Crunch inverso	Reverse Crunch	3	0.50	revisar agarre/lado	tuck crunch	body weight	https://static.exercisedb.dev/media/BMMolZ3.gif	BMMolZ3
+	Core	Crunch inverso	Reverse Crunch	4	0.50	revisar agarre/lado	weighted crunch	weighted	https://static.exercisedb.dev/media/s8nrDXF.gif	s8nrDXF
+	Core	Dead bug	Dead Bug			sin candidato				
+	Core	Dragon flag	Dragon Flag			sin candidato				
+	Core	Hollow body hold	Hollow Body Hold			sin candidato				
+	Core	Pallof press	Pallof Press			sin candidato				
+	Core	Plancha con elevación de brazo	Plank with Arm Raise	1	0.50	revisar agarre/lado	raise single arm push-up	body weight	https://static.exercisedb.dev/media/13TpY4H.gif	13TpY4H
+	Core	Rodillas al pecho en barra	Hanging Knee Raise	1	0.50		weighted hanging leg-hip raise	weighted	https://static.exercisedb.dev/media/QOA0FD0.gif	QOA0FD0
+	Core	Suitcase carry	Suitcase Carry			sin candidato				
+	Cuádriceps	Sentadilla hack con barra	Barbell Hack Squat	1	1.00		barbell hack squat	barbell	https://static.exercisedb.dev/media/5VCj6iH.gif	5VCj6iH
+	Cuádriceps	Sentadilla hack con barra	Barbell Hack Squat	2	0.67		barbell bench squat	barbell	https://static.exercisedb.dev/media/W9pFVv1.gif	W9pFVv1
+	Cuádriceps	Sentadilla hack con barra	Barbell Hack Squat	3	0.67		barbell jefferson squat	barbell	https://static.exercisedb.dev/media/pkSoCW9.gif	pkSoCW9
+	Cuádriceps	Sentadilla hack con barra	Barbell Hack Squat	4	0.67		barbell jump squat	barbell	https://static.exercisedb.dev/media/1gFNTZV.gif	1gFNTZV
+	Espalda	Jalón al pecho agarre cerrado	Close-Grip Lat Pulldown	1	0.60	revisar agarre/lado	twin handle parallel grip lat pulldown	cable	https://static.exercisedb.dev/media/rkg41Fb.gif	rkg41Fb
+	Espalda	Jalón al pecho agarre cerrado	Close-Grip Lat Pulldown	2	0.57		cable close grip curl	cable	https://static.exercisedb.dev/media/BCGQ6J5.gif	BCGQ6J5
+	Espalda	Jalón al pecho agarre cerrado	Close-Grip Lat Pulldown	3	0.50		cable lying close-grip curl	cable	https://static.exercisedb.dev/media/61GrD55.gif	61GrD55
+	Espalda	Jalón al pecho agarre cerrado	Close-Grip Lat Pulldown	4	0.44	revisar agarre/lado	cable pulldown (pro lat bar)	cable	https://static.exercisedb.dev/media/qdRxqCj.gif	qdRxqCj
+	Espalda	Pullover en polea alta	Cable Lat Pullover	1	0.50		cable curl	cable	https://static.exercisedb.dev/media/G08RZcQ.gif	G08RZcQ
+	Espalda	Pullover en polea alta	Cable Lat Pullover	2	0.50		cable deadlift	cable	https://static.exercisedb.dev/media/eGDudUV.gif	eGDudUV
+	Espalda	Pullover en polea alta	Cable Lat Pullover	3	0.50		cable kickback	cable	https://static.exercisedb.dev/media/HEJ6DIX.gif	HEJ6DIX
+	Espalda	Pullover en polea alta	Cable Lat Pullover	4	0.50		cable lying extension pullover (with rope attachment)	cable	https://static.exercisedb.dev/media/Q2Eu1Ax.gif	Q2Eu1Ax
+	Espalda	Remo con mancuerna unilateral	Single-Arm Dumbbell Row	1	0.80	revisar agarre/lado	dumbbell upright row	dumbbell	https://static.exercisedb.dev/media/ainizkb.gif	ainizkb
+	Espalda	Remo con mancuerna unilateral	Single-Arm Dumbbell Row	2	0.75		dumbbell one arm upright row	dumbbell	https://static.exercisedb.dev/media/6cKQC5E.gif	6cKQC5E
+	Espalda	Remo con mancuerna unilateral	Single-Arm Dumbbell Row	3	0.67	revisar agarre/lado	dumbbell bent over row	dumbbell	https://static.exercisedb.dev/media/BJ0Hz5L.gif	BJ0Hz5L
+OK	Espalda	Remo con mancuerna unilateral	Single-Arm Dumbbell Row	4	0.67		dumbbell one arm bent-over row	dumbbell	https://static.exercisedb.dev/media/C0MA9bC.gif	C0MA9bC
+	Espalda	Remo con pecho apoyado	Chest Supported Row			sin candidato				
+OK	Espalda	Remo unilateral en polea	Single-Arm Cable Row	1	0.80		cable one arm bent over row	cable	https://static.exercisedb.dev/media/EIsE3u8.gif	EIsE3u8
+	Espalda	Remo unilateral en polea	Single-Arm Cable Row	2	0.80		cable seated one arm alternate row	cable	https://static.exercisedb.dev/media/vpp9Ku2.gif	vpp9Ku2
+	Espalda	Remo unilateral en polea	Single-Arm Cable Row	3	0.75		cable one arm curl	cable	https://static.exercisedb.dev/media/YTur5nR.gif	YTur5nR
+	Espalda	Remo unilateral en polea	Single-Arm Cable Row	4	0.75		cable one arm pulldown	cable	https://static.exercisedb.dev/media/U5INZY6.gif	U5INZY6
+	Glúteo	Abducción unilateral	Single-Leg Hip Abduction	1	0.50	revisar agarre/lado	lever seated hip abduction	leverage machine	https://static.exercisedb.dev/media/CHpahtl.gif	CHpahtl
+	Glúteo	Abducción unilateral	Single-Leg Hip Abduction	2	0.44	revisar agarre/lado	weighted hanging leg-hip raise	weighted	https://static.exercisedb.dev/media/QOA0FD0.gif	QOA0FD0
+	Glúteo	Hip thrust con barra	Barbell Hip Thrust			sin candidato				
+	Glúteo	Hip thrust en máquina	Machine Hip Thrust			sin candidato				
+	Glúteo	Hip thrust unilateral en Smith	Single-Leg Smith Machine Hip Thrust	1	0.57	revisar agarre/lado	smith hip raise	smith machine	https://static.exercisedb.dev/media/CqhoytW.gif	CqhoytW
+	Glúteo	Hip thrust unilateral en Smith	Single-Leg Smith Machine Hip Thrust	2	0.55		smith single leg split squat	smith machine	https://static.exercisedb.dev/media/wWFspEi.gif	wWFspEi
+	Glúteo	Hip thrust unilateral en Smith	Single-Leg Smith Machine Hip Thrust	3	0.44	revisar agarre/lado	smith leg press	smith machine	https://static.exercisedb.dev/media/7zdxRTl.gif	7zdxRTl
+	Glúteo	Hip thrust unilateral en Smith	Single-Leg Smith Machine Hip Thrust	4	0.44	revisar agarre/lado	weighted hanging leg-hip raise	weighted	https://static.exercisedb.dev/media/QOA0FD0.gif	QOA0FD0
+	Glúteo	Patada de glúteo en polea	Cable Kickback	1	1.00		cable kickback	cable	https://static.exercisedb.dev/media/HEJ6DIX.gif	HEJ6DIX
+	Glúteo	Patada de glúteo en polea	Cable Kickback	2	0.57		cable two arm tricep kickback	cable	https://static.exercisedb.dev/media/vvNjDJS.gif	vvNjDJS
+	Glúteo	Patada de glúteo en polea	Cable Kickback	3	0.50		cable curl	cable	https://static.exercisedb.dev/media/G08RZcQ.gif	G08RZcQ
+	Glúteo	Patada de glúteo en polea	Cable Kickback	4	0.50		cable deadlift	cable	https://static.exercisedb.dev/media/eGDudUV.gif	eGDudUV
+	Glúteo	Zancada inversa	Reverse Lunge	1	0.50	revisar agarre/lado	dumbbell lunge	dumbbell	https://static.exercisedb.dev/media/RRWFUcw.gif	RRWFUcw
+	Hamstrings	Curl femoral tumbado unilateral	Single-Leg Lying Leg Curl	1	0.75	revisar agarre/lado	lever lying leg curl	leverage machine	https://static.exercisedb.dev/media/17lJ1kr.gif	17lJ1kr
+	Hamstrings	Curl femoral tumbado unilateral	Single-Leg Lying Leg Curl	2	0.67		lever lying two-one leg curl	leverage machine	https://static.exercisedb.dev/media/UXpKJoq.gif	UXpKJoq
+	Hamstrings	Curl femoral tumbado unilateral	Single-Leg Lying Leg Curl	3	0.50		hack one leg calf raise	sled machine	https://static.exercisedb.dev/media/AxFoqAD.gif	AxFoqAD
+	Hamstrings	Curl femoral tumbado unilateral	Single-Leg Lying Leg Curl	4	0.50		lever horizontal one leg press	leverage machine	https://static.exercisedb.dev/media/9KU9TYF.gif	9KU9TYF
+	Hamstrings	Curl Nórdico	Nordic Curl			sin candidato				
+	Pecho	Aperturas con mancuernas	Flat Dumbbell Fly	1	0.80		dumbbell rear fly	dumbbell	https://static.exercisedb.dev/media/8DiFDVA.gif	8DiFDVA
+	Pecho	Aperturas con mancuernas	Flat Dumbbell Fly	2	0.80	revisar agarre/lado	dumbbell reverse fly	dumbbell	https://static.exercisedb.dev/media/EAs3xL9.gif	EAs3xL9
+OK	Pecho	Aperturas con mancuernas	Flat Dumbbell Fly	3	0.67		dumbbell fly on exercise ball	dumbbell	https://static.exercisedb.dev/media/Lt3iWnf.gif	Lt3iWnf
+	Pecho	Aperturas con mancuernas	Flat Dumbbell Fly	4	0.57	revisar agarre/lado	dumbbell one arm bench fly	dumbbell	https://static.exercisedb.dev/media/o5Jsk92.gif	o5Jsk92
+	Pecho	Crossover en polea alta	High Cable Crossover	1	0.57		cable high row (kneeling)	cable	https://static.exercisedb.dev/media/ZSJNetl.gif	ZSJNetl
+	Pecho	Crossover en polea alta	High Cable Crossover	2	0.50		cable rope crossover seated row	cable	https://static.exercisedb.dev/media/UFGF6gk.gif	UFGF6gk
+	Pecho	Crossover en polea alta	High Cable Crossover	3	0.50		cable seated high row (v-bar)	cable	https://static.exercisedb.dev/media/pwt0pnM.gif	pwt0pnM
+	Pecho	Crossover en polea alta	High Cable Crossover	4	0.50		side cable high row (kneeling)	cable	https://static.exercisedb.dev/media/N6dZN2I.gif	N6dZN2I
+	Pecho	Crossover en polea baja	Low Cable Crossover	1	0.67		cable low fly	cable	https://static.exercisedb.dev/media/FVmZVhk.gif	FVmZVhk
+	Pecho	Crossover en polea baja	Low Cable Crossover	2	0.57		cable low seated row	cable	https://static.exercisedb.dev/media/hvV79Si.gif	hvV79Si
+	Pecho	Crossover en polea baja	Low Cable Crossover	3	0.50		cable low seated row controlled	cable	https://static.exercisedb.dev/media/WM6TvvW.gif	WM6TvvW
+	Pecho	Crossover en polea baja	Low Cable Crossover	4	0.50		cable rope crossover seated row	cable	https://static.exercisedb.dev/media/UFGF6gk.gif	UFGF6gk
+	Pecho	Crossover en polea media	Cable Crossover	1	0.57		cable rope crossover seated row	cable	https://static.exercisedb.dev/media/UFGF6gk.gif	UFGF6gk
+	Pecho	Crossover en polea media	Cable Crossover	2	0.50		cable curl	cable	https://static.exercisedb.dev/media/G08RZcQ.gif	G08RZcQ
+	Pecho	Crossover en polea media	Cable Crossover	3	0.50		cable deadlift	cable	https://static.exercisedb.dev/media/eGDudUV.gif	eGDudUV
+	Pecho	Crossover en polea media	Cable Crossover	4	0.50		cable kickback	cable	https://static.exercisedb.dev/media/HEJ6DIX.gif	HEJ6DIX
+	Pecho	Press de banca con mancuernas	Dumbbell Bench Press	1	0.86		dumbbell bench seated press	dumbbell	https://static.exercisedb.dev/media/3d7wHyd.gif	3d7wHyd
+	Pecho	Press de banca con mancuernas	Dumbbell Bench Press	2	0.67		dumbbell arnold press v. 2	dumbbell	https://static.exercisedb.dev/media/eOrFCnx.gif	eOrFCnx
+	Pecho	Press de banca con mancuernas	Dumbbell Bench Press	3	0.67		dumbbell bench squat	dumbbell	https://static.exercisedb.dev/media/mnzcrIB.gif	mnzcrIB
+	Pecho	Press de banca con mancuernas	Dumbbell Bench Press	4	0.67		dumbbell cuban press v. 2	dumbbell	https://static.exercisedb.dev/media/BqgCRif.gif	BqgCRif
+OK	Pecho	Press de Pecho Inclinado en máquina	Incline Machine Chest Press	1	0.75		lever incline chest press	leverage machine	https://static.exercisedb.dev/media/jHAnWmT.gif	jHAnWmT
+	Pecho	Press de Pecho Inclinado en máquina	Incline Machine Chest Press	2	0.75		lever incline chest press v. 2	leverage machine	https://static.exercisedb.dev/media/o17Jfkt.gif	o17Jfkt
+	Pecho	Press de Pecho Inclinado en máquina	Incline Machine Chest Press	3	0.50		smith machine incline tricep extension	smith machine	https://static.exercisedb.dev/media/o8aOcrz.gif	o8aOcrz
+	Pecho	Press de Pecho Inclinado en máquina	Incline Machine Chest Press	4	0.44	revisar agarre/lado	dumbbell incline one arm hammer press	dumbbell	https://static.exercisedb.dev/media/LL1UiTX.gif	LL1UiTX
+	Tríceps	Extensión de Tríceps cruzada en polea	Triceps Cable Crossed Extensions	1	0.50		cable alternate triceps extension	cable	https://static.exercisedb.dev/media/Gchi5Tr.gif	Gchi5Tr
+	Tríceps	Extensión de Tríceps cruzada en polea	Triceps Cable Crossed Extensions	2	0.50		cable kneeling triceps extension	cable	https://static.exercisedb.dev/media/KWdF2JI.gif	KWdF2JI
+	Tríceps	Extensión de Tríceps cruzada en polea	Triceps Cable Crossed Extensions	3	0.50		cable lying triceps extension v. 2	cable	https://static.exercisedb.dev/media/uxJcFUU.gif	uxJcFUU
+	Tríceps	Extensión de Tríceps cruzada en polea	Triceps Cable Crossed Extensions	4	0.50		cable triceps pushdown (v-bar)	cable	https://static.exercisedb.dev/media/gAwDzB3.gif	gAwDzB3
+	Tríceps	Fondos en paralelas tríceps	Tricep Dip	1	0.67		triceps dip (bench leg)	body weight	https://static.exercisedb.dev/media/VuoerH0.gif	VuoerH0
+	Tríceps	Fondos en paralelas tríceps	Tricep Dip	2	0.67		triceps dip (between benches)	body weight	https://static.exercisedb.dev/media/Wgbn9qo.gif	Wgbn9qo
+	Tríceps	Fondos en paralelas tríceps	Tricep Dip	3	0.50		chest dip	body weight	https://static.exercisedb.dev/media/9WTm7dq.gif	9WTm7dq
+	Tríceps	Fondos en paralelas tríceps	Tricep Dip	4	0.50	revisar agarre/lado	reverse dip	body weight	https://static.exercisedb.dev/media/NZ5Qqkz.gif	NZ5Qqkz
+	Tríceps	Katanas en polea baja	Cable Overhead Tricep Extension	1	0.80		cable high pulley overhead tricep extension	cable	https://static.exercisedb.dev/media/1xHyxys.gif	1xHyxys
+	Tríceps	Katanas en polea baja	Cable Overhead Tricep Extension	2	0.73		cable rope high pulley overhead tricep extension	cable	https://static.exercisedb.dev/media/NN8nSNT.gif	NN8nSNT
+	Tríceps	Katanas en polea baja	Cable Overhead Tricep Extension	3	0.62	revisar agarre/lado	cable standing reverse grip one arm overhead tricep extension	cable	https://static.exercisedb.dev/media/i11JWU7.gif	i11JWU7
+OK	Tríceps	Katanas en polea baja	Cable Overhead Tricep Extension	4	0.60		cable overhead triceps extension (rope attachment)	cable	https://static.exercisedb.dev/media/2IxROQ1.gif	2IxROQ1
+	Tríceps	Skull crusher con mancuernas	Dumbbell Skull Crusher			sin candidato				

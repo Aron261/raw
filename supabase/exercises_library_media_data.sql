@@ -4,7 +4,7 @@
 
 begin;
 
--- ── Media para ejercicios existentes (103) ──
+-- ── Media para ejercicios existentes (109) ──
 update exercises_library l set
   gif_url = v.gif, media_source = 'exercisedb-oss', media_source_id = v.src,
   media_reviewed = true, updated_at = now()
@@ -111,7 +111,13 @@ from (values
   ('Press francés con barra EZ tumbado', 'https://static.exercisedb.dev/media/6CKUx7o.gif', '6CKUx7o'),
   ('Press francés con mancuerna tumbado', 'https://static.exercisedb.dev/media/mpKZGWz.gif', 'mpKZGWz'),
   ('Press francés con mancuernas sentado', 'https://static.exercisedb.dev/media/kont8Ut.gif', 'kont8Ut'),
-  ('Skull crusher con barra EZ', 'https://static.exercisedb.dev/media/h8LFzo9.gif', 'h8LFzo9')
+  ('Skull crusher con barra EZ', 'https://static.exercisedb.dev/media/h8LFzo9.gif', 'h8LFzo9'),
+  ('Curl con mancuernas sentado', 'https://static.exercisedb.dev/media/6em2Dxj.gif', '6em2Dxj'),
+  ('Remo con mancuerna unilateral', 'https://static.exercisedb.dev/media/C0MA9bC.gif', 'C0MA9bC'),
+  ('Remo unilateral en polea', 'https://static.exercisedb.dev/media/EIsE3u8.gif', 'EIsE3u8'),
+  ('Aperturas con mancuernas', 'https://static.exercisedb.dev/media/Lt3iWnf.gif', 'Lt3iWnf'),
+  ('Press de Pecho Inclinado en máquina', 'https://static.exercisedb.dev/media/jHAnWmT.gif', 'jHAnWmT'),
+  ('Katanas en polea baja', 'https://static.exercisedb.dev/media/2IxROQ1.gif', '2IxROQ1')
 ) as v(name, gif, src)
 where l.name = v.name;
 

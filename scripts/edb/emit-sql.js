@@ -120,6 +120,61 @@ async function main() {
 
   // Un solo UPDATE contra una lista de valores en vez de 104 sentencias
   // iguales: mismo efecto, una pasada, y el archivo se puede leer de un vistazo.
+  /*
+   * Rondas posteriores: pendientes.tsv trae varios candidatos por ejercicio y
+   * como mucho uno marcado. Se trata igual que media.tsv —misma columna, mismo
+   * UPDATE— pero se filtra a la opción elegida, porque las otras tres siguen en
+   * el archivo con su `ok` vacío.
+   *
+   * `nombre` aquí ya es el nombre actual de la fila (el snapshot se refresca
+   * cada ronda), así que el WHERE no necesita traducción.
+   */
+  const pendientes = (await rows('pendientes.tsv'))
+    .filter(r => r.ok.toUpperCase() === 'OK' && r.gif_url)
+  for (const r of pendientes) media.push(r)
+
+  const dobles = pendientes
+    .map(r => r.nombre)
+    .filter((n, i, a) => a.indexOf(n) !== i)
+  if (dobles.length) {
+    throw new Error(
+      `Más de una animación elegida para: ${[...new Set(dobles)].join(', ')}.\n` +
+      `Cada ejercicio admite una sola.`)
+  }
+
+  /*
+   * Choques entre rondas: una animación ya asignada a otro ejercicio.
+   *
+   * La página de la primera ronda avisaba de esto porque veía la librería
+   * entera; la de pendientes solo ve lo que falta, así que desde ahí se puede
+   * elegir tranquilamente un gif que ya ilustra otra cosa. Y ilustra otra cosa
+   * por algo: si "Sentadilla hack con barra" se queda con la animación de
+   * "Sentadilla con barra", las dos filas enseñan el mismo movimiento y una de
+   * las dos miente.
+   *
+   * El snapshot trae `media_source_id` de lo ya aprobado, así que se comprueba
+   * sin salir a la base.
+   */
+  const ocupadas = new Map()
+  try {
+    const snapshot = JSON.parse(
+      await readFile(join(HERE, 'data', 'library.json'), 'utf8'))
+    for (const r of snapshot) {
+      if (r.media_source_id) ocupadas.set(r.media_source_id, r.name)
+    }
+  } catch { /* sin snapshot no hay nada contra qué comprobar */ }
+
+  const robos = pendientes
+    .map(r => ({ r, duena: ocupadas.get(r.edb_id) }))
+    .filter(x => x.duena && x.duena !== x.r.nombre)
+  if (robos.length) {
+    throw new Error(
+      `${robos.length} animación(es) ya asignadas a otro ejercicio:\n  ` +
+      robos.map(x => `${x.r.edb_id}  ${x.r.nombre}  ←ya la usa→  ${x.duena}`).join('\n  ') +
+      `\n\nUn gif no puede ilustrar dos movimientos: elige otra opción, o` +
+      `\nquita la que tiene el otro ejercicio si esa es la que estaba mal.`)
+  }
+
   if (media.length) {
     out.push(
       `-- ── Media para ejercicios existentes (${media.length}) ──`,
