@@ -55,6 +55,23 @@ describe('la app en inglés', () => {
     expect(en('Ayer')).toBe('Yesterday')
   })
 
+  it('traduce el reparto de volumen por músculo', () => {
+    // Las cifras de estas tarjetas van pegadas a una palabra suelta, que es
+    // justo lo que se olvida traducir: "3 directas + 2 indirectas" en una app
+    // en inglés se lee como un error de la app, no como una traducción a medias.
+    expect(en('Series por semana')).toBe('Sets per week')
+    expect(en('serie')).toBe('set')
+    expect(en('series')).toBe('sets')
+    expect(en('directas')).toBe('direct')
+    expect(en('indirectas')).toBe('indirect')
+    expect(en('directo')).toBe('direct')
+    expect(en('indirecto')).toBe('indirect')
+    expect(en('objetivo')).toBe('target')
+    expect(en('series/semana')).toBe('sets/week')
+    expect(en('Cada serie cuenta entera para el músculo principal del ejercicio y media para cada músculo secundario.'))
+      .toMatch(/^Every set counts in full/)
+  })
+
   it('traduce Coach y Admin', () => {
     expect(en('Panel de entrenador')).toBe('Trainer panel')
     expect(en('Actividad reciente')).toBe('Recent activity')

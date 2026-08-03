@@ -28,7 +28,7 @@ export function useGenerationContext(level = 'Intermedio') {
           id, started_at, ended_at,
           workout_exercises (
             unit,
-            exercises ( name, muscle_group ),
+            exercises ( name, muscle_group, library_id ),
             sets ( weight, reps )
           )
         `)
@@ -50,9 +50,11 @@ export function useGenerationContext(level = 'Intermedio') {
   const { data, loading, error, refetch } = useCachedResource(key, fetcher)
 
   // El análisis es barato (decenas de filas); se recalcula con el nivel elegido
-  // en el wizard, que puede diferir del guardado en el perfil.
+  // en el wizard, que puede diferir del guardado en el perfil. La biblioteca ya
+  // está cargada aquí, así que el análisis puede atribuir músculos secundarios
+  // sin una consulta más.
   const history = data?.workouts?.length
-    ? analyzeHistory(data.workouts, { level })
+    ? analyzeHistory(data.workouts, { level, library: data.library })
     : null
 
   return {

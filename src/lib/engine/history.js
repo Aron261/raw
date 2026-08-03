@@ -3,6 +3,7 @@
 // No toca React ni Supabase: recibe las filas ya cargadas.
 
 import { VOLUME_TARGETS } from './volume'
+import { attributeSplit, totalOf, indexLibrary, resolveMuscles } from '../volumeAttribution'
 
 // Fórmula de Epley — misma que calc1RM en hooks/useWorkout.js, duplicada aquí
 // para que el motor siga siendo puro (sin React ni cliente Supabase).
@@ -15,15 +16,18 @@ const WINDOW_DAYS = 28
 
 /**
  * @param {Array} workouts - filas de `workouts` con workout_exercises(unit,
- *   exercises(name, muscle_group), sets(weight, reps)), terminados, más
- *   recientes primero (misma forma que usa useStats).
- * @param {{level?: string}} opts - nivel para el umbral MEV de grupos rezagados
+ *   exercises(name, muscle_group, library_id), sets(weight, reps)), terminados,
+ *   más recientes primero (misma forma que usa useStats).
+ * @param {{level?: string, library?: Array}} opts - nivel para el umbral MEV de
+ *   grupos rezagados; biblioteca para saber qué músculos secundarios mueve cada
+ *   ejercicio y para clasificar los que el usuario nunca tocó a mano.
  * @returns {import('./types').HistoryAnalysis}
  */
-export function analyzeHistory(workouts, { level = 'Intermedio' } = {}) {
+export function analyzeHistory(workouts, { level = 'Intermedio', library = [] } = {}) {
   const familiarity = {}
   const best1RM = {}
-  const recentSetsByGroup = {}
+  const recentByGroup = {}
+  const { lookup } = indexLibrary(library)
 
   const cutoff = Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000
 
@@ -32,7 +36,6 @@ export function analyzeHistory(workouts, { level = 'Intermedio' } = {}) {
     for (const we of w.workout_exercises || []) {
       const name = we.exercises?.name
       if (!name) continue
-      const group = we.exercises?.muscle_group
       const sets = we.sets || []
       if (sets.length === 0) continue
 
@@ -47,18 +50,28 @@ export function analyzeHistory(workouts, { level = 'Intermedio' } = {}) {
         }
       }
 
-      if (isRecent && group) {
-        recentSetsByGroup[group] = (recentSetsByGroup[group] || 0) + sets.length
+      if (isRecent) {
+        // Cada serie cuenta entera para el músculo principal y media para cada
+        // secundario. Antes solo se miraba `exercises.muscle_group`, así que
+        // los ejercicios que el usuario nunca clasificó a mano no contaban
+        // para nada: ahora la biblioteca los clasifica igual que en el resto
+        // de la app.
+        attributeSplit(sets.length, resolveMuscles(we.exercises, lookup(we.exercises)), recentByGroup)
       }
     }
   }
 
+  const perWeek = (n) => Math.round((n / (WINDOW_DAYS / 7)) * 10) / 10
   const weeklyVolumeByGroup = {}
-  for (const [group, total] of Object.entries(recentSetsByGroup)) {
-    weeklyVolumeByGroup[group] = Math.round((total / (WINDOW_DAYS / 7)) * 10) / 10
+  const weeklyDirectByGroup = {}
+  for (const [group, entry] of Object.entries(recentByGroup)) {
+    weeklyVolumeByGroup[group] = perWeek(totalOf(entry))
+    weeklyDirectByGroup[group] = perWeek(entry.direct)
   }
 
-  // Grupos por debajo de su MEV en las últimas 4 semanas, peor primero.
+  // Grupos por debajo de su MEV en las últimas 4 semanas, peor primero. Se
+  // compara contra el volumen efectivo (directo + indirecto): a nadie le falta
+  // bíceps si hace catorce series de jalones a la semana.
   // Solo tiene sentido si hay actividad reciente; sin datos no sugerimos nada.
   let undertrainedGroups = []
   const hasRecent = Object.keys(weeklyVolumeByGroup).length > 0
@@ -75,7 +88,7 @@ export function analyzeHistory(workouts, { level = 'Intermedio' } = {}) {
       .map(x => x.group)
   }
 
-  return { familiarity, best1RM, weeklyVolumeByGroup, undertrainedGroups }
+  return { familiarity, best1RM, weeklyVolumeByGroup, weeklyDirectByGroup, undertrainedGroups }
 }
 
 /**

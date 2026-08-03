@@ -3,13 +3,18 @@ import { useExerciseGroups } from '../../hooks/useExerciseGroups'
 import { CATCH_ALL } from '../../lib/muscleGroups'
 import SectionHeader from './SectionHeader'
 import { useLang } from '../../hooks/useLang'
+import { useExerciseLang } from '../../hooks/useExerciseLang'
 import { formatVolume } from '../../lib/format'
 
 // All-time volume distribution across muscle groups, shown as proportional
-// horizontal bars (relative to the most-trained group).
+// horizontal bars (relative to the most-trained group). Each exercise credits
+// its main muscle in full and every secondary one at half, so the solid part of
+// a bar is what the muscle did as the star of the exercise and the faded part
+// what it did backing up someone else.
 
 export default function MuscleBalanceModule({ data, readOnly = false }) {
   const { t, locale } = useLang()
+  const { term } = useExerciseLang()
   const navigate = useNavigate()
   const { needsAttention } = useExerciseGroups()
 
@@ -27,7 +32,7 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
     <section style={{ marginBottom: '40px' }}>
       <SectionHeader
         title="Balance muscular"
-        subtitle="Cómo se reparte tu volumen total (peso × reps) entre grupos."
+        subtitle="Cómo se reparte tu volumen total (peso × reps) entre grupos. Cada ejercicio cuenta entero para su músculo principal y a la mitad para cada secundario."
       />
       <div style={{
         background: 'var(--c-surface)',
@@ -38,27 +43,41 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
       }}>
         {ordered.map(g => {
           const isOther = g.group === CATCH_ALL
+          const fill = isOther ? 'var(--c-border)' : 'var(--c-action)'
+          // Suelo del 2 % para que un grupo pequeño no desaparezca, repartido
+          // entre los dos tramos en la misma proporción que el dato real.
+          const totalPct = Math.max(2, (g.volume / max) * 100)
+          const directPct = g.volume ? totalPct * ((g.direct || 0) / g.volume) : 0
           return (
             <div key={g.group}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
                 <span style={{ color: isOther ? 'var(--c-text-muted)' : 'var(--c-text)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {g.group}
+                  {term(g.group)}
                 </span>
                 <span style={{ flexShrink: 0, color: 'var(--c-text-dim)', fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700 }}>
                   {formatVolume(g.volume, locale, { empty: '0' })} kg
                 </span>
               </div>
-              <div style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
                 <div style={{
-                  height: '100%',
-                  width: '100%',
-                  transformOrigin: 'left center',
-                  transform: `scaleX(${Math.max(0.02, g.volume / max)})`,
-                  background: isOther ? 'var(--c-border)' : 'var(--c-action)',
-                  borderRadius: '999px',
-                  transition: 'transform 500ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  width: `${directPct}%`,
+                  background: fill,
+                  transition: 'width 500ms cubic-bezier(0.4, 0, 0.2, 1)',
+                }} />
+                <div style={{
+                  width: `${totalPct - directPct}%`,
+                  background: fill,
+                  opacity: 0.35,
+                  transition: 'width 500ms cubic-bezier(0.4, 0, 0.2, 1)',
                 }} />
               </div>
+              {g.indirect > 0 && (
+                <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, marginTop: '4px' }}>
+                  {formatVolume(g.direct, locale, { empty: '0' })} {t('directo')}
+                  {' · '}
+                  {formatVolume(g.indirect, locale, { empty: '0' })} {t('indirecto')}
+                </p>
+              )}
             </div>
           )
         })}

@@ -605,6 +605,20 @@ const EN = {
     'Set the sets for each exercise in the editor to see the split.',
   'Series por semana': 'Sets per week',
   'Series semanales por grupo muscular en este ciclo.': 'Weekly sets per muscle group in this cycle.',
+  // Volumen con músculos secundarios: una serie cuenta entera para el músculo
+  // principal y media para cada secundario.
+  'serie': 'set',
+  'series': 'sets',
+  'directas': 'direct',
+  'indirectas': 'indirect',
+  'directo': 'direct',
+  'indirecto': 'indirect',
+  'objetivo': 'target',
+  'series/semana': 'sets/week',
+  'Cada serie cuenta entera para el músculo principal del ejercicio y media para cada músculo secundario.':
+    'Every set counts in full for the exercise’s main muscle and half for each secondary one.',
+  'Las marcas de cada barra son el mínimo y el objetivo semanal para tu nivel; cada grupo se mide contra el suyo, no contra los demás.':
+    'The marks on each bar are the weekly minimum and target for your level; every group is measured against its own, not against the others.',
   'Kg totales por mes.': 'Total kg per month.',
   'Sin entrenos registrados todavía': 'No workouts logged yet',
   'Gestionar ejercicios': 'Manage exercises',

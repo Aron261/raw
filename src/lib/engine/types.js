@@ -24,7 +24,8 @@
  * @typedef {Object} HistoryAnalysis
  * @property {Object.<string, number>} familiarity        - nombre → nº de sesiones registradas
  * @property {Object.<string, {value: number, unit: string}>} best1RM - nombre → mejor 1RM estimado
- * @property {Object.<string, number>} weeklyVolumeByGroup - grupo → series/semana (últimas 4 semanas)
+ * @property {Object.<string, number>} weeklyVolumeByGroup - grupo → series/semana efectivas, secundarios incluidos a media serie (últimas 4 semanas)
+ * @property {Object.<string, number>} weeklyDirectByGroup - grupo → series/semana en las que era el músculo principal
  * @property {string[]} undertrainedGroups                - grupos por debajo de MEV, peor primero
  *
  * @typedef {Object} GenerationInput
@@ -73,7 +74,8 @@
  * @property {string}   title
  * @property {string}   summary       - el "proceso de pensamiento" visible del plan
  * @property {string}   splitName     - ej. 'Push / Pull / Legs ×2'
- * @property {Object.<string, number>} weeklyVolume - grupo → series/semana
+ * @property {Object.<string, number>} weeklyVolume - grupo → series/semana efectivas (secundarios a media serie)
+ * @property {Object.<string, {direct: number, indirect: number}>} weeklyVolumeSplit - el mismo dato desglosado
  * @property {string[]} notes         - avisos (equipo relajado, slot omitido…)
  * @property {PlanDay[]} days
  */

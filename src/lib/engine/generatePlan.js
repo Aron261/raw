@@ -9,6 +9,7 @@ import {
 } from './volume'
 import { getSplitDays, getSingleDayTemplate, applySexBias } from './templates'
 import { findBest1RM } from './history'
+import { attributeSplit, totalOf, roundHalf } from '../volumeAttribution'
 import { planSummary, dayRationale, exerciseNote } from './rationale'
 
 const LEVEL_RANK = { Principiante: 0, Intermedio: 1, Avanzado: 2 }
@@ -324,7 +325,7 @@ export function generatePlan(input) {
 
   const weekSubCount = new Map()
   const weekNameCount = new Map()
-  const weeklyVolume = {}
+  const volumeSplit = {}
 
   const days = templates.map(template => {
     const dayUsedNames = new Set()
@@ -349,12 +350,10 @@ export function generatePlan(input) {
       dayUsedSubs.add(ex.substitution_group)
       weekSubCount.set(ex.substitution_group, (weekSubCount.get(ex.substitution_group) || 0) + 1)
       weekNameCount.set(ex.name, (weekNameCount.get(ex.name) || 0) + 1)
-      // Volumen semanal: el grupo del slot cuenta completo; los músculos
-      // secundarios del ejercicio reciben medio estímulo por serie.
-      weeklyVolume[slot.group] = (weeklyVolume[slot.group] || 0) + sets
-      for (const sec of ex.secondary_muscles || []) {
-        if (sec) weeklyVolume[sec] = (weeklyVolume[sec] || 0) + sets * 0.5
-      }
+      // Volumen semanal. El crédito directo va al grupo del *slot*, no al del
+      // ejercicio: si una sustitución trajo otra cosa, el hueco de la plantilla
+      // sigue siendo el que se quería cubrir.
+      attributeSplit(sets, { group: slot.group, secondaries: ex.secondary_muscles }, volumeSplit)
 
       exercises.push(buildPlanExercise(ex, {
         role: slot.role, sets, goal, level, history: effectiveHistory, libraryByName,
@@ -375,7 +374,15 @@ export function generatePlan(input) {
     }
   })
 
-  for (const g of Object.keys(weeklyVolume)) weeklyVolume[g] = Math.round(weeklyVolume[g])
+  // A media serie, no a serie entera: redondear a entero escondería el aporte
+  // de un secundario que solo aparece en un ejercicio, y descuadraría este
+  // preview con la tarjeta «Series por semana» del ciclo ya guardado.
+  const weeklyVolume = {}
+  const weeklyVolumeSplit = {}
+  for (const [g, entry] of Object.entries(volumeSplit)) {
+    weeklyVolume[g] = roundHalf(totalOf(entry))
+    weeklyVolumeSplit[g] = { direct: roundHalf(entry.direct), indirect: roundHalf(entry.indirect) }
+  }
 
   const plan = {
     seed,
@@ -385,6 +392,7 @@ export function generatePlan(input) {
       : `${splitName} — ${goal} ${daysPerWeek}d`,
     summary: '',
     weeklyVolume,
+    weeklyVolumeSplit,
     notes: [...new Set(notes)],
     days,
   }
