@@ -149,6 +149,58 @@ describe('«Usar esto»', () => {
   })
 })
 
+// El caso que motivó el candado: una proteína decidida a mano que «Usar esto»
+// sustituía por la calculada cada vez que se pulsaba.
+describe('el candado de proteína', () => {
+  const CON_OBJETIVOS = { kcal: 3501, protein_g: 180, carbs_g: 477, fat_g: 97, micros: {}, protein_locked: false }
+
+  it('solo se ofrece si hay una proteína guardada que fijar', () => {
+    abrir({ targets: null })
+    expect(screen.queryByText(/Mantener mi proteína/)).toBeNull()
+
+    cleanup()
+    abrir({ targets: CON_OBJETIVOS })
+    expect(screen.getByText('Mantener mi proteína en 180 g')).toBeTruthy()
+  })
+
+  it('activado, la recomendación deja de recalcularla', () => {
+    abrir({ targets: CON_OBJETIVOS })
+    fireEvent.click(screen.getByText('Mantener mi proteína en 180 g'))
+    fireEvent.click(screen.getByText('Recomendado para ti'))
+    expect(screen.getByText(/Proteína fija en 180 g/)).toBeTruthy()
+  })
+
+  it('y «Usar esto» ya no la pisa', () => {
+    const { container } = abrir({ targets: CON_OBJETIVOS })
+    fireEvent.click(screen.getByText('Mantener mi proteína en 180 g'))
+    fireEvent.click(screen.getByText('Usar esto'))
+    const valores = [...container.querySelectorAll('input[type="number"]')].map(i => i.value)
+    expect(valores).toContain('180')
+    expect(valores).not.toContain(String(esperado.protein_g))
+  })
+
+  it('sin activarlo, sigue proponiendo la calculada', () => {
+    abrir({ targets: CON_OBJETIVOS })
+    fireEvent.click(screen.getByText('Recomendado para ti'))
+    expect(screen.queryByText(/Proteína fija/)).toBeNull()
+  })
+
+  it('se guarda con los objetivos, para que dure más que la sesión', async () => {
+    abrir({ targets: CON_OBJETIVOS })
+    fireEvent.click(screen.getByText('Mantener mi proteína en 180 g'))
+    fireEvent.click(screen.getByText('Gramos exactos'))
+    fireEvent.click(screen.getByText('Guardar objetivos'))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave.mock.calls[0][0].protein_locked).toBe(true)
+  })
+
+  it('llega activado si ya lo estaba', () => {
+    abrir({ targets: { ...CON_OBJETIVOS, protein_locked: true } })
+    fireEvent.click(screen.getByText('Recomendado para ti'))
+    expect(screen.getByText(/Proteína fija en 180 g/)).toBeTruthy()
+  })
+})
+
 describe('los objetivos de micros', () => {
   it('sin tocar la recomendación, se guarda lo que ya tuviera el usuario', async () => {
     abrir({ targets: { kcal: 2000, protein_g: 150, carbs_g: 200, fat_g: 60, micros: { fibra: 30 } } })

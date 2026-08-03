@@ -134,17 +134,25 @@ export function computeKcal({ tdee, phaseId, sex, bmrValue }) {
  * del cual empieza a notarse en las hormonas, y el 22% de las calorías es lo
  * razonable cuando ese mínimo se queda corto. Gana el mayor de los dos.
  * Los carbos son lo que sobra.
+ *
+ * `fixedProteinG` corta el cálculo de la proteína: hay quien tiene una cifra
+ * decidida y no quiere que se la recalculen. La grasa mantiene su regla y los
+ * carbos —que ya eran el resto— absorben la diferencia, así que las calorías
+ * siguen cuadrando sin tocar nada más.
  */
-export function computeMacros({ kcal, weightKg, bodyFatPct, phaseId }) {
+export function computeMacros({ kcal, weightKg, bodyFatPct, phaseId, fixedProteinG }) {
   const phase = PHASE_BY_ID[phaseId] || PHASE_BY_ID.mantener
   const w = Number(weightKg)
   const bf = Number(bodyFatPct)
   const hasBf = Number.isFinite(bf) && bf > 0
 
-  const proteinBasis = hasBf ? 'lbm' : 'bw'
+  const fixed = Number(fixedProteinG)
+  const hasFixed = Number.isFinite(fixed) && fixed > 0
+
+  const proteinBasis = hasFixed ? 'fixed' : hasBf ? 'lbm' : 'bw'
   const proteinRef = hasBf ? w * (1 - bf / 100) : w
   const perKg = hasBf ? phase.proteinPerKgLbm : phase.proteinPerKgBw
-  const protein_g = Math.round(proteinRef * perKg)
+  const protein_g = hasFixed ? Math.round(fixed) : Math.round(proteinRef * perKg)
 
   const fatFloorG = 0.6 * w
   const fatFromPct = (kcal * 0.22) / KCAL_PER_G.fat
@@ -237,7 +245,7 @@ export function computeMicroTargets({ kcal, sex, age }) {
 export function recommendPlan(input = {}) {
   const {
     weightKg, heightCm, age, sex, bodyFatPct, bodyFatSource,
-    activityId, phaseId, daysPerWeek, goal,
+    activityId, phaseId, daysPerWeek, goal, fixedProteinG,
   } = input
 
   const bf = Number(bodyFatPct)
@@ -273,7 +281,7 @@ export function recommendPlan(input = {}) {
 
   const { tdee, factor } = computeTdee(bmr.value, resolvedActivity)
   const { kcal, floored, floor } = computeKcal({ tdee, phaseId: resolvedPhase, sex, bmrValue: bmr.value })
-  const macros = computeMacros({ kcal, weightKg, bodyFatPct, phaseId: resolvedPhase })
+  const macros = computeMacros({ kcal, weightKg, bodyFatPct, phaseId: resolvedPhase, fixedProteinG })
   const micros = computeMicroTargets({ kcal, sex, age })
 
   // ── Razones ──
@@ -308,9 +316,13 @@ export function recommendPlan(input = {}) {
     tvars: ['label'],
   })
 
-  reasons.push(macros.proteinBasis === 'lbm'
-    ? { id: 'protein_lbm', key: 'Proteína a {perKg} g por kg de masa magra: {g} g.', vars: { perKg: macros.perKg, g: macros.protein_g } }
-    : { id: 'protein_bw',  key: 'Proteína a {perKg} g por kg de peso: {g} g.',       vars: { perKg: macros.perKg, g: macros.protein_g } })
+  if (macros.proteinBasis === 'fixed') {
+    reasons.push({ id: 'protein_fixed', key: 'Proteína fija en {g} g, la tuya: no se recalcula.', vars: { g: macros.protein_g } })
+  } else {
+    reasons.push(macros.proteinBasis === 'lbm'
+      ? { id: 'protein_lbm', key: 'Proteína a {perKg} g por kg de masa magra: {g} g.', vars: { perKg: macros.perKg, g: macros.protein_g } }
+      : { id: 'protein_bw',  key: 'Proteína a {perKg} g por kg de peso: {g} g.',       vars: { perKg: macros.perKg, g: macros.protein_g } })
+  }
 
   reasons.push(macros.fatFloored
     ? { id: 'fat_floor', key: 'Grasa al piso de 0,6 g/kg ({g} g) para no tocar las hormonas.', vars: { g: macros.fat_g } }

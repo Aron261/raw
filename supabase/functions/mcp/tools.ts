@@ -189,7 +189,7 @@ export const TOOLS: Record<string, Tool> = {
   },
 
   get_nutrition_day: {
-    description: 'Comidas registradas de un día, con los totales (macros y micros) y los objetivos. Los objetivos son de SOLO LECTURA: se fijan en la app, donde se calculan a partir del peso, la grasa corporal y la fase. `micros_coverage` dice de cuántas comidas se conocen micros — sin ese dato, un total de micros bajo puede ser falta de información y no falta de nutrientes.',
+    description: 'Comidas registradas de un día, con los totales (macros y micros) y los objetivos. Los objetivos son de SOLO LECTURA: se fijan en la app, donde se calculan a partir del peso, la grasa corporal y la fase. Si `targets.protein_locked` es true, esa persona ha fijado su proteína a mano y no quiere que se la recalculen: no le propongas otra cifra. `micros_coverage` dice de cuántas comidas se conocen micros — sin ese dato, un total de micros bajo puede ser falta de información y no falta de nutrientes.',
     inputSchema: obj({ date: str('Fecha YYYY-MM-DD. Por defecto, hoy.') }),
     handler: async (a, { supabase, userId }) => {
       const day = a.date || new Date().toISOString().slice(0, 10)

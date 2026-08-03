@@ -151,7 +151,7 @@ export function useMyFoods() {
   return { foods: data || [], loading, saveFood }
 }
 
-export const DEFAULT_TARGETS = { kcal: 2500, protein_g: 160, carbs_g: 280, fat_g: 80, micros: {} }
+export const DEFAULT_TARGETS = { kcal: 2500, protein_g: 160, carbs_g: 280, fat_g: 80, micros: {}, protein_locked: false }
 
 // Recomendación de macros a partir de meta calórica y peso ideal:
 // proteína = 2 g × kg de peso ideal, grasa = 25% de las calorías,

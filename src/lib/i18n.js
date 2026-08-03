@@ -801,6 +801,11 @@ const EN = {
   // ── Nutrición · objetivos recomendados ──
   'Recomendado para ti': 'Recommended for you',
   'Usar esto': 'Use this',
+  'Mantener mi proteína en {g} g': 'Keep my protein at {g} g',
+  'La recomendación no la recalcula; los carbos absorben la diferencia.':
+    "The recommendation won't recalculate it; carbs absorb the difference.",
+  'Proteína fija en {g} g, la tuya: no se recalcula.':
+    'Protein fixed at your {g} g: not recalculated.',
   'Podemos calcularlo por ti': 'We can work it out for you',
   'Nos falta {campos}.': 'We still need {campos}.',
   'Completar en Perfil →': 'Complete it in Profile →',

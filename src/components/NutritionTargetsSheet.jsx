@@ -241,6 +241,14 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
   const [microTargets, setMicroTargets] = useState(() => targets?.micros || {})
   const setMicro = (key, v) => setMicroTargets(prev => ({ ...prev, [key]: v }))
 
+  // Candado de proteína. El número no se guarda aparte: es el protein_g que ya
+  // hay, y esto solo dice «no lo recalcules». Se fija al valor GUARDADO y no al
+  // que haya en el editor: así el candado significa siempre lo mismo, aunque
+  // se esté toqueteando el reparto.
+  const [proteinLocked, setProteinLocked] = useState(() => !!targets?.protein_locked)
+  const lockedProtein = targets?.protein_g ?? null
+  const canLock = Number(lockedProtein) > 0
+
   // La recomendación se calcula del perfil de QUIEN va a comer. Por eso llega
   // por props y no de useProfile(): ese hook siempre devuelve el del usuario
   // conectado, así que un entrenador habría planificado a su cliente con su
@@ -256,7 +264,8 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
     phaseId: profile?.nutrition_phase,
     daysPerWeek: profile?.days_per_week,
     goal: profile?.goal,
-  }), [weight, profile])
+    fixedProteinG: proteinLocked && canLock ? lockedProtein : null,
+  }), [weight, profile, proteinLocked, canLock, lockedProtein])
 
   const applyRecommendation = () => {
     if (!plan.ok) return
@@ -359,7 +368,7 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
     if (saving || !rec) return
     setSaving(true)
     try {
-      await onSave({ ...rec, micros: sanitizeMicros(microTargets) })
+      await onSave({ ...rec, micros: sanitizeMicros(microTargets), protein_locked: proteinLocked })
     } finally {
       setSaving(false)
     }
@@ -381,6 +390,47 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
         onApply={applyRecommendation}
         onOpenProfile={onOpenProfile}
       />
+
+      {/* El candado vive pegado a la tarjeta porque es de ahí de donde
+          protege: sin él, «Usar esto» sustituye la proteína por la calculada
+          cada vez que se pulsa. Solo aparece si hay una proteína guardada que
+          fijar — ofrecer candar la nada no significa nada. */}
+      {canLock && (
+        <button
+          onClick={() => setProteinLocked(v => !v)}
+          aria-pressed={proteinLocked}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '9px', width: '100%',
+            textAlign: 'left', padding: '10px 12px', marginBottom: '16px',
+            background: 'transparent',
+            border: `1px solid ${proteinLocked ? 'var(--c-accent-border)' : 'var(--c-border-subtle)'}`,
+            borderRadius: 'var(--r-sm)', cursor: 'pointer',
+            transition: 'border-color 150ms var(--ease-out)',
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              flexShrink: 0, width: '16px', height: '16px', borderRadius: '4px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '10px', lineHeight: 1, fontWeight: 800,
+              background: proteinLocked ? 'var(--c-accent)' : 'transparent',
+              color: 'var(--c-on-action)',
+              border: `1px solid ${proteinLocked ? 'var(--c-accent)' : 'var(--c-border)'}`,
+            }}
+          >
+            {proteinLocked ? '✓' : ''}
+          </span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontFamily: 'var(--font-sans)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text)' }}>
+              {t('Mantener mi proteína en {g} g', { g: lockedProtein })}
+            </span>
+            <span style={{ display: 'block', color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.45, marginTop: '2px' }}>
+              {t('La recomendación no la recalcula; los carbos absorben la diferencia.')}
+            </span>
+          </span>
+        </button>
+      )}
 
       <Field label="Balance de macros">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>

@@ -115,6 +115,41 @@ describe('computeMacros', () => {
     expect(r.fat_g).toBe(60)               // 0,6 × 100 = 60 > 1600×0,22/9 = 39
   })
 
+  // Hay quien tiene su cifra decidida. Recalculársela cada vez que pulsa
+  // «Usar esto» es deshacer su decisión, que es como se consigue que deje de
+  // usar el botón.
+  it('con proteína fija, la respeta en vez de calcularla', () => {
+    const r = computeMacros({ kcal: 3133, weightKg: 79, bodyFatPct: 14, phaseId: 'volumen', fixedProteinG: 180 })
+    expect(r.protein_g).toBe(180)
+    expect(r.proteinBasis).toBe('fixed')
+  })
+
+  it('los carbos absorben la diferencia: las calorías siguen cuadrando', () => {
+    const libre = computeMacros({ kcal: 3133, weightKg: 79, bodyFatPct: 14, phaseId: 'volumen' })
+    const fija  = computeMacros({ kcal: 3133, weightKg: 79, bodyFatPct: 14, phaseId: 'volumen', fixedProteinG: 180 })
+    // Sube la proteína, bajan los carbos, la grasa no se toca.
+    expect(fija.protein_g).toBeGreaterThan(libre.protein_g)
+    expect(fija.carbs_g).toBeLessThan(libre.carbs_g)
+    expect(fija.fat_g).toBe(libre.fat_g)
+    const suma = fija.protein_g * 4 + fija.carbs_g * 4 + fija.fat_g * 9
+    expect(Math.abs(suma - 3133)).toBeLessThanOrEqual(20)
+  })
+
+  it('una proteína fija absurda no rompe: los carbos van a cero y avisa', () => {
+    const r = computeMacros({ kcal: 1500, weightKg: 79, phaseId: 'definicion', fixedProteinG: 400 })
+    expect(r.protein_g).toBe(400)
+    expect(r.carbs_g).toBe(0)
+    expect(r.carbsShort).toBe(true)
+  })
+
+  it('un cero o una basura no cuentan como proteína fija', () => {
+    for (const v of [0, null, undefined, -50, 'mucha', NaN]) {
+      const r = computeMacros({ kcal: 2400, weightKg: 80, bodyFatPct: 20, phaseId: 'mantener', fixedProteinG: v })
+      expect(r.proteinBasis).not.toBe('fixed')
+      expect(Number.isFinite(r.protein_g)).toBe(true)
+    }
+  })
+
   it('los carbos nunca son negativos, y avisa cuando no caben', () => {
     const r = computeMacros({ kcal: 1200, weightKg: 120, phaseId: 'definicion' })
     expect(r.carbs_g).toBe(0)
@@ -264,6 +299,21 @@ describe('recommendPlan', () => {
   it('sexo desconocido se avisa, porque cambia los micros', () => {
     const r = recommendPlan({ ...completo, sex: 'Otro' })
     expect(r.warnings.map(w => w.id)).toContain('sex_unknown')
+  })
+
+  it('la proteína fija sobrevive al recálculo entero, y lo explica', () => {
+    const r = recommendPlan({ ...completo, fixedProteinG: 180 })
+    expect(r.ok).toBe(true)
+    expect(r.protein_g).toBe(180)
+    const razones = r.reasons.map(x => x.id)
+    expect(razones).toContain('protein_fixed')
+    expect(razones).not.toContain('protein_lbm')
+    expect(razones).not.toContain('protein_bw')
+  })
+
+  it('sin fijarla, se calcula como siempre', () => {
+    const r = recommendPlan(completo)
+    expect(r.reasons.map(x => x.id)).toContain('protein_lbm')
   })
 
   it('los macros que devuelve tienen la forma que espera saveTargets', () => {
