@@ -7,6 +7,7 @@ import Layout from '../components/Layout'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useProfile } from '../hooks/useProfile'
 import { useNutritionDay, useNutritionTargets, toLocalISODate, DEFAULT_TARGETS } from '../hooks/useNutrition'
+import TodayNutritionCard from '../components/TodayNutritionCard'
 import { useBodyWeight } from '../hooks/useBodyWeight'
 import { useGoals } from '../hooks/useGoals'
 import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
@@ -531,8 +532,6 @@ export default function Training() {
   const { trainers } = useInvites()
   const chartColors = useChartColors()
 
-  const kcalToday = Math.round(nutritionTotals?.kcal || 0)
-  const kcalTarget = nutritionTargets?.kcal || DEFAULT_TARGETS.kcal
 
   // Mapa id_entrenador → nombre, para mostrar quién asignó cada rutina.
   const trainerNameById = Object.fromEntries(
@@ -1036,6 +1035,22 @@ export default function Training() {
           </div>
         )}
 
+        {/* ── La comida de hoy ──
+            Justo debajo del CTA, encima del resumen semanal. Estuvo un rato
+            debajo de los chips y ahí caía en el pliegue: con un entreno
+            planificado, la tarjeta del CTA se come media pantalla y esto
+            quedaba medio tapado por la barra. Algo que se mira antes de cada
+            comida no puede pedir scroll.
+            Fuera del bloque de «hay entrenos» porque comer no depende de haber
+            entrenado: en una cuenta recién creada esta tarjeta ya sirve. ── */}
+        {!loading && !error && (
+          <TodayNutritionCard
+            totals={nutritionTotals}
+            targets={nutritionTargets || DEFAULT_TARGETS}
+            onOpen={() => navigate('/nutrition')}
+          />
+        )}
+
         {/* ── Resumen — los números de la semana y la fila de un vistazo.
             Sube por encima del calendario: en el gimnasio lo primero que se
             busca después del CTA es "¿cómo voy?", no planear el mes. ── */}
@@ -1097,15 +1112,11 @@ export default function Training() {
                 hint={streak > 0 ? null : t('Entrena esta semana')}
                 onClick={() => navigate('/progreso')}
               />
+              {/* El chip «Kcal hoy» se fue: la comida del día tiene ahora su
+                  propia tarjeta justo debajo. Dejarlo habría sido decir lo
+                  mismo dos veces con dos pesos distintos. */}
               <Chip
                 index={1}
-                label={t('Kcal hoy')}
-                value={kcalToday > 0 ? `${kcalToday.toLocaleString(locale)} / ${kcalTarget.toLocaleString(locale)}` : '—'}
-                hint={kcalToday > 0 ? null : t('Registra tu comida')}
-                onClick={() => navigate('/nutrition')}
-              />
-              <Chip
-                index={2}
                 label={t('Peso corporal')}
                 value={latestWeight ? `${latestWeight.weight} ${latestWeight.unit}` : '—'}
                 hint={latestWeight ? null : t('Aún sin registrar')}
@@ -1113,7 +1124,7 @@ export default function Training() {
               />
               {profile?.is_trainer && (
                 <Chip
-                  index={3}
+                  index={2}
                   label={t('Coach')}
                   live={unread > 0}
                   value={unread > 0 ? `${unread} ${t('sin leer')}` : t('Tus clientes')}

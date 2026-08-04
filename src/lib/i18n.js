@@ -787,6 +787,10 @@ const EN = {
   '{ok} de {total}': '{ok} of {total}',
   '{n} kcal por encima': '{n} kcal over',
   'Quedan {n} kcal': '{n} kcal left',
+  'Comida de hoy': "Today's food",
+  'Ver el día ›': 'See the day ›',
+  'Registrar ›': 'Log it ›',
+  'Sin objetivo de calorías': 'No calorie target',
   '{cov} de {n} comidas con micros': '{cov} of {n} meals with micros',
   'Ver los 16 y la cobertura del día ›': 'See all 16 and today\'s coverage ›',
   'Sin objetivos de micros todavía. La app puede calcularlos con tu peso, tu grasa y tu fase.':

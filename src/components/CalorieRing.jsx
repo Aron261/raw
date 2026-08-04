@@ -27,15 +27,15 @@ import { useLang } from '../hooks/useLang'
 
 const KCAL_PER_G = { protein: 4, carbs: 4, fat: 9 }
 
-// Geometría del trazo. El radio se calcula desde el ancho para que cambiar
-// SIZE o STROKE no descoloque nada.
-const SIZE = 132
-const STROKE = 13
-const R = (SIZE - STROKE) / 2
-const CIRC = 2 * Math.PI * R
-
-export default function CalorieRing({ kcal = 0, target = 0, protein = 0, carbs = 0, fat = 0 }) {
+// Toda la geometría sale de `size`: el grosor, el radio y hasta el cuerpo de
+// la cifra. Así el mismo anillo sirve en la pantalla de Nutrición y, más
+// pequeño, en la portada, sin dos juegos de números que mantener a mano.
+export default function CalorieRing({ kcal = 0, target = 0, protein = 0, carbs = 0, fat = 0, size = 132 }) {
   const { locale } = useLang()
+
+  const stroke = size * 0.0985            // 13 a 132
+  const R = (size - stroke) / 2
+  const CIRC = 2 * Math.PI * R
 
   const pTotal = Math.max(0, Number(protein) || 0) * KCAL_PER_G.protein
   const cTotal = Math.max(0, Number(carbs) || 0) * KCAL_PER_G.carbs
@@ -72,23 +72,23 @@ export default function CalorieRing({ kcal = 0, target = 0, protein = 0, carbs =
   const fmt = (n) => Math.round(n).toLocaleString(locale)
 
   return (
-    <div style={{ position: 'relative', width: SIZE, height: SIZE, flexShrink: 0 }}>
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg
-        width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}
+        width={size} height={size} viewBox={`0 0 ${size} ${size}`}
         style={{ transform: 'rotate(-90deg)' }}
         role="img"
         aria-label={goal > 0 ? `${fmt(eaten)} de ${fmt(goal)} kcal` : `${fmt(eaten)} kcal`}
       >
         {/* Carril: lo que falta por comer. */}
         <circle
-          cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none"
-          stroke="var(--c-surface-2)" strokeWidth={STROKE}
+          cx={size / 2} cy={size / 2} r={R} fill="none"
+          stroke="var(--c-surface-2)" strokeWidth={stroke}
         />
         {arcs.map(a => (
           <circle
             key={a.key}
-            cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none"
-            stroke={a.color} strokeWidth={STROKE}
+            cx={size / 2} cy={size / 2} r={R} fill="none"
+            stroke={a.color} strokeWidth={stroke}
             strokeDasharray={`${a.len} ${CIRC - a.len}`}
             strokeDashoffset={-a.start}
             style={{ transition: 'stroke-dasharray 600ms var(--ease-out), stroke-dashoffset 600ms var(--ease-out)' }}
@@ -102,14 +102,14 @@ export default function CalorieRing({ kcal = 0, target = 0, protein = 0, carbs =
         pointerEvents: 'none',
       }}>
         <span className="tnum" style={{
-          fontFamily: 'var(--font-sans)', fontSize: '28px', fontWeight: 900,
+          fontFamily: 'var(--font-sans)', fontSize: `${size * 0.212}px`, fontWeight: 900,
           letterSpacing: '-0.04em', lineHeight: 1,
           color: over ? 'var(--c-action-text)' : 'var(--c-text)',
         }}>
           {fmt(eaten)}
         </span>
         <span className="tnum" style={{
-          fontFamily: 'var(--font-sans)', fontSize: '10.5px', fontWeight: 700,
+          fontFamily: 'var(--font-sans)', fontSize: `${size * 0.08}px`, fontWeight: 700,
           letterSpacing: '-0.01em', color: 'var(--c-text-muted)', marginTop: '3px',
         }}>
           {goal > 0 ? `/ ${fmt(goal)} kcal` : 'kcal'}

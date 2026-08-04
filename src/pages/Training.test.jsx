@@ -99,8 +99,11 @@ describe('Inicio — sin redundancias', () => {
     state.workouts = [workout]
     render(<Training />)
     // Antes aparecía en el chip "kcal hoy" y otra vez en el chip de sección
-    // Nutrición, con el mismo número y el mismo destino.
-    expect(screen.getAllByText(/1\.200 \/ 2\.400/)).toHaveLength(1)
+    // Nutrición, con el mismo número y el mismo destino. Ahora vive en el
+    // anillo de la tarjeta de comida, que las parte en dos líneas: la cifra
+    // dentro y el objetivo debajo.
+    expect(screen.getAllByText('1.200')).toHaveLength(1)
+    expect(screen.getAllByText('/ 2.400 kcal')).toHaveLength(1)
   })
 
   it('no repite en chips las secciones que ya son pestaña de la barra inferior', () => {
@@ -123,7 +126,20 @@ describe('Inicio — sin redundancias', () => {
   it('deja un solo acceso a Nutrición desde la portada', () => {
     state.workouts = [workout]
     render(<Training />)
-    expect(screen.getAllByText(/kcal hoy/i)).toHaveLength(1)
+    // La tarjeta de comida sustituyó al chip «Kcal hoy»: si volviera el chip,
+    // serían dos caminos al mismo sitio con dos pesos distintos.
+    expect(screen.getAllByText('Comida de hoy')).toHaveLength(1)
+    expect(screen.queryByText(/kcal hoy/i)).toBeNull()
+  })
+
+  it('la comida de hoy pesa más que un chip', () => {
+    // El motivo del cambio: era un chip del tamaño de «Racha» para algo que se
+    // mira antes de cada comida. Ahora es una tarjeta con su anillo.
+    state.workouts = [workout]
+    render(<Training />)
+    const resumen = screen.getByRole('navigation', { name: /resumen de hoy/i })
+    expect(within(resumen).queryByText('Comida de hoy')).toBeNull()
+    expect(screen.getByRole('img', { name: /1\.200 de 2\.400 kcal/ })).toBeTruthy()
   })
 
   it('el chip de Coach solo existe para entrenadores', () => {
