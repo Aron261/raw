@@ -3,15 +3,6 @@ import { hasTabBar } from '../lib/sections'
 import { useLang } from '../hooks/useLang'
 
 // ── Icons ──────────────────────────────────────────────────────────────
-function PerfilIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="3.6" />
-      <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0" />
-    </svg>
-  )
-}
-
 function BarbellIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -39,6 +30,18 @@ function ProgramaIcon() {
       <rect x="3" y="4" width="18" height="3" rx="1.5" />
       <rect x="3" y="10.5" width="18" height="3" rx="1.5" />
       <rect x="3" y="17" width="18" height="3" rx="1.5" />
+    </svg>
+  )
+}
+
+// Una manzana: es lo que se lee como «comida» sin tener que pensarlo. Un
+// cubierto o un plato son más neutros pero a 20px se convierten en manchas.
+function NutricionIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 8.5c-1.2-1.4-2.7-2-4.2-1.7C5.6 7.2 4 9.3 4 12.2c0 3.6 2.6 7.3 4.7 7.8 1.1.3 2.2-.4 3.3-.4s2.2.7 3.3.4c2.1-.5 4.7-4.2 4.7-7.8 0-2.9-1.6-5-3.8-5.4-1.5-.3-3 .3-4.2 1.7Z" />
+      <path d="M12 8.5V5.2" />
+      <path d="M12 5.2c1.6 0 2.9-1 3.2-2.2-1.7-.3-3.2.8-3.2 2.2Z" />
     </svg>
   )
 }
@@ -124,11 +127,16 @@ function StartAction({ onClick, label }) {
 }
 
 // ── Nav ───────────────────────────────────────────────────────────────
-// Inicio | Progreso | [+] | Rutinas | Perfil
+// Inicio | Progreso | [+] | Nutrición | Rutinas
 //
-// Inicio recupera el extremo izquierdo (es donde empieza la lectura) y Perfil
-// se va al derecho: se entra a configurar de vez en cuando, así que ocupa la
-// esquina más lejana del pulgar y no le disputa el sitio a lo que se usa.
+// Inicio ocupa el extremo izquierdo, que es donde empieza la lectura.
+//
+// Nutrición entra y Perfil sale. Nutrición no tenía pestaña: se llegaba desde
+// un chip de Inicio y desde el «+», y con eso costaba encontrarla para algo que
+// se abre varias veces al día. Perfil, en cambio, se toca de higos a brevas —
+// es configuración. Entre dos cosas que compiten por un hueco, gana la que se
+// usa a diario. A Perfil se entra desde su tarjeta en Inicio, y la barra sigue
+// apareciendo dentro de /profile para poder salir.
 //
 // "Ejercicios" ya no es pestaña. Clasificar y vincular ejercicios es
 // mantenimiento que se hace de vez en cuando, no una de las cinco cosas que
@@ -167,11 +175,11 @@ export default function BottomNav({ onStart }) {
         maxWidth: '480px', margin: '0 auto',
         height: '60px', padding: '0 4px',
       }}>
-        <TabItem to="/"         label={t('Inicio')}   Icon={BarbellIcon} exact />
-        <TabItem to="/progreso" label={t('Progreso')} Icon={HistoryIcon} />
+        <TabItem to="/"          label={t('Inicio')}    Icon={BarbellIcon} exact />
+        <TabItem to="/progreso"  label={t('Progreso')}  Icon={HistoryIcon} />
         <StartAction onClick={onStart} label={t('Agregar')} />
-        <TabItem to="/rutinas"  label={t('Rutinas')}  Icon={ProgramaIcon} />
-        <TabItem to="/profile"  label={t('Perfil')}   Icon={PerfilIcon} />
+        <TabItem to="/nutrition" label={t('Nutrición')} Icon={NutricionIcon} />
+        <TabItem to="/rutinas"   label={t('Rutinas')}   Icon={ProgramaIcon} />
       </div>
     </nav>
   )

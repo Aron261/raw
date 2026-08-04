@@ -5,11 +5,18 @@ import { describe, it, expect } from 'vitest'
 import { sectionFor, hasTabBar } from './sections'
 
 describe('hasTabBar', () => {
-  it('las cinco pestañas la llevan', () => {
-    // Perfil incluido: desde que es pestaña, tocarla no puede borrar la barra.
-    for (const p of ['/', '/progreso', '/rutinas', '/profile']) {
+  it('las cuatro pestañas la llevan', () => {
+    // Nutrición entró en la barra: se abre varias veces al día y llegar a ella
+    // por un chip de Inicio la hacía difícil de encontrar.
+    for (const p of ['/', '/progreso', '/nutrition', '/rutinas']) {
       expect(hasTabBar(p)).toBe(true)
     }
+  })
+
+  it('Perfil la conserva aunque ya no sea pestaña', () => {
+    // Perfil cedió su hueco a Nutrición, pero sin barra se entra a configurar y
+    // no hay forma de volver salvo el gesto de atrás del navegador.
+    expect(hasTabBar('/profile')).toBe(true)
   })
 
   it('las pantallas que cuelgan de una pestaña también', () => {
@@ -21,7 +28,7 @@ describe('hasTabBar', () => {
   })
 
   it('las secciones que se navegan desde Inicio no la llevan', () => {
-    for (const p of ['/nutrition', '/coach', '/coach/cliente/1', '/chat/2', '/social']) {
+    for (const p of ['/coach', '/coach/cliente/1', '/chat/2', '/social']) {
       expect(hasTabBar(p)).toBe(false)
     }
   })

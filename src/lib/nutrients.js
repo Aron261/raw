@@ -29,6 +29,10 @@
  * lo acompaña. Sin él la interfaz felicita a alguien por 4.800 mg de sodio.
  */
 
+// `priority` son los nueve que se ven sin abrir nada, en la propia pantalla del
+// día. No es una jerarquía nutricional: es la lista que Pedro pidió seguir de
+// cerca. Los otros siete siguen guardándose y contando igual, solo que viven a
+// un toque de distancia, en la hoja completa.
 export const NUTRIENTS = [
   // Techos: los cuatro que vienen de etiqueta, y por eso los más fiables.
   { key: 'azucar',         label: 'Azúcar',         unit: 'g',   decimals: 1, dir: 'ceiling', max: 500 },
@@ -37,18 +41,18 @@ export const NUTRIENTS = [
   { key: 'colesterol',     label: 'Colesterol',     unit: 'mg',  decimals: 0, dir: 'ceiling', max: 5000 },
 
   // Pisos.
-  { key: 'fibra',          label: 'Fibra',          unit: 'g',   decimals: 1, dir: 'floor',   max: 200 },
-  { key: 'potasio',        label: 'Potasio',        unit: 'mg',  decimals: 0, dir: 'floor',   max: 30000 },
-  { key: 'calcio',         label: 'Calcio',         unit: 'mg',  decimals: 0, dir: 'floor',   max: 10000 },
-  { key: 'hierro',         label: 'Hierro',         unit: 'mg',  decimals: 1, dir: 'floor',   max: 500 },
+  { key: 'fibra',          label: 'Fibra',          unit: 'g',   decimals: 1, dir: 'floor',   max: 200,   priority: true },
+  { key: 'potasio',        label: 'Potasio',        unit: 'mg',  decimals: 0, dir: 'floor',   max: 30000, priority: true },
+  { key: 'calcio',         label: 'Calcio',         unit: 'mg',  decimals: 0, dir: 'floor',   max: 10000, priority: true },
+  { key: 'hierro',         label: 'Hierro',         unit: 'mg',  decimals: 1, dir: 'floor',   max: 500,   priority: true },
   { key: 'magnesio',       label: 'Magnesio',       unit: 'mg',  decimals: 0, dir: 'floor',   max: 5000 },
   { key: 'zinc',           label: 'Zinc',           unit: 'mg',  decimals: 1, dir: 'floor',   max: 500 },
-  { key: 'omega3',         label: 'Omega-3',        unit: 'g',   decimals: 2, dir: 'floor',   max: 100 },
-  { key: 'vitamina_c',     label: 'Vitamina C',     unit: 'mg',  decimals: 0, dir: 'floor',   max: 10000 },
-  { key: 'vitamina_b12',   label: 'Vitamina B12',   unit: 'mcg', decimals: 1, dir: 'floor',   max: 5000 },
-  { key: 'vitamina_a',     label: 'Vitamina A',     unit: 'mcg', decimals: 0, dir: 'floor',   max: 10000 },
+  { key: 'omega3',         label: 'Omega-3',        unit: 'g',   decimals: 2, dir: 'floor',   max: 100,   priority: true },
+  { key: 'vitamina_c',     label: 'Vitamina C',     unit: 'mg',  decimals: 0, dir: 'floor',   max: 10000, priority: true },
+  { key: 'vitamina_b12',   label: 'Vitamina B12',   unit: 'mcg', decimals: 1, dir: 'floor',   max: 5000,  priority: true },
+  { key: 'vitamina_a',     label: 'Vitamina A',     unit: 'mcg', decimals: 0, dir: 'floor',   max: 10000, priority: true },
   { key: 'vitamina_d',     label: 'Vitamina D',     unit: 'mcg', decimals: 1, dir: 'floor',   max: 1000 },
-  { key: 'folato',         label: 'Folato',         unit: 'mcg', decimals: 0, dir: 'floor',   max: 5000 },
+  { key: 'folato',         label: 'Folato',         unit: 'mcg', decimals: 0, dir: 'floor',   max: 5000,  priority: true },
 ]
 
 export const MICRO_KEYS = NUTRIENTS.map(n => n.key)
@@ -58,6 +62,8 @@ export const NUTRIENT_BY_KEY = Object.fromEntries(NUTRIENTS.map(n => [n.key, n])
 export const CEILINGS = NUTRIENTS.filter(n => n.dir === 'ceiling')
 /** Los que hay que alcanzar. */
 export const FLOORS = NUTRIENTS.filter(n => n.dir === 'floor')
+/** Los que se ven sin abrir nada, en la pantalla del día. */
+export const PRIORITY = NUTRIENTS.filter(n => n.priority)
 
 // ── Aritmética ───────────────────────────────────────────────────────────
 

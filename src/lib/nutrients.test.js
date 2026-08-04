@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  NUTRIENTS, MICRO_KEYS, NUTRIENT_BY_KEY, CEILINGS, FLOORS,
+  NUTRIENTS, MICRO_KEYS, NUTRIENT_BY_KEY, CEILINGS, FLOORS, PRIORITY,
   sumMicros, addMicros, scaleMicros, sanitizeMicros, nonZeroKeys,
   formatNutrient, scaleFood, round1,
 } from './nutrients'
@@ -34,6 +34,17 @@ describe('el registro', () => {
       ['azucar', 'grasa_saturada', 'sodio', 'colesterol']
     )
     expect(FLOORS).toHaveLength(12)
+  })
+
+  it('los nueve prioritarios son exactamente los que se pidieron seguir', () => {
+    expect(PRIORITY.map(n => n.key)).toEqual([
+      'fibra', 'potasio', 'calcio', 'hierro',
+      'omega3', 'vitamina_c', 'vitamina_b12', 'vitamina_a', 'folato',
+    ])
+  })
+
+  it('todos los prioritarios son pisos: se trata de alcanzarlos', () => {
+    expect(PRIORITY.every(n => n.dir === 'floor')).toBe(true)
   })
 
   it('los techos van primero: son los de etiqueta y los más fiables', () => {

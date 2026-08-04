@@ -876,6 +876,30 @@ export default function Training() {
               {t(greetingKey())}{firstName ? `, ${firstName}` : ''}
             </h1>
           </div>
+
+          {/* Perfil dejó de ser pestaña —ese hueco lo ocupa Nutrición, que se
+              abre a diario— así que necesita una entrada estable en la
+              portada. Va en la esquina del saludo, que es exactamente donde
+              estuvo el avatar antes: se sabe de quién es esta pantalla y se
+              entra a configurarla desde el mismo sitio. */}
+          <button
+            onClick={() => navigate('/profile')}
+            aria-label={t('Perfil')}
+            className="md:hidden pressable"
+            style={{
+              marginLeft: 'auto', flexShrink: 0,
+              width: '40px', height: '40px', borderRadius: '999px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--c-text-dim)',
+              background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+              boxShadow: 'var(--e-1)', cursor: 'pointer',
+            }}
+          >
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="3.6" />
+              <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0" />
+            </svg>
+          </button>
         </div>
 
         {/* ── Loading skeleton — mismo orden que el contenido real: CTA ·

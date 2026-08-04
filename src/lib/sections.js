@@ -13,15 +13,17 @@ export function sectionFor(pathname) {
 
 // ¿Lleva barra de pestañas esta pantalla?
 //
-// La barra es Perfil · Inicio · [+] · Progreso · Rutinas, así que aparece en
-// esas cinco y en las pantallas que cuelgan de ellas (un entreno, el detalle de
-// una rutina, la biblioteca de ejercicios). Perfil es su propia sección —no es
-// una pantalla de entreno—, pero desde que tiene pestaña la barra tiene que
-// seguir ahí: una pestaña que se borra al tocarla no es una pestaña.
+// La barra es Inicio · Progreso · [+] · Nutrición · Rutinas, así que aparece en
+// esas pantallas y en las que cuelgan de ellas (un entreno, el detalle de una
+// rutina, la biblioteca de ejercicios).
 //
-// Nutrición, Coach y Social navegan desde los chips de Inicio y sus propias
-// cabeceras, así que se quedan sin barra.
+// Perfil ya no es pestaña —lo sustituyó Nutrición, que se abre a diario— pero
+// SÍ conserva la barra: sin ella se entra a configurar y no hay forma de volver
+// más que con el gesto de atrás del navegador.
+//
+// Coach y Social siguen sin barra: se navega a ellos desde los chips de Inicio
+// y sus propias cabeceras.
 export function hasTabBar(pathname) {
   const section = sectionFor(pathname)
-  return section === 'training' || section === 'profile'
+  return section === 'training' || section === 'profile' || section === 'nutrition'
 }

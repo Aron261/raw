@@ -50,6 +50,12 @@
   --c-action-dim:     rgba(44, 86, 166, 0.09);
   --c-action-border:  rgba(44, 86, 166, 0.26);
   --c-data:           #2C56A6;
+  /* Dos escalones más del MISMO azul, para cuando una gráfica tiene que
+     separar series dentro de un dibujo (los macros del anillo de calorías).
+     No son colores de marca nuevos: es el acento aclarado. La regla de §7
+     sigue en pie — nada de un segundo tono de marca. */
+  --c-data-2:         #6E93D6;
+  --c-data-3:         #B0C5E6;
   --c-record:         #2C56A6;
   --c-record-ink:     #FFFFFF;
   --c-success:        oklch(46% 0.10 150);/* verde apagado: hecho/completo */
@@ -111,6 +117,10 @@
   --c-action-dim:     rgba(127, 160, 234, 0.15);
   --c-action-border:  rgba(127, 160, 234, 0.32);
   --c-data:           #7FA0EA;
+  /* En oscuro los escalones van uno hacia arriba y otro hacia abajo: bajar dos
+     veces desde este azul dejaría el tercero pegado al fondo. */
+  --c-data-2:         #B3C7F5;
+  --c-data-3:         #4A6AAC;
   --c-record:         #7FA0EA;
   --c-record-ink:     #0F1013;
   --c-success:        oklch(72% 0.13 150);

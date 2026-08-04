@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { Sheet, Field, Button, PageHeader, LiveRegion, UndoSnackbar } from '../components/ui'
-import MacroBar from '../components/MacroBar'
+import CalorieRing from '../components/CalorieRing'
+import MacroLegend from '../components/MacroLegend'
+import MicroGrid from '../components/MicroGrid'
 import NutritionTargetsSheet from '../components/NutritionTargetsSheet'
 import NutritionMicrosSheet from '../components/NutritionMicrosSheet'
 import { NUTRIENTS, MICRO_KEYS, NUTRIENT_BY_KEY, nonZeroKeys, sanitizeMicros, scaleFood } from '../lib/nutrients'
@@ -435,21 +437,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
   const shownTotals = useMemo(() => totalsOf(visibleEntries), [visibleEntries])
   const visibleCount = visibleEntries.length
 
-  const kcalPct = tgt.kcal > 0 ? Math.min(100, (shownTotals.kcal / tgt.kcal) * 100) : 0
   const kcalOver = shownTotals.kcal > tgt.kcal
-
-  // Cuántos micros están donde deben. Un techo se cumple por debajo y un piso
-  // por encima, así que no se puede contar con una sola comparación.
-  const microStats = useMemo(() => {
-    const tm = tgt.micros || {}
-    const conObjetivo = MICRO_KEYS.filter(k => Number(tm[k]) > 0)
-    const ok = conObjetivo.filter(k => {
-      const cur = Number(shownTotals.micros?.[k]) || 0
-      const obj = Number(tm[k])
-      return NUTRIENT_BY_KEY[k].dir === 'ceiling' ? cur <= obj : cur >= obj
-    }).length
-    return { total: conObjetivo.length, ok }
-  }, [tgt, shownTotals])
 
   const handleSaveEntry = async (fields, food) => {
     if (sheet?.entry) {
@@ -581,32 +569,26 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             </button>
           </div>
 
-          <p className="tnum" style={{ lineHeight: 0.9, marginBottom: '10px' }}>
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '52px', fontWeight: 900, letterSpacing: '-0.05em', color: kcalOver ? 'var(--c-action-text)' : 'var(--c-text)' }}>
-              {fmt(shownTotals.kcal)}
-            </span>
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 700, color: 'var(--c-text-muted)', marginLeft: '10px' }}>
-              / {fmt(tgt.kcal)} kcal
-            </span>
-          </p>
-          <div
-            style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', overflow: 'hidden', marginBottom: '18px' }}
-            role="progressbar" aria-valuenow={Math.round(kcalPct)} aria-valuemin={0} aria-valuemax={100} aria-label="Calorías del día"
-          >
-            <div style={{
-              height: '100%', width: '100%',
-              transformOrigin: 'left center',
-              transform: `scaleX(${kcalPct / 100})`,
-              background: kcalOver ? 'var(--c-action)' : 'var(--c-data)',
-              borderRadius: '999px',
-              transition: 'transform 500ms var(--ease-out)',
-            }} />
+          {/* Anillo + leyenda. Antes esto era un número de 52px y una barra
+              lineal: decía cuánto llevas y nada de qué. El anillo dice las dos
+              cosas en el mismo dibujo —lo que llevas es cuánto está pintado, y
+              de qué es cómo está repartido— y encima ocupa menos alto que el
+              número gigante más la barra más los tres macros sueltos. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', marginBottom: '16px' }}>
+            <CalorieRing
+              kcal={shownTotals.kcal}
+              target={tgt.kcal}
+              protein={shownTotals.protein}
+              carbs={shownTotals.carbs}
+              fat={shownTotals.fat}
+            />
+            <MacroLegend totals={shownTotals} targets={tgt} />
           </div>
 
-          <p className="tnum" style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: kcalOver ? 'var(--c-action-text)' : 'var(--c-text-dim)', margin: '-10px 0 18px' }}>
+          <p className="tnum" style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: kcalOver ? 'var(--c-action-text)' : 'var(--c-text-dim)', marginBottom: '4px' }}>
             {kcalOver
-              ? `${fmt(shownTotals.kcal - tgt.kcal)} kcal por encima`
-              : `Quedan ${fmt(tgt.kcal - shownTotals.kcal)} kcal`}
+              ? t('{n} kcal por encima', { n: fmt(shownTotals.kcal - tgt.kcal, locale) })
+              : t('Quedan {n} kcal', { n: fmt(tgt.kcal - shownTotals.kcal, locale) })}
           </p>
 
           {/* Meta por defecto: invita a fijar objetivos propios (solo si no los tiene) */}
@@ -619,40 +601,21 @@ export default function Nutrition({ userId = null, readOnly = false }) {
             </button>
           )}
 
-          <div style={{ display: 'flex', gap: '18px' }}>
-            <MacroBar label="Proteína" current={shownTotals.protein} target={tgt.protein_g} />
-            <MacroBar label="Carbos"   current={shownTotals.carbs}   target={tgt.carbs_g} />
-            <MacroBar label="Grasa"    current={shownTotals.fat}     target={tgt.fat_g} />
-          </div>
-
-          {/* Los micros son dieciséis barras y esta tarjeta ya pelea por cada
-              píxel de alto. Aquí va solo el titular —y la cobertura, que es lo
-              que dice cuánto vale el titular—; el detalle vive en su hoja. */}
-          <button
-            onClick={() => setSheet('micros')}
-            style={{
-              display: 'block', width: '100%', textAlign: 'left',
-              marginTop: '16px', paddingTop: '14px',
-              background: 'transparent',
-              border: 'none', borderTop: '1px solid var(--c-border-subtle)',
-              fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700,
-              letterSpacing: '-0.01em', color: 'var(--c-action-text)',
-              cursor: 'pointer',
-            }}
-          >
-            {/* Sin comidas, «4 de 16 en objetivo» sería cierto —no te has
-                pasado de ningún techo— pero se lee como si llevaras algo
-                hecho. Con el día en blanco no se cuenta nada. */}
-            {microStats.total === 0
-              ? t('Micros · sin objetivos todavía ›')
-              : visibleCount === 0
-                ? t('Micros · nada registrado hoy ›')
-                : t('Micros · {ok} de {total} en objetivo · {cov} de {n} comidas con datos ›', {
-                    ok: microStats.ok, total: microStats.total,
-                    cov: shownTotals.covered, n: visibleCount,
-                  })}
-          </button>
+          {/* La cobertura sigue dicha en voz alta: es lo que le pone precio a
+              todo lo de arriba. Si de siete comidas solo tres traen micros, el
+              total no es «lo que comiste» sino «lo que sabemos». */}
+          {visibleCount > 0 && (
+            <p className="tnum" style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-muted)' }}>
+              {t('{cov} de {n} comidas con micros', { cov: shownTotals.covered, n: visibleCount })}
+            </p>
+          )}
         </div>
+
+        <MicroGrid
+          totals={shownTotals}
+          targets={tgt}
+          onOpenAll={() => setSheet('micros')}
+        />
 
         {/* ── Comidas del día ── */}
         {loading && entries.length === 0 ? (

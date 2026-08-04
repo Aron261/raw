@@ -784,8 +784,13 @@ const EN = {
   'No pasarse': "Don't exceed",
   'Alcanzar': 'Reach',
   'techo': 'cap',
-  'Micros · sin objetivos todavía ›': 'Micros · no targets yet ›',
-  'Micros · nada registrado hoy ›': 'Micros · nothing logged today ›',
+  '{ok} de {total}': '{ok} of {total}',
+  '{n} kcal por encima': '{n} kcal over',
+  'Quedan {n} kcal': '{n} kcal left',
+  '{cov} de {n} comidas con micros': '{cov} of {n} meals with micros',
+  'Ver los 16 y la cobertura del día ›': 'See all 16 and today\'s coverage ›',
+  'Sin objetivos de micros todavía. La app puede calcularlos con tu peso, tu grasa y tu fase.':
+    'No micro targets yet. The app can work them out from your weight, body fat and phase.',
   'Micros · {ok} de {total} en objetivo · {cov} de {n} comidas con datos ›':
     'Micros · {ok} of {total} on target · {cov} of {n} meals with data ›',
   '{n} de {total} comidas de hoy traen micros. Lo que falta no cuenta como cero: sencillamente no lo sabemos.':
