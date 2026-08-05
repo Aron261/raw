@@ -33,13 +33,16 @@ const str = (description: string) => ({ type: 'string', description })
 const num = (description: string) => ({ type: 'number', description })
 const bool = (description: string) => ({ type: 'boolean', description })
 
-// Los micros llegan como objeto suelto para no tener que declarar dieciséis
-// argumentos. La última frase de la descripción hace trabajo de verdad: sin
-// ella un modelo servicial rellena las dieciséis claves con ceros y destruye
-// la cuenta de cuántas comidas traen datos reales.
+// Los micros llegan como objeto suelto para no tener que declarar diecisiete
+// argumentos. La frase sobre omitir claves hace trabajo de verdad: sin ella un
+// modelo servicial rellena las diecisiete claves con ceros y destruye la
+// cuenta de cuántas comidas traen datos reales.
 const MICROS_ARG = {
   type: 'object',
-  description: `Micronutrientes con su unidad fija: ${MICRO_HINT}. Omite las que no conozcas — una clave ausente significa "desconocido", NO cero. No inventes valores: si solo sabes fibra y sodio, manda solo esos dos.`,
+  description: `Micronutrientes con su unidad fija: ${MICRO_HINT}. Omite las que no conozcas — una clave ausente significa "desconocido", NO cero. No inventes valores: si solo sabes fibra y sodio, manda solo esos dos. ` +
+    'IMPORTANTE con los dos azúcares: `azucar` es el TOTAL (incluye el de la fruta, la leche y las verduras) y `azucar_anadido` es solo el que alguien le echó a la comida — azúcar de mesa, jarabes, miel, concentrados de zumo, y el que traen los productos procesados. ' +
+    'Un refresco, una galleta o un yogur de sabores llevan los dos. Una manzana, un yogur natural o un vaso de leche llevan `azucar` y ningún añadido: ahí omite `azucar_anadido` — como con cualquier clave, no se manda cero. ' +
+    'En productos envasados de EE. UU. el añadido viene en la etiqueta como "Includes Xg Added Sugars". Si no lo sabes, omítelo en vez de copiar el total ahí: confundirlos convierte un día de fruta en una alarma.',
   additionalProperties: { type: 'number' },
 }
 

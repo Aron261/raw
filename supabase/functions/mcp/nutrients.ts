@@ -12,6 +12,7 @@
 
 export const MICROS: Record<string, { unit: 'g' | 'mg' | 'mcg'; max: number }> = {
   azucar:         { unit: 'g',   max: 500 },
+  azucar_anadido: { unit: 'g',   max: 500 },
   grasa_saturada: { unit: 'g',   max: 300 },
   sodio:          { unit: 'mg',  max: 30000 },
   colesterol:     { unit: 'mg',  max: 5000 },
@@ -37,7 +38,7 @@ export const MICRO_HINT = MICRO_KEYS.map(k => `${k}(${MICROS[k].unit})`).join(',
 /**
  * Solo claves conocidas, solo números finitos y positivos, recortados al
  * máximo plausible. Los ceros se descartan: una clave ausente significa
- * «desconocido», y guardar dieciséis ceros arruinaría la cuenta de cuántas
+ * «desconocido», y guardar diecisiete ceros arruinaría la cuenta de cuántas
  * comidas traen datos de verdad.
  */
 export function sanitizeMicros(input: unknown): Record<string, number> {
@@ -49,7 +50,20 @@ export function sanitizeMicros(input: unknown): Record<string, number> {
     if (!Number.isFinite(v) || v <= 0) continue
     out[key] = Math.min(v, MICROS[key].max)
   }
-  return out
+  return capAddedSugar(out)
+}
+
+/**
+ * El añadido es un subconjunto del total, así que no puede superarlo. Un modelo
+ * que confunda las dos claves dispararía el techo estricto del añadido con una
+ * cifra que el propio total desmiente.
+ */
+export function capAddedSugar<T extends Record<string, number>>(micros: T): T {
+  const { azucar, azucar_anadido } = micros
+  if (azucar !== undefined && azucar_anadido !== undefined && azucar_anadido > azucar) {
+    micros.azucar_anadido = azucar
+  }
+  return micros
 }
 
 /** Suma micros de varias filas. Una clave ausente en todas no aparece. */

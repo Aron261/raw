@@ -132,8 +132,8 @@ describe('paridad del registro de nutrientes', () => {
     .map(m => ({ key: m[1], unit: m[2], max: Number(m[3]) }))
 
   it('las dos listas se han podido leer', () => {
-    expect(desdeJs.length).toBe(16)
-    expect(desdeTs.length).toBe(16)
+    expect(desdeJs.length).toBe(17)
+    expect(desdeTs.length).toBe(17)
   })
 
   it('mismas claves en los dos lados', () => {

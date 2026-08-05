@@ -766,6 +766,7 @@ const EN = {
   // NO están aquí: translate() cae a la clave, que ya es el inglés correcto.
   // Ponerlas las marcaría como traducción sin hacer.
   'Azúcar': 'Sugar',
+  'Azúcar añadido': 'Added sugar',
   'Grasa saturada': 'Saturated fat',
   'Sodio': 'Sodium',
   'Colesterol': 'Cholesterol',
@@ -837,8 +838,8 @@ const EN = {
   'Grasa al 22% de las calorías: {g} g.': 'Fat at 22% of calories: {g} g.',
   'Los carbos son lo que queda: {g} g.': 'Carbs are whatever is left: {g} g.',
   'Fibra a 14 g por cada 1.000 kcal: {g} g.': 'Fiber at 14 g per 1,000 kcal: {g} g.',
-  'Sodio, azúcar, grasa saturada y colesterol son techos, no metas.':
-    'Sodium, sugar, saturated fat and cholesterol are caps, not goals.',
+  'Sodio, azúcar (total y añadido), grasa saturada y colesterol son techos, no metas.':
+    'Sodium, sugar (total and added), saturated fat and cholesterol are caps, not goals.',
   'Actividad deducida de tus {n} días por semana. Ajústala en Perfil.':
     'Activity inferred from your {n} days per week. Adjust it in Profile.',
   'Sin nivel de actividad, se asume moderado. Ajústalo en Perfil.':
