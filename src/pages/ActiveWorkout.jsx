@@ -284,7 +284,7 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
         }}>
           <span style={{ fontSize: '14px' }}>🏆</span>
           <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '-0.01em' }}>
-            {prCount} {prCount === 1 ? 'récord nuevo' : 'récords nuevos'}
+            {prCount} {t(prCount === 1 ? 'récord nuevo' : 'récords nuevos')}
           </span>
         </div>
       )}
@@ -921,7 +921,7 @@ export default function ActiveWorkout() {
               </div>
             )}
             <Button variant="secondary" full size="lg" onClick={() => setShowAdd(true)}>
-              + Agregar ejercicio
+              + {t('Agregar ejercicio')}
             </Button>
             {isEditing ? (
               <Button variant="primary" full size="lg" onClick={() => setIsEditing(false)}>

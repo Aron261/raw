@@ -280,7 +280,7 @@ export default function ExerciseRow({
           }}
           onClick={() => setShowPRBanner(false)}
         >
-          🏆 Nuevo récord personal
+          🏆 {t('Nuevo récord personal')}
         </div>
       )}
 
@@ -452,7 +452,7 @@ export default function ExerciseRow({
                       color={notesValue ? 'var(--c-action-text)' : 'var(--c-text)'}
                       onClick={() => { setShowNotes(n => !n); setTimeout(() => notesRef.current?.focus(), 80); setShowMenu(false) }}
                     >
-                      {notesValue ? 'Ver nota' : 'Agregar nota'}
+                      {t(notesValue ? 'Ver nota' : 'Agregar nota')}
                     </MenuItem>
                   )}
                   {onSwapExercise && (
@@ -504,7 +504,7 @@ export default function ExerciseRow({
                   onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--c-border)'; e.currentTarget.style.color = 'var(--c-text)' }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--c-border-subtle)'; e.currentTarget.style.color = 'var(--c-text-dim)' }}
                 >
-                  + Serie
+                  + {t('Serie')}
                 </button>
                 {sets.length > 0 && (
                   <button
@@ -518,7 +518,7 @@ export default function ExerciseRow({
                     onMouseEnter={e => { if (!allDone) { e.currentTarget.style.borderColor = 'var(--c-success)'; e.currentTarget.style.color = 'var(--c-success)' } }}
                     onMouseLeave={e => { if (!allDone) { e.currentTarget.style.borderColor = 'var(--c-border-subtle)'; e.currentTarget.style.color = 'var(--c-text-dim)' } }}
                   >
-                    ✓ Finalizar
+                    ✓ {t('Finalizar')}
                   </button>
                 )}
               </div>

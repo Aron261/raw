@@ -162,17 +162,17 @@ export default function Sidebar() {
       {/* Nav — sections (el índice "Menú" se fusionó con Inicio) */}
       <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: '1px', overflowY: 'auto' }}>
         <GroupLabel>{t('Entreno')}</GroupLabel>
-        <NavItem to="/"         label="Inicio"   Icon={BarbellIcon} exact />
-        <NavItem to="/progreso" label="Progreso" Icon={ProgressIcon} />
-        <NavItem to="/rutinas"  label="Rutinas"  Icon={RoutinesIcon} />
+        <NavItem to="/"         label={t('Inicio')}   Icon={BarbellIcon} exact />
+        <NavItem to="/progreso" label={t('Progreso')} Icon={ProgressIcon} />
+        <NavItem to="/rutinas"  label={t('Rutinas')}  Icon={RoutinesIcon} />
 
-        <GroupLabel>Vida</GroupLabel>
-        <NavItem to="/nutrition" label="Nutrición"  Icon={NutritionIcon} />
+        <GroupLabel>{t('Vida')}</GroupLabel>
+        <NavItem to="/nutrition" label={t('Nutrición')}  Icon={NutritionIcon} />
 
         {profile?.is_trainer && (
           <>
             <GroupLabel>{t('Coaching')}</GroupLabel>
-            <NavItem to="/coach" label="Coach" Icon={CoachIcon} />
+            <NavItem to="/coach" label={t('Coach')} Icon={CoachIcon} />
           </>
         )}
       </nav>

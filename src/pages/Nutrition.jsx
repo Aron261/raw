@@ -240,7 +240,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
                 transition: 'all 150ms',
               }}
             >
-              {m.label}
+              {t(m.label)}
             </button>
           ))}
         </div>
@@ -653,7 +653,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
                         ▾
                       </span>
                       <h2 style={{ fontFamily: 'var(--font-sans)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
-                        {m.label}
+                        {t(m.label)}
                       </h2>
                     </button>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', flexShrink: 0 }}>
@@ -665,7 +665,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
                       {!readOnly && (
                         <button
                           onClick={() => setSheet({ meal: m.id })}
-                          aria-label={`Agregar a ${m.label}`}
+                          aria-label={`${t('Agregar a')} ${t(m.label)}`}
                           style={{ color: 'var(--c-action-text)', fontSize: '22px', fontWeight: 300, lineHeight: 1, minWidth: '44px', minHeight: '44px', margin: '-12px -12px -12px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                         >
                           +

@@ -102,26 +102,26 @@ export default function QuickAddSheet({ onClose, onStartWorkout }) {
   }
 
   return (
-    <Sheet title="Agregar" onClose={onClose}>
+    <Sheet title={t('Agregar')} onClose={onClose}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <OptionRow
-          title="Empezar entreno"
-          sub="Desde tu rutina o en blanco"
+          title={t('Empezar entreno')}
+          sub={t('Desde tu rutina o en blanco')}
           onClick={() => onStartWorkout()}
         />
         <OptionRow
-          title="Registrar peso"
-          sub={latestLog ? `Último: ${latestLog.weight} ${latestLog.unit}` : 'Tu peso corporal de hoy'}
+          title={t('Registrar peso')}
+          sub={latestLog ? `${t('Último')}: ${latestLog.weight} ${latestLog.unit}` : t('Tu peso corporal de hoy')}
           onClick={() => setMode('peso')}
         />
         <OptionRow
-          title="Añadir comida"
-          sub="Macros y calorías de hoy"
+          title={t('Añadir comida')}
+          sub={t('Macros y calorías de hoy')}
           onClick={() => go('/nutrition')}
         />
         <OptionRow
-          title="Crear rutina"
-          sub="Recomendada, desde cero o desde un entreno"
+          title={t('Crear rutina')}
+          sub={t('Recomendada, desde cero o desde un entreno')}
           onClick={() => go('/rutinas', { create: true })}
         />
       </div>

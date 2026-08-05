@@ -45,6 +45,20 @@ const EN = {
   'Conexiones activas': 'Active connections',
   'Sonido al terminar el descanso': 'Sound when rest ends',
 
+  // ── Navegación y el botón "+" ──
+  // «Coach», «Social» y «RAW» se escriben igual en los dos idiomas y por eso
+  // no están: translate() cae a la clave, que ya es el inglés correcto.
+  // «Snack» se escribe igual en los dos idiomas: no va aquí, translate() cae
+  // a la clave. Meterla la marcaría como traducción hecha.
+  'Vida': 'Life',
+  'Agregar a': 'Add to',
+  'Nuevo récord personal': 'New personal record',
+  'Finalizar': 'Finish',
+  'Último': 'Last',
+  'Desde tu rutina o en blanco': 'From your routine or from scratch',
+  'Macros y calorías de hoy': 'Today’s macros and calories',
+  'Recomendada, desde cero o desde un entreno': 'Recommended, from scratch, or from a workout',
+
   // ── La primera vez ──
   'Tres cosas y entramos': 'Three things and we are in',
   'Se cambian luego en Perfil, cuando quieras.': 'You can change them later in Profile, any time.',
