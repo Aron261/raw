@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase } from '../lib/supabase'
 import { outbox } from '../lib/outbox'
+import { sessionCache } from '../lib/sessionCache'
 
 // Auth context
 export const AuthContext = createContext(null)
@@ -52,6 +53,7 @@ export function useAuthProvider() {
     // Never carry one account's unsynced writes into the next session on a
     // shared device — the same reason authed REST isn't service-worker cached.
     try { await outbox.clear() } catch { /* best-effort */ }
+    try { await sessionCache.clear() } catch { /* best-effort */ }
   }
 
   // Envía el correo de recuperación. El enlace lleva a /reset-password, donde
@@ -95,6 +97,7 @@ export function useAuthProvider() {
     if (error) throw error
     await supabase.auth.signOut()
     try { await outbox.clear() } catch { /* best-effort */ }
+    try { await sessionCache.clear() } catch { /* best-effort */ }
     setUser(null)
   }
 

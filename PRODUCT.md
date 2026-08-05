@@ -1,9 +1,5 @@
 # Product
 
-## Register
-
-product
-
 ## Users
 
 Two linked roles, both first-class:
@@ -21,13 +17,13 @@ Raw is a mobile-first PWA for logging strength training and coaching it remotely
 
 Raw is a hub of sections; the home screen is a poster-style index (one live number per section) and each section opens its own world:
 
-- **Entreno** — the original app: dashboard, active workout logging, history, routines, stats. The only section with a bottom tab bar (Menú · Inicio · + · Historial · Rutinas).
+- **Entreno** — the original app: dashboard, active workout logging, history, routines, stats. Reachable from the bottom tab bar (Inicio · Progreso · + · Nutrición · Rutinas).
 - **Nutrición** — meals with macros (P/C/G + kcal, auto-computed from macros when omitted) against daily targets, per-day view with day navigation.
-- **Longevidad** — supplement stack with a daily taken-checklist, and bloodwork results by marker with reference ranges and per-marker trends.
+- **Longevidad** — supplement stack with a daily taken-checklist. Bloodwork results by marker (reference ranges, per-marker trends) have a schema but no screen yet: entering a panel is a three-times-a-year chore, not what makes the section worth opening.
 - **Social** — planned (friends, workout feed, shared PRs); currently a declared placeholder.
 - **Coach** — the trainer panel, reachable from the hub for trainers.
 
-Other sections are single-screen with a back-to-menu header; the global "+ Empezar" workout action stays reachable from the hub (FAB) and the training tab bar.
+Other sections are single-screen with a back-to-home header; the global "+ Empezar" workout action stays reachable from the tab bar.
 
 ## Brand Personality
 
@@ -49,11 +45,11 @@ Other sections are single-screen with a back-to-menu header; the global "+ Empez
 2. **The number is the hero.** Weight, reps, PRs, deltas vs. last time — data is the content. Chrome recedes; figures lead. No decoration competes with the number that matters.
 3. **Honest feedback over hype.** Progress is shown by truthful comparison (beat it / matched it / fell short), not by celebration for its own sake. Earned signals only.
 4. **Two roles, one spine.** Lifter and trainer views share the same visual language and data model; the coaching layer feels like the same app seen from the other side, never a separate product.
-5. **Stark, not loud.** High contrast and a single decisive accent (the red) do the work. Restraint everywhere else so the accent always means something.
+5. **Stark, not loud.** High contrast and a single decisive accent do the work. Restraint everywhere else so the accent always means something — there is no second colour, not even for errors or destructive actions (see DESIGN.md).
 
 ## Accessibility & Inclusion
 
-- Target **WCAG 2.1 AA**. Body text ≥4.5:1; large/numeric display ≥3:1. The action accent (steel in Slate, pink in Riso) must clear contrast against both surfaces and any tinted state — verify, don't assume.
+- Target **WCAG 2.1 AA**. Body text ≥4.5:1; large/numeric display ≥3:1. The action accent must clear contrast against both surfaces and any tinted state — verify, don't assume. Ghost text is decoration: the moment it carries meaning (a nav label, a value), it needs a stronger token.
 - **Designed for hostile conditions**: bright gym lighting and outdoor sun, one-handed use, sweaty or gloved fingers. Tap targets ≥44px; never rely on hover; never rely on color alone to signal PR vs. regular set (pair with label/icon).
 - Honor `prefers-reduced-motion` — progress and PR feedback must read instantly without animation.
 - Spanish-first copy; keep strings translatable and avoid idioms that don't localize.

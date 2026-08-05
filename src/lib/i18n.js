@@ -36,6 +36,53 @@ const EN = {
   'Eliminar': 'Delete',
   'Editar': 'Edit',
   'Reintentar': 'Retry',
+  'No pudimos cargar esto.': 'We could not load this.',
+  'No pudimos cargar la actividad de tus clientes.':
+    'We could not load your clients’ activity.',
+  'No pudimos cargar tu perfil.': 'We could not load your profile.',
+  'No pudimos cargar tus ejercicios.': 'We could not load your exercises.',
+  'Según tu cuerpo': 'Based on your body',
+  'Conexiones activas': 'Active connections',
+  'Sonido al terminar el descanso': 'Sound when rest ends',
+
+  // ── Longevidad · suplementos ──
+  // «AM» y «PM» se escriben igual en los dos idiomas y por eso no están aquí.
+  'Longevidad': 'Longevity',
+  'Suplementos': 'Supplements',
+  'Añade tu stack': 'Add your stack',
+  'Pendientes hoy': 'Pending today',
+  'Añadir suplemento': 'Add supplement',
+  '{tomados} de {total} hoy': '{tomados} of {total} today',
+  'No pudimos cargar tus suplementos.': 'We could not load your supplements.',
+  'Sin suplementos todavía': 'No supplements yet',
+  'Añade lo que tomas y tendrás el checklist del día. Marcarlos lleva un toque.':
+    'Add what you take and you will get today’s checklist. Ticking them is one tap.',
+  'Marcar {nombre} como tomado': 'Mark {nombre} as taken',
+  'Quitar {nombre} del stack': 'Remove {nombre} from the stack',
+  'Nuevo suplemento': 'New supplement',
+  'Dosis': 'Dose',
+  'Opcional': 'Optional',
+  'Cuándo': 'When',
+  'Creatina': 'Creatine',
+  'No se pudo guardar': 'Could not save',
+  'Pre-entreno': 'Pre-workout',
+  'Con comida': 'With food',
+  'Antes de dormir': 'Before bed',
+  'Autorizada el {fecha}': 'Authorised on {fecha}',
+  'RAW no verifica este nombre. Si no reconoces la conexión, revócala.':
+    'RAW does not verify this name. If you do not recognise the connection, revoke it.',
+  'Revocar': 'Revoke',
+  'Revocando…': 'Revoking…',
+  '¿Seguro?': 'Sure?',
+  'No pudimos cargar tus conexiones.': 'We could not load your connections.',
+  'Todo lo que Claude cambie queda registrado y se puede deshacer. Los permisos de administrador y el borrado de cuenta solo se hacen desde esta app.':
+    'Everything Claude changes is logged and can be undone. Admin permissions and account deletion happen only in this app.',
+  'No se pudo guardar el grupo muscular. Inténtalo otra vez.':
+    'Could not save the muscle group. Try again.',
+  'No pudimos cargar los datos de este cliente.':
+    'We could not load this client’s data.',
+  'No pudimos cargar el progreso de este ejercicio.':
+    'We could not load this exercise’s progress.',
   'Volver': 'Back',
   'Deshacer': 'Undo',
   'Empezar': 'Start',
@@ -287,6 +334,11 @@ const EN = {
   'series sin sincronizar': 'sets not synced',
   'Sin conexión — tus series se guardan y se sincronizan al reconectar':
     'Offline — your sets are saved and sync when you reconnect',
+  'sincronizando': 'syncing',
+  'No se pudo empezar el entreno. Revisa tu conexión e inténtalo otra vez.':
+    'Could not start the workout. Check your connection and try again.',
+  'Sin respuesta del servidor — estás viendo lo último guardado':
+    'No response from the server — you are seeing the last saved state',
   'Aún no hay sesiones registradas de este ejercicio.': 'No sessions logged for this exercise yet.',
   'Cómo registrar': 'How to log',
   'El número tenue en cada campo es tu última vez.': 'The faint number in each field is your last time.',
@@ -592,6 +644,7 @@ const EN = {
   'Registra entrenos y aquí verás tus totales y tu progreso en el tiempo.':
     'Log workouts and you will see your totals and progress over time here.',
   'Editar ›': 'Edit ›',
+  'En Claude, entra en Ajustes › Conectores.': 'In Claude, go to Settings › Connectors.',
   'Elige "Añadir conector personalizado" y pega la URL.': 'Choose "Add custom connector" and paste the URL.',
   'Inicia sesión con esta misma cuenta de RAW y autoriza.': 'Sign in with this same RAW account and authorise.',
   'Macros ajustados a mano': 'Macros adjusted by hand',
@@ -766,6 +819,7 @@ const EN = {
   // NO están aquí: translate() cae a la clave, que ya es el inglés correcto.
   // Ponerlas las marcaría como traducción sin hacer.
   'Azúcar': 'Sugar',
+  'Azúcar añadido': 'Added sugar',
   'Grasa saturada': 'Saturated fat',
   'Sodio': 'Sodium',
   'Colesterol': 'Cholesterol',
@@ -837,8 +891,8 @@ const EN = {
   'Grasa al 22% de las calorías: {g} g.': 'Fat at 22% of calories: {g} g.',
   'Los carbos son lo que queda: {g} g.': 'Carbs are whatever is left: {g} g.',
   'Fibra a 14 g por cada 1.000 kcal: {g} g.': 'Fiber at 14 g per 1,000 kcal: {g} g.',
-  'Sodio, azúcar, grasa saturada y colesterol son techos, no metas.':
-    'Sodium, sugar, saturated fat and cholesterol are caps, not goals.',
+  'Sodio, azúcar (total y añadido), grasa saturada y colesterol son techos, no metas.':
+    'Sodium, sugar (total and added), saturated fat and cholesterol are caps, not goals.',
   'Actividad deducida de tus {n} días por semana. Ajústala en Perfil.':
     'Activity inferred from your {n} days per week. Adjust it in Profile.',
   'Sin nivel de actividad, se asume moderado. Ajústalo en Perfil.':

@@ -100,6 +100,55 @@ describe('guardas del servidor MCP', () => {
     expect(usos.every(op => op === 'select'), `nutrition_targets se usa con: ${usos.join(', ')}`).toBe(true)
   })
 
+  // La RLS de la app es MÁS ANCHA que este conector a propósito: un entrenador
+  // puede leer y editar las rutinas, los entrenos y la nutrición de sus
+  // clientes. Si una herramienta se apoya solo en la RLS, el conector de un
+  // entrenador devuelve datos de gente que nunca autorizó la conexión — y la
+  // pantalla de consentimiento promete lo contrario, en esas palabras. Por eso
+  // cada consulta a una tabla con dueño lleva su propio filtro por user_id.
+  it('toda consulta a una tabla con dueño se filtra por el usuario del token', () => {
+    const tools = sources.find(s => s.file === 'tools.ts')
+    const conDueno = [
+      'routines', 'workouts', 'goals', 'nutrition_entries', 'nutrition_foods',
+      'body_weight_logs', 'agent_writes', 'routine_revisions',
+      'nutrition_targets', 'public_workout_summary',
+    ]
+    const alcance = /\.eq\('user_id', userId\)|user_id:\s*userId/
+    for (const m of tools.code.matchAll(/\.from\('(\w+)'\)/g)) {
+      if (!conDueno.includes(m[1])) continue
+      const cadena = tools.code.slice(m.index, m.index + 400)
+      expect(cadena, `.from('${m[1]}') sin filtro por user_id`).toMatch(alcance)
+    }
+    // profiles se consulta por su clave primaria, que ES el id del usuario.
+    for (const m of tools.code.matchAll(/\.from\('profiles'\)/g)) {
+      expect(tools.code.slice(m.index, m.index + 400)).toMatch(/\.eq\('id', userId\)/)
+    }
+  })
+
+  // Las RPC no admiten un .eq() encima, así que el alcance se comprueba antes
+  // de llamarlas. Sin esto, update_routine_tree acepta el id de la rutina de un
+  // cliente porque la función confía en la RLS del entrenador.
+  it('las RPC que reciben un id ajeno comprueban antes de quién es', () => {
+    const tools = sources.find(s => s.file === 'tools.ts')
+    expect(tools.code, 'falta el helper de propiedad de rutina').toMatch(/async function assertOwnRoutine/)
+    const conId = ['update_routine_tree', 'routine_snapshot', 'restore_routine_revision']
+    for (const rpc of conId) {
+      const i = tools.code.indexOf(`rpc('${rpc}'`)
+      expect(i, `no se encuentra la llamada a ${rpc}`).toBeGreaterThan(-1)
+      // La comprobación va en el mismo handler, justo antes de la llamada.
+      const antes = tools.code.slice(Math.max(0, i - 600), i)
+      expect(antes, `${rpc} se llama sin comprobar el dueño`)
+        .toMatch(/assertOwnRoutine|\.eq\('user_id', userId\)/)
+    }
+  })
+
+  // Interpolar texto del modelo en un .or() deja reescribir el filtro: en la
+  // gramática de PostgREST la coma y los paréntesis son sintaxis, no texto.
+  it('ningún filtro se construye interpolando argumentos de la herramienta', () => {
+    const tools = sources.find(s => s.file === 'tools.ts')
+    expect(tools.code, 'hay un filtro con texto interpolado').not.toMatch(/\.or\(`/)
+  })
+
   // El CHECK de la base solo acepta estos cuatro. Sin el enum en el esquema de
   // la herramienta, un "breakfast" bien intencionado acababa en una violación
   // de restricción traducida a un «Los datos no son válidos» que no dice nada.
@@ -132,8 +181,8 @@ describe('paridad del registro de nutrientes', () => {
     .map(m => ({ key: m[1], unit: m[2], max: Number(m[3]) }))
 
   it('las dos listas se han podido leer', () => {
-    expect(desdeJs.length).toBe(16)
-    expect(desdeTs.length).toBe(16)
+    expect(desdeJs.length).toBe(17)
+    expect(desdeTs.length).toBe(17)
   })
 
   it('mismas claves en los dos lados', () => {

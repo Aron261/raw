@@ -14,6 +14,7 @@ const ResetPassword  = lazy(() => import('./pages/ResetPassword'))
 const Training       = lazy(() => import('./pages/Training'))
 const Nutrition      = lazy(() => import('./pages/Nutrition'))
 const Social         = lazy(() => import('./pages/Social'))
+const Longevidad     = lazy(() => import('./pages/Longevidad'))
 const ActiveWorkout  = lazy(() => import('./pages/ActiveWorkout'))
 const ExerciseDetail = lazy(() => import('./pages/ExerciseDetail'))
 const Progreso       = lazy(() => import('./pages/Progreso'))
@@ -174,6 +175,7 @@ function AppWithAuth() {
           {/* Nutrición · Social */}
           <Route path="/nutrition"  element={<R auth={auth} element={<Nutrition />} />} />
           <Route path="/social"     element={<R auth={auth} element={<Social />} />} />
+          <Route path="/longevidad" element={<R auth={auth} element={<Longevidad />} />} />
 
           <Route path="/profile"    element={<R auth={auth} element={<Profile />} />} />
 

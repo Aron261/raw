@@ -17,6 +17,7 @@ import { useChartColors } from '../lib/chartColors'
 import { formatVolume } from '../lib/format'
 import { ChartTooltip } from '../components/charts/chartTheme'
 import { useSchedule } from '../hooks/useSchedule'
+import { useSupplements } from '../hooks/useSupplements'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Sheet, Field, Button, LiveRegion, UndoSnackbar, UnitToggle } from '../components/ui'
@@ -522,6 +523,16 @@ export default function Training() {
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
   const [startingCoachId, setStartingCoachId] = useState(null)
+  // Empezar un entreno es el primer toque del flujo y necesita red. Fallaba
+  // solo a la consola: en un sótano el botón parpadeaba y no pasaba nada, sin
+  // manera de saber si había sido la señal o la app.
+  const [startError, setStartError] = useState(null)
+
+  // El checklist de hoy, para el chip de la portada. Va por la caché
+  // compartida, así que abrir Longevidad después no vuelve a pedirlo.
+  const { supplements } = useSupplements()
+  const suplTotal = supplements.length
+  const suplTomados = supplements.filter(s => s.taken).length
 
   // Undoable goal delete (shared primitive) — hides optimistically, commits
   // after a grace window, announces state to screen readers.
@@ -552,6 +563,7 @@ export default function Training() {
     const day = (routine.routine_days || [])[0]
     if (!day) return
     setStartingCoachId(routine.id)
+    setStartError(null)
     try {
       const workout = await startWorkoutFromRoutineDay({
         routineId: routine.id,
@@ -562,6 +574,7 @@ export default function Training() {
       navigate(`/workout/${workout.id}`)
     } catch (err) {
       console.error('Error al iniciar entreno del coach:', err)
+      setStartError(t('No se pudo empezar el entreno. Revisa tu conexión e inténtalo otra vez.'))
     } finally {
       setStartingCoachId(null)
     }
@@ -591,11 +604,13 @@ export default function Training() {
       return
     }
     setStartingWorkout(true)
+    setStartError(null)
     try {
       const workout = await createWorkout()
       navigate(`/workout/${workout.id}`)
     } catch (err) {
       console.error('Error al iniciar entreno:', err)
+      setStartError(t('No se pudo empezar el entreno. Revisa tu conexión e inténtalo otra vez.'))
     } finally {
       setStartingWorkout(false)
     }
@@ -608,6 +623,7 @@ export default function Training() {
     const hasExercises = (nextDay.routine_day_exercises || []).some(e => e.exercise_name?.trim())
     if (!hasExercises) return
     setStartingRoutineWorkout(true)
+    setStartError(null)
     try {
       const workout = await startWorkoutFromRoutineDay({
         routineId: activeCycle.id,
@@ -618,6 +634,7 @@ export default function Training() {
       navigate(`/workout/${workout.id}`)
     } catch (err) {
       console.error('Error al iniciar entreno de rutina:', err)
+      setStartError(t('No se pudo empezar el entreno. Revisa tu conexión e inténtalo otra vez.'))
     } finally {
       setStartingRoutineWorkout(false)
     }
@@ -949,6 +966,12 @@ export default function Training() {
         {/* ── CTA principal ── */}
         {!loading && !error && (
           <div style={{ marginBottom: '20px' }}>
+            {/* Empezar entreno necesita red y puede fallar. Va encima del CTA
+                porque es la respuesta al toque que se acaba de dar. */}
+            {startError && (
+              <div role="alert" style={{ ...ERROR_STYLE, marginBottom: '12px' }}>{startError}</div>
+            )}
+
             {/* Si hay ciclo activo: tarjeta con el día sugerido */}
             {showCycleCard && (
               <EntrenaHoyCard
@@ -1122,9 +1145,21 @@ export default function Training() {
                 hint={latestWeight ? null : t('Aún sin registrar')}
                 onClick={() => navigate('/profile?s=caracteristicas')}
               />
+              {/* Vacío también entra: si el chip solo apareciera con stack ya
+                  cargado, nadie descubriría nunca la sección. Mismo trato que
+                  el peso corporal sin registrar. */}
+              <Chip
+                index={2}
+                label={t('Suplementos')}
+                value={suplTotal > 0 ? `${suplTomados}/${suplTotal}` : '—'}
+                hint={suplTotal === 0
+                  ? t('Añade tu stack')
+                  : suplTomados < suplTotal ? t('Pendientes hoy') : null}
+                onClick={() => navigate('/longevidad')}
+              />
               {profile?.is_trainer && (
                 <Chip
-                  index={2}
+                  index={3}
                   label={t('Coach')}
                   live={unread > 0}
                   value={unread > 0 ? `${unread} ${t('sin leer')}` : t('Tus clientes')}

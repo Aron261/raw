@@ -4,6 +4,7 @@ import Layout from '../components/Layout'
 import ExerciseRow from '../components/ExerciseRow'
 import ExerciseDeck from '../components/ExerciseDeck'
 import RestTimerSheet from '../components/RestTimerSheet'
+import { primeChime } from '../lib/chime'
 import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } from '../hooks/useWorkout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -416,7 +417,7 @@ export default function ActiveWorkout() {
   const unsynced = useOutboxCount(id)
 
   const {
-    workout, workoutExercises, loading, error,
+    workout, workoutExercises, loading, error, stale,
     updateWorkoutName, finishWorkout,
     addExercise, replaceExercise, updateUnit, updateExerciseNotes, addSet, updateSet, deleteSet, removeExercise, moveExercise,
   } = useActiveWorkout(id)
@@ -476,6 +477,10 @@ export default function ActiveWorkout() {
   const [rest, setRest] = useState(null) // { endsAt, total, id } | null
   const startRest = useCallback((seconds) => {
     if (!(seconds > 0)) return
+    // El descanso arranca desde un toque (marcar la serie) y ahí es donde iOS
+    // permite despertar el audio. Cuando el descanso termina ya no hay gesto
+    // ninguno, así que si no se ceba aquí el aviso no llega a sonar.
+    primeChime()
     setRest({ endsAt: Date.now() + seconds * 1000, total: seconds, id: Date.now() })
   }, [])
   const extendRest = useCallback((seconds) => {
@@ -697,8 +702,10 @@ export default function ActiveWorkout() {
         )}
 
         {/* Sync status — one quiet line. Offline, or online with a backlog
-            still draining: say how many sets are waiting. Silent when synced. */}
-        {(!online || unsynced > 0) && (
+            still draining: say how many sets are waiting. Silent when synced.
+            `stale` cubre el caso que no se ve en navigator.onLine: hay red pero
+            el servidor no contestó, así que esto es la foto guardada. */}
+        {(!online || unsynced > 0 || stale) && (
           <div
             role="status"
             style={{
@@ -717,8 +724,10 @@ export default function ActiveWorkout() {
               letterSpacing: '-0.01em', color: 'var(--c-action-text)',
             }}>
               {unsynced > 0
-                ? `${unsynced} ${unsynced === 1 ? 'serie sin sincronizar' : 'series sin sincronizar'}${online ? ' — sincronizando' : ''}`
-                : 'Sin conexión — tus series se guardan y se sincronizan al reconectar'}
+                ? `${unsynced} ${t(unsynced === 1 ? 'serie sin sincronizar' : 'series sin sincronizar')}${online ? ` — ${t('sincronizando')}` : ''}`
+                : !online
+                  ? t('Sin conexión — tus series se guardan y se sincronizan al reconectar')
+                  : t('Sin respuesta del servidor — estás viendo lo último guardado')}
             </span>
           </div>
         )}

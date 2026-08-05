@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import { SPRING_ENTER, SPRING_SETTLE } from '../lib/motion'
 import { pressable } from '../lib/ui'
 import { useLang } from '../hooks/useLang'
+import { chimeEnabled, setChimeEnabled, primeChime, playChime } from '../lib/chime'
 
 /*
  * El descanso entre series.
@@ -61,13 +62,28 @@ export default function RestTimerSheet({ restId, endsAt, total, onExtend, onDism
     return () => clearTimeout(id)
   }, [exiting, onDismiss, restId])
 
-  // Al llegar a cero: una vibración, un momento de "Listo" y se va.
+  // Al llegar a cero: aviso, un momento de "Listo" y se va.
+  //
+  // La vibración sola no bastaba: navigator.vibrate no existe en iOS Safari,
+  // así que en iPhone —con el móvil en el bolsillo o la pantalla apagada— el
+  // fin del descanso no se notaba. El tono es el aviso que sí llega ahí.
   useEffect(() => {
     if (!done || exiting) return
     try { navigator.vibrate?.([150, 80, 150]) } catch {}
+    playChime()
     const id = setTimeout(leave, 1800)
     return () => clearTimeout(id)
   }, [done, exiting, leave])
+
+  const [sonido, setSonido] = useState(chimeEnabled)
+  const alternarSonido = () => {
+    const next = !sonido
+    setChimeEnabled(next)
+    setSonido(next)
+    // Encenderlo ES un gesto: se aprovecha para desbloquear el audio, porque
+    // si no iOS no dejaría sonar el descanso que ya está corriendo.
+    if (next) primeChime()
+  }
 
   const frac = total > 0 ? remaining / total : 0
 
@@ -170,6 +186,19 @@ export default function RestTimerSheet({ restId, endsAt, total, onExtend, onDism
             {...pressable(0.97)}
           >
             {done ? t('Cerrar') : t('Saltar')}
+          </button>
+
+          {/* El interruptor vive aquí y no en Ajustes: es donde se descubre el
+              sonido —justo después de oírlo— y donde se quiere apagar. */}
+          <button
+            onClick={alternarSonido}
+            role="switch"
+            aria-checked={sonido}
+            aria-label={t('Sonido al terminar el descanso')}
+            style={{ ...sheetBtn, flexShrink: 0, width: '44px', fontSize: '15px', color: sonido ? 'var(--c-text)' : 'var(--c-text-ghost)' }}
+            {...pressable(0.97)}
+          >
+            <span aria-hidden="true">{sonido ? '🔔' : '🔕'}</span>
           </button>
         </div>
       </motion.div>

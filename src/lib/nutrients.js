@@ -35,7 +35,17 @@
 // un toque de distancia, en la hoja completa.
 export const NUTRIENTS = [
   // Techos: los cuatro que vienen de etiqueta, y por eso los más fiables.
+  // Azúcar TOTAL y AÑADIDO son dos cosas distintas y solo una es accionable.
+  // El total incluye el de la fruta y el de la leche, así que un techo
+  // estricto ahí pinta de rojo un día de comer bien — y un indicador que
+  // siempre está en rojo deja de mirarse. El añadido es el que se decide: lo
+  // que alguien le echó a la comida.
+  //
+  // Se puede saber, además: las etiquetas de EE. UU. lo declaran aparte desde
+  // 2016, y en comida sin etiqueta es una pregunta de receta (¿lleva salsa
+  // dulce, pan, bebida azucarada?) y no de laboratorio.
   { key: 'azucar',         label: 'Azúcar',         unit: 'g',   decimals: 1, dir: 'ceiling', max: 500 },
+  { key: 'azucar_anadido', label: 'Azúcar añadido', unit: 'g',   decimals: 1, dir: 'ceiling', max: 500 },
   { key: 'grasa_saturada', label: 'Grasa saturada', unit: 'g',   decimals: 1, dir: 'ceiling', max: 300 },
   { key: 'sodio',          label: 'Sodio',          unit: 'mg',  decimals: 0, dir: 'ceiling', max: 30000 },
   { key: 'colesterol',     label: 'Colesterol',     unit: 'mg',  decimals: 0, dir: 'ceiling', max: 5000 },
@@ -135,7 +145,20 @@ export function sanitizeMicros(input) {
     const clamped = roundTo(Math.min(v, n.max), n.decimals)
     if (clamped > 0) out[key] = clamped
   }
-  return out
+  return capAddedSugar(out)
+}
+
+/**
+ * El añadido es un subconjunto del total, así que no puede superarlo. Quien
+ * confunda las dos claves dispararía el techo estricto del añadido con una
+ * cifra que el propio total desmiente.
+ */
+export function capAddedSugar(micros) {
+  const { azucar, azucar_anadido: anadido } = micros
+  if (azucar !== undefined && anadido !== undefined && anadido > azucar) {
+    micros.azucar_anadido = azucar
+  }
+  return micros
 }
 
 /** Las claves con valor, en el orden del registro (no en el de inserción). */

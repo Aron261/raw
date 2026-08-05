@@ -4,6 +4,9 @@ import { useAuth } from './useAuth'
 import { useCachedResource } from '../lib/swr'
 import { getOrCreateExerciseId, resolveExerciseIds as resolveExerciseIdsCanonical } from '../lib/exercises'
 import { outbox } from '../lib/outbox'
+import { sessionCache } from '../lib/sessionCache'
+import { useProfile } from './useProfile'
+import { defaultLiftUnit } from '../lib/units'
 import { calc1RM } from '../lib/progress'
 
 // How many set writes are still queued (unsynced) for a workout — drives the
@@ -66,6 +69,8 @@ export const formatDuration = (startedAt, endedAt) => {
 // refreshes quietly instead of refetching with a skeleton each time.
 export function useWorkouts() {
   const { user } = useAuth()
+  const { profile } = useProfile()
+  const unit = defaultLiftUnit(profile)
   const key = user ? `workouts:${user.id}` : null
 
   const fetcher = useCallback(async () => {
@@ -170,7 +175,7 @@ export function useWorkouts() {
         workout_id: newWorkout.id,
         exercise_id: idByName[we.exercises.name],
         sort_order: i,
-        unit: we.unit || 'lb',
+        unit: we.unit || unit,
       }))
     if (rows.length > 0) {
       const { error: weErr } = await supabase.from('workout_exercises').insert(rows)
@@ -209,7 +214,7 @@ export function useWorkouts() {
         workout_id: workoutData.id,
         exercise_id: idByName[ex.exercise_name],
         sort_order: i,
-        unit: 'lb',
+        unit,
       }))
     if (rows.length > 0) {
       const { error: weErr } = await supabase.from('workout_exercises').insert(rows)
@@ -226,10 +231,14 @@ export function useWorkouts() {
 // Hook to manage a single active workout
 export function useActiveWorkout(workoutId) {
   const { user } = useAuth()
+  const { profile } = useProfile()
   const [workout, setWorkout] = useState(null)
   const [workoutExercises, setWorkoutExercises] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  // Se está pintando la foto guardada porque el servidor no contesta. No es un
+  // error: las series se siguen registrando y encolando con normalidad.
+  const [stale, setStale] = useState(false)
 
   const fetchWorkout = useCallback(async () => {
     if (!workoutId || !user) return
@@ -291,8 +300,20 @@ export function useActiveWorkout(workoutId) {
       })
 
       setWorkoutExercises(sorted)
+      setStale(false)
     } catch (err) {
-      setError(err.message)
+      // Sin conexión a mitad de entreno, la foto guardada es infinitamente
+      // mejor que una pantalla de error: deja seguir viendo y registrando, y
+      // lo que se escriba se encola igual. Solo si no hay foto —primera carga
+      // de este entreno en este dispositivo— queda un error que mostrar.
+      const snap = await sessionCache.load(workoutId).catch(() => null)
+      if (snap) {
+        setWorkout(snap.workout)
+        setWorkoutExercises(snap.workoutExercises)
+        setStale(true)
+      } else {
+        setError(err.message)
+      }
     } finally {
       setLoading(false)
     }
@@ -301,6 +322,29 @@ export function useActiveWorkout(workoutId) {
   useEffect(() => {
     fetchWorkout()
   }, [fetchWorkout])
+
+  // Pintar la foto antes de que conteste el servidor: en el gimnasio la red
+  // tarda o no llega, y el entreno tiene que aparecer al instante igual. Lo que
+  // traiga el servidor después la reemplaza.
+  useEffect(() => {
+    if (!workoutId) return
+    let alive = true
+    sessionCache.load(workoutId).then(snap => {
+      if (!alive || !snap) return
+      setWorkout(prev => prev ?? snap.workout)
+      setWorkoutExercises(prev => (prev.length ? prev : snap.workoutExercises))
+      setLoading(false)
+    }).catch(() => { /* sin foto: se espera al servidor */ })
+    return () => { alive = false }
+  }, [workoutId])
+
+  // Guardar tras CADA cambio del estado local, no solo tras traer del servidor:
+  // así la foto incluye las series que aún están en la cola. Guardar la
+  // respuesta del servidor borraría de la vista justo esas.
+  useEffect(() => {
+    if (!workoutId || !workout) return
+    sessionCache.save(workoutId, { workout, workoutExercises }).catch(() => { /* mejor esfuerzo */ })
+  }, [workoutId, workout, workoutExercises])
 
   const updateWorkoutName = async (name) => {
     const { error: err } = await supabase
@@ -324,6 +368,8 @@ export function useActiveWorkout(workoutId) {
       .eq('id', workoutId)
     if (err) throw err
     setWorkout(prev => ({ ...prev, ended_at: endedAt }))
+    // El entreno ya está cerrado en el servidor: su foto solo ocuparía sitio.
+    await sessionCache.remove(workoutId).catch(() => { /* mejor esfuerzo */ })
   }
 
   // Add exercise to workout (creates exercise if not exists, then adds workout_exercise)
@@ -344,7 +390,7 @@ export function useActiveWorkout(workoutId) {
         workout_id: workoutId,
         exercise_id: exerciseId,
         sort_order: nextOrder,
-        unit: 'lb'
+        unit: defaultLiftUnit(profile)
       })
 
     if (weError) throw weError
@@ -533,6 +579,7 @@ export function useActiveWorkout(workoutId) {
     workoutExercises,
     loading,
     error,
+    stale,
     fetchWorkout,
     updateWorkoutName,
     finishWorkout,
@@ -553,71 +600,74 @@ export function useExercisePR(exerciseName, userId) {
   const [prSets, setPrSets] = useState([]) // history of best sets per workout
   const [allTimePR, setAllTimePR] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const fetchPRs = useCallback(async () => {
     if (!exerciseName || !userId) return
+    setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('workouts')
+        .select(`
+          id, started_at,
+          workout_exercises!inner (
+            id, unit,
+            exercises!inner ( name ),
+            sets ( id, set_number, reps, weight )
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('workout_exercises.exercises.name', exerciseName)
+        .order('started_at', { ascending: true })
 
-    const fetchPRs = async () => {
-      setLoading(true)
-      try {
-        const { data, error } = await supabase
-          .from('workouts')
-          .select(`
-            id, started_at,
-            workout_exercises!inner (
-              id, unit,
-              exercises!inner ( name ),
-              sets ( id, set_number, reps, weight )
-            )
-          `)
-          .eq('user_id', userId)
-          .eq('workout_exercises.exercises.name', exerciseName)
-          .order('started_at', { ascending: true })
+      if (error) throw error
 
-        if (error) throw error
-
-        // Build progression data: best 1RM per workout session
-        const sessionData = (data || []).map(workout => {
-          const allSets = workout.workout_exercises.flatMap(we => we.sets || [])
-          const unit = workout.workout_exercises[0]?.unit || 'lb'
-          const best1RM = allSets.reduce((best, set) => {
-            const rm = calc1RM(set.weight, set.reps)
-            return rm > best ? rm : best
-          }, 0)
-          const bestSet = allSets.reduce((best, set) => {
-            const rm = calc1RM(set.weight, set.reps)
-            const bestRm = best ? calc1RM(best.weight, best.reps) : 0
-            return rm > bestRm ? set : best
-          }, null)
-
-          return {
-            date: workout.started_at,
-            best1RM,
-            bestSet,
-            unit,
-            sets: allSets,
-            workoutId: workout.id
-          }
-        })
-
-        setPrSets(sessionData)
-
-        // Find all-time PR
-        const pr = sessionData.reduce((best, session) => {
-          return session.best1RM > (best?.best1RM || 0) ? session : best
+      // Build progression data: best 1RM per workout session
+      const sessionData = (data || []).map(workout => {
+        const allSets = workout.workout_exercises.flatMap(we => we.sets || [])
+        const unit = workout.workout_exercises[0]?.unit || 'lb'
+        const best1RM = allSets.reduce((best, set) => {
+          const rm = calc1RM(set.weight, set.reps)
+          return rm > best ? rm : best
+        }, 0)
+        const bestSet = allSets.reduce((best, set) => {
+          const rm = calc1RM(set.weight, set.reps)
+          const bestRm = best ? calc1RM(best.weight, best.reps) : 0
+          return rm > bestRm ? set : best
         }, null)
-        setAllTimePR(pr)
-      } catch (err) {
-        console.error('Error fetching PR:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
 
-    fetchPRs()
+        return {
+          date: workout.started_at,
+          best1RM,
+          bestSet,
+          unit,
+          sets: allSets,
+          workoutId: workout.id
+        }
+      })
+
+      setPrSets(sessionData)
+
+      // Find all-time PR
+      const pr = sessionData.reduce((best, session) => {
+        return session.best1RM > (best?.best1RM || 0) ? session : best
+      }, null)
+      setAllTimePR(pr)
+      setError(null)
+    } catch (err) {
+      console.error('Error fetching PR:', err)
+      // Sin esto, un fallo de red se veía como «Sin datos aún»: la pantalla
+      // le decía a alguien con años de historial que nunca había hecho ese
+      // ejercicio. Un fallo y un historial vacío no se parecen en nada.
+      setError(err.message || 'Error inesperado')
+    } finally {
+      setLoading(false)
+    }
   }, [exerciseName, userId])
 
-  return { prSets, allTimePR, loading }
+  useEffect(() => { fetchPRs() }, [fetchPRs])
+
+  return { prSets, allTimePR, loading, error, refetch: fetchPRs }
 }
 
 // Hook to get all-time best weight for an exercise (for PR badge in active workout)

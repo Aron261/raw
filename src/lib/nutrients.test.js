@@ -10,9 +10,9 @@ import {
 } from './nutrients'
 
 describe('el registro', () => {
-  it('son dieciséis nutrientes, sin claves repetidas', () => {
-    expect(NUTRIENTS).toHaveLength(16)
-    expect(new Set(MICRO_KEYS).size).toBe(16)
+  it('son diecisiete nutrientes, sin claves repetidas', () => {
+    expect(NUTRIENTS).toHaveLength(17)
+    expect(new Set(MICRO_KEYS).size).toBe(17)
   })
 
   it('las claves son ASCII sin acentos (trampa de normalización en jsonb)', () => {
@@ -29,9 +29,9 @@ describe('el registro', () => {
     }
   })
 
-  it('los techos son exactamente estos cuatro', () => {
+  it('los techos son exactamente estos cinco', () => {
     expect(CEILINGS.map(n => n.key)).toEqual(
-      ['azucar', 'grasa_saturada', 'sodio', 'colesterol']
+      ['azucar', 'azucar_anadido', 'grasa_saturada', 'sodio', 'colesterol']
     )
     expect(FLOORS).toHaveLength(12)
   })
@@ -48,7 +48,7 @@ describe('el registro', () => {
   })
 
   it('los techos van primero: son los de etiqueta y los más fiables', () => {
-    expect(NUTRIENTS.slice(0, 4).every(n => n.dir === 'ceiling')).toBe(true)
+    expect(NUTRIENTS.slice(0, 5).every(n => n.dir === 'ceiling')).toBe(true)
   })
 })
 
@@ -134,6 +134,20 @@ describe('sanitizeMicros', () => {
 
   it('convierte números que llegan como texto (los inputs devuelven strings)', () => {
     expect(sanitizeMicros({ fibra: '3.5' })).toEqual({ fibra: 3.5 })
+  })
+
+  it('el azúcar añadido no puede superar al total', () => {
+    expect(sanitizeMicros({ azucar: 12, azucar_anadido: 30 }))
+      .toEqual({ azucar: 12, azucar_anadido: 12 })
+  })
+
+  it('sin total, el añadido pasa tal cual: no hay nada que lo desmienta', () => {
+    expect(sanitizeMicros({ azucar_anadido: 30 })).toEqual({ azucar_anadido: 30 })
+  })
+
+  it('el añadido menor o igual al total se respeta', () => {
+    expect(sanitizeMicros({ azucar: 30, azucar_anadido: 12 }))
+      .toEqual({ azucar: 30, azucar_anadido: 12 })
   })
 })
 

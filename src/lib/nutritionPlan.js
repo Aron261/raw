@@ -194,10 +194,17 @@ const CEILING_FLAT = { sodio: 2300, colesterol: 300 }
  *   · Techos fijos — sodio y colesterol.
  *   · Pisos RDA — el resto, por sexo y edad.
  *
- * El azúcar es un techo del 15% de las calorías, no del 10% de la OMS: aquel
- * 10% es para azúcar AÑADIDO y todo lo que la app va a recibir es azúcar
- * TOTAL. Con un techo del 10%, un día de fruta entera sale en rojo, que es la
- * clase de error que enseña a ignorar la pantalla.
+ * Los dos azúcares llevan techos muy distintos a propósito:
+ *
+ *   · TOTAL al 15% de las calorías. Incluye el de la fruta y el de la leche,
+ *     así que es un tope de cordura, no una meta: sirve para cazar dos litros
+ *     de zumo, no para reñir por un plátano.
+ *   · AÑADIDO al 5%, que es el umbral donde la OMS dice que hay beneficio
+ *     adicional (su recomendación firme es el 10%). Ese sí es el que se
+ *     decide, y por eso puede ser exigente sin volverse ruido.
+ *
+ * Antes solo existía el total, y ponerle el 10% de la OMS pintaba de rojo un
+ * día de fruta entera — la clase de error que enseña a ignorar la pantalla.
  *
  * Sexo desconocido: los pisos toman el MAYOR de los dos y los techos el MENOR.
  * Un piso alto de más es inofensivo (significa comer más espinaca); un piso
@@ -211,6 +218,7 @@ export function computeMicroTargets({ kcal, sex, age }) {
   const out = {
     fibra:          (14 * k) / 1000,
     azucar:         (k * 0.15) / KCAL_PER_G.carbs,
+    azucar_anadido: (k * 0.05) / KCAL_PER_G.carbs,
     grasa_saturada: (k * 0.10) / KCAL_PER_G.fat,
     ...CEILING_FLAT,
   }
@@ -330,7 +338,7 @@ export function recommendPlan(input = {}) {
 
   reasons.push({ id: 'carbs_rest', key: 'Los carbos son lo que queda: {g} g.', vars: { g: macros.carbs_g } })
   reasons.push({ id: 'fiber_scaled', key: 'Fibra a 14 g por cada 1.000 kcal: {g} g.', vars: { g: micros.fibra } })
-  reasons.push({ id: 'ceilings', key: 'Sodio, azúcar, grasa saturada y colesterol son techos, no metas.', vars: {} })
+  reasons.push({ id: 'ceilings', key: 'Sodio, azúcar (total y añadido), grasa saturada y colesterol son techos, no metas.', vars: {} })
 
   // ── Avisos ──
   if (floored) {

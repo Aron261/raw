@@ -18,62 +18,15 @@
 //
 // Storage is behind a tiny backend interface: IndexedDB in the browser, an
 // in-memory map elsewhere (tests, SSR), so the queue semantics are testable
-// without a real database.
+// without a real database. Ese backend vive en lib/idb.js, compartido con la
+// foto de la sesión (lib/sessionCache.js).
 
-const DB_NAME = 'raw-outbox'
-const STORE = 'ops'
+import { openStore } from './idb'
 
-// ── Backends ────────────────────────────────────────────────────────────
-function memoryBackend() {
-  const map = new Map()
-  return {
-    async getAll() { return [...map.values()] },
-    async put(op) { map.set(op.id, op) },
-    async delete(id) { map.delete(id) },
-    async clear() { map.clear() },
-  }
-}
-
-function idbBackend() {
-  let dbp = null
-  const open = () => (dbp ||= new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1)
-    req.onupgradeneeded = () => {
-      const db = req.result
-      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' })
-    }
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error)
-  }))
-  const tx = async (mode, fn) => {
-    const db = await open()
-    return new Promise((resolve, reject) => {
-      const t = db.transaction(STORE, mode)
-      const store = t.objectStore(STORE)
-      const out = fn(store)
-      t.oncomplete = () => resolve(out?._result ?? out)
-      t.onerror = () => reject(t.error)
-      t.onabort = () => reject(t.error)
-    })
-  }
-  const reqValue = (request) => { const box = {}; request.onsuccess = () => { box._result = request.result }; return box }
-  return {
-    async getAll() { return tx('readonly', s => reqValue(s.getAll())) },
-    async put(op) { return tx('readwrite', s => { s.put(op) }) },
-    async delete(id) { return tx('readwrite', s => { s.delete(id) }) },
-    async clear() { return tx('readwrite', s => { s.clear() }) },
-  }
-}
-
-function pickBackend() {
-  try {
-    if (typeof indexedDB !== 'undefined' && indexedDB) return idbBackend()
-  } catch { /* locked-down environments */ }
-  return memoryBackend()
-}
+const STORE = { dbName: 'raw-outbox', storeName: 'ops', keyPath: 'id' }
 
 // ── Outbox ──────────────────────────────────────────────────────────────
-export function createOutbox(backend = pickBackend()) {
+export function createOutbox(backend = openStore(STORE)) {
   let seq = 0
   const subscribers = new Set()
   const bump = async () => { for (const cb of subscribers) { try { cb() } catch { /* ignore */ } } }

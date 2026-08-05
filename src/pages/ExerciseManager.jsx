@@ -8,6 +8,7 @@ import LinkExerciseSheet from '../components/LinkExerciseSheet'
 import { MUSCLE_GROUPS, LEGACY_GROUPS } from '../lib/muscleGroups'
 import { useLang } from '../hooks/useLang'
 import { clampLines } from '../lib/ui'
+import { ErrorRetry } from '../components/ui'
 
 const UNCLASSIFIED = 'Sin clasificar'
 const eyebrow = { fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em' }
@@ -115,16 +116,23 @@ export default function ExerciseManager() {
   const { t } = useLang()
   const navigate = useNavigate()
   const { lang } = useExerciseLang()
-  const { exercises, needsAttention, loading, classify, refresh } = useExerciseGroups(lang)
+  const { exercises, needsAttention, loading, error: loadError, classify, refresh } = useExerciseGroups(lang)
   const { unlinked, refresh: refreshUnlinked } = useUnlinkedExercises()
   const [linking, setLinking] = useState(null)
   const [expandedId, setExpandedId] = useState(null)
   const [busyId, setBusyId] = useState(null)
+  const [pickError, setPickError] = useState(null)
 
   const pick = async (id, group) => {
     setBusyId(id)
+    setPickError(null)
     try { await classify(id, group); setExpandedId(null) }
-    catch (err) { console.error('Classify failed:', err) }
+    // Se tragaba el fallo: la fila se quedaba igual y parecía que no habías
+    // llegado a tocarla, cuando en realidad la escritura no había pasado.
+    catch (err) {
+      console.error('Classify failed:', err)
+      setPickError(t('No se pudo guardar el grupo muscular. Inténtalo otra vez.'))
+    }
     finally { setBusyId(null) }
   }
 
@@ -153,13 +161,25 @@ export default function ExerciseManager() {
           {needsAttention.length > 0 && <> · <span style={{ color: 'var(--c-action-text)' }}>{needsAttention.length} por revisar</span></>}
         </p>
 
+        {pickError && (
+          <ErrorRetry message={pickError} style={{ marginBottom: '16px' }} />
+        )}
+
         {loading && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
             <span className="spinner" style={{ width: '20px', height: '20px' }} />
           </div>
         )}
 
-        {!loading && exercises.length === 0 && (
+        {!loading && loadError && (
+          <ErrorRetry
+            message={t('No pudimos cargar tus ejercicios.')}
+            onRetry={refresh}
+            style={{ marginBottom: '16px' }}
+          />
+        )}
+
+        {!loading && !loadError && exercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px 24px', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-lg)' }}>
             <p style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em' }}>
               {t('Todavía no hay ejercicios')}

@@ -211,9 +211,9 @@ describe('computeMicroTargets', () => {
     expect(sinEdad).toEqual(con30)
   })
 
-  it('devuelve las dieciséis claves y ningún NaN', () => {
+  it('devuelve las diecisiete claves y ningún NaN', () => {
     const a = computeMicroTargets({ kcal: 2400, sex: 'Masculino', age: 30 })
-    expect(Object.keys(a)).toHaveLength(16)
+    expect(Object.keys(a)).toHaveLength(17)
     for (const v of Object.values(a)) expect(Number.isFinite(v)).toBe(true)
   })
 })
@@ -252,7 +252,7 @@ describe('recommendPlan', () => {
     expect(r.ok).toBe(true)
     expect(r.kcal).toBeGreaterThan(1500)
     expect(r.method.bmr).toBe('katch')
-    expect(Object.keys(r.micros)).toHaveLength(16)
+    expect(Object.keys(r.micros)).toHaveLength(17)
   })
 
   it('sin altura ni edad, pero con % de grasa, sigue pudiendo calcular', () => {

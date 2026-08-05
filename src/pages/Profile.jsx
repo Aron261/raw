@@ -8,10 +8,11 @@ import { useBodyWeight } from '../hooks/useBodyWeight'
 import { useTrainer } from '../hooks/useTrainer'
 import { useInvites } from '../hooks/useInvites'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
+import { useOAuthConnections } from '../hooks/useOAuthConnections'
 import { useTheme } from '../hooks/useTheme'
 import { useLang } from '../hooks/useLang'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
-import { Button, Sheet, UnitToggle } from '../components/ui'
+import { Button, Sheet, UnitToggle, ErrorRetry } from '../components/ui'
 import BodyFatPicker from '../components/BodyFatPicker'
 import { ACTIVITY_LEVELS, PHASES, PHASE_BY_ID, PHASE_FROM_GOAL } from '../lib/nutritionPlan'
 import { useChartColors } from '../lib/chartColors'
@@ -707,8 +708,8 @@ export function ClaudeSection() {
           'En Claude, entra en Ajustes › Conectores.',
           'Elige "Añadir conector personalizado" y pega la URL.',
           'Inicia sesión con esta misma cuenta de RAW y autoriza.',
-        ].map((t, i) => (
-          <li key={t} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+        ].map((paso, i) => (
+          <li key={paso} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <span style={{
               flexShrink: 0, width: '18px', height: '18px', borderRadius: '50%',
               background: 'var(--c-surface-2)', color: 'var(--c-text-dim)',
@@ -717,7 +718,7 @@ export function ClaudeSection() {
             }}>
               {i + 1}
             </span>
-            <span style={{ color: 'var(--c-text-secondary)', fontSize: '12px', lineHeight: 1.5 }}>{t}</span>
+            <span style={{ color: 'var(--c-text-secondary)', fontSize: '12px', lineHeight: 1.5 }}>{t(paso)}</span>
           </li>
         ))}
       </ol>
@@ -752,12 +753,89 @@ export function ClaudeSection() {
             </div>
           ))}
           <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5 }}>
-            Todo lo que Claude cambie queda registrado y se puede deshacer. Los permisos
-            de administrador y el borrado de cuenta solo se hacen desde esta app.
+            {t('Todo lo que Claude cambie queda registrado y se puede deshacer. Los permisos de administrador y el borrado de cuenta solo se hacen desde esta app.')}
           </p>
         </div>
       )}
+
+      <ConnectionsList />
     </>
+  )
+}
+
+// ── Conexiones activas ──────────────────────────────────────────────────
+// Autorizar era de ida: no había forma de ver qué está conectado ni de
+// cortarlo desde la app. Y el registro de clientes OAuth es abierto, así que
+// alguien puede registrar uno con un nombre creíble y mandarte el enlace de
+// autorización — quien caiga necesita poder deshacerlo.
+//
+// Revocar corta de verdad: marca el consentimiento y borra la sesión, así que
+// el token deja de entrar. No es un "desconectar" cosmético.
+function ConnectionsList() {
+  const { t, locale } = useLang()
+  const { connections, loading, error, refetch, revoke, revoking, revokeError } = useOAuthConnections()
+  const [confirming, setConfirming] = useState(null)
+
+  if (loading || (!connections.length && !error)) return null
+
+  const fecha = (iso) => new Date(iso).toLocaleDateString(locale, {
+    year: 'numeric', month: 'long', day: 'numeric',
+  })
+
+  return (
+    <div style={{ marginTop: '20px', paddingTop: '18px', borderTop: '1px solid var(--c-border-subtle)' }}>
+      <label style={LABEL}>{t('Conexiones activas')}</label>
+
+      {error && (
+        <ErrorRetry message={t('No pudimos cargar tus conexiones.')} onRetry={refetch} style={{ marginBottom: '10px' }} />
+      )}
+      {revokeError && (
+        <div style={{ ...ERROR_STYLE, marginBottom: '10px' }}>{revokeError}</div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {connections.map(c => (
+          <div key={c.id} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+            padding: '10px 12px', background: 'var(--c-surface-2)',
+            border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)',
+          }}>
+            <span style={{ minWidth: 0 }}>
+              <span style={{ display: 'block', color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>
+                {c.client_name}
+              </span>
+              <span style={{ display: 'block', color: 'var(--c-text-muted)', fontSize: '11px', marginTop: '2px' }}>
+                {t('Autorizada el {fecha}', { fecha: fecha(c.granted_at) })}
+              </span>
+              {/* El nombre lo elige quien registra el cliente, así que por sí
+                  solo no identifica a nadie. Decirlo es más honesto que
+                  presentarlo como si RAW lo hubiera comprobado. */}
+              {c.registration_type === 'dynamic' && (
+                <span style={{ display: 'block', color: 'var(--c-text-muted)', fontSize: '10.5px', marginTop: '3px', lineHeight: 1.4 }}>
+                  {t('RAW no verifica este nombre. Si no reconoces la conexión, revócala.')}
+                </span>
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={() => (confirming === c.id ? revoke(c.id).catch(() => {}) : setConfirming(c.id))}
+              onBlur={() => setConfirming(null)}
+              disabled={revoking === c.id}
+              style={{
+                flexShrink: 0, minHeight: '44px', padding: '12px 14px',
+                color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 800,
+                letterSpacing: '-0.01em', background: 'transparent',
+                border: `1px solid ${confirming === c.id ? 'var(--c-action)' : 'var(--c-border-subtle)'}`,
+                borderRadius: 'var(--r-xs)',
+                opacity: revoking === c.id ? 0.6 : 1,
+              }}
+            >
+              {revoking === c.id ? t('Revocando…') : confirming === c.id ? t('¿Seguro?') : t('Revocar')}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -864,23 +942,23 @@ function TrainerSection() {
         <div style={{ marginTop: '20px' }}>
           <label style={LABEL}>{t('Mis entrenadores')}</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {trainers.map(t => (
-              <div key={t.linkId} style={{
+            {trainers.map(tr => (
+              <div key={tr.linkId} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '10px 12px', background: 'var(--c-surface-2)',
                 border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)',
               }}>
                 <span style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>
-                  {t.profile?.name || 'Entrenador'}
+                  {tr.profile?.name || t('Entrenador')}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {counts[t.trainerId] > 0 && (
+                  {counts[tr.trainerId] > 0 && (
                     <span style={{
                       minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px',
                       background: 'var(--c-accent)', color: 'var(--c-on-action)',
                       fontSize: '10px', fontWeight: 800, lineHeight: '18px', textAlign: 'center',
                     }}>
-                      {counts[t.trainerId] > 9 ? '9+' : counts[t.trainerId]}
+                      {counts[tr.trainerId] > 9 ? '9+' : counts[tr.trainerId]}
                     </span>
                   )}
                   <button
@@ -1086,7 +1164,7 @@ export default function Profile() {
   const navigate = useNavigate()
   const { t, locale } = useLang()
   const { user, signOut } = useAuth()
-  const { profile, loading, saving, saveError, saveSuccess, saveProfile, age } = useProfile()
+  const { profile, loading, saving, error: loadError, saveError, saveSuccess, saveProfile, fetchProfile, age } = useProfile()
   const { preference: themePreference } = useTheme()
 
   const handleSignOut = async () => {
@@ -1211,6 +1289,14 @@ export default function Profile() {
   return (
     <Layout>
       <div className="fade-in w-full mx-auto max-w-[600px] lg:max-w-[960px]" style={{ padding: '32px 20px 60px' }}>
+
+        {loadError && (
+          <ErrorRetry
+            message={t('No pudimos cargar tu perfil.')}
+            onRetry={fetchProfile}
+            style={{ marginBottom: '20px' }}
+          />
+        )}
 
         {/* Header — avatar beside identity; back button only on mobile */}
         <div style={{ marginBottom: '32px' }}>

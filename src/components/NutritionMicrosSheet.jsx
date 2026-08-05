@@ -8,8 +8,8 @@ import { useLang } from '../hooks/useLang'
  *
  * Dos decisiones que sostienen esta pantalla:
  *
- * 1. TECHOS PRIMERO. Sodio, azúcar, grasa saturada y colesterol vienen de
- *    etiqueta, así que son los datos más fiables que va a haber aquí — y son
+ * 1. TECHOS PRIMERO. Sodio, los dos azúcares, grasa saturada y colesterol
+ *    vienen de etiqueta, así que son los más fiables que va a haber aquí — y son
  *    los que se pasan, no los que faltan. Ponerlos arriba, separados y con su
  *    propio encabezado enseña la diferencia entre «alcanzar» y «no pasarse»
  *    mejor que cualquier color.

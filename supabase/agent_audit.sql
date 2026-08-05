@@ -146,7 +146,10 @@ revoke execute on function public.log_agent_write() from anon, authenticated, pu
 -- devuelve 'app' y el comportamiento de la aplicación no cambia en absoluto.
 --
 -- NOTA: una tabla nueva creada más adelante NO queda protegida automáticamente.
--- Volver a ejecutar este bloque después de añadir tablas.
+-- Volver a ejecutar este bloque después de añadir tablas. Ya pasó una vez:
+-- routine_shares y scheduled_sessions se crearon después y estuvieron sin guarda
+-- hasta que una auditoría lo encontró. Por eso el bloque de comprobación del
+-- final ahora falla en voz alta en vez de confiar en que alguien lea esta nota.
 
 do $$
 declare
@@ -270,6 +273,31 @@ begin
   perform public.record_routine_revision(rev.routine_id, 'restore');
 
   return public.update_routine_tree(rev.routine_id, rev.snapshot);
+end $$;
+
+-- ── Comprobación: ninguna tabla se queda sin guarda ───────────────────────
+-- Un comentario no ejecuta nada. Esto sí: si una tabla con RLS fuera de la
+-- lista escribible no tiene sus tres políticas restrictivas, este archivo se
+-- niega a terminar en silencio y dice cuál falta.
+do $$
+declare
+  faltan text;
+begin
+  select string_agg(c.relname, ', ' order by c.relname) into faltan
+  from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public' and c.relkind = 'r' and c.relrowsecurity
+    and c.relname <> all (array[
+      'routines','routine_days','routine_day_exercises',
+      'goals','nutrition_entries','nutrition_foods','body_weight_logs'
+    ])
+    and (select count(*) from pg_policy p
+         where p.polrelid = c.oid
+           and p.polname like 'Sin escritura desde agentes%') < 3;
+
+  if faltan is not null then
+    raise exception 'Tablas sin guarda anti-agente: %. Reejecuta el bloque default-deny.', faltan;
+  end if;
 end $$;
 
 -- ── Rollback ──────────────────────────────────────────────────────────────
