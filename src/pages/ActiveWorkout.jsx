@@ -416,7 +416,7 @@ export default function ActiveWorkout() {
   const unsynced = useOutboxCount(id)
 
   const {
-    workout, workoutExercises, loading, error,
+    workout, workoutExercises, loading, error, stale,
     updateWorkoutName, finishWorkout,
     addExercise, replaceExercise, updateUnit, updateExerciseNotes, addSet, updateSet, deleteSet, removeExercise, moveExercise,
   } = useActiveWorkout(id)
@@ -697,8 +697,10 @@ export default function ActiveWorkout() {
         )}
 
         {/* Sync status — one quiet line. Offline, or online with a backlog
-            still draining: say how many sets are waiting. Silent when synced. */}
-        {(!online || unsynced > 0) && (
+            still draining: say how many sets are waiting. Silent when synced.
+            `stale` cubre el caso que no se ve en navigator.onLine: hay red pero
+            el servidor no contestó, así que esto es la foto guardada. */}
+        {(!online || unsynced > 0 || stale) && (
           <div
             role="status"
             style={{
@@ -717,8 +719,10 @@ export default function ActiveWorkout() {
               letterSpacing: '-0.01em', color: 'var(--c-action-text)',
             }}>
               {unsynced > 0
-                ? `${unsynced} ${unsynced === 1 ? 'serie sin sincronizar' : 'series sin sincronizar'}${online ? ' — sincronizando' : ''}`
-                : 'Sin conexión — tus series se guardan y se sincronizan al reconectar'}
+                ? `${unsynced} ${t(unsynced === 1 ? 'serie sin sincronizar' : 'series sin sincronizar')}${online ? ` — ${t('sincronizando')}` : ''}`
+                : !online
+                  ? t('Sin conexión — tus series se guardan y se sincronizan al reconectar')
+                  : t('Sin respuesta del servidor — estás viendo lo último guardado')}
             </span>
           </div>
         )}

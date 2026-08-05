@@ -4,6 +4,7 @@ import { useAuth } from './useAuth'
 import { useCachedResource } from '../lib/swr'
 import { getOrCreateExerciseId, resolveExerciseIds as resolveExerciseIdsCanonical } from '../lib/exercises'
 import { outbox } from '../lib/outbox'
+import { sessionCache } from '../lib/sessionCache'
 import { calc1RM } from '../lib/progress'
 
 // How many set writes are still queued (unsynced) for a workout — drives the
@@ -230,6 +231,9 @@ export function useActiveWorkout(workoutId) {
   const [workoutExercises, setWorkoutExercises] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  // Se está pintando la foto guardada porque el servidor no contesta. No es un
+  // error: las series se siguen registrando y encolando con normalidad.
+  const [stale, setStale] = useState(false)
 
   const fetchWorkout = useCallback(async () => {
     if (!workoutId || !user) return
@@ -291,8 +295,20 @@ export function useActiveWorkout(workoutId) {
       })
 
       setWorkoutExercises(sorted)
+      setStale(false)
     } catch (err) {
-      setError(err.message)
+      // Sin conexión a mitad de entreno, la foto guardada es infinitamente
+      // mejor que una pantalla de error: deja seguir viendo y registrando, y
+      // lo que se escriba se encola igual. Solo si no hay foto —primera carga
+      // de este entreno en este dispositivo— queda un error que mostrar.
+      const snap = await sessionCache.load(workoutId).catch(() => null)
+      if (snap) {
+        setWorkout(snap.workout)
+        setWorkoutExercises(snap.workoutExercises)
+        setStale(true)
+      } else {
+        setError(err.message)
+      }
     } finally {
       setLoading(false)
     }
@@ -301,6 +317,29 @@ export function useActiveWorkout(workoutId) {
   useEffect(() => {
     fetchWorkout()
   }, [fetchWorkout])
+
+  // Pintar la foto antes de que conteste el servidor: en el gimnasio la red
+  // tarda o no llega, y el entreno tiene que aparecer al instante igual. Lo que
+  // traiga el servidor después la reemplaza.
+  useEffect(() => {
+    if (!workoutId) return
+    let alive = true
+    sessionCache.load(workoutId).then(snap => {
+      if (!alive || !snap) return
+      setWorkout(prev => prev ?? snap.workout)
+      setWorkoutExercises(prev => (prev.length ? prev : snap.workoutExercises))
+      setLoading(false)
+    }).catch(() => { /* sin foto: se espera al servidor */ })
+    return () => { alive = false }
+  }, [workoutId])
+
+  // Guardar tras CADA cambio del estado local, no solo tras traer del servidor:
+  // así la foto incluye las series que aún están en la cola. Guardar la
+  // respuesta del servidor borraría de la vista justo esas.
+  useEffect(() => {
+    if (!workoutId || !workout) return
+    sessionCache.save(workoutId, { workout, workoutExercises }).catch(() => { /* mejor esfuerzo */ })
+  }, [workoutId, workout, workoutExercises])
 
   const updateWorkoutName = async (name) => {
     const { error: err } = await supabase
@@ -324,6 +363,8 @@ export function useActiveWorkout(workoutId) {
       .eq('id', workoutId)
     if (err) throw err
     setWorkout(prev => ({ ...prev, ended_at: endedAt }))
+    // El entreno ya está cerrado en el servidor: su foto solo ocuparía sitio.
+    await sessionCache.remove(workoutId).catch(() => { /* mejor esfuerzo */ })
   }
 
   // Add exercise to workout (creates exercise if not exists, then adds workout_exercise)
@@ -533,6 +574,7 @@ export function useActiveWorkout(workoutId) {
     workoutExercises,
     loading,
     error,
+    stale,
     fetchWorkout,
     updateWorkoutName,
     finishWorkout,

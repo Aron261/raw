@@ -287,6 +287,11 @@ const EN = {
   'series sin sincronizar': 'sets not synced',
   'Sin conexión — tus series se guardan y se sincronizan al reconectar':
     'Offline — your sets are saved and sync when you reconnect',
+  'sincronizando': 'syncing',
+  'No se pudo empezar el entreno. Revisa tu conexión e inténtalo otra vez.':
+    'Could not start the workout. Check your connection and try again.',
+  'Sin respuesta del servidor — estás viendo lo último guardado':
+    'No response from the server — you are seeing the last saved state',
   'Aún no hay sesiones registradas de este ejercicio.': 'No sessions logged for this exercise yet.',
   'Cómo registrar': 'How to log',
   'El número tenue en cada campo es tu última vez.': 'The faint number in each field is your last time.',

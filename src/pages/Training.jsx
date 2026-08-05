@@ -522,6 +522,10 @@ export default function Training() {
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
   const [startingCoachId, setStartingCoachId] = useState(null)
+  // Empezar un entreno es el primer toque del flujo y necesita red. Fallaba
+  // solo a la consola: en un sótano el botón parpadeaba y no pasaba nada, sin
+  // manera de saber si había sido la señal o la app.
+  const [startError, setStartError] = useState(null)
 
   // Undoable goal delete (shared primitive) — hides optimistically, commits
   // after a grace window, announces state to screen readers.
@@ -552,6 +556,7 @@ export default function Training() {
     const day = (routine.routine_days || [])[0]
     if (!day) return
     setStartingCoachId(routine.id)
+    setStartError(null)
     try {
       const workout = await startWorkoutFromRoutineDay({
         routineId: routine.id,
@@ -562,6 +567,7 @@ export default function Training() {
       navigate(`/workout/${workout.id}`)
     } catch (err) {
       console.error('Error al iniciar entreno del coach:', err)
+      setStartError(t('No se pudo empezar el entreno. Revisa tu conexión e inténtalo otra vez.'))
     } finally {
       setStartingCoachId(null)
     }
@@ -591,11 +597,13 @@ export default function Training() {
       return
     }
     setStartingWorkout(true)
+    setStartError(null)
     try {
       const workout = await createWorkout()
       navigate(`/workout/${workout.id}`)
     } catch (err) {
       console.error('Error al iniciar entreno:', err)
+      setStartError(t('No se pudo empezar el entreno. Revisa tu conexión e inténtalo otra vez.'))
     } finally {
       setStartingWorkout(false)
     }
@@ -608,6 +616,7 @@ export default function Training() {
     const hasExercises = (nextDay.routine_day_exercises || []).some(e => e.exercise_name?.trim())
     if (!hasExercises) return
     setStartingRoutineWorkout(true)
+    setStartError(null)
     try {
       const workout = await startWorkoutFromRoutineDay({
         routineId: activeCycle.id,
@@ -618,6 +627,7 @@ export default function Training() {
       navigate(`/workout/${workout.id}`)
     } catch (err) {
       console.error('Error al iniciar entreno de rutina:', err)
+      setStartError(t('No se pudo empezar el entreno. Revisa tu conexión e inténtalo otra vez.'))
     } finally {
       setStartingRoutineWorkout(false)
     }
@@ -949,6 +959,12 @@ export default function Training() {
         {/* ── CTA principal ── */}
         {!loading && !error && (
           <div style={{ marginBottom: '20px' }}>
+            {/* Empezar entreno necesita red y puede fallar. Va encima del CTA
+                porque es la respuesta al toque que se acaba de dar. */}
+            {startError && (
+              <div role="alert" style={{ ...ERROR_STYLE, marginBottom: '12px' }}>{startError}</div>
+            )}
+
             {/* Si hay ciclo activo: tarjeta con el día sugerido */}
             {showCycleCard && (
               <EntrenaHoyCard
