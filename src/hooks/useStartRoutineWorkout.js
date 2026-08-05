@@ -1,12 +1,15 @@
 import { useAuth } from './useAuth'
 import { supabase } from '../lib/supabase'
 import { getOrCreateExerciseId } from '../lib/exercises'
+import { useProfile } from './useProfile'
+import { defaultLiftUnit } from '../lib/units'
 
 // Lightweight hook para iniciar un entreno desde una rutina (ciclo o single_day).
 // No hace fetchWorkouts — solo crea el workout y retorna el objeto creado.
 // El llamador es responsable de redirigir al entreno activo.
 export function useStartRoutineWorkout() {
   const { user } = useAuth()
+  const { profile } = useProfile()
 
   // Inicia un entreno a partir de un día de rutina.
   // Params:
@@ -52,7 +55,7 @@ export function useStartRoutineWorkout() {
           workout_id: workout.id,
           exercise_id: exerciseId,
           sort_order: ex.exercise_order ?? i,
-          unit: 'lb', // default; el usuario puede cambiarlo durante el entreno
+          unit: defaultLiftUnit(profile), // se puede cambiar dentro del entreno
         })
 
       if (weErr) throw weErr

@@ -5,6 +5,8 @@ import { useCachedResource } from '../lib/swr'
 import { getOrCreateExerciseId, resolveExerciseIds as resolveExerciseIdsCanonical } from '../lib/exercises'
 import { outbox } from '../lib/outbox'
 import { sessionCache } from '../lib/sessionCache'
+import { useProfile } from './useProfile'
+import { defaultLiftUnit } from '../lib/units'
 import { calc1RM } from '../lib/progress'
 
 // How many set writes are still queued (unsynced) for a workout — drives the
@@ -67,6 +69,8 @@ export const formatDuration = (startedAt, endedAt) => {
 // refreshes quietly instead of refetching with a skeleton each time.
 export function useWorkouts() {
   const { user } = useAuth()
+  const { profile } = useProfile()
+  const unit = defaultLiftUnit(profile)
   const key = user ? `workouts:${user.id}` : null
 
   const fetcher = useCallback(async () => {
@@ -171,7 +175,7 @@ export function useWorkouts() {
         workout_id: newWorkout.id,
         exercise_id: idByName[we.exercises.name],
         sort_order: i,
-        unit: we.unit || 'lb',
+        unit: we.unit || unit,
       }))
     if (rows.length > 0) {
       const { error: weErr } = await supabase.from('workout_exercises').insert(rows)
@@ -210,7 +214,7 @@ export function useWorkouts() {
         workout_id: workoutData.id,
         exercise_id: idByName[ex.exercise_name],
         sort_order: i,
-        unit: 'lb',
+        unit,
       }))
     if (rows.length > 0) {
       const { error: weErr } = await supabase.from('workout_exercises').insert(rows)
@@ -227,6 +231,7 @@ export function useWorkouts() {
 // Hook to manage a single active workout
 export function useActiveWorkout(workoutId) {
   const { user } = useAuth()
+  const { profile } = useProfile()
   const [workout, setWorkout] = useState(null)
   const [workoutExercises, setWorkoutExercises] = useState([])
   const [loading, setLoading] = useState(true)
@@ -385,7 +390,7 @@ export function useActiveWorkout(workoutId) {
         workout_id: workoutId,
         exercise_id: exerciseId,
         sort_order: nextOrder,
-        unit: 'lb'
+        unit: defaultLiftUnit(profile)
       })
 
     if (weError) throw weError
