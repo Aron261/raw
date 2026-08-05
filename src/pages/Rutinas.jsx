@@ -533,6 +533,7 @@ function FromWorkoutModal({ onClose, onCreate, workouts }) {
               {t('Nombre de la rutina')}
             </p>
             <input
+              aria-label={t('Nombre de la rutina')}
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
@@ -731,6 +732,7 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
               {t('Nombre del ciclo')}
             </p>
             <input
+              aria-label={t('Nombre del ciclo')}
               type="text"
               value={cycleName}
               onChange={e => setCycleName(e.target.value)}
@@ -762,6 +764,7 @@ function FromWorkoutsCycleModal({ onClose, onCreate, workouts }) {
                     </div>
                     <div style={{ flex: 1 }}>
                       <input
+                        aria-label={t('Nombre del día')}
                         type="text"
                         value={dn}
                         onChange={e => setDayNames(prev => prev.map((v, j) => j === i ? e.target.value : v))}
@@ -838,6 +841,7 @@ function CreateCycleModal({ onClose, onCreate }) {
           {t('Nombre')}
         </p>
         <input
+          aria-label={t('Nombre del ciclo')}
           type="text" value={name} onChange={e => setName(e.target.value)}
           placeholder="Ej: Push Pull Legs"
           className="input-field" style={{ width: '100%', fontSize: '13px' }}
@@ -860,12 +864,14 @@ function CreateCycleModal({ onClose, onCreate }) {
         {days.map((day, idx) => (
           <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
             <input
+              aria-label={t('Nombre del día')}
               type="text" value={day.day_name}
               onChange={e => updateDay(idx, 'day_name', e.target.value)}
               placeholder={`Día ${idx + 1} (ej: Lunes)`}
               className="input-field" style={{ flex: 1, fontSize: '12px' }}
             />
             <input
+              aria-label={t('Enfoque del día')}
               type="text" value={day.focus}
               onChange={e => updateDay(idx, 'focus', e.target.value)}
               placeholder="Push, Pull, Legs..."
@@ -934,6 +940,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
           {t('Nombre')}
         </p>
         <input
+          aria-label={t('Nombre de la rutina')}
           type="text" value={name} onChange={e => setName(e.target.value)}
           placeholder="Ej: Upper Press Day"
           className="input-field" style={{ width: '100%', fontSize: '13px' }}
@@ -946,6 +953,7 @@ function CreateSingleDayModal({ onClose, onCreate }) {
           {t('Enfoque (opcional)')}
         </p>
         <input
+          aria-label={t('Enfoque del día')}
           type="text" value={focus} onChange={e => setFocus(e.target.value)}
           placeholder="Ej: Push, Upper, Pierna..."
           className="input-field" style={{ width: '100%', fontSize: '13px' }}

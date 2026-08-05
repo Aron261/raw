@@ -144,6 +144,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
     <Sheet title={title} subtitle={subtitle} onClose={onClose}>
 
         <input
+          aria-label={t('Buscar o crear ejercicio')}
           ref={inputRef}
           type="text"
           value={query}

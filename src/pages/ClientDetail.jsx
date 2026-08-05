@@ -375,6 +375,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
       {/* Nombre */}
       <p style={MINI_LABEL}>{t('Nombre')}</p>
       <input
+        aria-label={t('Nombre de la rutina')}
         className="input-field"
         value={name}
         onChange={e => setName(e.target.value)}
@@ -400,6 +401,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
           {/* nombre + enfoque del día */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
             <input
+              aria-label={t('Nombre del día')}
               className="input-field"
               value={day.day_name}
               onChange={e => updateDay(di, 'day_name', e.target.value)}
@@ -407,6 +409,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
               style={{ flex: 1, fontSize: '12px' }}
             />
             <input
+              aria-label={t('Enfoque del día')}
               className="input-field"
               value={day.focus}
               onChange={e => updateDay(di, 'focus', e.target.value)}
@@ -420,6 +423,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
             <div key={ei} style={{ background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)', padding: '10px', marginBottom: '8px' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                 <input
+                  aria-label={`${t('Nombre del ejercicio')} ${ei + 1}`}
                   className="input-field"
                   value={ex.exercise_name}
                   onChange={e => updateExercise(di, ei, 'exercise_name', e.target.value)}
@@ -437,6 +441,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
               </div>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <input
+                  aria-label={`${t('Series')} · ${t('ejercicio')} ${ei + 1}`}
                   className="input-field" type="number" inputMode="numeric"
                   value={ex.sets}
                   onChange={e => updateExercise(di, ei, 'sets', e.target.value)}
@@ -444,6 +449,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
                   style={{ width: '64px', fontSize: '12px', textAlign: 'center' }}
                 />
                 <input
+                  aria-label={`${t('Reps')} · ${t('ejercicio')} ${ei + 1}`}
                   className="input-field"
                   value={ex.reps}
                   onChange={e => updateExercise(di, ei, 'reps', e.target.value)}
@@ -452,6 +458,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
                 />
               </div>
               <input
+                aria-label={`${t('Notas')} · ${t('ejercicio')} ${ei + 1}`}
                 className="input-field"
                 value={ex.notes}
                 onChange={e => updateExercise(di, ei, 'notes', e.target.value)}
@@ -554,20 +561,20 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
 
       <div style={{ marginBottom: '14px' }}>
         <p style={MINI_LABEL}>{t('Nombre')}</p>
-        <input className="input-field" value={label} onChange={e => setLabel(e.target.value)} placeholder="Ej: Press banca 100kg" />
+        <input aria-label={t('Nombre de la meta')} className="input-field" value={label} onChange={e => setLabel(e.target.value)} placeholder="Ej: Press banca 100kg" />
       </div>
 
       {type === 'exercise_weight' && (
         <div style={{ marginBottom: '14px' }}>
           <p style={MINI_LABEL}>{t('Ejercicio')}</p>
-          <input className="input-field" value={exerciseName} onChange={e => setExerciseName(e.target.value)} placeholder="Ej: Bench Press" />
+          <input aria-label={t('Ejercicio de la meta')} className="input-field" value={exerciseName} onChange={e => setExerciseName(e.target.value)} placeholder="Ej: Bench Press" />
         </div>
       )}
 
       <div style={{ marginBottom: '24px' }}>
         <p style={MINI_LABEL}>{t('Objetivo')}</p>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <input className="input-field" type="number" value={target} onChange={e => setTarget(e.target.value)} placeholder="0" style={{ flex: 1 }} />
+          <input aria-label={t('Valor a alcanzar')} className="input-field" type="number" value={target} onChange={e => setTarget(e.target.value)} placeholder="0" style={{ flex: 1 }} />
           {type === 'exercise_weight' && (
             <UnitToggle value={unit} units={['kg', 'lb']} onChange={setUnit} />
           )}

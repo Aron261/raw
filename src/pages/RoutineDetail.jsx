@@ -79,6 +79,7 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
     <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-lg)', padding: '16px', marginBottom: '12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
         <input
+          aria-label={t('Nombre del día')}
           type="text" value={name}
           onChange={e => setName(e.target.value)}
           onBlur={() => { if (name.trim() && name !== day.day_name) onUpdateDay({ day_name: name.trim() }) }}
@@ -87,6 +88,7 @@ function DayEditor({ day, onUpdateDay, onRemoveDay, onAddExercise, onUpdateExerc
           style={{ flex: 1, fontSize: '14px', fontWeight: 800 }}
         />
         <input
+          aria-label={t('Enfoque del día')}
           type="text" value={focus}
           onChange={e => setFocus(e.target.value)}
           onBlur={() => { if (focus !== (day.focus || '')) onUpdateDay({ focus: focus.trim() || null }) }}
@@ -216,6 +218,7 @@ export default function RoutineDetail() {
         </div>
 
         <input
+          aria-label={t('Nombre del ejercicio')}
           type="text"
           value={displayName}
           onChange={e => setName(e.target.value)}

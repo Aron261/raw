@@ -45,6 +45,27 @@ const EN = {
   'Conexiones activas': 'Active connections',
   'Sonido al terminar el descanso': 'Sound when rest ends',
 
+  // ── Nombres accesibles de campos ──
+  // Estos no se leen con los ojos: son el nombre que anuncia un lector de
+  // pantalla al entrar en el campo. El placeholder no sirve para eso —suele
+  // ser un ejemplo ("Ej: Press banca 100kg")— y además desaparece al escribir.
+  'Código beta': 'Beta code',
+  'Repite la contraseña': 'Repeat the password',
+  'Escribe un mensaje': 'Write a message',
+  'Nota sobre este ejercicio': 'Note about this exercise',
+  'Buscar o crear ejercicio': 'Search or create exercise',
+  'Nombre del entreno': 'Workout name',
+  'Contraseña actual': 'Current password',
+  'Repite la nueva': 'Repeat the new one',
+  'Correo nuevo': 'New email',
+  'Escribe ELIMINAR para confirmar': 'Type DELETE to confirm',
+  'Peso corporal de hoy': 'Today’s body weight',
+  'Enfoque del día': 'Day focus',
+  'Nombre del ejercicio': 'Exercise name',
+  'Notas': 'Notes',
+  'Ejercicio de la meta': 'Goal exercise',
+  'Valor a alcanzar': 'Target value',
+
   // ── Navegación y el botón "+" ──
   // «Coach», «Social» y «RAW» se escriben igual en los dos idiomas y por eso
   // no están: translate() cae a la clave, que ya es el inglés correcto.

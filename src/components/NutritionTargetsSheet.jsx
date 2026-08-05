@@ -177,6 +177,7 @@ function MicroTargetsSection({ t, values, onChange, onReset }) {
                   </span>
                 </span>
                 <input
+                  aria-label={`${t(n.label)} (${n.unit})`}
                   className="input-field tnum" type="number" inputMode="decimal" placeholder="0"
                   value={values[n.key] ?? ''}
                   onChange={e => onChange(n.key, e.target.value)}

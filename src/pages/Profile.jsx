@@ -152,11 +152,12 @@ function PillGroup({ options, value, onChange }) {
 }
 
 // ── Number + unit selector ─────────────────────────────────────────────
-function NumberWithUnit({ value, unit, onValueChange, onUnitChange, units, placeholder }) {
+function NumberWithUnit({ value, unit, onValueChange, onUnitChange, units, placeholder, id }) {
   const { t } = useLang()
   return (
     <div style={{ display: 'flex', gap: '8px' }}>
       <input
+        id={id}
         type="number"
         value={value ?? ''}
         onChange={e => onValueChange(e.target.value ? parseFloat(e.target.value) : null)}
@@ -415,6 +416,7 @@ function BodyWeightSheet({ unit, onClose }) {
       <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
         <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
           <input
+            aria-label={t('Peso corporal de hoy')}
             type="number"
             value={inputWeight}
             onChange={e => setInputWeight(e.target.value)}
@@ -1046,9 +1048,9 @@ function ChangePasswordSheet({ onClose }) {
         <p style={{ color: 'var(--c-success)', fontSize: '13px', fontWeight: 700, textAlign: 'center', padding: '12px 0' }}>✓ Contraseña actualizada</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <input type="password" value={current} onChange={e => setCurrent(e.target.value)} className="input-field" placeholder="Contraseña actual" autoComplete="current-password" />
-          <input type="password" value={next} onChange={e => setNext(e.target.value)} className="input-field" placeholder="Nueva contraseña" autoComplete="new-password" minLength={6} />
-          <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} className="input-field" placeholder="Repite la nueva" autoComplete="new-password" minLength={6} />
+          <input aria-label={t('Contraseña actual')} type="password" value={current} onChange={e => setCurrent(e.target.value)} className="input-field" placeholder="Contraseña actual" autoComplete="current-password" />
+          <input aria-label={t('Nueva contraseña')} type="password" value={next} onChange={e => setNext(e.target.value)} className="input-field" placeholder="Nueva contraseña" autoComplete="new-password" minLength={6} />
+          <input aria-label={t('Repite la nueva')} type="password" value={confirm} onChange={e => setConfirm(e.target.value)} className="input-field" placeholder="Repite la nueva" autoComplete="new-password" minLength={6} />
           <Button type="button" variant="primary" full size="lg" loading={saving} disabled={saving} onClick={submit} style={{ marginTop: '4px' }}>
             {saving ? 'Guardando…' : 'Guardar'}
           </Button>
@@ -1090,7 +1092,7 @@ function ChangeEmailSheet({ currentEmail, onClose }) {
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="input-field" placeholder="nuevo@email.com" autoComplete="email" />
+          <input aria-label={t('Correo nuevo')} type="email" value={email} onChange={e => setEmail(e.target.value)} className="input-field" placeholder="nuevo@email.com" autoComplete="email" />
           <Button type="button" variant="primary" full size="lg" loading={saving} disabled={saving} onClick={submit} style={{ marginTop: '4px' }}>
             {saving ? 'Enviando…' : 'Enviar confirmación'}
           </Button>
@@ -1130,6 +1132,7 @@ function DeleteAccountSheet({ onClose }) {
         Se borrarán tu perfil, entrenos, rutinas, metas, nutrición, peso corporal, vínculos con entrenadores y mensajes. Escribe <strong style={{ color: 'var(--c-text)' }}>{t('ELIMINAR')}</strong> para confirmar.
       </p>
       <input
+        aria-label={t('Escribe ELIMINAR para confirmar')}
         type="text" value={confirmText} onChange={e => setConfirmText(e.target.value)}
         className="input-field" placeholder="ELIMINAR"
         style={{ marginBottom: '12px', letterSpacing: '-0.01em', fontWeight: 700 }}

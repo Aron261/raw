@@ -736,6 +736,7 @@ export default function ActiveWorkout() {
         <div style={{ marginBottom: '20px' }}>
           {editingName ? (
             <input
+              aria-label={t('Nombre del entreno')}
               ref={nameRef}
               type="text"
               value={nameInput}

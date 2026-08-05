@@ -89,11 +89,13 @@ export default function ResetPassword() {
       ) : (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <input
+            aria-label={t('Nueva contraseña')}
             type="password" value={password} onChange={e => setPassword(e.target.value)}
             className="input-field" placeholder="Nueva contraseña" required minLength={6}
             autoComplete="new-password" autoFocus
           />
           <input
+            aria-label={t('Repite la contraseña')}
             type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
             className="input-field" placeholder="Repite la contraseña" required minLength={6}
             autoComplete="new-password"

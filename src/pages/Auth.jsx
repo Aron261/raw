@@ -234,10 +234,11 @@ export default function Auth() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
-            <label style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', display: 'block', marginBottom: '6px' }}>
+            <label htmlFor="auth-email" style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', display: 'block', marginBottom: '6px' }}>
               {t('Email')}
             </label>
             <input
+              id="auth-email"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -250,10 +251,11 @@ export default function Auth() {
 
           {mode !== 'reset' && (
             <div>
-              <label style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', display: 'block', marginBottom: '6px' }}>
+              <label htmlFor="auth-password" style={{ color: 'var(--c-text-dim)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', display: 'block', marginBottom: '6px' }}>
                 {t('Contraseña')}
               </label>
               <input
+                id="auth-password"
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}

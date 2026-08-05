@@ -531,6 +531,7 @@ export default function ExerciseRow({
           <div style={{ padding: '0 14px 12px', borderTop: showNotes ? '1px solid var(--c-border-subtle)' : 'none' }}>
             {showNotes ? (
               <textarea
+                aria-label={t('Nota sobre este ejercicio')}
                 ref={notesRef}
                 value={notesValue}
                 onChange={e => setNotesValue(e.target.value)}

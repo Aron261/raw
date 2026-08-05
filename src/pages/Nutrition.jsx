@@ -332,6 +332,7 @@ function EntrySheet({ initial, defaultMeal, foods, onSave, onDelete, onClose }) 
                       <span style={{ color: 'var(--c-text-muted)', fontWeight: 600 }}> {NUTRIENT_BY_KEY[key].unit}</span>
                     </span>
                     <input
+                      aria-label={`${t(NUTRIENT_BY_KEY[key].label)} (${NUTRIENT_BY_KEY[key].unit})`}
                       className="input-field tnum" type="number" inputMode="decimal" placeholder="0"
                       value={micros[key] ?? ''}
                       onChange={e => setMicro(key, e.target.value)}

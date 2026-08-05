@@ -51,6 +51,7 @@ export default function BetaGate() {
 
           <form onSubmit={handleSubmit}>
             <input
+              aria-label={t('Código beta')}
               type="text"
               value={code}
               onChange={e => setCode(e.target.value.toUpperCase())}
