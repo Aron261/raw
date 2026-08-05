@@ -259,7 +259,7 @@ export function useActiveWorkout(workoutId) {
       const { data: exercisesData, error: exercisesError } = await supabase
         .from('workout_exercises')
         .select(`
-          id, sort_order, unit, notes,
+          id, sort_order, unit, notes, group_id, group_order,
           exercises ( id, name, library_id, library:exercises_library ( name, name_en, gif_url, media_reviewed ) ),
           sets ( id, set_number, reps, weight, created_at )
         `)
@@ -557,6 +557,76 @@ export function useActiveWorkout(workoutId) {
     await fetchWorkout()
   }
 
+  // ── Superseries ───────────────────────────────────────────────────────
+  // Unir este ejercicio con el siguiente de la sesión. Si alguno de los dos ya
+  // está en una superserie, se entra en esa en vez de abrir otra: encadenar
+  // A+B y luego B+C tiene que dar A+B+C, no dos grupos que se pisan.
+  const linkWithNext = async (workoutExerciseId) => {
+    const ordered = [...workoutExercises].sort((a, b) => a.sort_order - b.sort_order)
+    const idx = ordered.findIndex(w => w.id === workoutExerciseId)
+    if (idx === -1 || idx === ordered.length - 1) return
+    const a = ordered[idx]
+    const b = ordered[idx + 1]
+
+    const groupId = a.group_id || b.group_id || crypto.randomUUID()
+    // Todo el grupo resultante se renumera en el orden en que está la sesión:
+    // la vuelta de la superserie es el orden que se ve, sin excepciones.
+    const members = ordered.filter(w =>
+      w.id === a.id || w.id === b.id ||
+      (w.group_id && (w.group_id === a.group_id || w.group_id === b.group_id))
+    )
+    const updates = members.map((w, i) => ({ id: w.id, group_id: groupId, group_order: i }))
+
+    setWorkoutExercises(prev => prev.map(w => {
+      const u = updates.find(x => x.id === w.id)
+      return u ? { ...w, group_id: u.group_id, group_order: u.group_order } : w
+    }))
+
+    try {
+      await Promise.all(updates.map(u =>
+        supabase.from('workout_exercises')
+          .update({ group_id: u.group_id, group_order: u.group_order })
+          .eq('id', u.id)
+      ))
+    } catch (err) {
+      setError(err.message)
+      await fetchWorkout()
+    }
+  }
+
+  // Sacar un ejercicio de su superserie. Si el grupo se queda con uno solo deja
+  // de ser superserie: un grupo de un miembro no alterna con nadie.
+  const unlinkExercise = async (workoutExerciseId) => {
+    const me = workoutExercises.find(w => w.id === workoutExerciseId)
+    if (!me?.group_id) return
+    const rest = workoutExercises
+      .filter(w => w.group_id === me.group_id && w.id !== me.id)
+      .sort((a, b) => a.group_order - b.group_order)
+
+    const updates = [{ id: me.id, group_id: null, group_order: 0 }]
+    if (rest.length < 2) {
+      rest.forEach(w => updates.push({ id: w.id, group_id: null, group_order: 0 }))
+    } else {
+      rest.forEach((w, i) => updates.push({ id: w.id, group_id: me.group_id, group_order: i }))
+    }
+
+    setWorkoutExercises(prev => prev.map(w => {
+      const u = updates.find(x => x.id === w.id)
+      return u ? { ...w, group_id: u.group_id, group_order: u.group_order } : w
+    }))
+
+    try {
+      await Promise.all(updates.map(u =>
+        supabase.from('workout_exercises')
+          .update({ group_id: u.group_id, group_order: u.group_order })
+          .eq('id', u.id)
+      ))
+    } catch (err) {
+      setError(err.message)
+      await fetchWorkout()
+    }
+  }
+
   // Swap the exercise in a workout_exercise row without touching the routine
   const replaceExercise = async (workoutExerciseId, newExerciseName, muscleGroup = null) => {
     const name = newExerciseName.trim()
@@ -591,7 +661,9 @@ export function useActiveWorkout(workoutId) {
     updateSet,
     deleteSet,
     removeExercise,
-    moveExercise
+    moveExercise,
+    linkWithNext,
+    unlinkExercise
   }
 }
 

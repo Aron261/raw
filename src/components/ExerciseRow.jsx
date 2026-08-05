@@ -34,7 +34,13 @@ export default function ExerciseRow({
   isExerciseFinished = false,
   onToggleFinish,             // (workoutExerciseId, nextFinished) => void
   onShowHistory,              // (exercise) => void   [optional]
-  onRestStart,                // (seconds) => void — start the rest pill  [optional]
+  // (seconds, { workoutExerciseId }) => void — se acabó una serie. Quien manda
+  // decide si toca descanso: en una superserie el descanso es de la vuelta, no
+  // de cada ejercicio, y eso aquí dentro no se sabe.  [optional]
+  onRestStart,
+  groupLabel = null,          // 'A' | 'B' | … dentro de la superserie  [optional]
+  onLinkNext,                 // (workoutExerciseId) => void  [optional]
+  onUnlinkGroup,              // (workoutExerciseId) => void  [optional]
   autoExpandToken = null,     // bump to auto-open this row (next-up after a finish)
   onMove,                     // (workoutExerciseId, 'up' | 'down') => void  [optional]
   canMoveUp = false,
@@ -203,7 +209,7 @@ export default function ExerciseRow({
     }
     if (markDone && id) {
       onToggleSetDone(id, true)
-      onRestStart?.(restSecs)
+      onRestStart?.(restSecs, { workoutExerciseId: workoutExercise.id })
     }
   }
 
@@ -227,9 +233,13 @@ export default function ExerciseRow({
   const isOpen = deck || expanded
 
   /* ── Finished (collapsed recap) ─────────────────────────────────────── */
-  if (isExerciseFinished && !readOnly && !deck) {
+  // También en baraja. Ahí el resumen es lo que se ve el momento justo después
+  // de cerrar un ejercicio (antes de que la baraja pase al siguiente) y lo que
+  // se ve al volver a uno hecho desde la regleta — en los dos casos lo que hace
+  // falta es «esto ya está» y la puerta para reabrirlo, no las series otra vez.
+  if (isExerciseFinished && !readOnly) {
     return (
-      <div style={{ ...cardStyle(false), opacity: 0.92, marginBottom: '10px' }}>
+      <div style={{ ...cardStyle(false), opacity: 0.92, marginBottom: deck ? 0 : '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px' }}>
           <span style={{
             flexShrink: 0, width: '24px', height: '24px', borderRadius: '999px',
@@ -296,6 +306,23 @@ export default function ExerciseRow({
           {(() => {
             const Meta = (
               <>
+                {/* El galón de superserie. Sin él, dos cartas que se alternan
+                    solas se sienten como que la baraja se mueve sin permiso;
+                    con él, «A» y «B» son un sitio dentro de una vuelta. */}
+                {groupLabel && (
+                  <span
+                    title={t('Superserie')}
+                    style={{
+                      flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 800,
+                      letterSpacing: '-0.01em', color: 'var(--c-data)',
+                      border: '1px solid var(--c-data)', borderRadius: 'var(--r-xs)', padding: '2px 6px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    SS · {groupLabel}
+                  </span>
+                )}
+
                 {sets.length > 0 ? (
                   <span style={{
                     flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: deck ? '12px' : '10px', fontWeight: 700,
@@ -453,6 +480,19 @@ export default function ExerciseRow({
                       onClick={() => { setShowNotes(n => !n); setTimeout(() => notesRef.current?.focus(), 80); setShowMenu(false) }}
                     >
                       {t(notesValue ? 'Ver nota' : 'Agregar nota')}
+                    </MenuItem>
+                  )}
+                  {/* Una superserie se arma donde se descubre que lo es: a
+                      mitad de sesión, sobre el ejercicio que tienes delante.
+                      Sin pantalla aparte ni volver a la rutina. */}
+                  {onLinkNext && (
+                    <MenuItem onClick={() => { onLinkNext(workoutExercise.id); setShowMenu(false) }}>
+                      {t('Unir con el siguiente')}
+                    </MenuItem>
+                  )}
+                  {onUnlinkGroup && (
+                    <MenuItem onClick={() => { onUnlinkGroup(workoutExercise.id); setShowMenu(false) }}>
+                      {t('Separar de la superserie')}
                     </MenuItem>
                   )}
                   {onSwapExercise && (

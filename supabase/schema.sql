@@ -28,7 +28,10 @@ create table workout_exercises (
   sort_order integer not null default 0,
   notes text,
   unit text not null default 'lb' check (unit in ('lb', 'kg')),
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  -- Superseries: ver supabase/workout_exercise_groups.sql
+  group_id uuid,
+  group_order integer not null default 0
 );
 
 create table sets (

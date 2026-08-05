@@ -1,8 +1,11 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useReducedMotion } from 'motion/react'
 import Layout from '../components/Layout'
 import ExerciseRow from '../components/ExerciseRow'
-import ExerciseDeck from '../components/ExerciseDeck'
+import ExerciseDeck, { END_KEY } from '../components/ExerciseDeck'
+import { useExerciseLang } from '../hooks/useExerciseLang'
+import { roundStep, groupLabel, canLinkNext } from '../lib/supersets'
 import RestTimerSheet from '../components/RestTimerSheet'
 import { primeChime } from '../lib/chime'
 import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } from '../hooks/useWorkout'
@@ -406,6 +409,120 @@ function LoggingPrimer({ onDismiss }) {
   )
 }
 
+/* ── Carta de cierre ────────────────────────────────────────────────── */
+// La última parada de la baraja, entre el último ejercicio y el primero otra
+// vez. Existe para que dar la vuelta no se sienta como haberse perdido: el
+// recorrido es circular, pero pasa por un sitio que dice dónde estás.
+//
+// No empuja a terminar mientras quede trabajo. Con ejercicios pendientes lo
+// primero es volver a ellos —"Finalizar" queda de segunda—; solo cuando no
+// queda ninguno el botón de cerrar el entreno pasa al frente.
+function EndCard({ workout, exercises, doneExs, onJump, onFinish, onGoFirst, finishing }) {
+  const { t, locale } = useLang()
+  const { label: exLabel } = useExerciseLang()
+
+  const pending = exercises.filter(we => !doneExs.has(we.id))
+  const allDone = exercises.length > 0 && pending.length === 0
+  const totalSets = exercises.reduce((acc, we) => acc + (we.sets?.length || 0), 0)
+
+  const durationLabel = () => {
+    if (!workout?.started_at) return '—'
+    const mins = Math.max(0, Math.floor((Date.now() - new Date(workout.started_at).getTime()) / 60000))
+    const h = Math.floor(mins / 60), m = mins % 60
+    return h > 0 ? `${h}h ${m}m` : `${m}m`
+  }
+
+  return (
+    <div style={{
+      background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)',
+      boxShadow: 'var(--e-1)', borderRadius: 'var(--r-xl)', padding: '20px 18px',
+    }}>
+      <p style={{
+        fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em',
+        color: allDone ? 'var(--c-success)' : 'var(--c-text-dim)', marginBottom: '6px',
+      }}>
+        {t('Fin del recorrido')}
+      </p>
+
+      <p style={{ color: 'var(--c-text)', fontSize: '23px', fontWeight: 900, letterSpacing: '-0.035em', lineHeight: 1.1 }}>
+        {allDone
+          ? t('Todo hecho')
+          : t(pending.length === 1 ? 'Te falta 1 ejercicio' : 'Te faltan {n} ejercicios', { n: pending.length })}
+      </p>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', margin: '14px 0 16px' }}>
+        <EndStat value={`${exercises.length - pending.length}/${exercises.length}`} label={t('hechos')} />
+        <EndStat value={totalSets} label={t('Series totales')} />
+        <EndStat value={durationLabel()} label={t('Duración')} />
+      </div>
+
+      {/* Lo que queda, por nombre y a un toque. Es la razón de que se pueda dar
+          la vuelta sin pasar por todo lo demás. */}
+      {pending.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+          {pending.map(we => (
+            <button
+              key={we.id}
+              type="button"
+              onClick={() => onJump(we.id)}
+              style={{
+                fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em',
+                color: 'var(--c-text-dim)', background: 'var(--c-surface-2)',
+                border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-xs)',
+                padding: '6px 10px', cursor: 'pointer', maxWidth: '100%',
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}
+            >
+              {exLabel(we.exercises)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {pending.length > 0 ? (
+          <>
+            <Button variant="primary" full size="lg" onClick={() => onJump(pending[0].id)}>
+              {t('Seguir con')} {exLabel(pending[0].exercises)}
+            </Button>
+            {onFinish && (
+              <Button variant="secondary" full size="lg" loading={finishing} disabled={finishing} onClick={onFinish}>
+                {t('Finalizar entreno')}
+              </Button>
+            )}
+          </>
+        ) : (
+          <>
+            {onFinish && (
+              <Button variant="primary" full size="lg" loading={finishing} disabled={finishing} onClick={onFinish}>
+                {t('Finalizar entreno')}
+              </Button>
+            )}
+            {exercises.length > 0 && (
+              <Button variant="secondary" full size="lg" onClick={onGoFirst}>
+                {t('Volver al primero')}
+              </Button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function EndStat({ value, label }) {
+  return (
+    <div>
+      <p style={{ color: 'var(--c-text)', fontSize: '17px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </p>
+      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginTop: '4px' }}>
+        {label}
+      </p>
+    </div>
+  )
+}
+
 /* ── Main page ──────────────────────────────────────────────────────── */
 export default function ActiveWorkout() {
   const { id } = useParams()
@@ -415,11 +532,14 @@ export default function ActiveWorkout() {
   const { deleteWorkout } = useWorkouts()
   const online = useOnlineStatus()
   const unsynced = useOutboxCount(id)
+  const reduce = useReducedMotion()
+  const { label: exLabel } = useExerciseLang()
 
   const {
     workout, workoutExercises, loading, error, stale,
     updateWorkoutName, finishWorkout,
     addExercise, replaceExercise, updateUnit, updateExerciseNotes, addSet, updateSet, deleteSet, removeExercise, moveExercise,
+    linkWithNext, unlinkExercise,
   } = useActiveWorkout(id)
 
   const [historyExercise, setHistoryExercise] = useState(null)
@@ -491,23 +611,11 @@ export default function ActiveWorkout() {
     setRest(r => (r && r.id !== restId ? r : null))
   }, [])
 
-  // Auto-advance: finishing an exercise expands the next one still to do, so
-  // the lifter never hunts for where they are. Keyed by a token so re-finishing
-  // the same next exercise re-fires. Only opens — never force-collapses one the
-  // lifter chose to keep open.
+  // Auto-advance en la lista de repaso: al terminar un ejercicio se abre el
+  // siguiente que queda, para no tener que buscar dónde ibas. Va por token para
+  // que volver a terminar el mismo lo vuelva a disparar. Solo abre — nunca
+  // cierra a la fuerza uno que se dejó abierto a propósito.
   const [autoExpand, setAutoExpand] = useState(null) // { id, token } | null
-  const toggleExerciseFinish = useCallback((weId, nextFinished) => {
-    setDoneExs(prev => {
-      const next = new Set(prev)
-      if (nextFinished) next.add(weId); else next.delete(weId)
-      if (nextFinished) {
-        const nextPending = workoutExercises.find(we => we.id !== weId && !next.has(we.id))
-        if (nextPending) setAutoExpand({ id: nextPending.id, token: Date.now() })
-      }
-      return next
-    })
-  }, [workoutExercises])
-
 
   const isFinished = !!workout?.ended_at
 
@@ -518,32 +626,129 @@ export default function ActiveWorkout() {
   // Se usa mientras se entrena (y al editar una sesión ya guardada). En
   // repaso puro manda la lista: ahí el trabajo es escanear, no registrar.
   const deckMode = !isFinished || isEditing
-  const [deckIndex, setDeckIndex] = useState(0)
 
-  // Si la carta que se estaba viendo desaparece —se borró el ejercicio, o
-  // llegó una sesión más corta—, el índice se queda apuntando al vacío y la
-  // baraja se va a negro. Se recorta al último válido.
+  // La baraja se acuerda de POR QUÉ ejercicio ibas, no de en qué posición.
+  // Con un índice, cada ejercicio que se termina (y sale de la baraja) o que se
+  // borra corre la lista debajo de los pies y te deja mirando otra carta. Una
+  // clave sobrevive a que la lista cambie de forma — y sobrevive a recargar.
+  const [rawDeckKey, setRawDeckKey] = useState(() => {
+    try { return localStorage.getItem(`raw_deck_at_${id}`) || null } catch { return null }
+  })
   useEffect(() => {
-    setDeckIndex(i => Math.min(i, Math.max(visibleExercises.length - 1, 0)))
-  }, [visibleExercises.length])
+    try {
+      if (rawDeckKey) localStorage.setItem(`raw_deck_at_${id}`, rawDeckKey)
+    } catch {}
+  }, [rawDeckKey, id])
 
-  // Al dar un ejercicio por terminado, la baraja avanza sola al siguiente que
-  // queda por hacer — que es lo que ibas a hacer de todas formas. Si no queda
-  // ninguno, se queda donde está: adelantar a una carta ya hecha sería mentir
-  // sobre lo que falta.
-  //
-  // Se salta por token, no por dependencias. `visibleExercises` es un array
-  // nuevo en cada render, así que un efecto que dependa de él se ejecuta
-  // siempre — y volvería a plantarte en la carta del autoavance cada vez que
-  // el componente repinta, dejándote sin poder moverte de ahí.
-  const handledAutoExpand = useRef(null)
-  useEffect(() => {
-    if (!deckMode || !autoExpand) return
-    if (handledAutoExpand.current === autoExpand.token) return
-    handledAutoExpand.current = autoExpand.token
-    const next = visibleExercises.findIndex(we => we.id === autoExpand.id)
-    if (next >= 0) setDeckIndex(next)
-  }, [autoExpand, deckMode, visibleExercises])
+  // Una clave guardada puede haber dejado de existir (se borró el ejercicio, o
+  // es de otra sesión). Se cae al primero que quede por hacer, y si no queda
+  // ninguno, al cierre.
+  const currentKey = useMemo(() => {
+    if (rawDeckKey === END_KEY) return END_KEY
+    if (rawDeckKey && visibleExercises.some(we => we.id === rawDeckKey)) return rawDeckKey
+    const firstPending = visibleExercises.find(we => !doneExs.has(we.id))
+    return firstPending ? firstPending.id : END_KEY
+  }, [rawDeckKey, visibleExercises, doneExs])
+
+  // Un ejercicio terminado sale de la baraja: pasar por cartas ya hechas es
+  // justo el trabajo que la baraja tenía que ahorrar. Con una excepción — si es
+  // el que estás mirando (lo acabas de cerrar, o lo has abierto desde la
+  // regleta) se queda en su sitio hasta que te muevas, para poder verlo y
+  // reabrirlo sin buscarlo otra vez.
+  const rotation = useMemo(
+    () => visibleExercises.filter(we => !doneExs.has(we.id) || we.id === currentKey),
+    [visibleExercises, doneExs, currentKey]
+  )
+
+  const stops = useMemo(() => ([
+    ...rotation.map(we => ({ key: we.id, kind: 'exercise', we })),
+    { key: END_KEY, kind: 'end' },
+  ]), [rotation])
+
+  // La regleta enseña la sesión entera —hechos incluidos—, no solo lo que
+  // queda: es el mapa, y un mapa que borra por dónde has pasado no sirve para
+  // volver.
+  const rail = useMemo(() => ([
+    ...visibleExercises.map(we => ({
+      key: we.id,
+      kind: 'exercise',
+      label: exLabel(we.exercises),
+      done: doneExs.has(we.id),
+      groupId: we.group_id || null,
+    })),
+    { key: END_KEY, kind: 'end', label: t('Fin del recorrido'), done: false, groupId: null },
+  ]), [visibleExercises, doneExs, exLabel, t])
+
+  // El siguiente que queda por hacer, dando la vuelta por el final. Si no queda
+  // ninguno, la carta de cierre.
+  const nextPendingAfter = useCallback((weId, doneSet) => {
+    const n = visibleExercises.length
+    const start = visibleExercises.findIndex(we => we.id === weId)
+    for (let k = 1; k <= n; k++) {
+      const cand = visibleExercises[(start + k) % n]
+      if (cand && cand.id !== weId && !doneSet.has(cand.id)) return cand.id
+    }
+    return END_KEY
+  }, [visibleExercises])
+
+  // ── Superseries ───────────────────────────────────────────────────────
+  // No hay carta de superserie: siguen siendo dos ejercicios y dos cartas. Lo
+  // que cambia es que la baraja se mueve sola entre ellas, que es lo que se
+  // hace de verdad — una serie de uno, una del otro, y vuelta a empezar.
+  // Las reglas de la vuelta viven en lib/supersets.
+  const isDoneEx = useCallback((we) => doneExs.has(we.id), [doneExs])
+  const groupLabelFor = useCallback((we) => groupLabel(visibleExercises, we), [visibleExercises])
+  const canLink = useCallback((we) => canLinkNext(visibleExercises, we), [visibleExercises])
+
+  // Marcar una serie como hecha: el descanso y el salto los decide la vuelta.
+  const handleSetCompleted = useCallback((seconds, meta) => {
+    const we = visibleExercises.find(x => x.id === meta?.workoutExerciseId)
+    if (!we) { startRest(seconds); return }
+    const { rest, next } = roundStep(visibleExercises, we, isDoneEx)
+    if (rest) startRest(seconds)
+    if (next) setRawDeckKey(next)
+  }, [visibleExercises, isDoneEx, startRest])
+
+  // Terminar un ejercicio lo pliega en su resumen, se queda un momento a la
+  // vista —ver que se cerró es parte de haberlo cerrado— y después la baraja
+  // pasa sola al siguiente que queda. Si te mueves tú durante esa pausa,
+  // mandas tú: el salto se cancela.
+  const finishTimer = useRef(null)
+  useEffect(() => () => clearTimeout(finishTimer.current), [])
+
+  const toggleExerciseFinish = useCallback((weId, nextFinished) => {
+    setDoneExs(prev => {
+      const next = new Set(prev)
+      if (nextFinished) next.add(weId); else next.delete(weId)
+      return next
+    })
+
+    if (!nextFinished) {
+      // Reabrir: vuelve a la baraja y te deja en él.
+      clearTimeout(finishTimer.current)
+      setRawDeckKey(weId)
+      return
+    }
+
+    const after = new Set(doneExs)
+    after.add(weId)
+
+    if (deckMode) {
+      const target = nextPendingAfter(weId, after)
+      clearTimeout(finishTimer.current)
+      // Clavar la clave en el que se acaba de cerrar antes de nada. Si se deja
+      // sin fijar, la caída de respaldo («el primero que quede por hacer») se
+      // adelanta al temporizador y te saca de la carta en el mismo toque: el
+      // ejercicio se cierra sin que llegues a verlo cerrado.
+      setRawDeckKey(weId)
+      finishTimer.current = setTimeout(() => {
+        setRawDeckKey(k => (k === weId ? target : k))
+      }, reduce ? 0 : 520)
+    } else {
+      const nextPending = workoutExercises.find(we => we.id !== weId && !after.has(we.id))
+      if (nextPending) setAutoExpand({ id: nextPending.id, token: Date.now() })
+    }
+  }, [doneExs, deckMode, nextPendingAfter, workoutExercises, reduce])
 
   // ExerciseRow's ··· "Eliminar" routes here for the undo window.
   const requestRemoveExercise = (weId) => {
@@ -790,7 +995,7 @@ export default function ActiveWorkout() {
                 color: allDone ? 'var(--c-success)' : 'var(--c-text-dim)',
                 fontVariantNumeric: 'tabular-nums',
               }}>
-                {finishedCount}/{total} hechos
+                {finishedCount}/{total} {t('hechos')}
               </span>
             </div>
           )
@@ -822,38 +1027,61 @@ export default function ActiveWorkout() {
             · Sesión terminada, en repaso: la lista de siempre. Ahí el trabajo
               es escanear la sesión entera, y una baraja obliga a pasar seis
               cartas para ver lo que una lista dice de un vistazo. */}
-        {deckMode ? (
+        {/* Sin ejercicios no hay recorrido que dar: el estado vacío de arriba ya
+            dice lo único que hay que decir, y una carta de cierre debajo sería
+            el final de nada. */}
+        {visibleExercises.length === 0 ? null : deckMode ? (
           <div style={{ marginBottom: '8px' }}>
             <ExerciseDeck
-              items={visibleExercises}
-              index={deckIndex}
-              onIndexChange={setDeckIndex}
-              isDone={(we) => doneExs.has(we.id)}
+              stops={stops}
+              rail={rail}
+              currentKey={currentKey}
+              onCurrentChange={setRawDeckKey}
             >
-              {(we, i) => (
-                <ExerciseRow
-                  deck
-                  workoutExercise={we}
-                  workoutId={id}
-                  onAddSet={addSet}
-                  onDeleteSet={deleteSet}
-                  onUpdateSet={updateSet}
-                  onUpdateUnit={updateUnit}
-                  onRemoveExercise={requestRemoveExercise}
-                  onSwapExercise={(weId) => setSwappingId(weId)}
-                  onUpdateNotes={updateExerciseNotes}
-                  completedSetIds={doneSets}
-                  onToggleSetDone={toggleSetDone}
-                  isExerciseFinished={doneExs.has(we.id)}
-                  onToggleFinish={toggleExerciseFinish}
-                  onShowHistory={setHistoryExercise}
-                  onRestStart={!isFinished ? startRest : undefined}
-                  onMove={moveExercise}
-                  canMoveUp={i > 0}
-                  canMoveDown={i < visibleExercises.length - 1}
-                  readOnly={false}
-                />
-              )}
+              {(stop) => {
+                if (stop.kind === 'end') {
+                  return (
+                    <EndCard
+                      workout={workout}
+                      exercises={visibleExercises}
+                      doneExs={doneExs}
+                      onJump={setRawDeckKey}
+                      onGoFirst={() => setRawDeckKey(visibleExercises[0]?.id || END_KEY)}
+                      onFinish={isEditing ? undefined : () => setShowFinishConfirm(true)}
+                      finishing={finishing}
+                    />
+                  )
+                }
+                const we = stop.we
+                const i = visibleExercises.findIndex(x => x.id === we.id)
+                return (
+                  <ExerciseRow
+                    deck
+                    workoutExercise={we}
+                    workoutId={id}
+                    groupLabel={groupLabelFor(we)}
+                    onAddSet={addSet}
+                    onDeleteSet={deleteSet}
+                    onUpdateSet={updateSet}
+                    onUpdateUnit={updateUnit}
+                    onRemoveExercise={requestRemoveExercise}
+                    onSwapExercise={(weId) => setSwappingId(weId)}
+                    onUpdateNotes={updateExerciseNotes}
+                    completedSetIds={doneSets}
+                    onToggleSetDone={toggleSetDone}
+                    isExerciseFinished={doneExs.has(we.id)}
+                    onToggleFinish={toggleExerciseFinish}
+                    onShowHistory={setHistoryExercise}
+                    onRestStart={!isFinished ? handleSetCompleted : undefined}
+                    onMove={moveExercise}
+                    onLinkNext={canLink(we) ? linkWithNext : undefined}
+                    onUnlinkGroup={we.group_id ? unlinkExercise : undefined}
+                    canMoveUp={i > 0}
+                    canMoveDown={i >= 0 && i < visibleExercises.length - 1}
+                    readOnly={false}
+                  />
+                )
+              }}
             </ExerciseDeck>
           </div>
         ) : (
