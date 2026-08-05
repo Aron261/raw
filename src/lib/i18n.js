@@ -42,6 +42,16 @@ const EN = {
   'No pudimos cargar tu perfil.': 'We could not load your profile.',
   'No pudimos cargar tus ejercicios.': 'We could not load your exercises.',
   'Según tu cuerpo': 'Based on your body',
+  'Conexiones activas': 'Active connections',
+  'Autorizada el {fecha}': 'Authorised on {fecha}',
+  'RAW no verifica este nombre. Si no reconoces la conexión, revócala.':
+    'RAW does not verify this name. If you do not recognise the connection, revoke it.',
+  'Revocar': 'Revoke',
+  'Revocando…': 'Revoking…',
+  '¿Seguro?': 'Sure?',
+  'No pudimos cargar tus conexiones.': 'We could not load your connections.',
+  'Todo lo que Claude cambie queda registrado y se puede deshacer. Los permisos de administrador y el borrado de cuenta solo se hacen desde esta app.':
+    'Everything Claude changes is logged and can be undone. Admin permissions and account deletion happen only in this app.',
   'No se pudo guardar el grupo muscular. Inténtalo otra vez.':
     'Could not save the muscle group. Try again.',
   'No pudimos cargar los datos de este cliente.':
