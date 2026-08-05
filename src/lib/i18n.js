@@ -43,6 +43,7 @@ const EN = {
   'No pudimos cargar tus ejercicios.': 'We could not load your exercises.',
   'Según tu cuerpo': 'Based on your body',
   'Conexiones activas': 'Active connections',
+  'Sonido al terminar el descanso': 'Sound when rest ends',
   'Autorizada el {fecha}': 'Authorised on {fecha}',
   'RAW no verifica este nombre. Si no reconoces la conexión, revócala.':
     'RAW does not verify this name. If you do not recognise the connection, revoke it.',

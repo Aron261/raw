@@ -4,6 +4,7 @@ import Layout from '../components/Layout'
 import ExerciseRow from '../components/ExerciseRow'
 import ExerciseDeck from '../components/ExerciseDeck'
 import RestTimerSheet from '../components/RestTimerSheet'
+import { primeChime } from '../lib/chime'
 import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } from '../hooks/useWorkout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -476,6 +477,10 @@ export default function ActiveWorkout() {
   const [rest, setRest] = useState(null) // { endsAt, total, id } | null
   const startRest = useCallback((seconds) => {
     if (!(seconds > 0)) return
+    // El descanso arranca desde un toque (marcar la serie) y ahí es donde iOS
+    // permite despertar el audio. Cuando el descanso termina ya no hay gesto
+    // ninguno, así que si no se ceba aquí el aviso no llega a sonar.
+    primeChime()
     setRest({ endsAt: Date.now() + seconds * 1000, total: seconds, id: Date.now() })
   }, [])
   const extendRest = useCallback((seconds) => {
