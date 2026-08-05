@@ -153,16 +153,6 @@ export function useMyFoods() {
 
 export const DEFAULT_TARGETS = { kcal: 2500, protein_g: 160, carbs_g: 280, fat_g: 80, micros: {}, protein_locked: false }
 
-// Recomendación de macros a partir de meta calórica y peso ideal:
-// proteína = 2 g × kg de peso ideal, grasa = 25% de las calorías,
-// carbos = las calorías restantes.
-export function recommendMacros(kcal, weightKg) {
-  const protein_g = Math.round(weightKg * 2)
-  const fat_g = Math.round((kcal * 0.25) / 9)
-  const carbs_g = Math.max(0, Math.round((kcal - protein_g * 4 - fat_g * 9) / 4))
-  return { kcal: Math.round(kcal), protein_g, carbs_g, fat_g }
-}
-
 // Objetivos diarios (una fila por usuario; defaults si no existe). Con
 // targetUserId, un entrenador lee y planifica los objetivos de ese cliente.
 export function useNutritionTargets(targetUserId = null) {

@@ -199,12 +199,33 @@ describe('el candado de proteína', () => {
     fireEvent.click(screen.getByText('Recomendado para ti'))
     expect(screen.getByText(/Proteína fija en 180 g/)).toBeTruthy()
   })
+
+  // El reparto «Según tu cuerpo» tenía su propio cálculo (2 g/kg de peso) que
+  // no sabía nada del candado: proponía recalcular una cifra que quien la fijó
+  // había dicho explícitamente que no se tocara. Ahora usa el mismo motor.
+  // La proteína propuesta se pinta en la vista previa, no en un input.
+  const proteinaPropuesta = () => screen.getByText('Proteína').parentElement.textContent
+
+  it('el reparto por cuerpo tampoco recalcula una proteína fijada', () => {
+    abrir({ targets: { ...CON_OBJETIVOS, protein_locked: true } })
+    fireEvent.click(screen.getByText('Según tu cuerpo'))
+    expect(proteinaPropuesta()).toContain('180 g')
+    expect(proteinaPropuesta()).not.toContain('160 g')  // 80 kg × 2 g/kg, lo de antes
+  })
+
+  it('sin candado, propone la misma proteína que el asistente', () => {
+    abrir({ targets: CON_OBJETIVOS })
+    fireEvent.click(screen.getByText('Según tu cuerpo'))
+    // Mismo motor que «Recomendado para ti»: los dos salen de computeMacros
+    // sobre el mismo cuerpo, así que la proteína propuesta coincide.
+    expect(proteinaPropuesta()).toContain(`${esperado.protein_g} g`)
+  })
 })
 
 describe('los objetivos de micros', () => {
   it('sin tocar la recomendación, se guarda lo que ya tuviera el usuario', async () => {
     abrir({ targets: { kcal: 2000, protein_g: 150, carbs_g: 200, fat_g: 60, micros: { fibra: 30 } } })
-    // El modo inicial («2 g/kg proteína») exige un peso ideal y sin él Guardar
+    // El modo inicial («Según tu cuerpo») exige un peso y sin él Guardar
     // está deshabilitado — comportamiento de siempre. Aquí interesan los micros.
     fireEvent.click(screen.getByText('Gramos exactos'))
     fireEvent.click(screen.getByText('Guardar objetivos'))

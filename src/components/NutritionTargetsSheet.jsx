@@ -3,17 +3,20 @@ import { Sheet, Field, Button } from './ui'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { calcAge } from '../hooks/useProfile'
-import { DEFAULT_TARGETS, recommendMacros } from '../hooks/useNutrition'
+import { DEFAULT_TARGETS } from '../hooks/useNutrition'
 import { useLang } from '../hooks/useLang'
 import { NUTRIENTS, CEILINGS, sanitizeMicros } from '../lib/nutrients'
-import { recommendPlan, computeMicroTargets, toKg, toCm } from '../lib/nutritionPlan'
+import { recommendPlan, computeMacros, computeMicroTargets, toKg, toCm } from '../lib/nutritionPlan'
 
 const fmt = (n, locale = 'es-CO') => Math.round(n).toLocaleString(locale)
 
-// Balances de macros estilo MyFitnessPal (% de las calorías). 'peso' es la
-// recomendación propia (2 g/kg), 'custom' es % libre y 'gramos' es exacto.
+// Balances de macros estilo MyFitnessPal (% de las calorías). 'peso' reparte
+// con el mismo motor que el asistente —fase, masa magra y piso de grasa—, así
+// que se llamaba «2 g/kg proteína» por un cálculo propio que ya no existe:
+// tenerlo aparte hacía que la misma persona recibiera dos recomendaciones
+// distintas según la pantalla que tocara. 'custom' es % libre y 'gramos' exacto.
 const BALANCES = [
-  { id: 'peso',        label: '2 g/kg proteína' },
+  { id: 'peso',        label: 'Según tu cuerpo' },
   { id: 'equilibrado', label: 'Equilibrado',    p: 20, c: 50, f: 30 },
   { id: 'alta',        label: 'Alta proteína',  p: 30, c: 45, f: 25 },
   { id: 'baja',        label: 'Baja en carbos', p: 25, c: 25, f: 50 },
@@ -295,9 +298,21 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
     const k = parseInt(kcal, 10)
     if (!Number.isFinite(k) || k <= 0) return null
     if (mode === 'peso') {
-      const w = parseFloat(weight)
+      const w = parseFloat(weight) || toKg(profile?.weight, profile?.weight_unit)
       if (!Number.isFinite(w) || w <= 0) return null
-      return recommendMacros(k, w)
+      // El mismo motor que el asistente. Antes este modo tenía el suyo propio
+      // (2 g/kg de peso y 25% de grasa), así que la misma persona recibía dos
+      // recomendaciones distintas según la pantalla que tocara — y esta era la
+      // que se saltaba el candado de proteína, proponiendo recalcular una
+      // cifra que quien la fijó había dicho explícitamente que no se tocara.
+      const m = computeMacros({
+        kcal: k,
+        weightKg: w,
+        bodyFatPct: profile?.body_fat_pct,
+        phaseId: profile?.nutrition_phase,
+        fixedProteinG: proteinLocked && canLock ? lockedProtein : null,
+      })
+      return { kcal: k, protein_g: m.protein_g, carbs_g: m.carbs_g, fat_g: m.fat_g }
     }
     if (mode === 'gramos') {
       const p = parseFloat(gP) || 0

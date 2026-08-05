@@ -41,6 +41,7 @@ const EN = {
     'We could not load your clients’ activity.',
   'No pudimos cargar tu perfil.': 'We could not load your profile.',
   'No pudimos cargar tus ejercicios.': 'We could not load your exercises.',
+  'Según tu cuerpo': 'Based on your body',
   'No se pudo guardar el grupo muscular. Inténtalo otra vez.':
     'Could not save the muscle group. Try again.',
   'No pudimos cargar los datos de este cliente.':
