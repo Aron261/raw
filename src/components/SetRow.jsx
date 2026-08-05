@@ -215,11 +215,29 @@ export default function SetRow({
     persistRef.current(false, r, w)
   }
 
+  // El caso más común del gimnasio es «igual que la vez pasada», y el número ya
+  // estaba ahí delante, en gris, dentro del propio campo. Pero el fantasma era
+  // solo un placeholder: había que teclear los dos campos, o descubrir
+  // «Repetir la vez pasada» enterrado en el menú ···. Ahora el ✓ lo acepta.
+  //
+  // Sigue siendo deliberado: no se guarda nada que no estuviera a la vista, y
+  // solo aplica a una serie sin registrar y con los dos campos vacíos — media
+  // fila a medio escribir no se completa sola por detrás.
+  const canAcceptGhost = !set && !filled && !!previousSet
+
   const toggleDone = async () => {
     committing.current = false
     if (readOnly || busy) return
     if (saveError) { retry(); return }
     if (done && set) { onToggleDone(set.id, false); return }
+    if (canAcceptGhost) {
+      const r = String(previousSet.reps)
+      const w = String(previousSet.weight)
+      setRepsV(r)
+      setWeightV(w)
+      await persist(true, r, w)
+      return
+    }
     await persist(true)
   }
 
@@ -302,11 +320,13 @@ export default function SetRow({
         ref={checkRef}
         onPointerDown={() => { committing.current = true }}
         onClick={toggleDone}
-        disabled={!filled && !done && !saveError}
+        disabled={!filled && !done && !saveError && !canAcceptGhost}
         aria-label={
           saveError ? `Reintentar guardar serie ${setNumber}`
             : done ? `Deshacer serie ${setNumber}`
-            : `Completar serie ${setNumber}`
+            : canAcceptGhost
+              ? `Repetir la vez pasada en la serie ${setNumber}: ${previousSet.reps} por ${previousSet.weight} ${unit}`
+              : `Completar serie ${setNumber}`
         }
         aria-pressed={saveError ? undefined : done}
         style={{
@@ -318,13 +338,15 @@ export default function SetRow({
           border: `1.5px solid ${
             saveError ? 'var(--c-action)'
               : done ? 'var(--c-success)'
-              : (filled ? 'var(--c-border)' : 'var(--c-border-subtle)')
+              : ((filled || canAcceptGhost) ? 'var(--c-border)' : 'var(--c-border-subtle)')
           }`,
           color: saveError ? 'var(--c-action-text)'
             : done ? '#fff'
-            : (filled ? 'var(--c-text-dim)' : 'var(--c-text-ghost)'),
-          opacity: (!filled && !done && !saveError) ? 0.5 : 1,
-          cursor: (!filled && !done && !saveError) ? 'default' : 'pointer',
+            : ((filled || canAcceptGhost) ? 'var(--c-text-dim)' : 'var(--c-text-ghost)'),
+          // Con fantasma aceptable el ✓ se ve pulsable, pero no tanto como uno
+          // con números escritos: es una propuesta, no algo que ya decidiste.
+          opacity: filled || done || saveError ? 1 : (canAcceptGhost ? 0.8 : 0.5),
+          cursor: (!filled && !done && !saveError && !canAcceptGhost) ? 'default' : 'pointer',
           transition: 'background 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms',
         }}
       >

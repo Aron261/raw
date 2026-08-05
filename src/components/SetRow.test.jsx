@@ -70,3 +70,35 @@ describe('SetRow weight steppers', () => {
     expect(screen.queryByLabelText('Subir peso serie 1 5')).toBeNull()
   })
 })
+
+// «Igual que la vez pasada» es el caso más común del gimnasio y costaba el
+// teclado entero, con el número ya delante en gris dentro del propio campo.
+describe('SetRow: aceptar el fantasma con el ✓', () => {
+  const vacia = { set: null, previousSet: { reps: 8, weight: 60 } }
+
+  it('un toque registra la serie con los números de la vez pasada', async () => {
+    const { onSave } = renderRow(vacia)
+    const check = screen.getByLabelText('Repetir la vez pasada en la serie 1: 8 por 60 lb')
+    fireEvent.click(check)
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave.mock.calls.at(-1)).toEqual([1, '8', '60', true])
+  })
+
+  it('sin serie anterior no hay nada que aceptar: el ✓ sigue inhabilitado', () => {
+    renderRow({ set: null, previousSet: null })
+    expect(screen.getByLabelText('Completar serie 1').disabled).toBe(true)
+  })
+
+  // Media fila a medio escribir no se completa sola por detrás: quien empezó a
+  // teclear ya está diciendo que hoy no es igual que la vez pasada.
+  it('con un campo ya escrito, el ✓ no ofrece repetir', () => {
+    renderRow({ ...vacia, set: { id: 's1', reps: 5, weight: 0 } })
+    expect(screen.queryByLabelText(/Repetir la vez pasada/)).toBeNull()
+  })
+
+  it('una serie ya registrada no se toca: el ✓ la deshace', () => {
+    renderRow({ set: { id: 's1', reps: 8, weight: 60 }, previousSet: { reps: 8, weight: 60 }, done: true })
+    expect(screen.getByLabelText('Deshacer serie 1')).toBeTruthy()
+    expect(screen.queryByLabelText(/Repetir la vez pasada/)).toBeNull()
+  })
+})

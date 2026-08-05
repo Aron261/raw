@@ -11,7 +11,15 @@ export default function Segmented({ options, value, onChange, ariaLabel }) {
             aria-selected={active}
             onClick={() => onChange(o.id)}
             style={{
-              padding: '4px 9px', borderRadius: 'var(--r-xs)',
+              // 40px de alto de toque. El control mide 10px de texto a
+              // propósito —es un filtro, no un CTA— pero era la navegación
+              // principal de Progreso con ~19px de alto: se fallaba el tap.
+              // El aire va dentro del botón, no alrededor, así que el chip se
+              // ve igual de discreto y el blanco de la pestaña activa crece
+              // hasta donde de verdad se puede pulsar.
+              padding: '12px 14px', minHeight: '40px',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 'var(--r-xs)',
               fontFamily: 'var(--font-sans)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em',
               background: active ? 'var(--c-surface)' : 'transparent',
               color: active ? 'var(--c-text)' : 'var(--c-text-muted)',

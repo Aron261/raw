@@ -62,6 +62,10 @@ function TabItem({ to, label, Icon, exact }) {
       end={exact}
       style={{ flex: 1, display: 'flex', justifyContent: 'center' }}
     >
+      {/* Las pestañas inactivas iban en --c-text-ghost, que DESIGN.md reserva
+          para decoración: 2.13:1 sobre el hueso, a 10px, en la navegación
+          principal de la app. --c-text-dim las sube a 5.45:1 sin tocar el
+          contraste de la activa, que es lo que las distingue. */}
       {({ isActive }) => (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
@@ -80,7 +84,7 @@ function TabItem({ to, label, Icon, exact }) {
             transition: 'width 200ms var(--ease-out)',
           }} />
           <div style={{
-            color: isActive ? 'var(--c-action-text)' : 'var(--c-text-ghost)',
+            color: isActive ? 'var(--c-action-text)' : 'var(--c-text-dim)',
             transition: 'color 200ms var(--ease-out)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
@@ -88,7 +92,7 @@ function TabItem({ to, label, Icon, exact }) {
           </div>
           <span style={{
             fontSize: '10px', fontWeight: isActive ? 700 : 600, letterSpacing: '-0.01em', lineHeight: 1,
-            color: isActive ? 'var(--c-action-text)' : 'var(--c-text-ghost)',
+            color: isActive ? 'var(--c-action-text)' : 'var(--c-text-dim)',
             transition: 'color 200ms var(--ease-out)',
           }}>
             {label}
