@@ -13,8 +13,11 @@
 //   3. Los entrenos registrados son de SOLO LECTURA. El outbox offline
 //      (src/lib/outbox.js) puede reenviar una escritura vieja horas después y
 //      pisar o resucitar filas; escribir sets desde fuera corrompería ese flujo.
-//   4. Toda escritura pasa por RLS con el token del usuario, así que nunca
-//      puede tocar datos de otra persona.
+//   4. Cada consulta filtra por user_id, además de pasar por RLS. La RLS no
+//      basta y creerlo costó una fuga: en la app un entrenador SÍ puede leer y
+//      editar los datos de sus clientes, así que una consulta que se apoye solo
+//      en ella devuelve, desde el conector de un entrenador, datos de gente que
+//      nunca autorizó la conexión. Lo vigila un test en guardrails.test.js.
 
 import type { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { MICRO_HINT, sanitizeMicros, sumMicros, countCovered } from './nutrients.ts'
@@ -47,6 +50,19 @@ const MICROS_ARG = {
 }
 
 const MEALS = ['desayuno', 'almuerzo', 'cena', 'snack']
+
+// Este conector habla SOLO de la cuenta de quien lo conectó, y eso es lo que
+// promete la pantalla de consentimiento. Pero la RLS de la app es más ancha a
+// propósito: un entrenador puede leer y editar las rutinas, los entrenos y la
+// nutrición de sus clientes desde la app. Delegar el alcance en la RLS haría
+// que el conector de un entrenador arrastrase datos de gente que no autorizó
+// nada. Por eso cada herramienta filtra por user_id además de la RLS, y las
+// que pasan por una RPC comprueban antes de quién es la fila.
+async function assertOwnRoutine(supabase: any, userId: string, routineId: string) {
+  const own = unwrap(await supabase.from('routines').select('id')
+    .eq('id', routineId).eq('user_id', userId).maybeSingle())
+  if (!own) throw new Error('Rutina no encontrada.')
+}
 
 const clamp = (n: unknown, def: number, max: number) => {
   const v = typeof n === 'number' && Number.isFinite(n) ? Math.floor(n) : def
@@ -103,11 +119,12 @@ export const TOOLS: Record<string, Tool> = {
       type: { ...str('Filtra por formato'), enum: ['cycle', 'single_day'] },
       include_days: bool('Si es true incluye días y ejercicios de cada rutina'),
     }),
-    handler: async (a, { supabase }) => {
+    handler: async (a, { supabase, userId }) => {
       const cols = a.include_days
         ? 'id,name,description,type,source,goal,level,days_per_week,is_active,created_at,routine_days(day_name,day_order,focus,routine_day_exercises(exercise_name,exercise_order,sets,reps,rest_seconds,notes))'
         : 'id,name,description,type,source,goal,level,days_per_week,is_active,created_at'
-      let q = supabase.from('routines').select(cols).order('created_at', { ascending: false })
+      let q = supabase.from('routines').select(cols)
+        .eq('user_id', userId).order('created_at', { ascending: false })
       if (a.type) q = q.eq('type', a.type)
       return unwrap(await q)
     },
@@ -116,17 +133,24 @@ export const TOOLS: Record<string, Tool> = {
   get_routine: {
     description: 'Devuelve una rutina completa con sus días y ejercicios en orden.',
     inputSchema: obj({ routine_id: str('ID de la rutina') }, ['routine_id']),
-    handler: async (a, { supabase }) =>
-      unwrap(await supabase.rpc('routine_snapshot', { p_routine_id: a.routine_id })),
+    handler: async (a, { supabase, userId }) => {
+      // routine_snapshot es security invoker, así que su RLS deja ver también
+      // las rutinas de un cliente si quien pregunta es su entrenador. Este
+      // conector solo habla de la cuenta propia: se comprueba antes de mirar.
+      const own = unwrap(await supabase.from('routines').select('id')
+        .eq('id', a.routine_id).eq('user_id', userId).maybeSingle())
+      if (!own) return null
+      return unwrap(await supabase.rpc('routine_snapshot', { p_routine_id: a.routine_id }))
+    },
   },
 
   get_active_cycle: {
     description: 'Devuelve el ciclo activo con todos sus días y ejercicios. Es el plan que la persona está siguiendo ahora mismo.',
     inputSchema: obj({}),
-    handler: async (_a, { supabase }) =>
+    handler: async (_a, { supabase, userId }) =>
       unwrap(await supabase.from('routines')
         .select('id,name,description,goal,level,days_per_week,routine_days(day_name,day_order,focus,routine_day_exercises(exercise_name,exercise_order,sets,reps,rest_seconds,notes))')
-        .eq('is_active', true).maybeSingle()),
+        .eq('user_id', userId).eq('is_active', true).maybeSingle()),
   },
 
   list_workouts: {
@@ -136,9 +160,10 @@ export const TOOLS: Record<string, Tool> = {
       until: str('Fecha final ISO (YYYY-MM-DD)'),
       limit: num('Máximo de entrenos (por defecto 30, máximo 200)'),
     }),
-    handler: async (a, { supabase }) => {
+    handler: async (a, { supabase, userId }) => {
       let q = supabase.from('workouts')
         .select('id,name,notes,started_at,ended_at,routine_id,routine_day_id,source,workout_exercises(sort_order,unit,exercises(name,muscle_group),sets(set_number,reps,weight))')
+        .eq('user_id', userId)
         .order('started_at', { ascending: false })
         .limit(clamp(a.limit, 30, 200))
       if (a.since) q = q.gte('started_at', a.since)
@@ -150,10 +175,10 @@ export const TOOLS: Record<string, Tool> = {
   get_workout: {
     description: 'Un entreno concreto con todos sus ejercicios y series.',
     inputSchema: obj({ workout_id: str('ID del entreno') }, ['workout_id']),
-    handler: async (a, { supabase }) =>
+    handler: async (a, { supabase, userId }) =>
       unwrap(await supabase.from('workouts')
         .select('id,name,notes,started_at,ended_at,source,workout_exercises(sort_order,unit,notes,exercises(name,muscle_group),sets(set_number,reps,weight))')
-        .eq('id', a.workout_id).maybeSingle()),
+        .eq('id', a.workout_id).eq('user_id', userId).maybeSingle()),
   },
 
   get_exercise_history: {
@@ -162,9 +187,9 @@ export const TOOLS: Record<string, Tool> = {
       exercise_name: str('Nombre del ejercicio'),
       limit: num('Máximo de series (por defecto 100, máximo 500)'),
     }, ['exercise_name']),
-    handler: async (a, { supabase }) =>
+    handler: async (a, { supabase, userId }) =>
       unwrap(await supabase.from('public_workout_summary')
-        .select('*').ilike('exercise_name', a.exercise_name)
+        .select('*').eq('user_id', userId).ilike('exercise_name', a.exercise_name)
         .order('started_at', { ascending: false }).limit(clamp(a.limit, 100, 500))),
   },
 
@@ -178,17 +203,20 @@ export const TOOLS: Record<string, Tool> = {
       const lim = clamp(a.limit, 15, 50)
       const exact = unwrap(await supabase.rpc('suggest_library_matches', { p_name: a.query, p_limit: lim }))
       if (Array.isArray(exact) && exact.length) return exact
-      return unwrap(await supabase.from('exercises_library')
-        .select('id,name,name_en,muscle_group,equipment,difficulty,is_compound')
-        .or(`name.ilike.%${a.query}%,name_en.ilike.%${a.query}%`).limit(lim))
+      // Por la RPC y no por un .or() con el texto interpolado: la gramática de
+      // filtros de PostgREST trata las comas y los paréntesis como sintaxis, así
+      // que una búsqueda con una coma reescribía el filtro. La RPC además
+      // normaliza igual que el resto de la biblioteca.
+      return unwrap(await supabase.rpc('search_exercise_library', { q: a.query, lim }))
     },
   },
 
   list_goals: {
     description: 'Objetivos de entrenamiento de la persona usuaria.',
     inputSchema: obj({}),
-    handler: async (_a, { supabase }) =>
-      unwrap(await supabase.from('goals').select('*').order('created_at', { ascending: false })),
+    handler: async (_a, { supabase, userId }) =>
+      unwrap(await supabase.from('goals').select('*')
+        .eq('user_id', userId).order('created_at', { ascending: false })),
   },
 
   get_nutrition_day: {
@@ -197,7 +225,8 @@ export const TOOLS: Record<string, Tool> = {
     handler: async (a, { supabase, userId }) => {
       const day = a.date || new Date().toISOString().slice(0, 10)
       const [entries, targets] = await Promise.all([
-        supabase.from('nutrition_entries').select('*').eq('eaten_on', day).order('created_at'),
+        supabase.from('nutrition_entries').select('*')
+          .eq('user_id', userId).eq('eaten_on', day).order('created_at'),
         supabase.from('nutrition_targets').select('*').eq('user_id', userId).maybeSingle(),
       ])
       const rows = unwrap(entries) as any[]
@@ -219,8 +248,8 @@ export const TOOLS: Record<string, Tool> = {
   list_nutrition_foods: {
     description: 'Alimentos guardados por la persona usuaria, con sus macros y micros por porción de referencia. Reutilízalos al registrar comidas para no inventar valores.',
     inputSchema: obj({ query: str('Filtra por nombre'), limit: num('Máximo (por defecto 30, máximo 100)') }),
-    handler: async (a, { supabase }) => {
-      let q = supabase.from('nutrition_foods').select('*')
+    handler: async (a, { supabase, userId }) => {
+      let q = supabase.from('nutrition_foods').select('*').eq('user_id', userId)
         .order('times_used', { ascending: false }).limit(clamp(a.limit, 30, 100))
       if (a.query) q = q.ilike('name', `%${a.query}%`)
       return unwrap(await q)
@@ -230,26 +259,27 @@ export const TOOLS: Record<string, Tool> = {
   get_body_weight: {
     description: 'Registros de peso corporal, del más reciente al más antiguo.',
     inputSchema: obj({ limit: num('Máximo (por defecto 60, máximo 365)') }),
-    handler: async (a, { supabase }) =>
-      unwrap(await supabase.from('body_weight_logs').select('*')
+    handler: async (a, { supabase, userId }) =>
+      unwrap(await supabase.from('body_weight_logs').select('*').eq('user_id', userId)
         .order('logged_at', { ascending: false }).limit(clamp(a.limit, 60, 365))),
   },
 
   list_recent_changes: {
     description: 'Cambios hechos por asistentes de IA en esta cuenta, del más reciente al más antiguo. Cada uno se puede revertir con undo_change.',
     inputSchema: obj({ limit: num('Máximo (por defecto 20, máximo 100)') }),
-    handler: async (a, { supabase }) =>
+    handler: async (a, { supabase, userId }) =>
       unwrap(await supabase.from('agent_writes')
-        .select('id,table_name,op,row_id,undone_at,created_at')
+        .select('id,table_name,op,row_id,undone_at,created_at').eq('user_id', userId)
         .order('created_at', { ascending: false }).limit(clamp(a.limit, 20, 100))),
   },
 
   list_routine_revisions: {
     description: 'Versiones guardadas de una rutina. Cada edición guarda una antes de cambiar nada, así que se puede volver atrás con restore_routine_revision.',
     inputSchema: obj({ routine_id: str('ID de la rutina') }, ['routine_id']),
-    handler: async (a, { supabase }) =>
+    handler: async (a, { supabase, userId }) =>
       unwrap(await supabase.from('routine_revisions')
-        .select('id,reason,actor,created_at').eq('routine_id', a.routine_id)
+        .select('id,reason,actor,created_at')
+        .eq('routine_id', a.routine_id).eq('user_id', userId)
         .order('created_at', { ascending: false })),
   },
 
@@ -288,15 +318,17 @@ export const TOOLS: Record<string, Tool> = {
       days_per_week: num('Nuevos días por semana, opcional'),
       days: { type: 'array', items: DAY_ITEM, description: 'Días completos en orden. Reemplazan a los actuales.' },
     }, ['routine_id', 'days']),
-    handler: async (a, { supabase }) =>
-      unwrap(await supabase.rpc('update_routine_tree', {
+    handler: async (a, { supabase, userId }) => {
+      await assertOwnRoutine(supabase, userId, a.routine_id)
+      return unwrap(await supabase.rpc('update_routine_tree', {
         p_routine_id: a.routine_id,
         p: {
           name: a.name ?? null, description: a.description ?? null,
           goal: a.goal ?? null, level: a.level ?? null,
           days_per_week: a.days_per_week ?? null, days: a.days ?? [],
         },
-      })),
+      }))
+    },
   },
 
   rename_routine: {
@@ -306,11 +338,12 @@ export const TOOLS: Record<string, Tool> = {
       name: str('Nuevo nombre'), description: str('Nueva descripción'),
       goal: str('Nuevo objetivo'), level: str('Nuevo nivel'),
     }, ['routine_id']),
-    handler: async (a, { supabase }) => {
+    handler: async (a, { supabase, userId }) => {
       const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
       for (const k of ['name', 'description', 'goal', 'level']) if (a[k] != null) patch[k] = a[k]
       return unwrap(await supabase.from('routines').update(patch)
-        .eq('id', a.routine_id).select('id,name,description,goal,level').maybeSingle())
+        .eq('id', a.routine_id).eq('user_id', userId)
+        .select('id,name,description,goal,level').maybeSingle())
     },
   },
 
@@ -320,9 +353,10 @@ export const TOOLS: Record<string, Tool> = {
       routine_id: str('ID de la rutina'),
       confirm: bool('Debe ser true. Sirve para que un borrado nunca ocurra por accidente.'),
     }, ['routine_id', 'confirm']),
-    handler: async (a, { supabase }) => {
+    handler: async (a, { supabase, userId }) => {
       if (a.confirm !== true) throw new Error('Para borrar una rutina hay que pasar confirm=true.')
-      unwrap(await supabase.from('routines').delete().eq('id', a.routine_id))
+      unwrap(await supabase.from('routines').delete()
+        .eq('id', a.routine_id).eq('user_id', userId))
       return { deleted: true, routine_id: a.routine_id }
     },
   },
@@ -358,8 +392,9 @@ export const TOOLS: Record<string, Tool> = {
   delete_goal: {
     description: 'Borra un objetivo.',
     inputSchema: obj({ goal_id: str('ID del objetivo') }, ['goal_id']),
-    handler: async (a, { supabase }) => {
-      unwrap(await supabase.from('goals').delete().eq('id', a.goal_id))
+    handler: async (a, { supabase, userId }) => {
+      unwrap(await supabase.from('goals').delete()
+        .eq('id', a.goal_id).eq('user_id', userId))
       return { deleted: true, goal_id: a.goal_id }
     },
   },
@@ -397,7 +432,7 @@ export const TOOLS: Record<string, Tool> = {
       micros: MICROS_ARG,
       note: str('Nota'),
     }, ['entry_id']),
-    handler: async (a, { supabase }) => {
+    handler: async (a, { supabase, userId }) => {
       const patch: Record<string, unknown> = {}
       for (const k of ['name', 'meal', 'kcal', 'protein_g', 'carbs_g', 'fat_g', 'note']) {
         if (a[k] != null) patch[k] = a[k]
@@ -405,7 +440,7 @@ export const TOOLS: Record<string, Tool> = {
       if (a.micros != null) patch.micros = sanitizeMicros(a.micros)
       if (!Object.keys(patch).length) throw new Error('No hay nada que cambiar.')
       return unwrap(await supabase.from('nutrition_entries').update(patch)
-        .eq('id', a.entry_id).select().maybeSingle())
+        .eq('id', a.entry_id).eq('user_id', userId).select().maybeSingle())
     },
   },
 
@@ -439,7 +474,7 @@ export const TOOLS: Record<string, Tool> = {
       if (existing) {
         return unwrap(await supabase.from('nutrition_foods')
           .update({ ...patch, times_used: existing.times_used + 1 })
-          .eq('id', existing.id).select().maybeSingle())
+          .eq('id', existing.id).eq('user_id', userId).select().maybeSingle())
       }
       return unwrap(await supabase.from('nutrition_foods')
         .insert({ user_id: userId, name_norm: norm, ...patch }).select().maybeSingle())
@@ -449,8 +484,9 @@ export const TOOLS: Record<string, Tool> = {
   delete_nutrition_entry: {
     description: 'Borra una comida registrada.',
     inputSchema: obj({ entry_id: str('ID de la comida') }, ['entry_id']),
-    handler: async (a, { supabase }) => {
-      unwrap(await supabase.from('nutrition_entries').delete().eq('id', a.entry_id))
+    handler: async (a, { supabase, userId }) => {
+      unwrap(await supabase.from('nutrition_entries').delete()
+        .eq('id', a.entry_id).eq('user_id', userId))
       return { deleted: true, entry_id: a.entry_id }
     },
   },
@@ -478,8 +514,12 @@ export const TOOLS: Record<string, Tool> = {
   restore_routine_revision: {
     description: 'Devuelve una rutina a una versión anterior. La versión actual se guarda antes, así que restaurar también se puede deshacer.',
     inputSchema: obj({ revision_id: str('ID de la versión') }, ['revision_id']),
-    handler: async (a, { supabase }) =>
-      unwrap(await supabase.rpc('restore_routine_revision', { p_revision_id: a.revision_id })),
+    handler: async (a, { supabase, userId }) => {
+      const rev = unwrap(await supabase.from('routine_revisions').select('id')
+        .eq('id', a.revision_id).eq('user_id', userId).maybeSingle())
+      if (!rev) throw new Error('Versión no encontrada.')
+      return unwrap(await supabase.rpc('restore_routine_revision', { p_revision_id: a.revision_id }))
+    },
   },
 }
 
