@@ -11,7 +11,7 @@ import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { useTheme } from '../hooks/useTheme'
 import { useLang } from '../hooks/useLang'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
-import { Button, Sheet, UnitToggle } from '../components/ui'
+import { Button, Sheet, UnitToggle, ErrorRetry } from '../components/ui'
 import BodyFatPicker from '../components/BodyFatPicker'
 import { ACTIVITY_LEVELS, PHASES, PHASE_BY_ID, PHASE_FROM_GOAL } from '../lib/nutritionPlan'
 import { useChartColors } from '../lib/chartColors'
@@ -707,8 +707,8 @@ export function ClaudeSection() {
           'En Claude, entra en Ajustes › Conectores.',
           'Elige "Añadir conector personalizado" y pega la URL.',
           'Inicia sesión con esta misma cuenta de RAW y autoriza.',
-        ].map((t, i) => (
-          <li key={t} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+        ].map((paso, i) => (
+          <li key={paso} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <span style={{
               flexShrink: 0, width: '18px', height: '18px', borderRadius: '50%',
               background: 'var(--c-surface-2)', color: 'var(--c-text-dim)',
@@ -717,7 +717,7 @@ export function ClaudeSection() {
             }}>
               {i + 1}
             </span>
-            <span style={{ color: 'var(--c-text-secondary)', fontSize: '12px', lineHeight: 1.5 }}>{t}</span>
+            <span style={{ color: 'var(--c-text-secondary)', fontSize: '12px', lineHeight: 1.5 }}>{t(paso)}</span>
           </li>
         ))}
       </ol>
@@ -864,23 +864,23 @@ function TrainerSection() {
         <div style={{ marginTop: '20px' }}>
           <label style={LABEL}>{t('Mis entrenadores')}</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {trainers.map(t => (
-              <div key={t.linkId} style={{
+            {trainers.map(tr => (
+              <div key={tr.linkId} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '10px 12px', background: 'var(--c-surface-2)',
                 border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)',
               }}>
                 <span style={{ color: 'var(--c-text)', fontSize: '12px', fontWeight: 700 }}>
-                  {t.profile?.name || 'Entrenador'}
+                  {tr.profile?.name || t('Entrenador')}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {counts[t.trainerId] > 0 && (
+                  {counts[tr.trainerId] > 0 && (
                     <span style={{
                       minWidth: '18px', height: '18px', padding: '0 5px', borderRadius: '999px',
                       background: 'var(--c-accent)', color: 'var(--c-on-action)',
                       fontSize: '10px', fontWeight: 800, lineHeight: '18px', textAlign: 'center',
                     }}>
-                      {counts[t.trainerId] > 9 ? '9+' : counts[t.trainerId]}
+                      {counts[tr.trainerId] > 9 ? '9+' : counts[tr.trainerId]}
                     </span>
                   )}
                   <button
@@ -1086,7 +1086,7 @@ export default function Profile() {
   const navigate = useNavigate()
   const { t, locale } = useLang()
   const { user, signOut } = useAuth()
-  const { profile, loading, saving, saveError, saveSuccess, saveProfile, age } = useProfile()
+  const { profile, loading, saving, error: loadError, saveError, saveSuccess, saveProfile, fetchProfile, age } = useProfile()
   const { preference: themePreference } = useTheme()
 
   const handleSignOut = async () => {
@@ -1211,6 +1211,14 @@ export default function Profile() {
   return (
     <Layout>
       <div className="fade-in w-full mx-auto max-w-[600px] lg:max-w-[960px]" style={{ padding: '32px 20px 60px' }}>
+
+        {loadError && (
+          <ErrorRetry
+            message={t('No pudimos cargar tu perfil.')}
+            onRetry={fetchProfile}
+            style={{ marginBottom: '20px' }}
+          />
+        )}
 
         {/* Header — avatar beside identity; back button only on mobile */}
         <div style={{ marginBottom: '32px' }}>

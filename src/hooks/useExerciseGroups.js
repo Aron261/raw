@@ -15,16 +15,25 @@ export function useExerciseGroups(lang = 'es') {
   const { user } = useAuth()
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const load = useCallback(async () => {
     if (!user?.id) return
     setLoading(true)
-    const { data: own } = await supabase
+    // El error se descartaba, así que un fallo de red dejaba la lista vacía y
+    // la pantalla decía que no hay ejercicios que revisar. Justo lo contrario
+    // de lo que hace falta saber.
+    const { data: own, error: err } = await supabase
       .from('exercises')
       .select('id, name, muscle_group, library_id, library:exercises_library ( name, name_en, muscle_group )')
       .eq('user_id', user.id)
       .order('name')
-    setRows(own || [])
+    if (err) {
+      setError(err.message || 'Error inesperado')
+    } else {
+      setRows(own || [])
+      setError(null)
+    }
     setLoading(false)
   }, [user?.id])
 
@@ -61,5 +70,5 @@ export function useExerciseGroups(lang = 'es') {
     setRows(prev => prev.map(e => (e.id === exerciseId ? { ...e, muscle_group: group } : e)))
   }, [user?.id])
 
-  return { exercises, needsAttention, loading, classify, refresh: load }
+  return { exercises, needsAttention, loading, error, classify, refresh: load }
 }

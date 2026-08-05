@@ -595,71 +595,74 @@ export function useExercisePR(exerciseName, userId) {
   const [prSets, setPrSets] = useState([]) // history of best sets per workout
   const [allTimePR, setAllTimePR] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const fetchPRs = useCallback(async () => {
     if (!exerciseName || !userId) return
+    setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('workouts')
+        .select(`
+          id, started_at,
+          workout_exercises!inner (
+            id, unit,
+            exercises!inner ( name ),
+            sets ( id, set_number, reps, weight )
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('workout_exercises.exercises.name', exerciseName)
+        .order('started_at', { ascending: true })
 
-    const fetchPRs = async () => {
-      setLoading(true)
-      try {
-        const { data, error } = await supabase
-          .from('workouts')
-          .select(`
-            id, started_at,
-            workout_exercises!inner (
-              id, unit,
-              exercises!inner ( name ),
-              sets ( id, set_number, reps, weight )
-            )
-          `)
-          .eq('user_id', userId)
-          .eq('workout_exercises.exercises.name', exerciseName)
-          .order('started_at', { ascending: true })
+      if (error) throw error
 
-        if (error) throw error
-
-        // Build progression data: best 1RM per workout session
-        const sessionData = (data || []).map(workout => {
-          const allSets = workout.workout_exercises.flatMap(we => we.sets || [])
-          const unit = workout.workout_exercises[0]?.unit || 'lb'
-          const best1RM = allSets.reduce((best, set) => {
-            const rm = calc1RM(set.weight, set.reps)
-            return rm > best ? rm : best
-          }, 0)
-          const bestSet = allSets.reduce((best, set) => {
-            const rm = calc1RM(set.weight, set.reps)
-            const bestRm = best ? calc1RM(best.weight, best.reps) : 0
-            return rm > bestRm ? set : best
-          }, null)
-
-          return {
-            date: workout.started_at,
-            best1RM,
-            bestSet,
-            unit,
-            sets: allSets,
-            workoutId: workout.id
-          }
-        })
-
-        setPrSets(sessionData)
-
-        // Find all-time PR
-        const pr = sessionData.reduce((best, session) => {
-          return session.best1RM > (best?.best1RM || 0) ? session : best
+      // Build progression data: best 1RM per workout session
+      const sessionData = (data || []).map(workout => {
+        const allSets = workout.workout_exercises.flatMap(we => we.sets || [])
+        const unit = workout.workout_exercises[0]?.unit || 'lb'
+        const best1RM = allSets.reduce((best, set) => {
+          const rm = calc1RM(set.weight, set.reps)
+          return rm > best ? rm : best
+        }, 0)
+        const bestSet = allSets.reduce((best, set) => {
+          const rm = calc1RM(set.weight, set.reps)
+          const bestRm = best ? calc1RM(best.weight, best.reps) : 0
+          return rm > bestRm ? set : best
         }, null)
-        setAllTimePR(pr)
-      } catch (err) {
-        console.error('Error fetching PR:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
 
-    fetchPRs()
+        return {
+          date: workout.started_at,
+          best1RM,
+          bestSet,
+          unit,
+          sets: allSets,
+          workoutId: workout.id
+        }
+      })
+
+      setPrSets(sessionData)
+
+      // Find all-time PR
+      const pr = sessionData.reduce((best, session) => {
+        return session.best1RM > (best?.best1RM || 0) ? session : best
+      }, null)
+      setAllTimePR(pr)
+      setError(null)
+    } catch (err) {
+      console.error('Error fetching PR:', err)
+      // Sin esto, un fallo de red se veía como «Sin datos aún»: la pantalla
+      // le decía a alguien con años de historial que nunca había hecho ese
+      // ejercicio. Un fallo y un historial vacío no se parecen en nada.
+      setError(err.message || 'Error inesperado')
+    } finally {
+      setLoading(false)
+    }
   }, [exerciseName, userId])
 
-  return { prSets, allTimePR, loading }
+  useEffect(() => { fetchPRs() }, [fetchPRs])
+
+  return { prSets, allTimePR, loading, error, refetch: fetchPRs }
 }
 
 // Hook to get all-time best weight for an exercise (for PR badge in active workout)

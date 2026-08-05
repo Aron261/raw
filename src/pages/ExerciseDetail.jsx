@@ -9,6 +9,7 @@ import { useLang } from '../hooks/useLang'
 import { useExerciseLang } from '../hooks/useExerciseLang'
 import { useExerciseMedia } from '../hooks/useExerciseMedia'
 import ExerciseGif from '../components/ExerciseGif'
+import { ErrorRetry } from '../components/ui'
 import { useChartColors } from '../lib/chartColors'
 import {
   gridProps, axisProps, ChartTooltip,
@@ -29,7 +30,7 @@ export default function ExerciseDetail() {
   const fillId = useAreaFillId()
 
   const exerciseName = decodeURIComponent(name)
-  const { prSets, allTimePR, loading } = useExercisePR(exerciseName, user?.id)
+  const { prSets, allTimePR, loading, error, refetch } = useExercisePR(exerciseName, user?.id)
   const media = useExerciseMedia(exerciseName)
   const { term, lang } = useExerciseLang()
 
@@ -80,7 +81,14 @@ export default function ExerciseDetail() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '40px', paddingBottom: '8px' }}>
           <button
             onClick={() => navigate(-1)}
-            style={{ color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}
+            aria-label={t('Volver')}
+            style={{
+              color: 'var(--c-text-dim)', fontSize: '18px', lineHeight: 1, flexShrink: 0,
+              // Era el único «volver» de la app sin nombre accesible y sin
+              // área de toque: 44px lo pone al nivel del resto.
+              minWidth: '44px', minHeight: '44px',
+              display: 'flex', alignItems: 'center',
+            }}
           >
             ←
           </button>
@@ -161,14 +169,22 @@ export default function ExerciseDetail() {
           </div>
         )}
 
-        {!loading && prSets.length === 0 && (
+        {!loading && error && (
+          <ErrorRetry
+            message={t('No pudimos cargar el progreso de este ejercicio.')}
+            onRetry={refetch}
+            style={{ marginBottom: '16px' }}
+          />
+        )}
+
+        {!loading && !error && prSets.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px 0', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-md)' }}>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em' }}>{t('Sin datos aún')}</p>
             <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', marginTop: '6px' }}>{t('Registra este ejercicio para ver tu progreso.')}</p>
           </div>
         )}
 
-        {!loading && prSets.length > 0 && (
+        {!loading && !error && prSets.length > 0 && (
           <>
             {/* Progression chart */}
             <div style={{ marginBottom: '32px' }}>

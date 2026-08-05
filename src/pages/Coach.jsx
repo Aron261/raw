@@ -5,7 +5,7 @@ import { useTrainer } from '../hooks/useTrainer'
 import { useCoachFeed } from '../hooks/useCoachFeed'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
-import { Sheet, Button } from '../components/ui'
+import { Sheet, Button, ErrorRetry } from '../components/ui'
 import { useLang } from '../hooks/useLang'
 
 // "hace 2 h" / "ayer" / "hace 3 d" — a coach scans by recency, not calendar.
@@ -289,7 +289,7 @@ export default function Coach() {
   }
 
   const activeClients = clients.filter(c => c.status === 'active')
-  const { feed, loading: feedLoading } = useCoachFeed(activeClients)
+  const { feed, loading: feedLoading, error: feedError, refresh: refreshFeed } = useCoachFeed(activeClients)
 
   return (
     <Layout>
@@ -357,7 +357,7 @@ export default function Coach() {
         {/* Actividad reciente — qué han entrenado los clientes, lo más nuevo
             arriba, con el PR marcado. La razón de ser del panel: actuar, no
             solo mirar una lista. */}
-        {!loading && activeClients.length > 0 && (feedLoading || feed.length > 0) && (
+        {!loading && activeClients.length > 0 && (feedLoading || feedError || feed.length > 0) && (
           <section className="fade-in" style={{ marginBottom: '28px', animationDelay: '30ms' }}>
             <p style={SECTION_LABEL}>{t('Actividad reciente')}</p>
             {feedLoading ? (
@@ -366,6 +366,8 @@ export default function Coach() {
                   <div key={i} style={{ height: '58px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)', opacity: 1 - i * 0.25 }} />
                 ))}
               </div>
+            ) : feedError ? (
+              <ErrorRetry message={t('No pudimos cargar la actividad de tus clientes.')} onRetry={refreshFeed} />
             ) : (
               feed.slice(0, 12).map((item, i) => (
                 <div key={item.workoutId} className="stagger-item" style={{ '--i': i }}>

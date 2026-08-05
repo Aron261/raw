@@ -36,6 +36,17 @@ const EN = {
   'Eliminar': 'Delete',
   'Editar': 'Edit',
   'Reintentar': 'Retry',
+  'No pudimos cargar esto.': 'We could not load this.',
+  'No pudimos cargar la actividad de tus clientes.':
+    'We could not load your clients’ activity.',
+  'No pudimos cargar tu perfil.': 'We could not load your profile.',
+  'No pudimos cargar tus ejercicios.': 'We could not load your exercises.',
+  'No se pudo guardar el grupo muscular. Inténtalo otra vez.':
+    'Could not save the muscle group. Try again.',
+  'No pudimos cargar los datos de este cliente.':
+    'We could not load this client’s data.',
+  'No pudimos cargar el progreso de este ejercicio.':
+    'We could not load this exercise’s progress.',
   'Volver': 'Back',
   'Deshacer': 'Undo',
   'Empezar': 'Start',
@@ -597,6 +608,7 @@ const EN = {
   'Registra entrenos y aquí verás tus totales y tu progreso en el tiempo.':
     'Log workouts and you will see your totals and progress over time here.',
   'Editar ›': 'Edit ›',
+  'En Claude, entra en Ajustes › Conectores.': 'In Claude, go to Settings › Connectors.',
   'Elige "Añadir conector personalizado" y pega la URL.': 'Choose "Add custom connector" and paste the URL.',
   'Inicia sesión con esta misma cuenta de RAW y autoriza.': 'Sign in with this same RAW account and authorise.',
   'Macros ajustados a mano': 'Macros adjusted by hand',

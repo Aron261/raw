@@ -13,7 +13,7 @@ import { useDashboard } from '../hooks/useDashboard'
 import { useNutritionTargets, useNutritionRange, toLocalISODate } from '../hooks/useNutrition'
 import { useTheme } from '../hooks/useTheme'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
-import { Sheet, Button, UnitToggle } from '../components/ui'
+import { Sheet, Button, UnitToggle, ErrorRetry } from '../components/ui'
 import { useLang } from '../hooks/useLang'
 import { useChartColors } from '../lib/chartColors'
 import { gridProps, axisProps, ChartTooltip } from '../components/charts/chartTheme'
@@ -592,10 +592,10 @@ export default function ClientDetail() {
   const { id: clientId } = useParams()
   const navigate = useNavigate()
 
-  const { profile, age, loading: profLoading } = useClientDetail(clientId)
-  const { routines, loading: routLoading, createRoutine, deleteRoutine, setActiveRoutine } = useRoutines(clientId)
-  const { goals, loading: goalsLoading, createGoal, deleteGoal } = useGoals(clientId)
-  const { data: dash } = useDashboard(clientId)
+  const { profile, age, loading: profLoading, error: profError } = useClientDetail(clientId)
+  const { routines, loading: routLoading, error: routError, fetchRoutines, createRoutine, deleteRoutine, setActiveRoutine } = useRoutines(clientId)
+  const { goals, loading: goalsLoading, error: goalsError, fetchGoals, createGoal, deleteGoal } = useGoals(clientId)
+  const { data: dash, error: dashError, refetch: refetchDash } = useDashboard(clientId)
   const cc = useChartColors()
 
   const [modal, setModal] = useState(null) // 'mine' | 'cycle' | 'single' | 'goal'
@@ -610,9 +610,25 @@ export default function ClientDetail() {
     try { await fn() } catch (e) { setActionError(e.message) }
   }
 
+  // Un solo aviso para los cuatro: a quien mira la ficha le da igual cuál de
+  // las consultas falló, y cuatro banners seguidos serían ruido.
+  const loadError = profError || routError || goalsError || dashError
+  const retryAll = () => {
+    fetchRoutines?.()
+    fetchGoals?.()
+    refetchDash?.()
+  }
+
   return (
     <Layout>
       <div style={{ padding: '0 16px', maxWidth: '480px', margin: '0 auto', width: '100%' }}>
+        {loadError && (
+          <ErrorRetry
+            message={t('No pudimos cargar los datos de este cliente.')}
+            onRetry={retryAll}
+            style={{ marginTop: '16px' }}
+          />
+        )}
 
         {/* Back */}
         <button
