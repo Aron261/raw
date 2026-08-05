@@ -196,7 +196,7 @@ export default function Longevidad() {
                   borderRadius: 'var(--r-sm)',
                   background: s.taken ? 'var(--c-success)' : 'transparent',
                   border: `1.5px solid ${s.taken ? 'var(--c-success)' : 'var(--c-border)'}`,
-                  color: s.taken ? '#fff' : 'var(--c-text-ghost)',
+                  color: s.taken ? 'var(--c-on-success)' : 'var(--c-text-ghost)',
                   fontSize: '17px', fontWeight: 800,
                 }}
               >

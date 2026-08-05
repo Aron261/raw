@@ -106,10 +106,10 @@ function UserRow({ u, onSetBeta, onSetAdmin, onDelete, onError }) {
             style={btnStyle}>{u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
           {confirmDel ? (
             <button type="button" disabled={busy} onClick={wrap(() => onDelete(u.id))}
-              style={{ ...btnStyle, color: '#fff', background: 'var(--c-danger, #C0392B)', borderColor: 'transparent' }}>{t('Confirmar')}</button>
+              style={{ ...btnStyle, color: 'var(--c-on-action)', background: 'var(--c-action)', borderColor: 'transparent' }}>{t('Confirmar')}</button>
           ) : (
             <button type="button" disabled={busy} onClick={() => setConfirmDel(true)}
-              style={{ ...btnStyle, color: 'var(--c-danger, #C0392B)', borderColor: 'var(--c-danger, #C0392B)' }}>{t('Eliminar')}</button>
+              style={{ ...btnStyle, color: 'var(--c-action-text)', borderColor: 'var(--c-action-border)' }}>{t('Eliminar')}</button>
           )}
         </div>
       </td>

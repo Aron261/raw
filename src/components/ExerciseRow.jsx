@@ -233,7 +233,7 @@ export default function ExerciseRow({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px' }}>
           <span style={{
             flexShrink: 0, width: '24px', height: '24px', borderRadius: '999px',
-            background: 'var(--c-success)', color: '#fff',
+            background: 'var(--c-success)', color: 'var(--c-on-success)',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
@@ -511,7 +511,7 @@ export default function ExerciseRow({
                     onClick={() => onToggleFinish?.(workoutExercise.id, true)}
                     style={{
                       ...ghostBtn,
-                      color: allDone ? '#fff' : 'var(--c-text-dim)',
+                      color: allDone ? 'var(--c-on-success)' : 'var(--c-text-dim)',
                       background: allDone ? 'var(--c-success)' : 'transparent',
                       borderColor: allDone ? 'var(--c-success)' : 'var(--c-border-subtle)',
                     }}

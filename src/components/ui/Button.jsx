@@ -8,6 +8,12 @@ const VARIANTS = {
   primary:   { background: 'var(--c-action)',  color: 'var(--c-on-action)', border: '1px solid transparent' },
   secondary: { background: 'var(--c-surface-2)', color: 'var(--c-text)',     border: '1px solid var(--c-border)' },
   ghost:     { background: 'transparent',       color: 'var(--c-text-muted)', border: '1px solid transparent' },
+  // `danger` no es rojo, y no es un descuido: Raw tiene una paleta y ningún
+  // segundo color de marca (DESIGN.md §7). Lo que separa un borrado de un
+  // guardado no es el tono, es el paso de más — confirmar, escribir ELIMINAR,
+  // el segundo toque. Hubo un `var(--c-danger, #C0392B)` suelto en Perfil y en
+  // Admin que además ni existía como token: siempre pintaba el hex de reserva,
+  // así que la app tenía dos idiomas para lo mismo.
   danger:    { background: 'transparent',       color: 'var(--c-action-text)', border: '1px solid var(--c-action-border)' },
 }
 

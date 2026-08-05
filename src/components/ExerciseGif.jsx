@@ -47,6 +47,10 @@ export default function ExerciseGif({ exercise, size = 184, rounded = 12, style 
         width: size, height: size,
         flexShrink: 0,
         objectFit: 'contain',
+        // Blanco literal y no un token, a propósito: los GIF de la biblioteca
+        // vienen con el fondo blanco quemado en el propio archivo. Si esto
+        // siguiera al tema, en modo oscuro se vería un recuadro blanco flotando
+        // dentro de otro. Es el fondo de la imagen, no del cromo.
         background: loaded ? '#fff' : 'transparent',
         borderRadius: rounded,
         border: loaded ? '1px solid var(--c-border-subtle)' : 'none',

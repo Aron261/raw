@@ -341,7 +341,7 @@ export default function SetRow({
               : ((filled || canAcceptGhost) ? 'var(--c-border)' : 'var(--c-border-subtle)')
           }`,
           color: saveError ? 'var(--c-action-text)'
-            : done ? '#fff'
+            : done ? 'var(--c-on-success)'
             : ((filled || canAcceptGhost) ? 'var(--c-text-dim)' : 'var(--c-text-ghost)'),
           // Con fantasma aceptable el ✓ se ve pulsable, pero no tanto como uno
           // con números escritos: es una propuesta, no algo que ya decidiste.

@@ -223,7 +223,11 @@ resorte suelto. Todo lo animado tiene salida por `prefers-reduced-motion`.
 ## 7. Qué no hacer
 
 - **No** meter un segundo color de marca. Si algo necesita distinguirse, se
-  distingue por elevación, peso o tamaño.
+  distingue por elevación, peso o tamaño. **Tampoco un rojo para lo
+  destructivo**: lo que separa un borrado de un guardado es el paso de más
+  —confirmar, escribir ELIMINAR, el segundo toque—, no el tono. Ya pasó una
+  vez: un `var(--c-danger, #C0392B)` en Perfil y Admin que ni siquiera existía
+  como token, así que pintaba el hex de reserva y la app hablaba dos idiomas.
 - **No** poner versalitas por CSS.
 - **No** usar Space Mono para prosa ni para etiquetas.
 - **No** añadir un cuarto nivel de sombra ni una sombra literal en un `style`:

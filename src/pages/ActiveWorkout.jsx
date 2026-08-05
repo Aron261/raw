@@ -380,7 +380,7 @@ function LoggingPrimer({ onDismiss }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
         {/* ✓ — the real done control */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ ...chip, background: 'var(--c-success)', color: '#fff' }}>
+          <span style={{ ...chip, background: 'var(--c-success)', color: 'var(--c-on-success)' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
           </span>
           <span style={text}>{t('Marca la serie como hecha e inicia el descanso.')}</span>

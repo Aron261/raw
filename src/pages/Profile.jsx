@@ -900,6 +900,9 @@ function TrainerSection() {
         >
           <span style={{
             position: 'absolute', top: '3px', left: isTrainer ? '21px' : '3px',
+            // La perilla del interruptor. Blanco fijo en los dos modos porque
+            // tiene que separarse del carril tanto encendido (azul) como
+            // apagado (superficie), y ningún token cumple las dos a la vez.
             width: '22px', height: '22px', borderRadius: '50%', background: '#fff',
             transition: 'left 200ms var(--ease-out)', boxShadow: 'var(--e-1)',
           }} />
@@ -1001,7 +1004,7 @@ function AccountRow({ label, hint, danger, onClick, isFirst }) {
       }}
     >
       <span>
-        <span style={{ color: danger ? 'var(--c-danger, #C0392B)' : 'var(--c-text)', fontSize: '13px', fontWeight: 700, display: 'block' }}>{label}</span>
+        <span style={{ color: danger ? 'var(--c-action-text)' : 'var(--c-text)', fontSize: '13px', fontWeight: 700, display: 'block' }}>{label}</span>
         {hint && <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginTop: '2px', display: 'block' }}>{hint}</span>}
       </span>
       <span style={{ color: 'var(--c-text-ghost)', fontSize: '13px' }}>›</span>
@@ -1134,7 +1137,6 @@ function DeleteAccountSheet({ onClose }) {
       <Button
         type="button" variant="primary" full size="lg"
         loading={deleting} disabled={deleting || !ready} onClick={submit}
-        style={{ background: ready ? 'var(--c-danger, #C0392B)' : undefined }}
       >
         {t(deleting ? 'Eliminando…' : 'Eliminar mi cuenta')}
       </Button>

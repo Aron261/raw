@@ -59,6 +59,10 @@
   --c-record:         #2C56A6;
   --c-record-ink:     #FFFFFF;
   --c-success:        oklch(46% 0.10 150);/* verde apagado: hecho/completo */
+  /* Lo que va ENCIMA del verde. Voltea con el modo igual que --c-on-action:
+     el verde claro y el oscuro no admiten la misma tinta. Faltaba, así que
+     media app escribía #fff a mano y en modo oscuro eso daba 2.36:1. */
+  --c-on-success:     #FFFFFF;            /* blanco sobre verde oscuro (6.8:1) */
 
   /* Legacy aliases — keep older code working; accent == action */
   --c-accent:         var(--c-action);
@@ -124,6 +128,7 @@
   --c-record:         #7FA0EA;
   --c-record-ink:     #0F1013;
   --c-success:        oklch(72% 0.13 150);
+  --c-on-success:     #0F1013;            /* grafito sobre verde claro (8.1:1) */
 
   --c-surface-glass:  rgba(28, 30, 34, 0.80);
   --c-bg-glass:       rgba(18, 19, 22, 0.86);
