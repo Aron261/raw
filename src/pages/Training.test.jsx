@@ -71,6 +71,11 @@ vi.mock('../hooks/useSchedule', () => ({
   }),
 }))
 vi.mock('../hooks/useUnreadCounts', () => ({ useUnreadCounts: () => ({ counts: {} }) }))
+// El chip de suplementos lee el checklist del día. Aquí se mide qué accesos
+// hay en la portada, no el stack, así que basta con que devuelva vacío.
+vi.mock('../hooks/useSupplements', () => ({
+  useSupplements: () => ({ supplements: [], loading: false, error: null }),
+}))
 vi.mock('../hooks/useUndoableDelete', () => ({
   useUndoableDelete: () => ({ pending: null, liveMsg: '', request: vi.fn(), undo: vi.fn(), setLiveMsg: vi.fn() }),
 }))

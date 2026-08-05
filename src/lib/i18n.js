@@ -44,6 +44,30 @@ const EN = {
   'Según tu cuerpo': 'Based on your body',
   'Conexiones activas': 'Active connections',
   'Sonido al terminar el descanso': 'Sound when rest ends',
+
+  // ── Longevidad · suplementos ──
+  // «AM» y «PM» se escriben igual en los dos idiomas y por eso no están aquí.
+  'Longevidad': 'Longevity',
+  'Suplementos': 'Supplements',
+  'Añade tu stack': 'Add your stack',
+  'Pendientes hoy': 'Pending today',
+  'Añadir suplemento': 'Add supplement',
+  '{tomados} de {total} hoy': '{tomados} of {total} today',
+  'No pudimos cargar tus suplementos.': 'We could not load your supplements.',
+  'Sin suplementos todavía': 'No supplements yet',
+  'Añade lo que tomas y tendrás el checklist del día. Marcarlos lleva un toque.':
+    'Add what you take and you will get today’s checklist. Ticking them is one tap.',
+  'Marcar {nombre} como tomado': 'Mark {nombre} as taken',
+  'Quitar {nombre} del stack': 'Remove {nombre} from the stack',
+  'Nuevo suplemento': 'New supplement',
+  'Dosis': 'Dose',
+  'Opcional': 'Optional',
+  'Cuándo': 'When',
+  'Creatina': 'Creatine',
+  'No se pudo guardar': 'Could not save',
+  'Pre-entreno': 'Pre-workout',
+  'Con comida': 'With food',
+  'Antes de dormir': 'Before bed',
   'Autorizada el {fecha}': 'Authorised on {fecha}',
   'RAW no verifica este nombre. Si no reconoces la conexión, revócala.':
     'RAW does not verify this name. If you do not recognise the connection, revoke it.',

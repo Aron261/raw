@@ -17,6 +17,7 @@ import { useChartColors } from '../lib/chartColors'
 import { formatVolume } from '../lib/format'
 import { ChartTooltip } from '../components/charts/chartTheme'
 import { useSchedule } from '../hooks/useSchedule'
+import { useSupplements } from '../hooks/useSupplements'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Sheet, Field, Button, LiveRegion, UndoSnackbar, UnitToggle } from '../components/ui'
@@ -526,6 +527,12 @@ export default function Training() {
   // solo a la consola: en un sótano el botón parpadeaba y no pasaba nada, sin
   // manera de saber si había sido la señal o la app.
   const [startError, setStartError] = useState(null)
+
+  // El checklist de hoy, para el chip de la portada. Va por la caché
+  // compartida, así que abrir Longevidad después no vuelve a pedirlo.
+  const { supplements } = useSupplements()
+  const suplTotal = supplements.length
+  const suplTomados = supplements.filter(s => s.taken).length
 
   // Undoable goal delete (shared primitive) — hides optimistically, commits
   // after a grace window, announces state to screen readers.
@@ -1138,9 +1145,21 @@ export default function Training() {
                 hint={latestWeight ? null : t('Aún sin registrar')}
                 onClick={() => navigate('/profile?s=caracteristicas')}
               />
+              {/* Vacío también entra: si el chip solo apareciera con stack ya
+                  cargado, nadie descubriría nunca la sección. Mismo trato que
+                  el peso corporal sin registrar. */}
+              <Chip
+                index={2}
+                label={t('Suplementos')}
+                value={suplTotal > 0 ? `${suplTomados}/${suplTotal}` : '—'}
+                hint={suplTotal === 0
+                  ? t('Añade tu stack')
+                  : suplTomados < suplTotal ? t('Pendientes hoy') : null}
+                onClick={() => navigate('/longevidad')}
+              />
               {profile?.is_trainer && (
                 <Chip
-                  index={2}
+                  index={3}
                   label={t('Coach')}
                   live={unread > 0}
                   value={unread > 0 ? `${unread} ${t('sin leer')}` : t('Tus clientes')}
