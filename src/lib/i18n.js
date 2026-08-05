@@ -45,6 +45,14 @@ const EN = {
   'Conexiones activas': 'Active connections',
   'Sonido al terminar el descanso': 'Sound when rest ends',
 
+  // ── La primera vez ──
+  'Tres cosas y entramos': 'Three things and we are in',
+  'Se cambian luego en Perfil, cuando quieras.': 'You can change them later in Profile, any time.',
+  '¿Cómo te llamas?': 'What is your name?',
+  '¿En qué unidad levantas?': 'Which unit do you lift in?',
+  '¿A qué vas?': 'What are you here for?',
+  'Ahora no': 'Not now',
+
   // ── Longevidad · suplementos ──
   // «AM» y «PM» se escriben igual en los dos idiomas y por eso no están aquí.
   'Longevidad': 'Longevity',

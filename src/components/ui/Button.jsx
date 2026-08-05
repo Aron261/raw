@@ -13,10 +13,16 @@ const VARIANTS = {
 
 // Más aire que antes: en "Cuerpo" un control es una cosa que se toca, y el
 // área táctil forma parte de cómo se siente. lg queda en 52px de alto.
+//
+// El minHeight no es redundante con el padding: `md` salía en 43px —un píxel
+// por debajo del mínimo que la propia app se exige— y `sm` en 34px, porque el
+// alto lo decidían el texto y el relleno, que se eligen por estética. Aquí el
+// suelo se declara aparte para que ninguna combinación futura de tamaño de
+// letra vuelva a bajarlo sin que nadie se entere.
 const SIZES = {
-  sm: { padding: '10px 16px', fontSize: '12px', borderRadius: 'var(--r-sm)' },
-  md: { padding: '14px 18px', fontSize: '13px', borderRadius: 'var(--r-md)' },
-  lg: { padding: '18px',      fontSize: '15px', borderRadius: 'var(--r-lg)' },
+  sm: { padding: '10px 16px', fontSize: '12px', borderRadius: 'var(--r-sm)', minHeight: '44px' },
+  md: { padding: '14px 18px', fontSize: '13px', borderRadius: 'var(--r-md)', minHeight: '44px' },
+  lg: { padding: '18px',      fontSize: '15px', borderRadius: 'var(--r-lg)', minHeight: '52px' },
 }
 
 const Button = forwardRef(function Button(

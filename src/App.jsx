@@ -1,9 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useNavigationType, useParams } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
 import { AuthContext, useAuthProvider } from './hooks/useAuth'
 import { useBetaGate } from './hooks/useBetaGate'
 import { useWorkouts } from './hooks/useWorkout'
+import { useProfile } from './hooks/useProfile'
 
 // Route-level code splitting: each screen is its own chunk so the initial load
 // only ships the shell + whatever route the user landed on. Recharts and other
@@ -15,6 +16,7 @@ const Training       = lazy(() => import('./pages/Training'))
 const Nutrition      = lazy(() => import('./pages/Nutrition'))
 const Social         = lazy(() => import('./pages/Social'))
 const Longevidad     = lazy(() => import('./pages/Longevidad'))
+const Onboarding     = lazy(() => import('./pages/Onboarding'))
 const ActiveWorkout  = lazy(() => import('./pages/ActiveWorkout'))
 const ExerciseDetail = lazy(() => import('./pages/ExerciseDetail'))
 const Progreso       = lazy(() => import('./pages/Progreso'))
@@ -76,6 +78,42 @@ function RequireAuth({ children, auth }) {
   if (beta.loading) return <Splash />
   // Autenticado pero sin canjear el código → pantalla de acceso beta
   if (!beta.approved) return <BetaGate />
+
+  return <OnboardingGate>{children}</OnboardingGate>
+}
+
+// La primera vez: tres preguntas antes de entrar.
+//
+// Va en su propio componente y no dentro de RequireAuth para no consultar el
+// perfil de quien todavía no ha pasado la puerta de beta.
+//
+// El «no tiene nombre» es la señal de que nunca se ha configurado nada. Quien
+// ya tenga cuenta no ve esto jamás. Y quien diga «ahora no» tampoco vuelve a
+// verlo en este dispositivo: insistir en cada navegación no consigue un perfil
+// completo, consigue un nombre escrito de mala gana.
+const ONBOARDING_SKIP = 'raw.onboardingSkipped'
+const seSalto = () => {
+  try { return window.localStorage.getItem(ONBOARDING_SKIP) === '1' } catch { return false }
+}
+
+function OnboardingGate({ children }) {
+  const { profile, loading } = useProfile()
+  const [skipped, setSkipped] = useState(seSalto)
+
+  // Sin perfil todavía cargado no se decide nada: enseñar el onboarding a
+  // alguien que sí tiene nombre, aunque sea un instante, es peor que esperar.
+  if (loading && !profile) return <Splash />
+
+  if (!profile?.name && !skipped) {
+    return (
+      <Onboarding
+        onDone={() => {
+          try { window.localStorage.setItem(ONBOARDING_SKIP, '1') } catch { /* solo esta sesión */ }
+          setSkipped(true)
+        }}
+      />
+    )
+  }
 
   return children
 }
