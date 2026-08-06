@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { supabase } from '../lib/supabase'
+import { subscribeToPush } from '../lib/push'
 
 /*
  * «¿Sigues entrenando?»
@@ -26,20 +28,40 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 export const IDLE_MS = 20 * 60 * 1000
 const HEARTBEAT_MS = 30 * 1000
+// El sello en el servidor va mucho más espaciado que el local: el local es
+// gratis y el otro es una escritura por cada latido. Dos minutos de resolución
+// sobran para un umbral de veinte.
+const SERVER_HEARTBEAT_MS = 2 * 60 * 1000
 
 const seenKey = (workoutId) => `raw_last_seen_${workoutId}`
 
-export function useIdleWorkoutReminder({ workoutId, active, title, body }) {
+export function useIdleWorkoutReminder({ workoutId, active, title, body, userId }) {
   // Milisegundos que se ha estado fuera, cuando pasan del umbral. 0 = no hay
   // nada que preguntar.
   const [awayMs, setAwayMs] = useState(0)
   const timer = useRef(null)
   const beat = useRef(null)
+  const serverBeat = useRef(0)
+
+  // El sello del servidor es lo que hace posible el push: sin él, nadie fuera de
+  // este dispositivo sabe que el entreno lleva rato solo, y la notificación no
+  // la puede mandar la propia página (que es justo la que está dormida).
+  const stampServer = useCallback((force = false) => {
+    if (!workoutId) return
+    const now = Date.now()
+    if (!force && now - serverBeat.current < SERVER_HEARTBEAT_MS) return
+    serverBeat.current = now
+    supabase.from('workouts')
+      .update({ last_seen_at: new Date(now).toISOString() })
+      .eq('id', workoutId)
+      .then(() => {}, () => { /* sin red: el aviso local sigue en pie */ })
+  }, [workoutId])
 
   const stamp = useCallback(() => {
     if (!workoutId) return
     try { localStorage.setItem(seenKey(workoutId), String(Date.now())) } catch {}
-  }, [workoutId])
+    stampServer()
+  }, [workoutId, stampServer])
 
   const lastSeen = useCallback(() => {
     if (!workoutId) return 0
@@ -82,8 +104,12 @@ export function useIdleWorkoutReminder({ workoutId, active, title, body }) {
       stamp()
     }
 
+    // Al irse a segundo plano el sello del servidor se fuerza: es el último
+    // momento en que se sabe con certeza que la app estaba delante, y es contra
+    // ese instante contra el que el cron va a medir los veinte minutos.
     const onHidden = () => {
-      stamp()
+      stampServer(true)
+      try { localStorage.setItem(seenKey(workoutId), String(Date.now())) } catch {}
       scheduleNotification()
     }
 
@@ -107,7 +133,16 @@ export function useIdleWorkoutReminder({ workoutId, active, title, body }) {
       clearInterval(beat.current)
       cancelNotification()
     }
-  }, [active, workoutId, stamp, lastSeen, scheduleNotification, cancelNotification])
+  }, [active, workoutId, stamp, stampServer, lastSeen, scheduleNotification, cancelNotification])
+
+  // Si ya se dio permiso en otro momento, este dispositivo puede no tener buzón
+  // todavía (permiso concedido en otro entreno, app reinstalada, buzón caducado).
+  // Registrarlo es idempotente y barato.
+  useEffect(() => {
+    if (!active || !userId) return
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+    subscribeToPush(userId)
+  }, [active, userId])
 
   // Al terminar o descartar el entreno la marca deja de tener sentido.
   const clear = useCallback(() => {
@@ -127,12 +162,21 @@ export function useIdleWorkoutReminder({ workoutId, active, title, body }) {
     if (typeof Notification === 'undefined') return 'unsupported'
     try {
       const res = await Notification.requestPermission()
-      if (res === 'granted') scheduleNotification()
+      if (res === 'granted') {
+        scheduleNotification()
+        // Y se registra el buzón para el push de verdad: el temporizador de
+        // arriba solo cubre el caso de que el navegador no lo haya congelado.
+        // El que llega con la app cerrada es este.
+        await subscribeToPush(userId)
+        // El sello tiene que estar puesto ya: sin él el servidor no sabe desde
+        // cuándo contar y el primer aviso no saldría nunca.
+        stampServer(true)
+      }
       return res
     } catch {
       return 'denied'
     }
-  }, [scheduleNotification])
+  }, [scheduleNotification, userId, stampServer])
 
   return { awayMs, dismiss, clear, enableNotifications }
 }

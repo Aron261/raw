@@ -154,9 +154,12 @@ revoke execute on function public.log_agent_write() from anon, authenticated, pu
 do $$
 declare
   t text;
+  -- body_weight_logs salió de aquí: el peso corporal se ve desde un conector
+  -- pero no se escribe. Quitar la herramienta del MCP no bastaba —eso es una
+  -- omisión, no una garantía—; fuera de esta lista lo rechaza Postgres.
   writable text[] := array[
     'routines','routine_days','routine_day_exercises',
-    'goals','nutrition_entries','nutrition_foods','body_weight_logs'
+    'goals','nutrition_entries','nutrition_foods'
   ];
 begin
   for t in

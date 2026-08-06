@@ -27,7 +27,18 @@ vi.mock('motion/react', () => ({
   }),
 }))
 vi.mock('../lib/chime', () => ({ primeChime: () => {} }))
-vi.mock('../lib/supabase', () => ({ supabase: { from: () => ({ select: () => ({ eq: () => ({ in: () => Promise.resolve({ data: [] }) }) }) }) } }))
+// Cadena encadenable y siempre thenable: la pantalla consulta récords y el
+// aviso de entreno abierto sella `last_seen_at`, y ninguna de las dos debe
+// obligar a esta prueba a saber por dónde va la cadena.
+vi.mock('../lib/supabase', () => {
+  const chain = () => new Proxy(() => {}, {
+    get: (_t, prop) => (prop === 'then'
+      ? (res) => Promise.resolve({ data: [], error: null }).then(res)
+      : () => chain()),
+    apply: () => chain(),
+  })
+  return { supabase: { from: chain, rpc: chain } }
+})
 vi.mock('../hooks/useAuth', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }))
 vi.mock('../hooks/useLang', () => ({ useLang: () => ({ t: (x, v) => (v ? Object.entries(v).reduce((s, [k, val]) => s.replaceAll(`{${k}}`, val), x) : x), locale: 'es-CO', lang: 'es' }) }))
 vi.mock('../hooks/useExerciseLang', () => ({ useExerciseLang: () => ({ label: (e) => e?.name || '' }) }))

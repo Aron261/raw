@@ -685,6 +685,7 @@ export default function ActiveWorkout() {
   const idle = useIdleWorkoutReminder({
     workoutId: id,
     active: !!workout && !isFinished,
+    userId: user?.id,
     title: t('Tu entreno sigue abierto'),
     body: t('¿Sigues entrenando? Toca para volver y cerrarlo si ya terminaste.'),
   })

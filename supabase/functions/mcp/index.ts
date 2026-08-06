@@ -10,8 +10,9 @@
 //   - Ver o modificar datos de otra persona. Cada petición usa el token del
 //     usuario final y RLS decide (ver auth.ts).
 //   - Escribir en perfil, objetivos de macros, entrenos registrados, series,
-//     biblioteca global de ejercicios o ajustes. No hay herramienta para ello y
-//     además Postgres lo rechaza (supabase/agent_audit.sql).
+//     peso corporal, biblioteca global de ejercicios o ajustes. No hay
+//     herramienta para ello y además Postgres lo rechaza
+//     (supabase/agent_audit.sql).
 //
 // Despliegue: verify_jwt DESACTIVADO. La validación del token la hace
 // authenticate() en auth.ts. Es necesario porque el 401 por defecto de la
@@ -68,8 +69,9 @@ async function handleMessage(msg: any, req: Request): Promise<unknown | null> {
       instructions: [
         'Datos de entrenamiento de RAW para esta persona usuaria.',
         'Puedes leer todo: entrenos, series, progreso, nutrición y perfil.',
-        'Solo puedes escribir rutinas y ciclos, objetivos, comidas, alimentos y peso corporal.',
-        'No puedes registrar entrenos ni series (eso se hace en la app), ni cambiar el perfil o los objetivos de macros y micros, ni conceder permisos de administrador.',
+        'Solo puedes escribir rutinas y ciclos, objetivos, comidas y alimentos.',
+        'No puedes registrar entrenos ni series ni peso corporal (eso se hace en la app), ni cambiar el perfil o los objetivos de macros y micros, ni conceder permisos de administrador.',
+        'El peso corporal se lee con get_body_weight, pero no se escribe: es un dato que se registra en la báscula y en la app, no por conversación.',
         'Antes de crear o editar una rutina, busca los ejercicios con search_exercise_library: guardar un nombre que no está en la biblioteca rompe el seguimiento del progreso. Si un término es ambiguo ("sentadillas"), pregunta cuál variante quiere.',
         'Después de escribir una rutina, revisa el campo "normalized" y comenta cualquier nombre que se haya guardado distinto.',
         'Al registrar comidas, manda solo los micronutrientes que conozcas: una clave ausente significa "desconocido", no cero, y la app cuenta cuántas comidas traen datos para saber cuánto vale el total del día.',

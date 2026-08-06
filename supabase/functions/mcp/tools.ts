@@ -257,7 +257,7 @@ export const TOOLS: Record<string, Tool> = {
   },
 
   get_body_weight: {
-    description: 'Registros de peso corporal, del más reciente al más antiguo.',
+    description: 'Registros de peso corporal, del más reciente al más antiguo. Solo lectura: el peso se registra en la app, no desde aquí.',
     inputSchema: obj({ limit: num('Máximo (por defecto 60, máximo 365)') }),
     handler: async (a, { supabase, userId }) =>
       unwrap(await supabase.from('body_weight_logs').select('*').eq('user_id', userId)
@@ -491,18 +491,11 @@ export const TOOLS: Record<string, Tool> = {
     },
   },
 
-  log_body_weight: {
-    description: 'Registra el peso corporal.',
-    inputSchema: obj({
-      weight: num('Peso'),
-      unit: { ...str('Unidad'), enum: ['kg', 'lb'] },
-      note: str('Nota opcional'),
-    }, ['weight']),
-    handler: async (a, { supabase, userId }) =>
-      unwrap(await supabase.from('body_weight_logs').insert({
-        user_id: userId, weight: a.weight, unit: a.unit ?? 'kg', note: a.note ?? null,
-      }).select().maybeSingle()),
-  },
+  // El peso corporal se lee (get_body_weight) pero no se escribe desde aquí.
+  // No es una omisión: la garantía está en la base de datos —body_weight_logs
+  // salió de la lista de tablas escribibles por agentes en agent_audit.sql—, así
+  // que aunque alguien vuelva a añadir la herramienta, Postgres la rechaza.
+  // Es un dato que se registra en la báscula, no por conversación.
 
   undo_change: {
     description: 'Revierte un cambio hecho por IA. Usa list_recent_changes para ver los IDs disponibles.',

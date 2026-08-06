@@ -41,6 +41,11 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Los listeners de push viven en public/push-sw.js y se enganchan aquí.
+        // La alternativa era pasarse a injectManifest y escribir el service
+        // worker entero a mano, lo que obliga a hacerse cargo también de todo
+        // el precacheo de abajo a cambio de nada.
+        importScripts: ['/push-sw.js'],
         runtimeCaching: [
           {
             // Only cache PUBLIC storage assets (images, etc.). Authenticated
