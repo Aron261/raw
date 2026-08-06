@@ -18,6 +18,13 @@ const REST_PRESETS = [60, 90, 120, 180, 240]
 const DEFAULT_REST = 90
 const fmtRest = (secs) => `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`
 
+// Mover dice qué mueve. Dentro de una superserie el movimiento cambia el orden
+// de la vuelta; desde su borde, arrastra la superserie entera.
+const MOVE_LABEL = {
+  up:   { self: 'Antes en la vuelta', group: 'Mover superserie arriba', block: 'Mover arriba' },
+  down: { self: 'Después en la vuelta', group: 'Mover superserie abajo', block: 'Mover abajo' },
+}
+
 export default function ExerciseRow({
   workoutExercise,
   workoutId,
@@ -43,8 +50,12 @@ export default function ExerciseRow({
   onUnlinkGroup,              // (workoutExerciseId) => void  [optional]
   autoExpandToken = null,     // bump to auto-open this row (next-up after a finish)
   onMove,                     // (workoutExerciseId, 'up' | 'down') => void  [optional]
-  canMoveUp = false,
-  canMoveDown = false,
+  // Qué movería cada dirección: 'self' (el orden de la vuelta), 'group' (la
+  // superserie entera), 'block' (un ejercicio suelto) o null (no hay a dónde).
+  // La etiqueta lo dice antes de tocarlo — el mismo botón mueve cosas distintas
+  // según dónde estés, y eso solo vale si se avisa.
+  moveUpKind = null,
+  moveDownKind = null,
   readOnly = false,
   // Modo baraja: la fila es la única carta en pantalla, así que no se pliega
   // (no hay nada que ganar plegándola) y pierde el galón y el resumen
@@ -464,14 +475,14 @@ export default function ExerciseRow({
                     <MenuItem onClick={cycleRest}>{t('Descanso ·')}<span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--c-data)' }}>{fmtRest(restSecs)}</span>
                     </MenuItem>
                   )}
-                  {onMove && canMoveUp && (
+                  {onMove && moveUpKind && (
                     <MenuItem onClick={() => { onMove(workoutExercise.id, 'up'); setShowMenu(false) }}>
-                      {t('Mover arriba')}
+                      {t(MOVE_LABEL.up[moveUpKind])}
                     </MenuItem>
                   )}
-                  {onMove && canMoveDown && (
+                  {onMove && moveDownKind && (
                     <MenuItem onClick={() => { onMove(workoutExercise.id, 'down'); setShowMenu(false) }}>
-                      {t('Mover abajo')}
+                      {t(MOVE_LABEL.down[moveDownKind])}
                     </MenuItem>
                   )}
                   {onUpdateNotes && (

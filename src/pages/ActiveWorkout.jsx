@@ -5,7 +5,7 @@ import Layout from '../components/Layout'
 import ExerciseRow from '../components/ExerciseRow'
 import ExerciseDeck, { END_KEY } from '../components/ExerciseDeck'
 import { useExerciseLang } from '../hooks/useExerciseLang'
-import { roundStep, groupLabel, canLinkNext } from '../lib/supersets'
+import { roundStep, groupLabel, canLinkNext, moveKind } from '../lib/supersets'
 import RestTimerSheet from '../components/RestTimerSheet'
 import { primeChime } from '../lib/chime'
 import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } from '../hooks/useWorkout'
@@ -1053,7 +1053,6 @@ export default function ActiveWorkout() {
                   )
                 }
                 const we = stop.we
-                const i = visibleExercises.findIndex(x => x.id === we.id)
                 return (
                   <ExerciseRow
                     deck
@@ -1076,8 +1075,8 @@ export default function ActiveWorkout() {
                     onMove={moveExercise}
                     onLinkNext={canLink(we) ? linkWithNext : undefined}
                     onUnlinkGroup={we.group_id ? unlinkExercise : undefined}
-                    canMoveUp={i > 0}
-                    canMoveDown={i >= 0 && i < visibleExercises.length - 1}
+                    moveUpKind={moveKind(visibleExercises, we.id, 'up')}
+                    moveDownKind={moveKind(visibleExercises, we.id, 'down')}
                     readOnly={false}
                   />
                 )
@@ -1114,8 +1113,6 @@ export default function ActiveWorkout() {
                       onRestStart={undefined}
                       autoExpandToken={autoExpand?.id === we.id ? autoExpand.token : null}
                       onMove={undefined}
-                      canMoveUp={false}
-                      canMoveDown={false}
                       readOnly
                     />
                   </div>

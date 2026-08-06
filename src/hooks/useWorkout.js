@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import { planMove, normalizeOrder } from '../lib/supersets'
 import { useAuth } from './useAuth'
 import { useCachedResource } from '../lib/swr'
 import { getOrCreateExerciseId, resolveExerciseIds as resolveExerciseIdsCanonical } from '../lib/exercises'
@@ -513,27 +514,37 @@ export function useActiveWorkout(workoutId) {
     sync()
   }
 
-  // Move an exercise up/down in the workout, reindexing sort_order so the
-  // change survives even if existing values were non-contiguous.
-  const moveExercise = async (workoutExerciseId, dir) => {
-    const ordered = [...workoutExercises].sort((a, b) => a.sort_order - b.sort_order)
-    const idx = ordered.findIndex(w => w.id === workoutExerciseId)
-    if (idx === -1) return
-    const target = dir === 'up' ? idx - 1 : idx + 1
-    if (target < 0 || target >= ordered.length) return
-
-    const reordered = [...ordered]
-    ;[reordered[idx], reordered[target]] = [reordered[target], reordered[idx]]
-    setWorkoutExercises(reordered.map((w, i) => ({ ...w, sort_order: i })))
+  // Escribir un orden ya calculado (sort_order + group_order) y renumerar de
+  // paso, para que el cambio aguante aunque los valores vinieran con huecos.
+  const applyOrder = async (rows) => {
+    const byId = new Map(rows.map(r => [r.id, r]))
+    setWorkoutExercises(prev => prev
+      .map(w => {
+        const r = byId.get(w.id)
+        return r ? { ...w, sort_order: r.sort_order, group_order: r.group_order } : w
+      })
+      .sort((a, b) => a.sort_order - b.sort_order))
 
     try {
-      await Promise.all(reordered.map((w, i) =>
-        supabase.from('workout_exercises').update({ sort_order: i }).eq('id', w.id)
+      await Promise.all(rows.map(r =>
+        supabase.from('workout_exercises')
+          .update({ sort_order: r.sort_order, group_order: r.group_order })
+          .eq('id', r.id)
       ))
     } catch (err) {
       setError(err.message)
       await fetchWorkout()
     }
+  }
+
+  // Mover un ejercicio arriba/abajo. Lo que se mueve es el BLOQUE, no la fila:
+  // una superserie viaja entera, y desde dentro de ella el movimiento cambia el
+  // orden de la vuelta. Las reglas están en lib/supersets — aquí solo se
+  // escriben. Así no hay forma de dejar a A y B separados por un tercero.
+  const moveExercise = async (workoutExerciseId, dir) => {
+    const rows = planMove(workoutExercises, workoutExerciseId, dir)
+    if (!rows) return
+    await applyOrder(rows)
   }
 
   const updateExerciseNotes = async (workoutExerciseId, notes) => {
@@ -575,18 +586,36 @@ export function useActiveWorkout(workoutId) {
       w.id === a.id || w.id === b.id ||
       (w.group_id && (w.group_id === a.group_id || w.group_id === b.group_id))
     )
-    const updates = members.map((w, i) => ({ id: w.id, group_id: groupId, group_order: i }))
+    const inGroup = new Set(members.map(w => w.id))
+    const grouped = ordered.map(w => (inGroup.has(w.id) ? { ...w, group_id: groupId } : w))
 
-    setWorkoutExercises(prev => prev.map(w => {
-      const u = updates.find(x => x.id === w.id)
-      return u ? { ...w, group_id: u.group_id, group_order: u.group_order } : w
-    }))
+    // Y el orden se recoloca: unir es lo que crea el bloque, así que es también
+    // donde tiene que quedar junto. Encadenar A+B y luego B+C da un bloque de
+    // tres seguidos aunque C estuviera al final de la sesión.
+    const rows = normalizeOrder(grouped)
+    const orderById = new Map(rows.map(r => [r.id, r]))
+
+    setWorkoutExercises(prev => prev
+      .map(w => {
+        const r = orderById.get(w.id)
+        return {
+          ...w,
+          group_id: inGroup.has(w.id) ? groupId : w.group_id,
+          sort_order: r ? r.sort_order : w.sort_order,
+          group_order: r ? r.group_order : w.group_order,
+        }
+      })
+      .sort((x, y) => x.sort_order - y.sort_order))
 
     try {
-      await Promise.all(updates.map(u =>
+      await Promise.all(rows.map(r =>
         supabase.from('workout_exercises')
-          .update({ group_id: u.group_id, group_order: u.group_order })
-          .eq('id', u.id)
+          .update({
+            ...(inGroup.has(r.id) ? { group_id: groupId } : {}),
+            sort_order: r.sort_order,
+            group_order: r.group_order,
+          })
+          .eq('id', r.id)
       ))
     } catch (err) {
       setError(err.message)
