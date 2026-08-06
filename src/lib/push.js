@@ -16,7 +16,27 @@ import { supabase } from './supabase'
 
 const VAPID_PUBLIC = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
+/*
+ * Interruptor del push.
+ *
+ * Está todo construido y probado —claves, cifrado, tabla, service worker,
+ * función de envío y cron—, pero apagado a propósito hasta que se decida
+ * encenderlo. Apagado significa: no se pide buzón a ningún navegador y no se
+ * sella `workouts.last_seen_at`. Eso segundo deja inerte también el lado del
+ * servidor, porque la consulta que busca a quién avisar exige ese sello: aunque
+ * alguien despertara la edge function, no encontraría a nadie.
+ *
+ * Encenderlo son dos cosas: poner esto en true y reactivar el cron
+ *   select cron.alter_job((select jobid from cron.job
+ *     where jobname = 'raw-workout-reminder'), active := true);
+ *
+ * Mientras tanto el aviso de entreno abierto sigue funcionando por su otro
+ * camino: la hoja que pregunta al volver a la app, que nunca dependió de esto.
+ */
+export const PUSH_ENABLED = false
+
 export const pushSupported = () =>
+  PUSH_ENABLED &&
   typeof window !== 'undefined' &&
   'serviceWorker' in navigator &&
   'PushManager' in window &&

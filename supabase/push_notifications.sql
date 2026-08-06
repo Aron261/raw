@@ -23,6 +23,22 @@
 --                        concedida solo al rol de servicio, porque cruza
 --                        entrenos de todo el mundo.
 -- · cron              — cada 5 minutos despierta a la edge function.
+--
+-- ── ESTADO: CONSTRUIDO PERO APAGADO ──────────────────────────────────────
+-- El cron queda creado con active := false y el cliente con PUSH_ENABLED en
+-- false (src/lib/push.js). Nada de esto envía todavía.
+--
+-- Los dos interruptores son a propósito, y el del cliente hace más de lo que
+-- parece: sin él nadie sella `last_seen_at`, y la consulta de abajo exige ese
+-- sello, así que aunque alguien despertara la función a mano no encontraría a
+-- quién avisar. Apagar solo el cron habría bastado; apagar los dos deja el
+-- sistema inerte por construcción y no por configuración.
+--
+-- Para encenderlo:
+--   1. PUSH_ENABLED = true en src/lib/push.js
+--   2. select cron.alter_job(
+--        (select jobid from cron.job where jobname = 'raw-workout-reminder'),
+--        active := true);
 
 -- ── Extensiones ──────────────────────────────────────────────────────────
 create extension if not exists pg_net with schema extensions;

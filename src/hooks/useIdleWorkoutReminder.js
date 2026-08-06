@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { subscribeToPush } from '../lib/push'
+import { subscribeToPush, PUSH_ENABLED } from '../lib/push'
 
 /*
  * «¿Sigues entrenando?»
@@ -47,7 +47,9 @@ export function useIdleWorkoutReminder({ workoutId, active, title, body, userId 
   // este dispositivo sabe que el entreno lleva rato solo, y la notificación no
   // la puede mandar la propia página (que es justo la que está dormida).
   const stampServer = useCallback((force = false) => {
-    if (!workoutId) return
+    // Con el push apagado nadie mira este sello: escribirlo sería una consulta
+    // cada dos minutos para alimentar una consulta que no corre.
+    if (!PUSH_ENABLED || !workoutId) return
     const now = Date.now()
     if (!force && now - serverBeat.current < SERVER_HEARTBEAT_MS) return
     serverBeat.current = now
@@ -139,7 +141,7 @@ export function useIdleWorkoutReminder({ workoutId, active, title, body, userId 
   // todavía (permiso concedido en otro entreno, app reinstalada, buzón caducado).
   // Registrarlo es idempotente y barato.
   useEffect(() => {
-    if (!active || !userId) return
+    if (!PUSH_ENABLED || !active || !userId) return
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
     subscribeToPush(userId)
   }, [active, userId])
@@ -164,12 +166,11 @@ export function useIdleWorkoutReminder({ workoutId, active, title, body, userId 
       const res = await Notification.requestPermission()
       if (res === 'granted') {
         scheduleNotification()
-        // Y se registra el buzón para el push de verdad: el temporizador de
-        // arriba solo cubre el caso de que el navegador no lo haya congelado.
-        // El que llega con la app cerrada es este.
+        // Con el push encendido, además se registra el buzón y se pone el sello
+        // en marcha —sin sello el servidor no sabe desde cuándo contar—. Con el
+        // push apagado las dos llamadas se quedan en nada, y el permiso sigue
+        // sirviendo para el aviso local, que es lo que hay hoy.
         await subscribeToPush(userId)
-        // El sello tiene que estar puesto ya: sin él el servidor no sabe desde
-        // cuándo contar y el primer aviso no saldría nunca.
         stampServer(true)
       }
       return res

@@ -9,7 +9,22 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
+
+// Se apunta cada escritura para poder afirmar que NO hay ninguna con el push
+// apagado. Un mock que solo devuelve vacío no distinguiría «no escribe» de
+// «escribe y da igual».
+const { updates } = vi.hoisted(() => ({ updates: [] }))
+vi.mock('../lib/supabase', () => ({
+  supabase: {
+    from: () => ({
+      update: (patch) => { updates.push(patch); return { eq: () => Promise.resolve({ error: null }) } },
+      upsert: (row) => { updates.push(row); return Promise.resolve({ error: null }) },
+    }),
+  },
+}))
+
 import { useIdleWorkoutReminder, IDLE_MS } from './useIdleWorkoutReminder'
+import { PUSH_ENABLED } from '../lib/push'
 
 const KEY = 'raw_last_seen_w1'
 const hace = (ms) => String(Date.now() - ms)
@@ -20,6 +35,7 @@ const montar = (over = {}) => renderHook(() => useIdleWorkoutReminder({
 
 beforeEach(() => {
   localStorage.clear()
+  updates.length = 0
   // Sin permiso concedido no se programa nada: aquí solo se mira la cuenta.
   vi.stubGlobal('Notification', { permission: 'default', requestPermission: vi.fn() })
 })
@@ -79,6 +95,29 @@ describe('useIdleWorkoutReminder — respuestas', () => {
     const { result } = montar()
     act(() => result.current.clear())
     expect(localStorage.getItem(KEY)).toBeNull()
+  })
+})
+
+// El push está construido pero apagado (PUSH_ENABLED en src/lib/push.js). Estas
+// pruebas fijan qué significa «apagado» y se saltan solas el día que se
+// encienda, para no obligar a borrarlas entonces.
+describe.skipIf(PUSH_ENABLED)('useIdleWorkoutReminder — con el push apagado', () => {
+  it('no sella last_seen_at: nadie mira ese dato todavía', () => {
+    montar()
+    expect(updates).toHaveLength(0)
+  })
+
+  it('conceder el permiso no registra ningún buzón', async () => {
+    Notification.requestPermission.mockResolvedValue('granted')
+    const { result } = montar()
+    await act(async () => { await result.current.enableNotifications() })
+    expect(updates).toHaveLength(0)
+  })
+
+  it('pero el aviso al volver sigue funcionando: nunca dependió del push', () => {
+    localStorage.setItem(KEY, hace(IDLE_MS + 60_000))
+    const { result } = montar()
+    expect(result.current.awayMs).toBeGreaterThanOrEqual(IDLE_MS)
   })
 })
 
