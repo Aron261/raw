@@ -42,10 +42,18 @@ export async function resolveExerciseIds(names, muscleGroupByName = {}) {
  * label, so a linked exercise displays its library name in the user's chosen
  * language and a custom exercise displays what the user typed.
  *
+ * `custom_name` gana a todo. Es lo que la persona ha escrito para ESTE
+ * ejercicio, y no se traduce: si le has puesto un nombre a mano, ese nombre es
+ * el que quieres ver, en el idioma que sea. No rompe la regla de un solo idioma
+ * —la biblioteca sigue mandando en todo lo que no has tocado—, la excepciona
+ * donde has dicho explícitamente que la excepciones.
+ *
  * `exercise` may carry a joined `exercises_library` row (aliased `library`).
  */
 export function exerciseLabel(exercise, lang = 'es') {
   if (!exercise) return ''
+  const custom = exercise.custom_name?.trim()
+  if (custom) return custom
   const lib = exercise.library || exercise.exercises_library
   if (lib) {
     if (lang === 'en') return lib.name_en || lib.name || exercise.name

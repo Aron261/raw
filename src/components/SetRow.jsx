@@ -67,7 +67,6 @@ export default function SetRow({
   allTimeBest1RM,
   previousSet = null,   // { reps, weight } from the last session — shown as the ghost placeholder
   targetReps = null,    // routine's prescribed reps (e.g. "8-12") — reps hint when there's no prior set
-  prefillToken = 0,     // bump to copy `previousSet` into this row's inputs
   done = false,
   readOnly = false,
   onSave,        // (setNumber, reps, weight, markDone) => Promise
@@ -119,18 +118,6 @@ export default function SetRow({
     setWeightV(set ? String(set.weight) : '')
   }, [set?.id, set?.reps, set?.weight])
 
-  // "Repetir la vez pasada": copy last session's numbers into this row. Only
-  // fills empty slots — a logged set is history and is never overwritten — and
-  // only fills the inputs. The lifter still commits with ✓, so nothing is
-  // recorded that they didn't look at.
-  const firstPrefill = useRef(true)
-  useEffect(() => {
-    if (firstPrefill.current) { firstPrefill.current = false; return }
-    if (set || !previousSet) return
-    setRepsV(String(previousSet.reps))
-    setWeightV(String(previousSet.weight))
-  }, [prefillToken])
-
   const filled = reps !== '' && weight !== ''
   // The reps box is narrow; only hint the routine target inside it when it's a
   // plain number (e.g. "10"). Ranges/text ("8-12", "Al fallo") would clip, so
@@ -138,9 +125,13 @@ export default function SetRow({
   const repsHint = previousSet
     ? String(previousSet.reps)
     : (targetReps && /^\d+$/.test(String(targetReps).trim()) ? String(targetReps).trim() : 'reps')
+  // Récord es SUPERAR la marca, no igualarla. Un récord repetido sigue siendo
+  // el mismo récord: solo hay uno, y anunciarlo cada vez que se vuelve a tocar
+  // esa cifra vacía la palabra. `allTimeBest1RM` ya excluye esta sesión, así
+  // que el estricto compara contra lo de antes de hoy, no contra uno mismo.
   const { set1RM, isPR } = useMemo(() => {
     const rm = calc1RM(parseFloat(weight) || 0, parseInt(reps, 10) || 0)
-    return { set1RM: rm, isPR: rm > 0 && allTimeBest1RM > 0 && rm >= allTimeBest1RM }
+    return { set1RM: rm, isPR: rm > 0 && allTimeBest1RM > 0 && rm > allTimeBest1RM }
   }, [weight, reps, allTimeBest1RM])
 
   // ¿Superaste esta misma serie la vez pasada? Solo cuando está confirmada: en

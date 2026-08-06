@@ -83,7 +83,7 @@ export function useWorkouts() {
           id,
           exercise_id,
           unit,
-          exercises ( id, name, library_id, library:exercises_library ( name, name_en, gif_url, media_reviewed ) ),
+          exercises ( id, name, custom_name, library_id, library:exercises_library ( name, name_en, gif_url, media_reviewed ) ),
           sets ( reps, weight )
         )
       `)
@@ -261,7 +261,7 @@ export function useActiveWorkout(workoutId) {
         .from('workout_exercises')
         .select(`
           id, sort_order, unit, notes, group_id, group_order,
-          exercises ( id, name, library_id, library:exercises_library ( name, name_en, gif_url, media_reviewed ) ),
+          exercises ( id, name, custom_name, library_id, library:exercises_library ( name, name_en, gif_url, media_reviewed ) ),
           sets ( id, set_number, reps, weight, created_at )
         `)
         .eq('workout_id', workoutId)
@@ -656,6 +656,31 @@ export function useActiveWorkout(workoutId) {
     }
   }
 
+  // Ponerle tu nombre a un ejercicio.
+  //
+  // Es un renombrado de verdad, no una etiqueta de esta sesión: es el MISMO
+  // ejercicio, así que el nombre nuevo sale también en el historial, en las
+  // estadísticas y en el resto de entrenos. Para «hoy hice otra cosa» ya está
+  // «Cambiar ejercicio», que sí es solo de aquí.
+  //
+  // Se escribe en custom_name, nunca en name: name es la clave con la que se
+  // resuelve el ejercicio y moverla arriesga chocar con otra fila o partir el
+  // historial en dos. Vaciarlo devuelve el nombre de siempre.
+  const renameExercise = async (exerciseId, name) => {
+    const value = (name || '').trim() || null
+    const { error: err } = await supabase
+      .from('exercises')
+      .update({ custom_name: value })
+      .eq('id', exerciseId)
+      .eq('user_id', user.id)
+    if (err) throw err
+    setWorkoutExercises(prev => prev.map(we => (
+      we.exercises?.id === exerciseId
+        ? { ...we, exercises: { ...we.exercises, custom_name: value } }
+        : we
+    )))
+  }
+
   // Swap the exercise in a workout_exercise row without touching the routine
   const replaceExercise = async (workoutExerciseId, newExerciseName, muscleGroup = null) => {
     const name = newExerciseName.trim()
@@ -692,7 +717,8 @@ export function useActiveWorkout(workoutId) {
     removeExercise,
     moveExercise,
     linkWithNext,
-    unlinkExercise
+    unlinkExercise,
+    renameExercise
   }
 }
 
@@ -771,13 +797,23 @@ export function useExercisePR(exerciseName, userId) {
   return { prSets, allTimePR, loading, error, refetch: fetchPRs }
 }
 
-// Hook to get all-time best weight for an exercise (for PR badge in active workout)
-export function useExerciseAllTimeBest(exerciseId, userId) {
+// El mejor 1RM de este ejercicio ANTES de la sesión que se está registrando.
+//
+// El entreno actual se excluye a propósito. Si contara, la serie que acabas de
+// meter formaría parte de su propio récord a batir: nada más guardarla el
+// récord la iguala, así que «superar el récord» pasa a ser imposible y
+// «igualarlo» pasa a ser siempre cierto. Ese era el motivo de que repetir una
+// marca se anunciara como marca nueva.
+//
+// Sin `workoutId` no hay nada que excluir y el valor es el de siempre — el
+// historial de un ejercicio fuera de un entreno, por ejemplo.
+export function useExerciseAllTimeBest(exerciseId, userId, excludeWorkoutId = null) {
   const [allTimeBestWeight, setAllTimeBestWeight] = useState(0)
 
   useEffect(() => {
     if (!exerciseId || !userId) return
 
+    let cancelled = false
     const fetchBest = async () => {
       try {
         const { data, error } = await supabase
@@ -785,7 +821,7 @@ export function useExerciseAllTimeBest(exerciseId, userId) {
           .select(`
             weight, reps,
             workout_exercises!inner (
-              exercise_id,
+              exercise_id, workout_id,
               workouts!inner ( user_id )
             )
           `)
@@ -795,20 +831,21 @@ export function useExerciseAllTimeBest(exerciseId, userId) {
 
         if (error) throw error
 
-        // Best 1RM across all sets
         const best = (data || []).reduce((max, set) => {
+          if (excludeWorkoutId && set.workout_exercises?.workout_id === excludeWorkoutId) return max
           const rm = calc1RM(set.weight, set.reps)
           return rm > max ? rm : max
         }, 0)
 
-        setAllTimeBestWeight(best)
+        if (!cancelled) setAllTimeBestWeight(best)
       } catch (err) {
         console.error('Error fetching all-time best:', err)
       }
     }
 
     fetchBest()
-  }, [exerciseId, userId])
+    return () => { cancelled = true }
+  }, [exerciseId, userId, excludeWorkoutId])
 
   return { allTimeBestWeight }
 }

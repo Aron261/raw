@@ -17,6 +17,7 @@ import { useWorkouts } from '../hooks/useWorkout'
 import { Sheet, Button, LiveRegion, UndoSnackbar } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
+import { useIdleWorkoutReminder } from '../hooks/useIdleWorkoutReminder'
 import AddExerciseModal from '../components/AddExerciseModal'
 
 /* ── Workout elapsed timer ───────────────────────────────────────────── */
@@ -146,6 +147,14 @@ function ExerciseHistorySheet({ exercise, userId, onClose }) {
   const sessions = [...(prSets || [])].reverse() // most recent first
   const bestRM = allTimePR?.best1RM || 0
 
+  // El récord es UNO, y es de la primera vez que se hizo. Si la cifra se repite
+  // en tres sesiones, marcar las tres deja el historial diciendo que hay tres
+  // récords: repetir una marca no es volver a conseguirla. Como la lista va de
+  // más reciente a más antigua, la primera vez es la última que empata.
+  const recordIdx = bestRM > 0
+    ? sessions.reduce((found, s, i) => (s.best1RM >= bestRM ? i : found), -1)
+    : -1
+
   const fmtDate = (iso) => {
     try {
       return new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
@@ -165,7 +174,7 @@ function ExerciseHistorySheet({ exercise, userId, onClose }) {
       ) : (
         <div style={{ maxHeight: '60vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '8px' }}>
           {sessions.map((s, i) => {
-            const isBest = bestRM > 0 && s.best1RM >= bestRM
+            const isBest = i === recordIdx
             return (
               <div key={s.workoutId || i} style={{
                 background: 'var(--c-surface-2)', border: '1px solid var(--c-border-subtle)',
@@ -409,6 +418,58 @@ function LoggingPrimer({ onDismiss }) {
   )
 }
 
+/* ── ¿Sigues entrenando? ────────────────────────────────────────────── */
+// Sale al volver a la app después de un rato largo con el entreno abierto. No
+// cierra nada por su cuenta: la app no sabe si terminaste o si estabas en la
+// máquina de al lado, así que pregunta y deja decidir.
+function StillTrainingSheet({ awayMs, onKeepTraining, onFinish, onEnableNotifications }) {
+  const { t } = useLang()
+  const [notifState, setNotifState] = useState(
+    () => (typeof Notification === 'undefined' ? 'unsupported' : Notification.permission)
+  )
+  const minutes = Math.max(1, Math.round(awayMs / 60000))
+
+  const askNotifications = async () => setNotifState(await onEnableNotifications())
+
+  return (
+    <Sheet title={t('¿Sigues entrenando?')} onClose={onKeepTraining}>
+      <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
+        {t('Llevas {n} min sin abrir la app y este entreno sigue abierto. El cronómetro no se ha parado.', { n: minutes })}
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <Button variant="primary" full size="lg" onClick={onKeepTraining}>{t('Sigo entrenando')}</Button>
+        <Button variant="secondary" full size="lg" onClick={onFinish}>{t('Finalizar entreno')}</Button>
+      </div>
+
+      {/* El permiso se pide aquí, no al entrar: ahora ya se ha visto para qué
+          sirve. Pedirlo antes es la forma más rápida de que se deniegue. */}
+      {notifState === 'default' && (
+        <button
+          onClick={askNotifications}
+          style={{
+            width: '100%', marginTop: '12px', padding: '10px', background: 'transparent',
+            color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em',
+            border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)', cursor: 'pointer',
+          }}
+        >
+          {t('Avisarme con una notificación la próxima vez')}
+        </button>
+      )}
+      {notifState === 'granted' && (
+        <p style={{ marginTop: '12px', textAlign: 'center', color: 'var(--c-success)', fontSize: '11px', fontWeight: 700 }}>
+          ✓ {t('La próxima vez te llega una notificación')}
+        </p>
+      )}
+      {notifState === 'denied' && (
+        <p style={{ marginTop: '12px', textAlign: 'center', color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
+          {t('Las notificaciones están bloqueadas en este navegador. Este aviso te seguirá saliendo al volver.')}
+        </p>
+      )}
+    </Sheet>
+  )
+}
+
 /* ── Carta de cierre ────────────────────────────────────────────────── */
 // La última parada de la baraja, entre el último ejercicio y el primero otra
 // vez. Existe para que dar la vuelta no se sienta como haberse perdido: el
@@ -539,7 +600,7 @@ export default function ActiveWorkout() {
     workout, workoutExercises, loading, error, stale,
     updateWorkoutName, finishWorkout,
     addExercise, replaceExercise, updateUnit, updateExerciseNotes, addSet, updateSet, deleteSet, removeExercise, moveExercise,
-    linkWithNext, unlinkExercise,
+    linkWithNext, unlinkExercise, renameExercise,
   } = useActiveWorkout(id)
 
   const [historyExercise, setHistoryExercise] = useState(null)
@@ -618,6 +679,15 @@ export default function ActiveWorkout() {
   const [autoExpand, setAutoExpand] = useState(null) // { id, token } | null
 
   const isFinished = !!workout?.ended_at
+
+  // Aviso de entreno abierto. Solo mientras esté vivo: en una sesión ya cerrada
+  // no hay nada que recordar.
+  const idle = useIdleWorkoutReminder({
+    workoutId: id,
+    active: !!workout && !isFinished,
+    title: t('Tu entreno sigue abierto'),
+    body: t('¿Sigues entrenando? Toca para volver y cerrarlo si ya terminaste.'),
+  })
 
   // Hide the exercise awaiting an undoable removal.
   const visibleExercises = workoutExercises.filter(we => we.id !== exerciseDelete.pending?.id)
@@ -795,6 +865,7 @@ export default function ActiveWorkout() {
       await finishWorkout()
       // Clear local completion flags for this session — it's logged now.
       try { localStorage.removeItem(`raw_done_sets_${id}`); localStorage.removeItem(`raw_done_ex_${id}`) } catch {}
+      idle.clear()
       setFinishing(false)
       setShowSummary(true)
     } catch (err) {
@@ -809,6 +880,7 @@ export default function ActiveWorkout() {
     try {
       await deleteWorkout(workout.id)
       try { localStorage.removeItem(`raw_done_sets_${id}`); localStorage.removeItem(`raw_done_ex_${id}`) } catch {}
+      idle.clear()
       navigate('/', { replace: true })
     } catch (err) {
       setFinishError(err.message)
@@ -1073,6 +1145,7 @@ export default function ActiveWorkout() {
                     onShowHistory={setHistoryExercise}
                     onRestStart={!isFinished ? handleSetCompleted : undefined}
                     onMove={moveExercise}
+                    onRenameExercise={renameExercise}
                     onLinkNext={canLink(we) ? linkWithNext : undefined}
                     onUnlinkGroup={we.group_id ? unlinkExercise : undefined}
                     moveUpKind={moveKind(visibleExercises, we.id, 'up')}
@@ -1271,6 +1344,15 @@ export default function ActiveWorkout() {
           exercise={historyExercise}
           userId={user?.id}
           onClose={() => setHistoryExercise(null)}
+        />
+      )}
+
+      {idle.awayMs > 0 && !isFinished && (
+        <StillTrainingSheet
+          awayMs={idle.awayMs}
+          onKeepTraining={idle.dismiss}
+          onFinish={() => { idle.dismiss(); setShowFinishConfirm(true) }}
+          onEnableNotifications={idle.enableNotifications}
         />
       )}
 

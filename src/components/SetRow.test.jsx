@@ -102,3 +102,32 @@ describe('SetRow: aceptar el fantasma con el ✓', () => {
     expect(screen.queryByLabelText(/Repetir la vez pasada/)).toBeNull()
   })
 })
+
+// Récord es superar la marca, no igualarla. Solo hay un récord: repetir la
+// misma cifra es volver a tocar el mismo, no conseguir otro. El listón que
+// llega en `allTimeBest1RM` ya excluye la sesión en curso, así que aquí basta
+// con que la comparación sea estricta.
+describe('SetRow — la insignia de récord', () => {
+  // 8 × 60 con la fórmula del harness (w · (1 + r/30)) da 76.
+  const pr = (best) => renderRow({ set: { id: 's1', reps: 8, weight: 60 }, allTimeBest1RM: best })
+
+  it('aparece al superar la marca anterior', () => {
+    pr(70)
+    expect(screen.getByText('PR')).toBeTruthy()
+  })
+
+  it('NO aparece al igualarla — el récord sigue siendo el mismo', () => {
+    pr(76)
+    expect(screen.queryByText('PR')).toBeNull()
+  })
+
+  it('no aparece por debajo', () => {
+    pr(90)
+    expect(screen.queryByText('PR')).toBeNull()
+  })
+
+  it('sin historial no hay marca que superar', () => {
+    pr(0)
+    expect(screen.queryByText('PR')).toBeNull()
+  })
+})

@@ -45,7 +45,7 @@ export function useDashboard(targetUserId = null) {
             id, name, started_at, ended_at,
             workout_exercises (
               unit,
-              exercises ( id, name, library_id, library:exercises_library ( name, name_en ) ),
+              exercises ( id, name, custom_name, library_id, library:exercises_library ( name, name_en ) ),
               sets ( weight, reps )
             )
           `)

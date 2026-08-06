@@ -48,6 +48,7 @@ export default function ExerciseRow({
   groupLabel = null,          // 'A' | 'B' | … dentro de la superserie  [optional]
   onLinkNext,                 // (workoutExerciseId) => void  [optional]
   onUnlinkGroup,              // (workoutExerciseId) => void  [optional]
+  onRenameExercise,           // (exerciseId, nombre) => Promise  [optional]
   autoExpandToken = null,     // bump to auto-open this row (next-up after a finish)
   onMove,                     // (workoutExerciseId, 'up' | 'down') => void  [optional]
   // Qué movería cada dirección: 'self' (el orden de la vuelta), 'group' (la
@@ -102,6 +103,16 @@ export default function ExerciseRow({
     if (r) setMenuPos({ top: r.bottom + 6, right: window.innerWidth - r.right })
     setShowMenu(true)
   }
+  // Renombrar. El borrador arranca con lo que se está viendo, así que corregir
+  // una letra no obliga a reescribir el nombre entero.
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const [nameError, setNameError] = useState(null)
+  const nameInputRef = useRef(null)
+  useEffect(() => {
+    if (editingName) { nameInputRef.current?.focus(); nameInputRef.current?.select() }
+  }, [editingName])
+
   const [showNotes, setShowNotes] = useState(false)
   const [notesValue, setNotesValue] = useState(workoutExercise.notes || '')
   const notesRef = useRef(null)
@@ -113,7 +124,9 @@ export default function ExerciseRow({
   const lib = exercise?.library
   const hasGif = Boolean(lib?.gif_url && lib?.media_reviewed)
 
-  const { allTimeBestWeight } = useExerciseAllTimeBest(exercise?.id, user?.id)
+  // El récord a batir es el de ANTES de esta sesión: lo que se registre hoy no
+  // puede ser a la vez la marca y el listón.
+  const { allTimeBestWeight } = useExerciseAllTimeBest(exercise?.id, user?.id, workoutId)
   const { previousSets } = usePreviousSets(exercise?.id, workoutId, user?.id)
 
   // The routine's prescription for this exercise, when the workout came from a
@@ -130,11 +143,6 @@ export default function ExerciseRow({
     } catch {}
     return workoutExercise.target_rest || DEFAULT_REST
   })
-  // Bumping this copies last session's reps × weight into every empty slot.
-  // The ghost placeholders already show those numbers; this saves retyping
-  // them set after set, which is most of what logging actually is.
-  const [prefillToken, setPrefillToken] = useState(0)
-
   const cycleRest = () => setRestSecs(s => {
     const next = REST_PRESETS[(REST_PRESETS.indexOf(s) + 1) % REST_PRESETS.length]
     try { localStorage.setItem(restKey, String(next)) } catch {}
@@ -230,6 +238,24 @@ export default function ExerciseRow({
       await onDeleteSet(setId)
     } else {
       setTargetCount(c => Math.max(sets.length, c - 1))
+    }
+  }
+
+  const startRename = () => {
+    setNameError(null)
+    setNameDraft(exLabel(exercise))
+    setEditingName(true)
+  }
+
+  const saveName = async () => {
+    const next = nameDraft.trim()
+    setEditingName(false)
+    if (!next || next === exLabel(exercise)) return
+    try {
+      setNameError(null)
+      await onRenameExercise(exercise.id, next)
+    } catch (err) {
+      setNameError(err.message || 'No se pudo guardar el nombre.')
     }
   }
 
@@ -366,18 +392,43 @@ export default function ExerciseRow({
               </>
             )
 
-            const Name = (
+            const nameStyle = {
+              color: 'var(--c-text)',
+              fontSize: deck ? '23px' : '15px', fontWeight: deck ? 900 : 800,
+              letterSpacing: deck ? '-0.035em' : '-0.02em',
+              lineHeight: deck ? 1.1 : 1.2, minWidth: 0,
+            }
+
+            const Name = editingName ? (
+              /* El nombre se edita donde está, con el mismo tamaño con el que
+                 se lee: cambiarlo en otro sitio obliga a acordarse de cómo era.
+                 Se guarda al salir del campo, como el resto de la pantalla. */
+              <input
+                ref={nameInputRef}
+                aria-label={t('Nombre del ejercicio')}
+                value={nameDraft}
+                onChange={e => setNameDraft(e.target.value)}
+                onBlur={saveName}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') saveName()
+                  if (e.key === 'Escape') { setNameDraft(''); setEditingName(false) }
+                }}
+                className="input-field"
+                style={{ ...nameStyle, width: '100%' }}
+              />
+            ) : (
               /* Iba en 13px con nowrap + ellipsis, así que "Dumbbell Bench
                  Press" se leía "Dumbbell Bench Pr…": justo la etiqueta que hay
                  que reconocer de un vistazo entre serie y serie era la única
                  que se cortaba. Ahora envuelve y, en baraja, crece. */
-              <span style={{
-                color: 'var(--c-text)',
-                fontSize: deck ? '23px' : '15px', fontWeight: deck ? 900 : 800,
-                letterSpacing: deck ? '-0.035em' : '-0.02em',
-                lineHeight: deck ? 1.1 : 1.2, minWidth: 0,
-                display: '-webkit-box', WebkitLineClamp: deck ? 3 : 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-              }}>
+              <span
+                onClick={deck && !readOnly && onRenameExercise ? startRename : undefined}
+                style={{
+                  ...nameStyle,
+                  display: '-webkit-box', WebkitLineClamp: deck ? 3 : 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                  cursor: deck && !readOnly && onRenameExercise ? 'text' : undefined,
+                }}
+              >
                 {exLabel(exercise)}
               </span>
             )
@@ -450,9 +501,12 @@ export default function ExerciseRow({
                     boxShadow: 'var(--e-3)', minWidth: '184px', overflow: 'hidden',
                   }}
                 >
-                  {previousSets.length > 0 && (
-                    <MenuItem onClick={() => { setPrefillToken(t => t + 1); setExpanded(true); setShowMenu(false) }}>
-                      {t('Repetir la vez pasada')}
+                  {/* En baraja el nombre se toca y ya. En lista la cabecera es
+                      el control que pliega la fila, así que la puerta al
+                      renombrado tiene que estar aquí. */}
+                  {onRenameExercise && (
+                    <MenuItem onClick={() => { startRename(); setExpanded(true); setShowMenu(false) }}>
+                      {t('Editar nombre')}
                     </MenuItem>
                   )}
                   {onShowHistory && (
@@ -521,6 +575,19 @@ export default function ExerciseRow({
           )}
         </div>
 
+        {/* Renombrar es renombrar el ejercicio, no ponerle un mote de hoy: hay
+            que decirlo antes de guardar, porque el historial cambia con él. */}
+        {editingName && (
+          <p style={{ padding: '0 18px 12px', color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
+            {t('Se renombra en todo tu historial. Déjalo vacío para volver al nombre original.')}
+          </p>
+        )}
+        {nameError && (
+          <p style={{ padding: '0 18px 12px', color: 'var(--c-action-text)', fontSize: '11px', lineHeight: 1.5 }}>
+            {nameError}
+          </p>
+        )}
+
         {/* Sets — animated expand/collapse */}
         <div className={`exercise-sets-wrapper ${isOpen ? '' : 'collapsed'}`}>
           <div className="exercise-sets-inner">
@@ -536,7 +603,6 @@ export default function ExerciseRow({
                     allTimeBest1RM={allTimeBestWeight}
                     previousSet={previousSets[i] || null}
                     targetReps={targetReps}
-                    prefillToken={prefillToken}
                     done={set ? !!completedSetIds?.has(set.id) : false}
                     onSave={saveRow}
                     onToggleDone={onToggleSetDone}

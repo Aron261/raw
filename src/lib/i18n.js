@@ -342,6 +342,21 @@ const EN = {
   'Superserie': 'Superset',
   'Unir con el siguiente': 'Pair with the next one',
   'Separar de la superserie': 'Split from the superset',
+  // Aviso de entreno abierto
+  '¿Sigues entrenando?': 'Still training?',
+  'Llevas {n} min sin abrir la app y este entreno sigue abierto. El cronómetro no se ha parado.':
+    "You've gone {n} min without opening the app and this workout is still open. The timer never stopped.",
+  'Sigo entrenando': 'Still training',
+  'Avisarme con una notificación la próxima vez': 'Notify me next time',
+  'La próxima vez te llega una notificación': "Next time you'll get a notification",
+  'Las notificaciones están bloqueadas en este navegador. Este aviso te seguirá saliendo al volver.':
+    'Notifications are blocked in this browser. You will still get this prompt when you come back.',
+  'Tu entreno sigue abierto': 'Your workout is still open',
+  '¿Sigues entrenando? Toca para volver y cerrarlo si ya terminaste.':
+    'Still training? Tap to come back and close it if you are done.',
+  'Editar nombre': 'Edit name',
+  'Se renombra en todo tu historial. Déjalo vacío para volver al nombre original.':
+    'Renames it across your whole history. Leave it empty to go back to the original name.',
   'Mover superserie arriba': 'Move superset up',
   'Mover superserie abajo': 'Move superset down',
   'Antes en la vuelta': 'Earlier in the round',
@@ -405,7 +420,6 @@ const EN = {
   'Tus reps y peso se guardan solos al salir del campo.': 'Your reps and weight save themselves when you leave the field.',
   'Marca la serie como hecha e inicia el descanso.': 'Marks the set done and starts the rest timer.',
   'Listo': 'Got it',
-  'Repetir la vez pasada': 'Repeat last time',
   'Cambiar ejercicio': 'Swap exercise',
   'Eliminar ejercicio': 'Remove exercise',
   'Mover arriba': 'Move up',
