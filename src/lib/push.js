@@ -17,25 +17,41 @@ import { supabase } from './supabase'
 const VAPID_PUBLIC = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
 /*
- * Interruptor del push.
+ * Los dos interruptores de los avisos del navegador.
  *
- * Está todo construido y probado —claves, cifrado, tabla, service worker,
- * función de envío y cron—, pero apagado a propósito hasta que se decida
- * encenderlo. Apagado significa: no se pide buzón a ningún navegador y no se
- * sella `workouts.last_seen_at`. Eso segundo deja inerte también el lado del
- * servidor, porque la consulta que busca a quién avisar exige ese sello: aunque
- * alguien despertara la edge function, no encontraría a nadie.
+ * Están en el mismo sitio porque uno depende del otro y separarlos invita a
+ * encender el de abajo olvidando el de arriba.
  *
- * Encenderlo son dos cosas: poner esto en true y reactivar el cron
- *   select cron.alter_job((select jobid from cron.job
- *     where jobname = 'raw-workout-reminder'), active := true);
+ * NOTIFICATIONS_ENABLED — pedir permiso de notificaciones y mostrarlas. Apagado
+ *   significa que la app NO pide el permiso: ni al entrar, ni tras un aviso, ni
+ *   en ningún sitio. Un permiso que ya estuviera concedido de antes tampoco se
+ *   usa, porque no se programa ninguna notificación.
+ *
+ * PUSH_ENABLED — además, avisos enviados desde el servidor con la app cerrada.
+ *   Implica el anterior: un push tiene que acabar en una notificación visible,
+ *   así que sin permiso no hay push que valga.
+ *
+ * Está todo construido y probado —claves VAPID, cifrado contra el vector de la
+ * RFC, tabla de buzones, service worker, función de envío y cron—, pero dormido
+ * a propósito. Con el push apagado tampoco se sella `workouts.last_seen_at`, y
+ * como la consulta que busca a quién avisar exige ese sello, el lado del
+ * servidor queda inerte aunque alguien despierte la edge function a mano.
+ *
+ * Para encenderlo:
+ *   1. NOTIFICATIONS_ENABLED = true (esto solo ya da el aviso local)
+ *   2. PUSH_ENABLED = true
+ *   3. select cron.alter_job((select jobid from cron.job
+ *        where jobname = 'raw-workout-reminder'), active := true);
  *
  * Mientras tanto el aviso de entreno abierto sigue funcionando por su otro
- * camino: la hoja que pregunta al volver a la app, que nunca dependió de esto.
+ * camino: la hoja que pregunta al volver a la app. Nunca dependió de ninguno de
+ * estos dos, y por eso se montó así.
  */
+export const NOTIFICATIONS_ENABLED = false
 export const PUSH_ENABLED = false
 
 export const pushSupported = () =>
+  NOTIFICATIONS_ENABLED &&
   PUSH_ENABLED &&
   typeof window !== 'undefined' &&
   'serviceWorker' in navigator &&

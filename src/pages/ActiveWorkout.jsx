@@ -18,6 +18,7 @@ import { Sheet, Button, LiveRegion, UndoSnackbar } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { useIdleWorkoutReminder } from '../hooks/useIdleWorkoutReminder'
+import { NOTIFICATIONS_ENABLED } from '../lib/push'
 import AddExerciseModal from '../components/AddExerciseModal'
 
 /* ── Workout elapsed timer ───────────────────────────────────────────── */
@@ -424,12 +425,7 @@ function LoggingPrimer({ onDismiss }) {
 // máquina de al lado, así que pregunta y deja decidir.
 function StillTrainingSheet({ awayMs, onKeepTraining, onFinish, onEnableNotifications }) {
   const { t } = useLang()
-  const [notifState, setNotifState] = useState(
-    () => (typeof Notification === 'undefined' ? 'unsupported' : Notification.permission)
-  )
   const minutes = Math.max(1, Math.round(awayMs / 60000))
-
-  const askNotifications = async () => setNotifState(await onEnableNotifications())
 
   return (
     <Sheet title={t('¿Sigues entrenando?')} onClose={onKeepTraining}>
@@ -442,32 +438,51 @@ function StillTrainingSheet({ awayMs, onKeepTraining, onFinish, onEnableNotifica
         <Button variant="secondary" full size="lg" onClick={onFinish}>{t('Finalizar entreno')}</Button>
       </div>
 
-      {/* El permiso se pide aquí, no al entrar: ahora ya se ha visto para qué
-          sirve. Pedirlo antes es la forma más rápida de que se deniegue. */}
-      {notifState === 'default' && (
-        <button
-          onClick={askNotifications}
-          style={{
-            width: '100%', marginTop: '12px', padding: '10px', background: 'transparent',
-            color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em',
-            border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)', cursor: 'pointer',
-          }}
-        >
-          {t('Avisarme con una notificación la próxima vez')}
-        </button>
-      )}
-      {notifState === 'granted' && (
-        <p style={{ marginTop: '12px', textAlign: 'center', color: 'var(--c-success)', fontSize: '11px', fontWeight: 700 }}>
-          ✓ {t('La próxima vez te llega una notificación')}
-        </p>
-      )}
-      {notifState === 'denied' && (
-        <p style={{ marginTop: '12px', textAlign: 'center', color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
-          {t('Las notificaciones están bloqueadas en este navegador. Este aviso te seguirá saliendo al volver.')}
-        </p>
-      )}
+      {/* El ofrecimiento de notificaciones vive aquí —después del primer aviso,
+          que es cuando ya se ha visto para qué sirven— pero solo aparece con
+          los avisos encendidos. Ver los interruptores en lib/push. */}
+      {NOTIFICATIONS_ENABLED && <NotificationOptIn onEnable={onEnableNotifications} />}
     </Sheet>
   )
+}
+
+// El ofrecimiento, con su propio estado: así, apagado, no queda ni el useState
+// leyendo Notification.permission de una función que nadie va a llamar.
+function NotificationOptIn({ onEnable }) {
+  const { t } = useLang()
+  const [state, setState] = useState(
+    () => (typeof Notification === 'undefined' ? 'unsupported' : Notification.permission)
+  )
+
+  if (state === 'default') {
+    return (
+      <button
+        onClick={async () => setState(await onEnable())}
+        style={{
+          width: '100%', marginTop: '12px', padding: '10px', background: 'transparent',
+          color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em',
+          border: '1px solid var(--c-border-subtle)', borderRadius: 'var(--r-sm)', cursor: 'pointer',
+        }}
+      >
+        {t('Avisarme con una notificación la próxima vez')}
+      </button>
+    )
+  }
+  if (state === 'granted') {
+    return (
+      <p style={{ marginTop: '12px', textAlign: 'center', color: 'var(--c-success)', fontSize: '11px', fontWeight: 700 }}>
+        ✓ {t('La próxima vez te llega una notificación')}
+      </p>
+    )
+  }
+  if (state === 'denied') {
+    return (
+      <p style={{ marginTop: '12px', textAlign: 'center', color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
+        {t('Las notificaciones están bloqueadas en este navegador. Este aviso te seguirá saliendo al volver.')}
+      </p>
+    )
+  }
+  return null
 }
 
 /* ── Carta de cierre ────────────────────────────────────────────────── */

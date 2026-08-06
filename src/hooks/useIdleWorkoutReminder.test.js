@@ -24,7 +24,7 @@ vi.mock('../lib/supabase', () => ({
 }))
 
 import { useIdleWorkoutReminder, IDLE_MS } from './useIdleWorkoutReminder'
-import { PUSH_ENABLED } from '../lib/push'
+import { PUSH_ENABLED, NOTIFICATIONS_ENABLED } from '../lib/push'
 
 const KEY = 'raw_last_seen_w1'
 const hace = (ms) => String(Date.now() - ms)
@@ -121,7 +121,37 @@ describe.skipIf(PUSH_ENABLED)('useIdleWorkoutReminder — con el push apagado', 
   })
 })
 
-describe('useIdleWorkoutReminder — permiso de notificación', () => {
+// Los avisos del navegador están apagados (NOTIFICATIONS_ENABLED en
+// src/lib/push.js). Apagado tiene que significar que NO se pide el permiso por
+// ningún camino: un permiso denegado por pedirlo a destiempo no se recupera
+// después pidiéndolo mejor.
+describe.skipIf(NOTIFICATIONS_ENABLED)('useIdleWorkoutReminder — con los avisos apagados', () => {
+  it('no se pide el permiso al entrar', () => {
+    montar()
+    expect(Notification.requestPermission).not.toHaveBeenCalled()
+  })
+
+  it('tampoco se pide aunque se llame a mano al ofrecimiento', async () => {
+    const { result } = montar()
+    let res
+    await act(async () => { res = await result.current.enableNotifications() })
+    expect(Notification.requestPermission).not.toHaveBeenCalled()
+    expect(res).toBe('disabled')
+  })
+
+  it('un permiso concedido de antes tampoco programa nada', () => {
+    vi.stubGlobal('Notification', { permission: 'granted', requestPermission: vi.fn() })
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout')
+    montar()
+    // El latido local sí usa setInterval; lo que no puede haber es un
+    // temporizador armado para mostrar una notificación.
+    const armados = setTimeoutSpy.mock.calls.filter(([, ms]) => ms === IDLE_MS)
+    expect(armados).toHaveLength(0)
+    setTimeoutSpy.mockRestore()
+  })
+})
+
+describe.skipIf(!NOTIFICATIONS_ENABLED)('useIdleWorkoutReminder — permiso de notificación', () => {
   it('no se pide solo: el permiso se ofrece, no se arrebata al entrar', () => {
     montar()
     expect(Notification.requestPermission).not.toHaveBeenCalled()

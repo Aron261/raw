@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { subscribeToPush, PUSH_ENABLED } from '../lib/push'
+import { subscribeToPush, PUSH_ENABLED, NOTIFICATIONS_ENABLED } from '../lib/push'
 
 /*
  * «¿Sigues entrenando?»
@@ -75,6 +75,10 @@ export function useIdleWorkoutReminder({ workoutId, active, title, body, userId 
   // para siempre. El permiso se ofrece en la hoja, después del primer aviso.
   const scheduleNotification = useCallback(() => {
     clearTimeout(timer.current)
+    // Con los avisos apagados no se programa nada, ni siquiera si el permiso
+    // quedó concedido de antes: apagarlo tiene que apagarlo de verdad, no solo
+    // dejar de pedirlo.
+    if (!NOTIFICATIONS_ENABLED) return
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
     timer.current = setTimeout(async () => {
       try {
@@ -161,6 +165,10 @@ export function useIdleWorkoutReminder({ workoutId, active, title, body, userId 
   }, [stamp])
 
   const enableNotifications = useCallback(async () => {
+    // Primero de todo: con los avisos apagados no se llama a
+    // requestPermission ni para preguntar. Un permiso denegado por haberlo
+    // pedido a destiempo no se recupera pidiéndolo mejor después.
+    if (!NOTIFICATIONS_ENABLED) return 'disabled'
     if (typeof Notification === 'undefined') return 'unsupported'
     try {
       const res = await Notification.requestPermission()

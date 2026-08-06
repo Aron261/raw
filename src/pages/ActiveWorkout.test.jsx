@@ -16,12 +16,20 @@ vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
 }))
 vi.mock('../components/Layout', () => ({ default: ({ children }) => <div>{children}</div> }))
+// Sheet arrastra media API de motion (gestos, valores animados, sus
+// suscripciones). Aquí solo importa que renderice.
 vi.mock('motion/react', () => ({
   useReducedMotion: () => true,
+  useMotionValue: (v) => ({ get: () => v, set: () => {}, on: () => () => {} }),
+  useMotionValueEvent: () => {},
+  useDragControls: () => ({ start: () => {} }),
+  animate: () => ({ stop: () => {} }),
+  AnimatePresence: ({ children }) => children,
   motion: new Proxy({}, {
     get: () => ({ children, ...rest }) => {
-      const { drag, dragDirectionLock, dragSnapToOrigin, dragElastic, onDragEnd,
-              initial, animate, transition, layout, ...dom } = rest
+      const { drag, dragDirectionLock, dragSnapToOrigin, dragElastic, dragControls,
+              dragListener, dragConstraints, onDragEnd, initial, animate: _a, exit,
+              transition, whileTap, layout, ...dom } = rest
       return <div {...dom}>{children}</div>
     },
   }),
@@ -175,6 +183,31 @@ describe('ActiveWorkout — terminar un ejercicio', () => {
     fireEvent.click(screen.getByText('Reabrir'))
     expect(screen.queryByTestId('row-done')).toBeNull()
     vi.useRealTimers()
+  })
+})
+
+describe('ActiveWorkout — aviso de entreno abierto', () => {
+  // 20 minutos es el umbral; 25 lo pasa de sobra.
+  const volverTrasUnRato = () => localStorage.setItem('raw_last_seen_w1', String(Date.now() - 25 * 60_000))
+
+  it('al volver tras un rato largo pregunta si sigues entrenando', () => {
+    volverTrasUnRato()
+    render(<ActiveWorkout />)
+    expect(screen.getByText('¿Sigues entrenando?')).toBeTruthy()
+    expect(screen.getByText('Sigo entrenando')).toBeTruthy()
+  })
+
+  it('no ofrece notificaciones: están apagadas por ahora', () => {
+    volverTrasUnRato()
+    render(<ActiveWorkout />)
+    expect(screen.queryByText(/Avisarme con una notificación/)).toBeNull()
+    expect(screen.queryByText(/notificación/i)).toBeNull()
+  })
+
+  it('sin ausencia larga no molesta', () => {
+    localStorage.setItem('raw_last_seen_w1', String(Date.now() - 60_000))
+    render(<ActiveWorkout />)
+    expect(screen.queryByText('¿Sigues entrenando?')).toBeNull()
   })
 })
 
