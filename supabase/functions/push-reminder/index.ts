@@ -4,6 +4,11 @@
 // Busca entrenos vivos que lleven más de 20 minutos sin que nadie los mire y
 // manda un push a los dispositivos de esa persona.
 //
+// OJO: hoy está dormido a propósito. El cron tiene active = false y el cliente
+// no sella `last_seen_at` (NOTIFICATIONS_ENABLED / PUSH_ENABLED en
+// src/lib/push.js), así que la consulta de abajo no encuentra a nadie aunque se
+// despierte esta función a mano.
+//
 // Despliegue: verify_jwt DESACTIVADO a propósito. Quien llama es Postgres a
 // través de pg_net, no una sesión de nadie, así que no hay JWT que validar. En
 // su lugar exige un secreto compartido en la cabecera: sin él, esto sería un
