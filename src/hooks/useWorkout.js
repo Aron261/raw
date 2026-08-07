@@ -9,6 +9,41 @@ import { sessionCache } from '../lib/sessionCache'
 import { useProfile } from './useProfile'
 import { defaultLiftUnit } from '../lib/units'
 import { calc1RM } from '../lib/progress'
+import { matchPlannedSession } from '../lib/schedule'
+import { toLocalISODate } from '../lib/calendar'
+
+// Al terminar un entreno, dar por cumplido el plan de ese día.
+//
+// Sin esto el calendario miente a los dos días: planeas "Upper A" el martes, lo
+// haces, y la ficha sigue diciendo "Planeado" hasta que abres la hoja del día y
+// la tocas a mano. Nadie lo hace, así que la capa de planificación se llenaba
+// de planes cumplidos marcados como pendientes y dejaba de valer para nada.
+//
+// Solo cierra lo que puede cerrar sin inventar (ver matchPlannedSession): un
+// plan que apuntaba a OTRO día de rutina se queda pendiente, como debe ser.
+export async function settlePlanForWorkout(workout, userId) {
+  if (!workout?.ended_at || !workout?.started_at || !userId) return null
+  const iso = toLocalISODate(new Date(workout.started_at))
+
+  const { data, error } = await supabase
+    .from('scheduled_sessions')
+    .select('id, date, kind, status, routine_day_id, sort_order')
+    .eq('user_id', userId)
+    .eq('date', iso)
+    .eq('status', 'planned')
+  if (error) throw error
+
+  const match = matchPlannedSession(workout, data || [])
+  if (!match) return null
+
+  const { error: updErr } = await supabase
+    .from('scheduled_sessions')
+    .update({ status: 'done', updated_at: new Date().toISOString() })
+    .eq('id', match.id)
+    .eq('user_id', userId)
+  if (updErr) throw updErr
+  return match.id
+}
 
 // How many set writes are still queued (unsynced) for a workout — drives the
 // "N series sin sincronizar" indicator. Re-reads whenever the outbox changes.
@@ -368,9 +403,14 @@ export function useActiveWorkout(workoutId) {
       .update({ ended_at: endedAt })
       .eq('id', workoutId)
     if (err) throw err
-    setWorkout(prev => ({ ...prev, ended_at: endedAt }))
+    const finished = { ...workout, ended_at: endedAt }
+    setWorkout(finished)
     // El entreno ya está cerrado en el servidor: su foto solo ocuparía sitio.
     await sessionCache.remove(workoutId).catch(() => { /* mejor esfuerzo */ })
+    // Cerrar el círculo con el calendario. Mejor esfuerzo a propósito: el
+    // entreno YA está registrado, y que el plan del día se quede en "planeado"
+    // no puede tumbar la pantalla de fin.
+    await settlePlanForWorkout(finished, user?.id).catch(() => {})
   }
 
   // Add exercise to workout (creates exercise if not exists, then adds workout_exercise)

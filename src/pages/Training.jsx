@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell,
 } from 'recharts'
@@ -25,6 +25,7 @@ import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import Calendar from '../components/calendar/Calendar'
 import DaySheet from '../components/calendar/DaySheet'
 import { computeStreak, mondayOf, KINDS } from '../lib/calendar'
+import { projectionByDate, loggedMinutes, isLoggable } from '../lib/schedule'
 import { useLang } from '../hooks/useLang'
 import { calc1RM } from '../lib/progress'
 
@@ -506,6 +507,7 @@ function GoalsCard({ goals, onAdd, onDelete }) {
 // cen como una línea de hoy: son de otras secciones, pero son de hoy.
 export default function Training() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const { t, locale } = useLang()
   const { workouts, loading, error, createWorkout, fetchWorkouts } = useWorkouts()
   const { goals, createGoal, deleteGoal } = useGoals()
@@ -515,10 +517,16 @@ export default function Training() {
   const { targets: nutritionTargets } = useNutritionTargets()
   const { latestLog: latestWeight } = useBodyWeight()
 
-  const { sessions, createSession, updateSession, deleteSession } = useSchedule()
+  const { sessions, createSession, updateSession, deleteSession, deleteSeries } = useSchedule()
   const { counts: unreadMap } = useUnreadCounts()
 
-  const [selectedDay, setSelectedDay] = useState(null)
+  // ?d=YYYY-MM-DD abre la hoja de ese día al entrar. Es lo que hace que una
+  // sesión del historial pueda llevarte a su día del calendario en vez de
+  // dejarte buscándolo a mano.
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const d = params.get('d')
+    return /^\d{4}-\d{2}-\d{2}$/.test(d || '') ? new Date(`${d}T00:00:00`) : null
+  })
   const [showGoalModal, setShowGoalModal] = useState(false)
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
@@ -753,6 +761,32 @@ export default function Training() {
       .sort((a, b) => a.date.localeCompare(b.date))[0] || null,
     [sessions, todayISO]
   )
+
+  // Minutos de cardio y movilidad de la semana en curso — la cifra que hace
+  // que planear un cardio sirva para algo más que pintar un punto.
+  const weekMinutes = useMemo(() => loggedMinutes(sessions, {
+    from: toLocalISODate(mondayOf(new Date())),
+  }), [sessions])
+
+  const hasNonLifting = useMemo(
+    () => sessions.some(s => isLoggable(s.kind)),
+    [sessions]
+  )
+
+  // La previsión del ciclo sobre los días que se entrenan de verdad. No se
+  // guarda nada: son fantasmas en la rejilla hasta que los fijas.
+  const projection = useMemo(
+    () => projectionByDate({ activeCycle, workouts, sessions }),
+    [activeCycle, workouts, sessions]
+  )
+
+  // Lo que viene: un plan escrito gana a una previsión, pero si no has escrito
+  // nada el calendario ya no dice "—", dice qué le toca al ciclo.
+  const nextGhost = useMemo(() => {
+    const dates = Object.keys(projection).sort()
+    const iso = dates.find(d => !nextPlanned || d < nextPlanned.date)
+    return iso ? projection[iso] : null
+  }, [projection, nextPlanned])
 
   // Entrenos y planes del día abierto en la hoja.
   const selectedISO = selectedDay ? toLocalISODate(selectedDay) : null
@@ -1135,11 +1169,25 @@ export default function Training() {
                 hint={streak > 0 ? null : t('Entrena esta semana')}
                 onClick={() => navigate('/progreso')}
               />
+              {/* Minutos aeróbicos y de movilidad de la semana. Aparece solo
+                  si hay cardio o movilidad en el calendario: a quien solo
+                  levanta, un «—» permanente no le dice nada. Antes esto no
+                  existía porque no había nada que sumar — cardio era una
+                  etiqueta de color sin cifras detrás. */}
+              {hasNonLifting && (
+                <Chip
+                  index={1}
+                  label={t('Cardio y movilidad')}
+                  value={weekMinutes > 0 ? `${weekMinutes} ${t('min')}` : '—'}
+                  hint={weekMinutes > 0 ? t('Esta semana') : t('Sin registrar esta semana')}
+                  onClick={() => setSelectedDay(new Date())}
+                />
+              )}
               {/* El chip «Kcal hoy» se fue: la comida del día tiene ahora su
                   propia tarjeta justo debajo. Dejarlo habría sido decir lo
                   mismo dos veces con dos pesos distintos. */}
               <Chip
-                index={1}
+                index={2}
                 label={t('Peso corporal')}
                 value={latestWeight ? `${latestWeight.weight} ${latestWeight.unit}` : '—'}
                 hint={latestWeight ? null : t('Aún sin registrar')}
@@ -1149,7 +1197,7 @@ export default function Training() {
                   cargado, nadie descubriría nunca la sección. Mismo trato que
                   el peso corporal sin registrar. */}
               <Chip
-                index={2}
+                index={3}
                 label={t('Suplementos')}
                 value={suplTotal > 0 ? `${suplTomados}/${suplTotal}` : '—'}
                 hint={suplTotal === 0
@@ -1159,7 +1207,7 @@ export default function Training() {
               />
               {profile?.is_trainer && (
                 <Chip
-                  index={3}
+                  index={4}
                   label={t('Coach')}
                   live={unread > 0}
                   value={unread > 0 ? `${unread} ${t('sin leer')}` : t('Tus clientes')}
@@ -1362,6 +1410,7 @@ export default function Training() {
               workouts={workouts}
               sessions={sessions}
               routines={routines}
+              projection={projection}
               onSelectDay={setSelectedDay}
             />
 
@@ -1369,10 +1418,20 @@ export default function Training() {
             <div style={{ display: 'flex', alignItems: 'stretch', marginTop: '10px' }}>
               <Chip
                 label={t('Próximo')}
-                value={nextPlanned ? (nextPlanned.title || KINDS[nextPlanned.kind]?.label || '—') : '—'}
-                hint={nextPlanned ? null : t('Toca un día para planear')}
+                value={
+                  nextPlanned ? (nextPlanned.title || KINDS[nextPlanned.kind]?.label || '—')
+                  : nextGhost ? (nextGhost.day?.day_name || t('Fuerza'))
+                  : '—'
+                }
+                hint={
+                  nextPlanned ? null
+                  : nextGhost ? t('Previsto')
+                  : t('Toca un día para planear')
+                }
                 onClick={() => setSelectedDay(
-                  nextPlanned ? new Date(`${nextPlanned.date}T00:00:00`) : new Date()
+                  nextPlanned ? new Date(`${nextPlanned.date}T00:00:00`)
+                  : nextGhost ? new Date(`${nextGhost.date}T00:00:00`)
+                  : new Date()
                 )}
               />
             </div>
@@ -1388,9 +1447,11 @@ export default function Training() {
           workouts={dayWorkouts}
           sessions={daySessions}
           routines={routines}
+          ghost={projection[selectedISO] || null}
           onCreate={createSession}
           onUpdate={updateSession}
           onDelete={deleteSession}
+          onDeleteSeries={deleteSeries}
           onClose={() => setSelectedDay(null)}
         />
       )}

@@ -7,6 +7,9 @@ import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import { useLang } from '../hooks/useLang'
 import { formatVolume } from '../lib/format'
 import { useWorkouts, calc1RM, calcVolume } from '../hooks/useWorkout'
+import { useSchedule } from '../hooks/useSchedule'
+import { isLoggable } from '../lib/schedule'
+import SessionCard from '../components/SessionCard'
 
 
 // Standalone page by default; `embedded` renders just the content (no Layout,
@@ -20,6 +23,13 @@ export default function History({ embedded = false }) {
   // grace window, announce to screen readers.
   const workoutDelete = useUndoableDelete(w => deleteWorkout(w.id))
   const visibleWorkouts = workouts.filter(w => w.id !== workoutDelete.pending?.id)
+
+  // Cardio y movilidad REGISTRADOS. Un plan sin cumplir no es historial.
+  const { sessions } = useSchedule()
+  const loggedSessions = useMemo(
+    () => sessions.filter(s => s.status === 'done' && isLoggable(s.kind)),
+    [sessions]
+  )
 
   // Workout ids that set an all-time PR — a set whose estimated 1RM beat the
   // running best for that exercise. Walk oldest → newest so "best so far" is true.
@@ -45,21 +55,43 @@ export default function History({ embedded = false }) {
   }, [workouts])
 
   // Group by month (Spanish, capitalized) + per-month session count and volume.
+  //
+  // El historial dejó de ser solo de fuerza: el cardio y la movilidad
+  // registrados se intercalan por fecha entre los entrenos. Antes no aparecían
+  // en ninguna pantalla — se hacían, se marcaban, y desaparecían. La cuenta y
+  // el volumen de la cabecera siguen siendo de los entrenos (una salida en
+  // bici no levanta kilos); los minutos se dicen aparte.
   const months = useMemo(() => {
     const acc = {}
-    for (const w of visibleWorkouts) {
-      const d = new Date(w.started_at)
+    const bucket = (d) => {
       const raw = d.toLocaleDateString(locale, { month: 'long', year: 'numeric' })
       const key = raw.charAt(0).toUpperCase() + raw.slice(1)
-      if (!acc[key]) acc[key] = { items: [], volume: 0 }
-      acc[key].items.push(w)
+      if (!acc[key]) acc[key] = { items: [], volume: 0, workouts: 0, minutes: 0 }
+      return acc[key]
+    }
+
+    for (const w of visibleWorkouts) {
+      const m = bucket(new Date(w.started_at))
+      m.items.push({ type: 'workout', at: w.started_at, data: w })
+      m.workouts++
       const sets = (w.workout_exercises || []).flatMap(we =>
         (we.sets || []).map(s => ({ ...s, unit: we.unit || 'kg' }))
       )
-      acc[key].volume += calcVolume(sets)
+      m.volume += calcVolume(sets)
+    }
+
+    for (const s of loggedSessions) {
+      const m = bucket(new Date(`${s.date}T00:00:00`))
+      m.items.push({ type: 'session', at: `${s.date}T23:59:59`, data: s })
+      m.minutes += s.duration_min || 0
+    }
+
+    // Dentro del mes, lo más reciente primero — como ya venían los entrenos.
+    for (const m of Object.values(acc)) {
+      m.items.sort((a, b) => new Date(b.at) - new Date(a.at))
     }
     return acc
-  }, [workouts, workoutDelete.pending?.id])
+  }, [workouts, loggedSessions, workoutDelete.pending?.id, locale])
 
   const content = (
     <>
@@ -120,27 +152,35 @@ export default function History({ embedded = false }) {
         {/* Workouts grouped by month */}
         {!loading && !error && (
           <div className="pb-8">
-            {Object.entries(months).map(([month, { items, volume }]) => (
+            {Object.entries(months).map(([month, { items, volume, workouts: count, minutes }]) => (
               <div key={month} className="mb-8">
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
                   <h2 style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '12px', letterSpacing: '-0.01em' }}>{month}</h2>
                   <p style={{ fontFamily: 'var(--font-sans)', fontSize: '10px', letterSpacing: '-0.01em', color: 'var(--c-text-muted)' }}>
-                    {items.length} {items.length === 1 ? 'entreno' : 'entrenos'}
+                    {count} {count === 1 ? 'entreno' : 'entrenos'}
                     {volume > 0 && <> · <span style={{ color: 'var(--c-data)', fontWeight: 700 }}>{formatVolume(volume, locale)} kg</span></>}
+                    {minutes > 0 && <> · {minutes} {t('min')}</>}
                   </p>
                 </div>
                 <div className="space-y-3">
-                  {items.map((workout, i) => (
-                    <div key={workout.id} className="stagger-item" style={{ '--i': i }}>
-                    <WorkoutCard
-                      workout={workout}
-                      onDelete={w => workoutDelete.request(w, {
-                        deletedMsg: `Entreno «${w.name}» eliminado. Toca deshacer para recuperarlo.`,
-                        restoredMsg: `Entreno «${w.name}» restaurado.`,
-                      })}
-                      onDuplicate={duplicateWorkout}
-                      hasPR={prWorkoutIds.has(workout.id)}
-                    />
+                  {items.map((item, i) => (
+                    <div key={item.data.id} className="stagger-item" style={{ '--i': i }}>
+                    {item.type === 'workout' ? (
+                      <WorkoutCard
+                        workout={item.data}
+                        onDelete={w => workoutDelete.request(w, {
+                          deletedMsg: `Entreno «${w.name}» eliminado. Toca deshacer para recuperarlo.`,
+                          restoredMsg: `Entreno «${w.name}» restaurado.`,
+                        })}
+                        onDuplicate={duplicateWorkout}
+                        hasPR={prWorkoutIds.has(item.data.id)}
+                      />
+                    ) : (
+                      <SessionCard
+                        session={item.data}
+                        onClick={s => navigate(`/?d=${s.date}`)}
+                      />
+                    )}
                     </div>
                   ))}
                 </div>

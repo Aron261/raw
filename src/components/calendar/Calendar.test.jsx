@@ -87,6 +87,26 @@ describe('Calendar — vista mes', () => {
     expect(tinted(20)).toBe(false) // lunes de la siguiente
   })
 
+  it('marca la previsión del ciclo sin contarla como plan', () => {
+    const projection = {
+      '2026-07-24': {
+        date: '2026-07-24', routineId: 'r', routineName: 'PPL',
+        day: { id: 'rd1', day_name: 'Push' }, ghost: true,
+      },
+    }
+    render(<Calendar projection={projection} />)
+    const label = cell(24).getAttribute('aria-label')
+    expect(label).toContain('0 planificado')
+    expect(label).toContain('previsto Push')
+    // La leyenda solo declara "Previsto" cuando hay algo previsto que leer
+    expect(screen.getByText('Previsto')).toBeTruthy()
+  })
+
+  it('sin previsión la leyenda no habla de ella', () => {
+    render(<Calendar />)
+    expect(screen.queryByText('Previsto')).toBeNull()
+  })
+
   it('navega entre meses y vuelve a hoy', () => {
     render(<Calendar />)
     fireEvent.click(screen.getByLabelText('Mes siguiente'))
@@ -167,6 +187,22 @@ describe('Calendar — vista semana', () => {
     expect(screen.getByText('20 – 26 de julio')).toBeTruthy()
   })
 
+  it('lee la previsión del ciclo, marcada como tal', () => {
+    const projection = {
+      '2026-07-23': {
+        date: '2026-07-23', routineId: 'r', routineName: 'PPL',
+        day: { id: 'rd2', day_name: 'Pull' }, ghost: true,
+      },
+    }
+    render(<Calendar projection={projection} />)
+    toWeek()
+    expect(screen.getByText('Pull')).toBeTruthy()
+    // Un fantasma no se cuenta como plan — no es algo que hayas decidido.
+    const col = document.querySelector('[data-date="2026-07-23"]')
+    expect(col.getAttribute('aria-label')).toContain('0 planificado')
+    expect(col.getAttribute('aria-label')).toContain('previsto Pull')
+  })
+
   it('cambiar de acercamiento no te teletransporta: la semana es la del mes que mirabas', () => {
     render(<Calendar />)
     // Dos meses adelante en vista mes → septiembre
@@ -177,5 +213,34 @@ describe('Calendar — vista semana', () => {
     // La semana mostrada cae dentro de septiembre, no salta de vuelta a hoy
     const dates = [...document.querySelectorAll('[data-date]')].map(e => e.dataset.date)
     expect(dates.some(d => d.startsWith('2026-09'))).toBe(true)
+  })
+})
+
+describe('Calendar — adherencia de la semana', () => {
+  const toWeek = () => fireEvent.click(screen.getByRole('tab', { name: 'Semana' }))
+
+  it('dice lo cumplido sobre lo prometido', () => {
+    render(<Calendar sessions={[
+      { id: 'a', date: '2026-07-20', kind: 'strength', status: 'done' },
+      { id: 'b', date: '2026-07-22', kind: 'cardio', status: 'planned' },
+      { id: 'c', date: '2026-07-24', kind: 'strength', status: 'skipped' },
+    ]} />)
+    toWeek()
+    expect(screen.getByText('1 / 3')).toBeTruthy()
+  })
+
+  it('sin nada planeado no reprocha nada', () => {
+    render(<Calendar />)
+    toWeek()
+    expect(screen.queryByText('Cumplido')).toBeNull()
+  })
+
+  it('un descanso o una nota no entran en la cuenta', () => {
+    render(<Calendar sessions={[
+      { id: 'a', date: '2026-07-20', kind: 'rest', status: 'done' },
+      { id: 'b', date: '2026-07-21', kind: 'note', status: 'planned' },
+    ]} />)
+    toWeek()
+    expect(screen.queryByText('Cumplido')).toBeNull()
   })
 })

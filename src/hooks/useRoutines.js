@@ -4,38 +4,11 @@ import { useAuth } from './useAuth'
 import { useCachedResource } from '../lib/swr'
 import { getOrCreateExerciseId } from '../lib/exercises'
 
-// Calcula el siguiente día de un ciclo activo dado el historial de entrenos.
-// Ignora workouts sin routine_id o routine_day_id (entrenos libres).
-// Si no hay historial vinculado al ciclo, retorna el primer día.
-// Ordena por started_at desc; si está ausente, usa created_at como fallback.
-export function getNextRoutineDay(activeCycle, workoutsHistory) {
-  if (!activeCycle || !activeCycle.routine_days?.length) return null
-
-  const days = [...activeCycle.routine_days].sort((a, b) => a.day_order - b.day_order)
-
-  // Filtrar solo entrenos vinculados a este ciclo con routine_day_id presente
-  const linked = (workoutsHistory || []).filter(
-    w => w.routine_id === activeCycle.id && w.routine_day_id
-  )
-
-  if (!linked.length) return days[0]
-
-  // Ordenar por fecha desc (started_at con fallback a created_at)
-  const sorted = [...linked].sort((a, b) => {
-    const ta = new Date(a.started_at || a.created_at).getTime()
-    const tb = new Date(b.started_at || b.created_at).getTime()
-    return tb - ta
-  })
-
-  const lastDayId = sorted[0].routine_day_id
-  const lastIdx = days.findIndex(d => d.id === lastDayId)
-
-  // Si no se encuentra el día (rutina editada), empezar de nuevo
-  if (lastIdx === -1) return days[0]
-
-  // Avanzar al siguiente en orden cíclico
-  return days[(lastIdx + 1) % days.length]
-}
+// El siguiente día del ciclo activo vive ahora en lib/schedule (módulo puro,
+// sin Supabase), junto a la proyección del calendario, que necesita esa misma
+// regla de rotación. Se reexporta desde aquí, que es de donde lo importa el
+// resto de la app.
+export { getNextRoutineDay } from '../lib/schedule'
 
 // useRoutines(targetUserId?) — sin argumento opera sobre el usuario actual.
 // Si se pasa targetUserId (un cliente), un entrenador lee y gestiona las rutinas

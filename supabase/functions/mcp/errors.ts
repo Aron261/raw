@@ -23,6 +23,13 @@ const BY_CONSTRAINT: Array<[RegExp, string]> = [
   [/routines_type_chk/, 'El tipo de rutina debe ser "cycle" o "single_day".'],
   [/routines_source_chk/, 'El origen de la rutina no es válido.'],
   [/nutrition_foods_user_id_name_norm_key/, 'Ya tienes un alimento con ese nombre.'],
+  // El calendario valida sus cifras en Postgres, no solo en el formulario: el
+  // conector escribe contra la misma tabla sin pasar por la interfaz.
+  [/scheduled_sessions_duration_sane/, 'La duración tiene que estar entre 1 minuto y 24 horas.'],
+  [/scheduled_sessions_distance_sane/, 'La distancia no parece plausible.'],
+  [/scheduled_sessions_rpe_sane/, 'El esfuerzo (RPE) va de 1 a 10.'],
+  [/scheduled_sessions_kind_check/, 'Ese tipo de sesión no existe.'],
+  [/scheduled_sessions_status_check/, 'Ese estado de sesión no existe.'],
 ]
 
 export function toSpanish(err: unknown): string {
@@ -39,6 +46,9 @@ export function toSpanish(err: unknown): string {
     'Rutina no encontrada', 'Solo los ciclos pueden marcarse como activos',
     'No autorizado', 'Cambio no encontrado', 'Ese cambio ya se deshizo',
     'Revisión no encontrada', 'solo puede hacerse desde la app RAW',
+    'Sesión no encontrada', 'Día de rutina no encontrado',
+    'debe ser una fecha YYYY-MM-DD', 'debe ser uno de:',
+    'Hace falta `session_id` o `series_id`',
   ]
   for (const m of ours) if (e.message?.includes(m)) return e.message
 

@@ -69,8 +69,10 @@ async function handleMessage(msg: any, req: Request): Promise<unknown | null> {
       instructions: [
         'Datos de entrenamiento de RAW para esta persona usuaria.',
         'Puedes leer todo: entrenos, series, progreso, nutrición y perfil.',
-        'Solo puedes escribir rutinas y ciclos, objetivos, comidas y alimentos.',
+        'Solo puedes escribir rutinas y ciclos, objetivos, comidas, alimentos y el calendario de entrenamiento.',
         'No puedes registrar entrenos ni series ni peso corporal (eso se hace en la app), ni cambiar el perfil o los objetivos de macros y micros, ni conceder permisos de administrador.',
+        'El calendario (list_schedule, plan_sessions, update_session, delete_sessions) es la capa de PLANIFICACIÓN: dice qué se piensa hacer. Planear una sesión de fuerza no registra un entreno — el entreno se hace y se registra en la app, serie a serie, y entonces el plan de ese día se marca solo.',
+        'En cardio y movilidad sí se registra lo que de verdad pasó (duración, distancia, esfuerzo) con update_session. Manda solo lo que sepas: un nulo significa "no lo sé", no cero.',
         'El peso corporal se lee con get_body_weight, pero no se escribe: es un dato que se registra en la báscula y en la app, no por conversación.',
         'Antes de crear o editar una rutina, busca los ejercicios con search_exercise_library: guardar un nombre que no está en la biblioteca rompe el seguimiento del progreso. Si un término es ambiguo ("sentadillas"), pregunta cuál variante quiere.',
         'Después de escribir una rutina, revisa el campo "normalized" y comenta cualquier nombre que se haya guardado distinto.',

@@ -111,7 +111,7 @@ describe('guardas del servidor MCP', () => {
     const conDueno = [
       'routines', 'workouts', 'goals', 'nutrition_entries', 'nutrition_foods',
       'body_weight_logs', 'agent_writes', 'routine_revisions',
-      'nutrition_targets', 'public_workout_summary',
+      'nutrition_targets', 'public_workout_summary', 'scheduled_sessions',
     ]
     const alcance = /\.eq\('user_id', userId\)|user_id:\s*userId/
     for (const m of tools.code.matchAll(/\.from\('(\w+)'\)/g)) {
@@ -195,5 +195,37 @@ describe('paridad del registro de nutrientes', () => {
       expect(ts[n.key].unit, `${n.key}: unidad distinta`).toBe(n.unit)
       expect(ts[n.key].max, `${n.key}: máximo distinto`).toBe(n.max)
     }
+  })
+})
+
+// El calendario es la única tabla que se abrió a la escritura de agentes
+// DESPUÉS de que existiera la guardia default-deny de agent_audit.sql. Lo que
+// hace aceptable esa apertura no es que el plan sea poca cosa: es que cada
+// escritura queda en agent_writes y se puede deshacer. Si un día alguien borra
+// el trigger o saca la tabla de la lista, la app quedaría con un conector que
+// escribe el calendario sin dejar rastro — o con unas herramientas que fallan
+// contra Postgres sin que nada lo avise hasta que Pedro lo intente.
+describe('el calendario escribible va de la mano de su auditoría', () => {
+  const sql = readFileSync(join(DIR, '../../schedule_agent_writable.sql'), 'utf8')
+
+  it('la migración existe y declara la tabla escribible', () => {
+    expect(sql).toMatch(/writable text\[\][\s\S]{0,300}'scheduled_sessions'/)
+  })
+
+  it('y la audita con el mismo trigger que el resto', () => {
+    expect(sql).toMatch(/create trigger trg_log_agent_write\s+after insert or update or delete on scheduled_sessions/)
+  })
+
+  it('la migración se niega a dejarla escribible sin auditar', () => {
+    expect(sql).toMatch(/raise exception/)
+  })
+
+  it('las herramientas del calendario no tocan los entrenos registrados', () => {
+    // Planear no es registrar: el historial de fuerza sigue siendo de lectura.
+    const tools = sources.find(s => s.file === 'tools.ts')
+    const i = tools.code.indexOf('plan_sessions: {')
+    expect(i).toBeGreaterThan(-1)
+    const bloque = tools.code.slice(i, tools.code.indexOf('log_nutrition_entry: {'))
+    expect(bloque).not.toMatch(/from\('(workouts|sets|workout_exercises)'\)/)
   })
 })

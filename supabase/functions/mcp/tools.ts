@@ -51,6 +51,30 @@ const MICROS_ARG = {
 
 const MEALS = ['desayuno', 'almuerzo', 'cena', 'snack']
 
+// El calendario. Estos valores son los mismos CHECK que la tabla, así que un
+// tipo inventado lo rechaza Postgres aunque el esquema de aquí se quede atrás.
+const SESSION_KINDS = ['strength', 'cardio', 'mobility', 'rest', 'deload', 'note']
+const SESSION_STATUSES = ['planned', 'done', 'skipped']
+
+// Tope de ocurrencias de una serie. Espeja MAX_SERIES_OCCURRENCES de
+// src/lib/schedule.js: sin él, "ponme cardio todas las semanas" escribe filas
+// hasta que alguien lo pare.
+const MAX_SERIES_OCCURRENCES = 26
+
+// Solo una fecha local YYYY-MM-DD; cualquier otra cosa se descarta en vez de
+// llegar a Postgres como un rango medio interpretado.
+const isoDate = (v: unknown): string | null =>
+  typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null
+
+// Nulo es "no lo sé", nunca cero: media hora de bici sin cuentakilómetros no
+// son 0 km, y guardarlo como 0 lo convertiría en un dato falso.
+const optNum = (v: unknown, max: number): number | null => {
+  if (v === null || v === undefined || v === '') return null
+  const n = Number(v)
+  if (!Number.isFinite(n) || n <= 0) return null
+  return Math.min(n, max)
+}
+
 // Este conector habla SOLO de la cuenta de quien lo conectó, y eso es lo que
 // promete la pantalla de consentimiento. Pero la RLS de la app es más ancha a
 // propósito: un entrenador puede leer y editar las rutinas, los entrenos y la
@@ -264,6 +288,32 @@ export const TOOLS: Record<string, Tool> = {
         .order('logged_at', { ascending: false }).limit(clamp(a.limit, 60, 365))),
   },
 
+  list_schedule: {
+    description: 'El calendario de entrenamiento entre dos fechas: qué hay planeado y qué se cumplió. `kind` es "strength" (fuerza), "cardio", "mobility" (movilidad), "rest" (descanso), "deload" (semana de descarga) o "note". `status` es "planned", "done" o "skipped". En cardio y movilidad, duration_min / distance_km / rpe son lo que de verdad se hizo — un nulo significa "no se sabe", no cero. OJO: esto es la capa de PLANIFICACIÓN, no el historial. Los entrenos de fuerza registrados de verdad, con sus series, están en list_workouts; una sesión de fuerza aquí solo dice que se pensaba hacer.',
+    inputSchema: obj({
+      from: str('Desde (YYYY-MM-DD). Por defecto, hace 30 días.'),
+      to: str('Hasta (YYYY-MM-DD). Por defecto, dentro de 60 días.'),
+      kind: { ...str('Filtra por tipo de sesión'), enum: SESSION_KINDS },
+      status: { ...str('Filtra por estado'), enum: SESSION_STATUSES },
+    }),
+    handler: async (a, { supabase, userId }) => {
+      const day = (offset: number) => {
+        const d = new Date()
+        d.setDate(d.getDate() + offset)
+        return d.toISOString().slice(0, 10)
+      }
+      let q = supabase.from('scheduled_sessions')
+        .select('id,date,kind,title,status,notes,routine_id,routine_day_id,series_id,duration_min,distance_km,rpe')
+        .eq('user_id', userId)
+        .gte('date', isoDate(a.from) || day(-30))
+        .lte('date', isoDate(a.to) || day(60))
+        .order('date', { ascending: true })
+      if (a.kind) q = q.eq('kind', a.kind)
+      if (a.status) q = q.eq('status', a.status)
+      return unwrap(await q)
+    },
+  },
+
   list_recent_changes: {
     description: 'Cambios hechos por asistentes de IA en esta cuenta, del más reciente al más antiguo. Cada uno se puede revertir con undo_change.',
     inputSchema: obj({ limit: num('Máximo (por defecto 20, máximo 100)') }),
@@ -396,6 +446,127 @@ export const TOOLS: Record<string, Tool> = {
       unwrap(await supabase.from('goals').delete()
         .eq('id', a.goal_id).eq('user_id', userId))
       return { deleted: true, goal_id: a.goal_id }
+    },
+  },
+
+  plan_sessions: {
+    description: 'Pone sesiones en el calendario. Es la capa de PLANIFICACIÓN: dice qué se piensa hacer, no registra un entreno (eso se hace en la app, serie a serie). `repeat_every_weeks` con `repeat_count` crea una serie — "cardio cada semana durante 8" es repeat_every_weeks 1 y repeat_count 8; "una descarga cada 4 semanas, 6 veces" es 4 y 6. Para varios días distintos de la semana, llama una vez por día: una serie repite SIEMPRE en el mismo día de la semana. Vincular una sesión de fuerza a un día de rutina (routine_day_id) deja empezar el entreno desde el calendario: busca antes el id con get_routine o get_active_cycle.',
+    inputSchema: obj({
+      date: str('Primer día, YYYY-MM-DD (fecha local de la persona)'),
+      kind: { ...str('Tipo de sesión'), enum: SESSION_KINDS },
+      title: str('Título corto, opcional: "Bici 40 min", "Upper A"'),
+      notes: str('Nota breve, opcional'),
+      routine_day_id: str('Día de rutina al que se vincula, solo para kind "strength"'),
+      repeat_count: num(`Cuántas ocurrencias crear (por defecto 1, máximo ${MAX_SERIES_OCCURRENCES})`),
+      repeat_every_weeks: num('Cada cuántas semanas se repite (por defecto 1)'),
+    }, ['date', 'kind']),
+    handler: async (a, { supabase, userId }) => {
+      const start = isoDate(a.date)
+      if (!start) throw new Error('`date` debe ser una fecha YYYY-MM-DD.')
+      if (!SESSION_KINDS.includes(a.kind)) {
+        throw new Error(`\`kind\` debe ser uno de: ${SESSION_KINDS.join(', ')}.`)
+      }
+
+      // Vincular a un día de rutina que no es tuyo revelaría por rebote la
+      // rutina de un cliente: se comprueba el dueño antes de guardar el id.
+      let routineId: string | null = null
+      if (a.routine_day_id) {
+        const day = unwrap(await supabase.from('routine_days')
+          .select('id, routine_id, routines!inner(id, user_id)')
+          .eq('id', a.routine_day_id)
+          .eq('routines.user_id', userId)
+          .maybeSingle()) as any
+        if (!day) throw new Error('Día de rutina no encontrado.')
+        routineId = day.routine_id
+      }
+
+      const count = Math.max(1, Math.min(MAX_SERIES_OCCURRENCES, Math.floor(Number(a.repeat_count) || 1)))
+      const step = Math.max(1, Math.floor(Number(a.repeat_every_weeks) || 1))
+      const seriesId = count > 1 ? crypto.randomUUID() : null
+
+      // Fechas en UTC a mediodía: sumar semanas sobre una fecha suelta no
+      // puede cruzar un cambio de horario y devolver el día anterior.
+      const rows = []
+      for (let i = 0; i < count; i++) {
+        const d = new Date(`${start}T12:00:00Z`)
+        d.setUTCDate(d.getUTCDate() + i * step * 7)
+        rows.push({
+          date: d.toISOString().slice(0, 10),
+          kind: a.kind,
+          title: a.title?.trim() || null,
+          notes: a.notes?.trim() || null,
+          routine_id: routineId,
+          routine_day_id: routineId ? a.routine_day_id : null,
+          status: 'planned',
+          series_id: seriesId,
+        })
+      }
+
+      // El dueño se sella aquí, pegado al insert, y no dentro del bucle: es
+      // donde el guardrail de guardrails.test.js puede verlo, y es donde tiene
+      // que estar para que nadie construya filas sin dueño más arriba.
+      const created = unwrap(await supabase.from('scheduled_sessions')
+        .insert(rows.map(r => ({ ...r, user_id: userId })))
+        .select('id,date,kind,title,status,series_id'))
+      return { created, series_id: seriesId }
+    },
+  },
+
+  update_session: {
+    description: 'Cambia una sesión del calendario: su estado, su título, su nota, o lo que de verdad se hizo (duración, distancia, esfuerzo). Marcar "done" un cardio o una movilidad sin decir cuánto duró deja la sesión sin dato, que es peor que no marcarla: manda duration_min si lo sabes. Los datos de duración/distancia/esfuerzo NO aplican a la fuerza — un entreno de fuerza se mide serie a serie en la app.',
+    inputSchema: obj({
+      session_id: str('ID de la sesión'),
+      status: { ...str('Nuevo estado'), enum: SESSION_STATUSES },
+      title: str('Nuevo título'),
+      notes: str('Nueva nota'),
+      duration_min: num('Minutos que duró (cardio y movilidad)'),
+      distance_km: num('Kilómetros recorridos (solo cardio)'),
+      rpe: num('Esfuerzo percibido, 1–10'),
+    }, ['session_id']),
+    handler: async (a, { supabase, userId }) => {
+      const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
+      if (a.status !== undefined) {
+        if (!SESSION_STATUSES.includes(a.status)) {
+          throw new Error(`\`status\` debe ser uno de: ${SESSION_STATUSES.join(', ')}.`)
+        }
+        patch.status = a.status
+      }
+      if (a.title !== undefined) patch.title = a.title?.trim() || null
+      if (a.notes !== undefined) patch.notes = a.notes?.trim() || null
+      if (a.duration_min !== undefined) patch.duration_min = optNum(a.duration_min, 1440)
+      if (a.distance_km !== undefined) patch.distance_km = optNum(a.distance_km, 1000)
+      if (a.rpe !== undefined) {
+        const r = optNum(a.rpe, 10)
+        patch.rpe = r === null ? null : Math.round(r)
+      }
+
+      const row = unwrap(await supabase.from('scheduled_sessions').update(patch)
+        .eq('id', a.session_id).eq('user_id', userId)
+        .select('id,date,kind,title,status,duration_min,distance_km,rpe').maybeSingle())
+      if (!row) throw new Error('Sesión no encontrada.')
+      return row
+    },
+  },
+
+  delete_sessions: {
+    description: 'Quita sesiones del calendario. Con `session_id` quita una; con `series_id` quita toda una serie. Al borrar una serie, las ocurrencias ya cerradas (hechas o saltadas) se CONSERVAN a propósito: son pasado registrado, y dejar de hacer cardio los martes no debería reescribir los martes que sí lo hiciste.',
+    inputSchema: obj({
+      session_id: str('ID de una sesión suelta'),
+      series_id: str('ID de una serie: quita sus ocurrencias pendientes'),
+    }),
+    handler: async (a, { supabase, userId }) => {
+      if (!a.session_id && !a.series_id) {
+        throw new Error('Hace falta `session_id` o `series_id`.')
+      }
+      if (a.series_id) {
+        const gone = unwrap(await supabase.from('scheduled_sessions').delete()
+          .eq('series_id', a.series_id).eq('user_id', userId).eq('status', 'planned')
+          .select('id'))
+        return { deleted: (gone as any[]).length, series_id: a.series_id, kept_closed: true }
+      }
+      const gone = unwrap(await supabase.from('scheduled_sessions').delete()
+        .eq('id', a.session_id).eq('user_id', userId).select('id'))
+      return { deleted: (gone as any[]).length, session_id: a.session_id }
     },
   },
 

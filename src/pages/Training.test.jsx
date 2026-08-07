@@ -21,7 +21,10 @@ vi.mock('recharts', () => ({
 }))
 
 const navigate = vi.fn()
-vi.mock('react-router-dom', () => ({ useNavigate: () => navigate }))
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => navigate,
+  useSearchParams: () => [new URLSearchParams()],
+}))
 
 vi.mock('../components/Layout', () => ({ default: ({ children }) => <div>{children}</div> }))
 vi.mock('../components/calendar/Calendar', () => ({ default: () => <div data-testid="calendar" /> }))

@@ -7,20 +7,25 @@ import {
   monthMatrix, monthLabel, weekDays, weekRangeLabel, longDate,
   toLocalISODate, weekKey, mondayOf, KINDS, DONE_COLOR,
 } from '../../lib/calendar'
+import { weekAdherence } from '../../lib/schedule'
 
 const DAY_HEADS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 const DAY_ABBR = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
 // Punto de un día: relleno = pasó de verdad (entreno registrado o plan hecho),
-// anillo = todavía es un plan.
-function Dot({ color, filled, size = 6 }) {
+// anillo = todavía es un plan, anillo discontinuo = previsión del ciclo, que
+// nadie ha escrito todavía. Tres pesos, tres compromisos distintos — y se
+// distinguen por forma, no solo por color.
+function Dot({ color, filled, ghost, size = 6 }) {
   return (
     <span
       aria-hidden="true"
       style={{
-        width: `${size}px`, height: `${size}px`, borderRadius: '50%', flexShrink: 0,
+        width: `${ghost ? size + 1 : size}px`, height: `${ghost ? size + 1 : size}px`,
+        borderRadius: '50%', flexShrink: 0,
         background: filled ? color : 'transparent',
-        border: filled ? 'none' : `1.5px solid ${color}`,
+        border: filled ? 'none' : `1.5px ${ghost ? 'dashed' : 'solid'} ${color}`,
+        opacity: ghost ? 0.55 : 1,
       }}
     />
   )
@@ -28,7 +33,7 @@ function Dot({ color, filled, size = 6 }) {
 
 // ── Vista mes ────────────────────────────────────────────────────────────
 // Densidad máxima: el mes entero de un vistazo, cada día reducido a puntos.
-function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSelectDay, reduce }) {
+function MonthGrid({ anchor, todayISO, doneByDate, planByDate, projection, deloadWeeks, onSelectDay, reduce }) {
   const cells = useMemo(
     () => monthMatrix(anchor.getFullYear(), anchor.getMonth()),
     [anchor]
@@ -58,6 +63,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
           const isToday = iso === todayISO
           const done = doneByDate[iso] || []
           const plan = planByDate[iso] || []
+          const ghost = projection[iso] || null
           const isDeloadWeek = deloadWeeks.has(weekKey(date))
 
           const dots = [
@@ -67,6 +73,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
               color: (KINDS[s.kind] || KINDS.note).color,
               filled: s.status === 'done',
             })),
+            ...(ghost ? [{ key: 'g', color: KINDS.strength.color, ghost: true }] : []),
           ]
           const shown = dots.slice(0, 4)
           const extra = dots.length - shown.length
@@ -76,7 +83,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
               key={iso}
               data-date={iso}
               onClick={() => onSelectDay?.(date)}
-              aria-label={`${longDate(date)} — ${done.length} entrenos, ${plan.length} planificados`}
+              aria-label={`${longDate(date)} — ${done.length} entrenos, ${plan.length} planificados${ghost ? `, previsto ${ghost.day?.day_name || ''}` : ''}`}
               whileTap={reduce ? undefined : { scale: 0.93 }}
               transition={SPRING_PRESS}
               style={{
@@ -102,7 +109,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
               </span>
 
               <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', minHeight: '8px', flexWrap: 'wrap' }}>
-                {shown.map(d => <Dot key={d.key} color={d.color} filled={d.filled} />)}
+                {shown.map(d => <Dot key={d.key} color={d.color} filled={d.filled} ghost={d.ghost} />)}
                 {extra > 0 && (
                   <span style={{ fontFamily: 'var(--font-sans)', fontSize: '9px', color: 'var(--c-text-muted)', lineHeight: 1 }}>
                     +{extra}
@@ -120,19 +127,20 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSe
 // Ficha de una sesión dentro de la columna del día. En 7 columnas no cabe una
 // frase, así que manda el color (qué tipo es) y el texto se recorta a dos
 // líneas — el detalle completo vive en la hoja del día, a un toque.
-function DayChip({ color, filled, label, detail, struck }) {
+function DayChip({ color, filled, label, detail, struck, ghost }) {
   return (
     <span style={{
       display: 'block', width: '100%',
-      borderLeft: `2px solid ${color}`,
+      borderLeft: `2px ${ghost ? 'dashed' : 'solid'} ${color}`,
       background: filled ? 'var(--c-surface-3)' : 'transparent',
       borderRadius: '0 4px 4px 0',
       padding: '3px 1px 3px 3px',
+      opacity: ghost ? 0.6 : 1,
     }}>
       <span style={{
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         fontSize: '9.5px', fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.02em',
-        color: struck ? 'var(--c-text-muted)' : 'var(--c-text)',
+        color: struck || ghost ? 'var(--c-text-muted)' : 'var(--c-text)',
         textDecoration: struck ? 'line-through' : 'none',
         // Cortar por palabras, nunca por letras: "Uppe/r 1" no se lee.
         overflowWrap: 'normal', wordBreak: 'normal', hyphens: 'none',
@@ -155,12 +163,36 @@ function DayChip({ color, filled, label, detail, struck }) {
 // El acercamiento: la semana como siete columnas, una por día, para leer la
 // programación de un vistazo — lunes a domingo de izquierda a derecha, igual
 // que la rejilla del mes. Cada columna es tocable y abre la hoja del día.
-function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, dayById, onSelectDay, reduce, t }) {
+function WeekColumns({ anchor, todayISO, sessions, doneByDate, planByDate, projection, deloadWeeks, dayById, onSelectDay, reduce, t }) {
   const days = useMemo(() => weekDays(anchor), [anchor])
   const isDeloadWeek = deloadWeeks.has(weekKey(anchor))
+  const adherence = useMemo(() => weekAdherence(sessions, anchor), [sessions, anchor])
 
   return (
     <>
+      {/* Lo prometido contra lo cumplido. Sin nada planeado no se dice nada:
+          un "0 de 0" sería un reproche por una semana que nunca comprometiste. */}
+      {adherence.planned > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'baseline', gap: '7px',
+          marginBottom: '8px',
+        }}>
+          <span style={{
+            fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700,
+            letterSpacing: '-0.01em', color: 'var(--c-text-dim)',
+          }}>
+            {t('Cumplido')}
+          </span>
+          <span style={{
+            fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 900,
+            letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums',
+            color: adherence.done >= adherence.planned ? 'var(--c-data)' : 'var(--c-text)',
+          }}>
+            {adherence.done} / {adherence.planned}
+          </span>
+        </div>
+      )}
+
       {isDeloadWeek && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: '7px',
@@ -183,14 +215,15 @@ function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, da
           const isToday = iso === todayISO
           const done = doneByDate[iso] || []
           const plan = planByDate[iso] || []
-          const empty = done.length === 0 && plan.length === 0
+          const ghost = projection[iso] || null
+          const empty = done.length === 0 && plan.length === 0 && !ghost
 
           return (
             <motion.button
               key={iso}
               data-date={iso}
               onClick={() => onSelectDay?.(date)}
-              aria-label={`${longDate(date)} — ${done.length} entrenos, ${plan.length} planificados`}
+              aria-label={`${longDate(date)} — ${done.length} entrenos, ${plan.length} planificados${ghost ? `, previsto ${ghost.day?.day_name || ''}` : ''}`}
               whileTap={reduce ? undefined : { scale: 0.96 }}
               transition={SPRING_PRESS}
               style={{
@@ -258,6 +291,17 @@ function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, da
                     />
                   )
                 })}
+
+                {/* La previsión del ciclo va la última: es lo que el calendario
+                    cree que toca, no lo que has decidido. */}
+                {ghost && (
+                  <DayChip
+                    ghost
+                    color={KINDS.strength.color}
+                    label={ghost.day?.day_name || t('Fuerza')}
+                    detail={t('Previsto')}
+                  />
+                )}
               </span>
             </motion.button>
           )
@@ -272,7 +316,7 @@ function WeekColumns({ anchor, todayISO, doneByDate, planByDate, deloadWeeks, da
 // entrenamiento, la semana para leer y programar el detalle. Un solo `anchor`
 // (una fecha) manda en ambos, así que cambiar de vista nunca te teletransporta:
 // la semana que ves es la del mes que estabas mirando.
-export default function Calendar({ workouts = [], sessions = [], routines = [], onSelectDay }) {
+export default function Calendar({ workouts = [], sessions = [], routines = [], projection = {}, onSelectDay }) {
   const reduce = useReducedMotion()
   const { t, locale } = useLang()
   const today = new Date()
@@ -315,6 +359,7 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
   }, [routines])
 
   const isWeek = mode === 'semana'
+  const hasProjection = Object.keys(projection).length > 0
 
   // Un paso = un mes o una semana, según el acercamiento.
   const move = (delta) => setAnchor(a => isWeek
@@ -378,8 +423,8 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
       </div>
 
       {isWeek
-        ? <WeekColumns {...{ anchor, todayISO, doneByDate, planByDate, deloadWeeks, dayById, onSelectDay, reduce, t }} />
-        : <MonthGrid {...{ anchor, todayISO, doneByDate, planByDate, deloadWeeks, onSelectDay, reduce }} />}
+        ? <WeekColumns {...{ anchor, todayISO, sessions, doneByDate, planByDate, projection, deloadWeeks, dayById, onSelectDay, reduce, t }} />
+        : <MonthGrid {...{ anchor, todayISO, doneByDate, planByDate, projection, deloadWeeks, onSelectDay, reduce }} />}
 
       {/* Leyenda — mínima, solo lo que aparece en la rejilla */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--c-border-subtle)' }}>
@@ -391,6 +436,11 @@ export default function Calendar({ workouts = [], sessions = [], routines = [], 
             <Dot color={KINDS[k].color} /> {t(KINDS[k].label)}
           </span>
         ))}
+        {hasProjection && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-muted)' }}>
+            <Dot color={KINDS.strength.color} ghost /> {t('Previsto')}
+          </span>
+        )}
       </div>
     </section>
   )

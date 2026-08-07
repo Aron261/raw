@@ -18,6 +18,7 @@ Raw is a mobile-first PWA for logging strength training and coaching it remotely
 Raw is a hub of sections; the home screen is a poster-style index (one live number per section) and each section opens its own world:
 
 - **Entreno** — the original app: dashboard, active workout logging, history, routines, stats. Reachable from the bottom tab bar (Inicio · Progreso · + · Nutrición · Rutinas).
+- **Calendario** (inside Entreno) — the planning layer over the rotational cycle. It projects what the cycle has next onto the days you actually train and marks a plan done when you finish the matching workout, so it stays true without upkeep. Strength is planned here but logged in the workout screen; cardio and mobility are logged here (duration, distance, RPE) because they have no set-by-set shape and forcing them into reps × weight would poison volume and PRs.
 - **Nutrición** — meals with macros (P/C/G + kcal, auto-computed from macros when omitted) against daily targets, per-day view with day navigation.
 - **Longevidad** — supplement stack with a daily taken-checklist. Bloodwork results by marker (reference ranges, per-marker trends) have a schema but no screen yet: entering a panel is a three-times-a-year chore, not what makes the section worth opening.
 - **Social** — planned (friends, workout feed, shared PRs); currently a declared placeholder.

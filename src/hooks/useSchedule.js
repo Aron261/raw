@@ -2,6 +2,18 @@ import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { useCachedResource } from '../lib/swr'
+import { recurringDates, MAX_SERIES_OCCURRENCES } from '../lib/schedule'
+
+// El series_id tiene que ser el MISMO en todas las filas de una serie, así que
+// se genera aquí y no en la base.
+const newId = () => (
+  typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+      })
+)
 
 // useSchedule() — sesiones planificadas del usuario (capa libre del calendario).
 //
@@ -17,7 +29,7 @@ export function useSchedule() {
   const fetcher = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('scheduled_sessions')
-      .select('id, date, kind, title, routine_id, routine_day_id, notes, status, sort_order')
+      .select('id, date, kind, title, routine_id, routine_day_id, notes, status, sort_order, series_id, duration_min, distance_km, rpe')
       .eq('user_id', ownerId)
       .order('date', { ascending: true })
       .order('sort_order', { ascending: true })
@@ -29,22 +41,38 @@ export function useSchedule() {
   const sessions = data || []
 
   // date: 'YYYY-MM-DD' local · kind requerido · el resto opcional.
+  //
+  // `repeatWeeks` > 1 crea una serie: la misma sesión repetida cada semana,
+  // agrupada por series_id. Se materializan las filas (no se guarda una regla)
+  // porque cada ocurrencia lleva su propio estado y sus propios datos reales.
   const createSession = async (s) => {
     if (!ownerId) throw new Error('Usuario no autenticado')
-    const { error: err } = await supabase
+
+    const count = Math.max(1, Math.min(MAX_SERIES_OCCURRENCES, Number(s.repeatWeeks) || 1))
+    const seriesId = count > 1 ? newId() : null
+
+    const base = {
+      user_id: ownerId,
+      kind: s.kind || 'strength',
+      title: s.title?.trim() || null,
+      routine_id: s.routine_id ?? null,
+      routine_day_id: s.routine_day_id ?? null,
+      notes: s.notes?.trim() || null,
+      status: s.status || 'planned',
+      series_id: seriesId,
+    }
+
+    const rows = recurringDates(s.date, count, s.repeatEvery).map(date => ({ ...base, date }))
+
+    // Devuelve las filas creadas: registrar algo ya hecho necesita la sesión
+    // recién nacida para poder anotarle encima cuánto duró.
+    const { data, error: err } = await supabase
       .from('scheduled_sessions')
-      .insert({
-        user_id: ownerId,
-        date: s.date,
-        kind: s.kind || 'strength',
-        title: s.title?.trim() || null,
-        routine_id: s.routine_id ?? null,
-        routine_day_id: s.routine_day_id ?? null,
-        notes: s.notes?.trim() || null,
-        status: s.status || 'planned',
-      })
+      .insert(rows)
+      .select('id, date, kind, title, routine_id, routine_day_id, notes, status, sort_order, series_id, duration_min, distance_km, rpe')
     if (err) throw err
     await refetch()
+    return data || []
   }
 
   const updateSession = async (id, updates) => {
@@ -67,6 +95,21 @@ export function useSchedule() {
     await refetch()
   }
 
+  // Quitar una serie entera — pero solo lo que todavía es plan. Las ocurrencias
+  // ya cerradas (hechas o saltadas) son pasado registrado: borrarlas al dejar
+  // de hacer cardio los martes reescribiría el historial.
+  const deleteSeries = async (seriesId) => {
+    if (!seriesId) return
+    const { error: err } = await supabase
+      .from('scheduled_sessions')
+      .delete()
+      .eq('series_id', seriesId)
+      .eq('user_id', ownerId)
+      .eq('status', 'planned')
+    if (err) throw err
+    await refetch()
+  }
+
   return {
     sessions,
     loading,
@@ -75,5 +118,6 @@ export function useSchedule() {
     createSession,
     updateSession,
     deleteSession,
+    deleteSeries,
   }
 }
