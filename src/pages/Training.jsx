@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell,
 } from 'recharts'
@@ -23,7 +23,6 @@ import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Sheet, Field, Button, LiveRegion, UndoSnackbar, UnitToggle } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import Calendar from '../components/calendar/Calendar'
-import DaySheet from '../components/calendar/DaySheet'
 import { computeStreak, mondayOf, KINDS } from '../lib/calendar'
 import { projectionByDate, loggedMinutes, isLoggable } from '../lib/schedule'
 import { useLang } from '../hooks/useLang'
@@ -507,7 +506,6 @@ function GoalsCard({ goals, onAdd, onDelete }) {
 // cen como una línea de hoy: son de otras secciones, pero son de hoy.
 export default function Training() {
   const navigate = useNavigate()
-  const [params] = useSearchParams()
   const { t, locale } = useLang()
   const { workouts, loading, error, createWorkout, fetchWorkouts } = useWorkouts()
   const { goals, createGoal, deleteGoal } = useGoals()
@@ -520,13 +518,11 @@ export default function Training() {
   const { sessions, createSession, updateSession, deleteSession, deleteSeries } = useSchedule()
   const { counts: unreadMap } = useUnreadCounts()
 
-  // ?d=YYYY-MM-DD abre la hoja de ese día al entrar. Es lo que hace que una
-  // sesión del historial pueda llevarte a su día del calendario en vez de
-  // dejarte buscándolo a mano.
-  const [selectedDay, setSelectedDay] = useState(() => {
-    const d = params.get('d')
-    return /^\d{4}-\d{2}-\d{2}$/.test(d || '') ? new Date(`${d}T00:00:00`) : null
-  })
+  // Tocar un día ya no abre una hoja: lleva a /dia/:fecha, que es una pantalla
+  // entera. El día pasó a significar tres cosas —entreno, comida y peso— y eso
+  // no cabía en una hoja sin scrollear por dentro.
+  const openDay = (d) => navigate(`/dia/${toLocalISODate(d)}`)
+
   const [showGoalModal, setShowGoalModal] = useState(false)
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
@@ -787,19 +783,6 @@ export default function Training() {
     const iso = dates.find(d => !nextPlanned || d < nextPlanned.date)
     return iso ? projection[iso] : null
   }, [projection, nextPlanned])
-
-  // Entrenos y planes del día abierto en la hoja.
-  const selectedISO = selectedDay ? toLocalISODate(selectedDay) : null
-  const dayWorkouts = useMemo(
-    () => !selectedISO ? [] : workouts.filter(
-      w => w.ended_at && toLocalISODate(new Date(w.started_at)) === selectedISO
-    ),
-    [workouts, selectedISO]
-  )
-  const daySessions = useMemo(
-    () => !selectedISO ? [] : sessions.filter(s => s.date === selectedISO),
-    [sessions, selectedISO]
-  )
 
   // Mensajes sin leer — el único dato de Coach que merece sitio en la portada.
   const unread = useMemo(
@@ -1180,7 +1163,7 @@ export default function Training() {
                   label={t('Cardio y movilidad')}
                   value={weekMinutes > 0 ? `${weekMinutes} ${t('min')}` : '—'}
                   hint={weekMinutes > 0 ? t('Esta semana') : t('Sin registrar esta semana')}
-                  onClick={() => setSelectedDay(new Date())}
+                  onClick={() => openDay(new Date())}
                 />
               )}
               {/* El chip «Kcal hoy» se fue: la comida del día tiene ahora su
@@ -1411,7 +1394,7 @@ export default function Training() {
               sessions={sessions}
               routines={routines}
               projection={projection}
-              onSelectDay={setSelectedDay}
+              onSelectDay={openDay}
             />
 
             {/* Lo que viene — la entrada a planear un día concreto. */}
@@ -1428,7 +1411,7 @@ export default function Training() {
                   : nextGhost ? t('Previsto')
                   : t('Toca un día para planear')
                 }
-                onClick={() => setSelectedDay(
+                onClick={() => openDay(
                   nextPlanned ? new Date(`${nextPlanned.date}T00:00:00`)
                   : nextGhost ? new Date(`${nextGhost.date}T00:00:00`)
                   : new Date()
@@ -1439,22 +1422,6 @@ export default function Training() {
         )}
 
       </div>
-
-      {/* ── Hoja del día del calendario ── */}
-      {selectedDay && (
-        <DaySheet
-          date={selectedDay}
-          workouts={dayWorkouts}
-          sessions={daySessions}
-          routines={routines}
-          ghost={projection[selectedISO] || null}
-          onCreate={createSession}
-          onUpdate={updateSession}
-          onDelete={deleteSession}
-          onDeleteSeries={deleteSeries}
-          onClose={() => setSelectedDay(null)}
-        />
-      )}
 
       {/* ── Modal nueva meta ── */}
       {showGoalModal && (

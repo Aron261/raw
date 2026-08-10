@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sheet, Field, Button } from '../ui'
-import { KINDS, KIND_ORDER, longDate, toLocalISODate } from '../../lib/calendar'
+import { Field, Button } from '../ui'
+import { KINDS, KIND_ORDER, toLocalISODate } from '../../lib/calendar'
 import { isLoggable, formatSessionLog } from '../../lib/schedule'
 import { useStartRoutineWorkout } from '../../hooks/useStartRoutineWorkout'
 import { useLang } from '../../hooks/useLang'
@@ -31,13 +31,19 @@ const DELOAD_REPEAT_OPTIONS = [
   { id: 'e8',   label: 'Cada 8 semanas', count: 4, every: 8 },
 ]
 
-// ── DaySheet ─────────────────────────────────────────────────────────────
-// Un día del calendario: lo que ya pasó (entrenos registrados, solo lectura) y
-// lo que está planeado (editable). Planear es la acción principal — el
-// formulario está siempre abierto, sin un paso extra de "agregar".
-export default function DaySheet({
+// ── DayView ──────────────────────────────────────────────────────────────
+// Todo lo de un día: lo que entrenaste, lo que planeaste, lo que comiste y
+// cuánto pesabas. Planear es la acción principal — el formulario está siempre
+// abierto, sin un paso extra de "agregar".
+//
+// Esto vivía dentro de una bottom sheet. Se quedó pequeño: seis secciones de
+// tres dominios distintos llegaban al tope de 90dvh y scrolleaban por dentro,
+// que es lo que peor hace una hoja. Y con ese poco sitio la comida solo se
+// podía mirar. Ahora es el cuerpo de una pantalla (pages/Day.jsx), que además
+// tiene URL propia, botón atrás y flechas para pasar de día.
+export default function DayView({
   date, workouts = [], sessions = [], routines = [], ghost = null,
-  onCreate, onUpdate, onDelete, onDeleteSeries, onClose,
+  onCreate, onUpdate, onDelete, onDeleteSeries,
 }) {
   const { t, locale } = useLang()
   const navigate = useNavigate()
@@ -243,7 +249,7 @@ export default function DaySheet({
   }
 
   return (
-    <Sheet title={longDate(date)} onClose={onClose}>
+    <>
       {err && (
         <p style={{ color: 'var(--c-action-text)', fontSize: '11px', marginBottom: '10px' }}>{err}</p>
       )}
@@ -583,6 +589,6 @@ export default function DaySheet({
         </div>
       )}
 
-    </Sheet>
+    </>
   )
 }

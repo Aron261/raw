@@ -1,20 +1,42 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import CalorieRing from '../CalorieRing'
-import { useNutritionDay, useNutritionTargets, DEFAULT_TARGETS } from '../../hooks/useNutrition'
+import EntrySheet from '../nutrition/EntrySheet'
+import { useNutritionDay, useNutritionTargets, useMyFoods, DEFAULT_TARGETS } from '../../hooks/useNutrition'
 import { useLang } from '../../hooks/useLang'
 
 // ── DayNutrition ─────────────────────────────────────────────────────────
 // La comida de un día dentro de la hoja del calendario.
 //
-// Aquí se LEE, y para cambiar algo se salta a Nutrición ya abierta en ese día.
-// No es pereza: el editor de comidas de verdad lleva micronutrientes,
-// biblioteca de alimentos y escalado por porción — replicarlo dentro de una
-// hoja significaría mantener dos editores que se van separando solos. Lo que
-// faltaba no era un segundo editor, era poder VER el día y llegar al bueno.
+// Se edita aquí mismo, con el MISMO editor que la pantalla de Nutrición —
+// micronutrientes, biblioteca de alimentos y escalado por porción incluidos.
+// Un segundo editor más simple para el día habría sido garantizar que los dos
+// se separan solos: alguien arregla un redondeo en uno y no en el otro, y la
+// misma comida sale distinta según por dónde la registres.
 export default function DayNutrition({ dateISO, onNavigate }) {
   const { t, locale } = useLang()
-  const { entries, loading } = useNutritionDay(dateISO)
+  const { entries, loading, addEntry, updateEntry, deleteEntry } = useNutritionDay(dateISO)
   const { targets } = useNutritionTargets()
+  const { foods, saveFood } = useMyFoods()
+
+  // { entry } al editar una que ya existe, {} al añadir una nueva.
+  const [sheet, setSheet] = useState(null)
+
+  const save = async (fields, food) => {
+    if (sheet?.entry) {
+      await updateEntry(sheet.entry.id, fields)
+    } else {
+      await addEntry(fields)
+      // La biblioteca personal se actualiza en segundo plano: si falla, la
+      // comida del día ya quedó guardada, que es lo que importaba.
+      if (food) saveFood(food).catch(err => console.error('Error guardando comida en biblioteca:', err))
+    }
+    setSheet(null)
+  }
+
+  const remove = async (id) => {
+    await deleteEntry(id)
+    setSheet(null)
+  }
 
   const goal = targets || DEFAULT_TARGETS
 
@@ -39,19 +61,19 @@ export default function DayNutrition({ dateISO, onNavigate }) {
           {t('Comida')}
         </p>
         <button
-          onClick={onNavigate}
+          onClick={() => setSheet({})}
           style={{
             fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700,
             letterSpacing: '-0.01em', color: 'var(--c-action-text)',
             background: 'transparent', minHeight: '32px',
           }}
         >
-          {registrado ? t('Editar') : t('Añadir')}
+          {t('Añadir comida')}
         </button>
       </div>
 
       <button
-        onClick={onNavigate}
+        onClick={registrado ? onNavigate : () => setSheet({})}
         style={{
           width: '100%', textAlign: 'left',
           display: 'flex', alignItems: 'center', gap: '13px',
@@ -106,32 +128,48 @@ export default function DayNutrition({ dateISO, onNavigate }) {
       </button>
 
       {/* Qué se comió, no solo cuánto. Un total sin desglose no deja corregir
-          nada: para saber si sobra algo hay que ver los nombres. */}
+          nada: para saber si sobra algo hay que ver los nombres — y tocar uno
+          lo abre para cambiarlo, que era lo que faltaba. */}
       {registrado && (
         <ul style={{ listStyle: 'none', margin: '6px 0 0', padding: 0 }}>
           {entries.map(e => (
-            <li
-              key={e.id}
-              style={{
-                display: 'flex', alignItems: 'baseline', gap: '8px',
-                padding: '5px 12px',
-              }}
-            >
-              <span style={{
-                minWidth: 0, flex: 1, color: 'var(--c-text-dim)', fontSize: '11.5px',
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>
-                {e.name}
-              </span>
-              <span className="tnum" style={{
-                flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: '11px',
-                fontWeight: 700, color: 'var(--c-text-muted)',
-              }}>
-                {fmt(e.kcal)} kcal
-              </span>
+            <li key={e.id}>
+              <button
+                onClick={() => setSheet({ entry: e })}
+                aria-label={`${t('Editar')}: ${e.name}`}
+                style={{
+                  width: '100%', textAlign: 'left',
+                  display: 'flex', alignItems: 'baseline', gap: '8px',
+                  padding: '9px 12px', minHeight: '44px',
+                  background: 'transparent', border: 'none',
+                }}
+              >
+                <span style={{
+                  minWidth: 0, flex: 1, color: 'var(--c-text-dim)', fontSize: '12px',
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {e.name}
+                </span>
+                <span className="tnum" style={{
+                  flexShrink: 0, fontFamily: 'var(--font-sans)', fontSize: '11px',
+                  fontWeight: 700, color: 'var(--c-text-muted)',
+                }}>
+                  {fmt(e.kcal)} kcal
+                </span>
+              </button>
             </li>
           ))}
         </ul>
+      )}
+
+      {sheet && (
+        <EntrySheet
+          initial={sheet.entry}
+          foods={foods}
+          onSave={save}
+          onDelete={remove}
+          onClose={() => setSheet(null)}
+        />
       )}
     </div>
   )

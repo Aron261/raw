@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 //
-// La hoja del día es donde la planificación deja de ser decorativa: aquí se
+// La pantalla del día es donde la planificación deja de ser decorativa: aquí se
 // fija una previsión, se repite una sesión y se borra una serie. Las tres
 // tocan varios días de calendario de una vez, así que lo que se prueba es que
 // hagan exactamente lo que dicen — ni un día más.
@@ -20,13 +20,23 @@ vi.mock('../../hooks/useStartRoutineWorkout', () => ({
   useStartRoutineWorkout: () => ({ startWorkoutFromRoutineDay }),
 }))
 
-// La hoja del día es ahora también comida y peso: los dos cuelgan de supabase.
+// La pantalla del día es ahora también comida y peso: los dos cuelgan de supabase.
 let mockEntries = []
 let mockWeightLogs = []
 const addLog = vi.fn(async () => ({ id: 'w1' }))
+const addEntry = vi.fn(async () => ({ id: 'n1' }))
+const updateEntry = vi.fn(async () => ({}))
+const deleteEntry = vi.fn(async () => {})
 vi.mock('../../hooks/useNutrition', () => ({
-  useNutritionDay: () => ({ entries: mockEntries, loading: false }),
+  useNutritionDay: () => ({
+    entries: mockEntries, loading: false, addEntry, updateEntry, deleteEntry,
+  }),
   useNutritionTargets: () => ({ targets: { kcal: 3000, protein_g: 180, carbs_g: 400, fat_g: 80 } }),
+  useMyFoods: () => ({ foods: [], saveFood: vi.fn(async () => {}) }),
+  MEALS: [
+    { id: 'desayuno', label: 'Desayuno' }, { id: 'almuerzo', label: 'Almuerzo' },
+    { id: 'cena', label: 'Cena' }, { id: 'snack', label: 'Snack' },
+  ],
   DEFAULT_TARGETS: { kcal: 2000, protein_g: 150, carbs_g: 200, fat_g: 60 },
 }))
 vi.mock('../../hooks/useBodyWeight', () => ({
@@ -61,7 +71,7 @@ vi.mock('motion/react', async () => {
   }
 })
 
-import DaySheet from './DaySheet'
+import DayView from './DayView'
 
 const routines = [{
   id: 'r1',
@@ -102,14 +112,14 @@ beforeEach(() => {
 })
 afterEach(() => { vi.useRealTimers(); cleanup() })
 
-describe('DaySheet — la previsión del ciclo', () => {
+describe('DayView — la previsión del ciclo', () => {
   const ghost = {
     date: '2026-08-11', routineId: 'r1', routineName: 'PPL',
     day: { id: 'rd1', day_name: 'Push' }, ghost: true,
   }
 
   it('la muestra con lo que trae el día, marcada como no escrita', () => {
-    render(<DaySheet {...props({ ghost })} />)
+    render(<DayView {...props({ ghost })} />)
     expect(screen.getByText('Push')).toBeTruthy()
     expect(screen.getByText(/PPL · 2 ej/)).toBeTruthy()
     expect(screen.getByText(/Todavía no está escrito/)).toBeTruthy()
@@ -117,7 +127,7 @@ describe('DaySheet — la previsión del ciclo', () => {
 
   it('fijarla la convierte en un plan real, vinculado al día de rutina', async () => {
     const p = props({ ghost })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByText('Fijar'))
     await waitFor(() => expect(p.onCreate).toHaveBeenCalledTimes(1))
     expect(p.onCreate.mock.calls[0][0]).toMatchObject({
@@ -130,7 +140,7 @@ describe('DaySheet — la previsión del ciclo', () => {
   })
 
   it('empezarla arranca el entreno de ese día y navega', async () => {
-    render(<DaySheet {...props({ ghost })} />)
+    render(<DayView {...props({ ghost })} />)
     fireEvent.click(screen.getByText('Empezar'))
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/workout/new-workout'))
     expect(startWorkoutFromRoutineDay.mock.calls[0][0]).toMatchObject({
@@ -139,15 +149,15 @@ describe('DaySheet — la previsión del ciclo', () => {
   })
 
   it('sin previsión no ocupa sitio', () => {
-    render(<DaySheet {...props()} />)
+    render(<DayView {...props()} />)
     expect(screen.queryByText('Fijar')).toBeNull()
   })
 })
 
-describe('DaySheet — repetir', () => {
+describe('DayView — repetir', () => {
   it('manda las semanas elegidas al crear', async () => {
     const p = props()
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByText('4 semanas'))
     fireEvent.click(screen.getByText('Agregar al calendario'))
     await waitFor(() => expect(p.onCreate).toHaveBeenCalledTimes(1))
@@ -156,21 +166,21 @@ describe('DaySheet — repetir', () => {
 
   it('por defecto no repite', async () => {
     const p = props()
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByText('Agregar al calendario'))
     await waitFor(() => expect(p.onCreate).toHaveBeenCalledTimes(1))
     expect(p.onCreate.mock.calls[0][0].repeatWeeks).toBe(1)
   })
 
   it('una nota suelta no se ofrece repetir', () => {
-    render(<DaySheet {...props()} />)
+    render(<DayView {...props()} />)
     expect(screen.getByText('Repetir')).toBeTruthy()
     fireEvent.click(screen.getByText('Nota'))
     expect(screen.queryByText('Repetir')).toBeNull()
   })
 })
 
-describe('DaySheet — borrar', () => {
+describe('DayView — borrar', () => {
   const single = {
     id: 's1', date: '2026-08-11', kind: 'cardio', title: 'Bici',
     status: 'planned', series_id: null,
@@ -179,7 +189,7 @@ describe('DaySheet — borrar', () => {
 
   it('una sesión suelta se borra de un toque', async () => {
     const p = props({ sessions: [single] })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByLabelText('Eliminar: Bici'))
     await waitFor(() => expect(p.onDelete).toHaveBeenCalledWith('s1'))
     expect(p.onDeleteSeries).not.toHaveBeenCalled()
@@ -187,7 +197,7 @@ describe('DaySheet — borrar', () => {
 
   it('una de una serie pregunta antes: un día o todos', async () => {
     const p = props({ sessions: [inSeries] })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByLabelText('Eliminar: Bici'))
     // Nada se ha borrado todavía — solo se ha preguntado.
     expect(p.onDelete).not.toHaveBeenCalled()
@@ -200,7 +210,7 @@ describe('DaySheet — borrar', () => {
 
   it('«toda la serie» borra por series_id, no por sesión', async () => {
     const p = props({ sessions: [inSeries] })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByLabelText('Eliminar: Bici'))
     fireEvent.click(screen.getByText('Toda la serie'))
     await waitFor(() => expect(p.onDeleteSeries).toHaveBeenCalledWith('serie-1'))
@@ -208,12 +218,12 @@ describe('DaySheet — borrar', () => {
   })
 
   it('declara que una sesión pertenece a una serie', () => {
-    render(<DaySheet {...props({ sessions: [inSeries] })} />)
+    render(<DayView {...props({ sessions: [inSeries] })} />)
     expect(screen.getByText('Cardio · Planeado · Cada semana')).toBeTruthy()
   })
 })
 
-describe('DaySheet — cardio y movilidad con datos de verdad', () => {
+describe('DayView — cardio y movilidad con datos de verdad', () => {
   const cardio = {
     id: 's1', date: '2026-08-11', kind: 'cardio', title: 'Bici',
     status: 'planned', series_id: null,
@@ -221,7 +231,7 @@ describe('DaySheet — cardio y movilidad con datos de verdad', () => {
 
   it('dar por hecho un cardio pregunta qué hiciste en vez de marcarlo a secas', () => {
     const p = props({ sessions: [cardio] })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByLabelText('Cambiar estado: Bici'))
     // No se cierra nada todavía: primero las cifras.
     expect(p.onUpdate).not.toHaveBeenCalled()
@@ -230,7 +240,7 @@ describe('DaySheet — cardio y movilidad con datos de verdad', () => {
 
   it('guarda duración, distancia y esfuerzo, y cierra la sesión', async () => {
     const p = props({ sessions: [cardio] })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByLabelText('Cambiar estado: Bici'))
 
     fireEvent.change(screen.getByLabelText('Duración'), { target: { value: '45' } })
@@ -246,7 +256,7 @@ describe('DaySheet — cardio y movilidad con datos de verdad', () => {
 
   it('lo que no sabes se guarda como desconocido, no como cero', async () => {
     const p = props({ sessions: [cardio] })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByLabelText('Cambiar estado: Bici'))
     fireEvent.change(screen.getByLabelText('Duración'), { target: { value: '30' } })
     fireEvent.click(screen.getByText('Registrar'))
@@ -259,7 +269,7 @@ describe('DaySheet — cardio y movilidad con datos de verdad', () => {
 
   it('la movilidad no pregunta distancia: no te desplazas', () => {
     const p = props({ sessions: [{ ...cardio, kind: 'mobility', title: 'Estiramientos' }] })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByLabelText('Cambiar estado: Estiramientos'))
     expect(screen.getByLabelText('Duración')).toBeTruthy()
     expect(screen.queryByLabelText('Distancia')).toBeNull()
@@ -267,7 +277,7 @@ describe('DaySheet — cardio y movilidad con datos de verdad', () => {
 
   it('la fuerza sigue marcándose de un toque, sin hoja', async () => {
     const p = props({ sessions: [{ ...cardio, kind: 'strength', title: 'Upper' }] })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByLabelText('Cambiar estado: Upper'))
     await waitFor(() => expect(p.onUpdate).toHaveBeenCalledTimes(1))
     expect(p.onUpdate.mock.calls[0][1].status).toBe('done')
@@ -277,7 +287,7 @@ describe('DaySheet — cardio y movilidad con datos de verdad', () => {
   it('deshacer un hecho se lleva las cifras que ya no describen nada', async () => {
     const done = { ...cardio, status: 'done', duration_min: 45, distance_km: 8.2, rpe: 7 }
     const p = props({ sessions: [done] })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByLabelText('Cambiar estado: Bici'))
     await waitFor(() => expect(p.onUpdate).toHaveBeenCalledTimes(1))
     expect(p.onUpdate.mock.calls[0][1]).toEqual({
@@ -287,7 +297,7 @@ describe('DaySheet — cardio y movilidad con datos de verdad', () => {
 
   it('enseña lo registrado y deja corregirlo', () => {
     const done = { ...cardio, status: 'done', duration_min: 45, distance_km: 8.2, rpe: 7 }
-    render(<DaySheet {...props({ sessions: [done] })} />)
+    render(<DayView {...props({ sessions: [done] })} />)
     expect(screen.getByText('45 min · 8,2 km · RPE 7')).toBeTruthy()
     fireEvent.click(screen.getByLabelText('Editar lo registrado: Bici'))
     expect(screen.getByLabelText('Duración').value).toBe('45')
@@ -296,7 +306,7 @@ describe('DaySheet — cardio y movilidad con datos de verdad', () => {
   it('«Ya lo hice» registra algo que nunca se planeó', async () => {
     const created = [{ id: 'nueva', date: '2026-08-11', kind: 'cardio', status: 'done' }]
     const p = props({ onCreate: vi.fn(async () => created) })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByText('Cardio'))
     fireEvent.click(screen.getByText('Ya lo hice'))
 
@@ -309,16 +319,16 @@ describe('DaySheet — cardio y movilidad con datos de verdad', () => {
   })
 
   it('la fuerza no ofrece registrar a mano: eso es un entreno', () => {
-    render(<DaySheet {...props()} />)
+    render(<DayView {...props()} />)
     expect(screen.queryByText('Ya lo hice')).toBeNull()
     fireEvent.click(screen.getByText('Cardio'))
     expect(screen.getByText('Ya lo hice')).toBeTruthy()
   })
 })
 
-describe('DaySheet — la descarga se repite CADA tantas, no tantas seguidas', () => {
+describe('DayView — la descarga se repite CADA tantas, no tantas seguidas', () => {
   it('ofrece cadencias en vez de semanas seguidas', () => {
-    render(<DaySheet {...props()} />)
+    render(<DayView {...props()} />)
     fireEvent.click(screen.getByText('Descarga'))
     expect(screen.getByText('Cada 4 semanas')).toBeTruthy()
     // Nadie hace deload cuatro semanas seguidas.
@@ -327,7 +337,7 @@ describe('DaySheet — la descarga se repite CADA tantas, no tantas seguidas', (
 
   it('manda cuántas veces y cada cuánto', async () => {
     const p = props()
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByText('Descarga'))
     fireEvent.click(screen.getByText('Cada 4 semanas'))
     fireEvent.click(screen.getByText('Agregar al calendario'))
@@ -337,7 +347,7 @@ describe('DaySheet — la descarga se repite CADA tantas, no tantas seguidas', (
 
   it('cambiar de tipo no arrastra la repetición elegida para el anterior', async () => {
     const p = props()
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByText('Cardio'))
     fireEvent.click(screen.getByText('12 semanas'))
     fireEvent.click(screen.getByText('Descarga'))
@@ -350,13 +360,13 @@ describe('DaySheet — la descarga se repite CADA tantas, no tantas seguidas', (
 // Dos Sheet a la vez se pelean por Escape y por el foco: las dos se enganchan
 // al `document`, y stopPropagation no frena a otro oyente del mismo nodo. Con
 // la hoja de cifras apilada encima, un Escape cerraba tambien la del dia.
-describe('DaySheet — las hojas no se apilan', () => {
+describe('DayView — las hojas no se apilan', () => {
   const cardio = {
     id: 's1', date: '2026-08-11', kind: 'cardio', title: 'Bici', status: 'planned',
   }
 
   it('la hoja del día cede el sitio mientras se anotan las cifras', () => {
-    render(<DaySheet {...props({ sessions: [cardio] })} />)
+    render(<DayView {...props({ sessions: [cardio] })} />)
     expect(screen.getByText('Agregar al calendario')).toBeTruthy()
 
     fireEvent.click(screen.getByLabelText('Cambiar estado: Bici'))
@@ -368,7 +378,7 @@ describe('DaySheet — las hojas no se apilan', () => {
 
   it('cerrar la de cifras devuelve a la del día, no cierra las dos', async () => {
     const p = props({ sessions: [cardio] })
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.click(screen.getByLabelText('Cambiar estado: Bici'))
     fireEvent.keyDown(document, { key: 'Escape' })
 
@@ -378,13 +388,13 @@ describe('DaySheet — las hojas no se apilan', () => {
   })
 })
 
-describe('DaySheet — el día entero, no solo el entreno', () => {
+describe('DayView — el día entero, no solo el entreno', () => {
   it('resume la comida de ESE día contra el objetivo', () => {
     mockEntries = [
       { id: 'e1', name: 'Avena', kcal: 400, protein_g: 20, carbs_g: 60, fat_g: 8 },
       { id: 'e2', name: 'Pollo con arroz', kcal: 700, protein_g: 55, carbs_g: 70, fat_g: 15 },
     ]
-    render(<DaySheet {...props()} />)
+    render(<DayView {...props()} />)
     // El total y el objetivo los lleva el anillo; al lado va lo accionable.
     expect(screen.getByText('1.100')).toBeTruthy()
     expect(screen.getByText('/ 3.000 kcal')).toBeTruthy()
@@ -394,27 +404,38 @@ describe('DaySheet — el día entero, no solo el entreno', () => {
 
   it('desglosa qué se comió, no solo cuánto', () => {
     mockEntries = [{ id: 'e1', name: 'Avena', kcal: 400, protein_g: 20, carbs_g: 60, fat_g: 8 }]
-    render(<DaySheet {...props()} />)
+    render(<DayView {...props()} />)
     expect(screen.getByText('Avena')).toBeTruthy()
     expect(screen.getByText('400 kcal')).toBeTruthy()
   })
 
   it('avisa cuando te pasaste, en vez de dar un negativo', () => {
     mockEntries = [{ id: 'e1', name: 'Todo', kcal: 3500, protein_g: 0, carbs_g: 0, fat_g: 0 }]
-    render(<DaySheet {...props()} />)
+    render(<DayView {...props()} />)
     expect(screen.getByText(/500 kcal de más/)).toBeTruthy()
   })
 
-  it('un día sin comida lo dice y ofrece añadirla', () => {
-    render(<DaySheet {...props()} />)
+  it('un día sin comida lo dice y deja añadirla sin salir del día', () => {
+    render(<DayView {...props()} />)
     expect(screen.getByText('Sin comidas registradas')).toBeTruthy()
-    expect(screen.getByText('Añadir')).toBeTruthy()
+    fireEvent.click(screen.getByText('Añadir comida'))
+    // El editor bueno, ahí mismo — no un salto a Nutrición.
+    expect(screen.getByText('Agregar comida')).toBeTruthy()
+    expect(navigate).not.toHaveBeenCalled()
   })
 
-  it('editar la comida lleva a Nutrición abierta en ESE día', () => {
+  it('tocar una comida la abre para corregirla, en el sitio', () => {
     mockEntries = [{ id: 'e1', name: 'Avena', kcal: 400, protein_g: 0, carbs_g: 0, fat_g: 0 }]
-    render(<DaySheet {...props()} />)
-    fireEvent.click(screen.getByText('Editar'))
+    render(<DayView {...props()} />)
+    fireEvent.click(screen.getByLabelText('Editar: Avena'))
+    expect(screen.getByText('Editar comida')).toBeTruthy()
+    expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('el resumen sigue llevando a Nutrición para ver el día completo', () => {
+    mockEntries = [{ id: 'e1', name: 'Avena', kcal: 400, protein_g: 0, carbs_g: 0, fat_g: 0 }]
+    render(<DayView {...props()} />)
+    fireEvent.click(screen.getByText('P 0 · C 0 · G 0'))
     expect(navigate).toHaveBeenCalledWith('/nutrition?d=2026-08-11')
   })
 
@@ -423,14 +444,14 @@ describe('DaySheet — el día entero, no solo el entreno', () => {
       { id: 'a', weight: 80, unit: 'kg', logged_at: '2026-08-11T08:00:00' },
       { id: 'b', weight: 91, unit: 'kg', logged_at: '2026-08-12T08:00:00' },
     ]
-    render(<DaySheet {...props()} />)
+    render(<DayView {...props()} />)
     expect(screen.getByText('80')).toBeTruthy()
     expect(screen.queryByText('91')).toBeNull()
   })
 
   it('deja anotar el peso de un día que ya pasó, fechado en ese día', async () => {
     const p = props()
-    render(<DaySheet {...p} />)
+    render(<DayView {...p} />)
     fireEvent.change(screen.getByLabelText('Peso corporal'), { target: { value: '80.4' } })
     fireEvent.click(screen.getByText('Guardar'))
     await waitFor(() => expect(addLog).toHaveBeenCalledTimes(1))
@@ -440,7 +461,7 @@ describe('DaySheet — el día entero, no solo el entreno', () => {
 
   it('hereda la unidad en la que te pesaste la última vez', async () => {
     mockWeightLogs = [{ id: 'a', weight: 176, unit: 'lb', logged_at: '2026-08-01T08:00:00' }]
-    render(<DaySheet {...props()} />)
+    render(<DayView {...props()} />)
     fireEvent.change(screen.getByLabelText('Peso corporal'), { target: { value: '177' } })
     fireEvent.click(screen.getByText('Guardar'))
     await waitFor(() => expect(addLog).toHaveBeenCalledTimes(1))
@@ -448,7 +469,7 @@ describe('DaySheet — el día entero, no solo el entreno', () => {
   })
 
   it('el futuro no se pesa', () => {
-    render(<DaySheet {...props({ date: new Date(2099, 0, 1) })} />)
+    render(<DayView {...props({ date: new Date(2099, 0, 1) })} />)
     expect(screen.queryByLabelText('Peso corporal')).toBeNull()
   })
 })

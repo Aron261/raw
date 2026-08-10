@@ -13,6 +13,7 @@ const BetaGate       = lazy(() => import('./pages/BetaGate'))
 const Auth           = lazy(() => import('./pages/Auth'))
 const ResetPassword  = lazy(() => import('./pages/ResetPassword'))
 const Training       = lazy(() => import('./pages/Training'))
+const Day            = lazy(() => import('./pages/Day'))
 const Nutrition      = lazy(() => import('./pages/Nutrition'))
 const Social         = lazy(() => import('./pages/Social'))
 const Longevidad     = lazy(() => import('./pages/Longevidad'))
@@ -203,6 +204,7 @@ function AppWithAuth() {
 
           {/* Entreno */}
           <Route path="/training"   element={<Navigate to="/" replace />} />
+          <Route path="/dia/:fecha" element={<R auth={auth} element={<Day />} />} />
           <Route path="/progreso"   element={<R auth={auth} element={<Progreso />} />} />
           <Route path="/history"    element={<Navigate to="/progreso" replace />} />
           <Route path="/stats"      element={<Navigate to="/progreso?tab=stats" replace />} />

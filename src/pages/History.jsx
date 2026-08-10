@@ -178,7 +178,7 @@ export default function History({ embedded = false }) {
                     ) : (
                       <SessionCard
                         session={item.data}
-                        onClick={s => navigate(`/?d=${s.date}`)}
+                        onClick={s => navigate(`/dia/${s.date}`)}
                       />
                     )}
                     </div>
