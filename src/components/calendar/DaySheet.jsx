@@ -6,6 +6,8 @@ import { isLoggable, formatSessionLog } from '../../lib/schedule'
 import { useStartRoutineWorkout } from '../../hooks/useStartRoutineWorkout'
 import { useLang } from '../../hooks/useLang'
 import SessionLogSheet from './SessionLogSheet'
+import DayNutrition from './DayNutrition'
+import DayWeight from './DayWeight'
 
 // Cómo se repite algo. Cuatro, ocho y doce semanas seguidas cubren un mes, un
 // bloque y un trimestre — el vocabulario con el que la gente ya planea.
@@ -465,6 +467,13 @@ export default function DaySheet({
           </p>
         </div>
       )}
+
+      {/* ── El resto del día ──
+          Un día no es solo lo que levantaste. Antes, para ver qué comiste el
+          martes había que ir a Nutrición y retroceder día a día, y el peso de
+          ese martes no se podía consultar desde aquí en absoluto. */}
+      <DayNutrition dateISO={iso} onNavigate={() => navigate(`/nutrition?d=${iso}`)} />
+      <DayWeight dateISO={iso} isFuture={iso > toLocalISODate()} />
 
       {/* ── Planear algo nuevo ── */}
       <Field label="Qué vas a hacer">

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { Sheet, Field, Button, PageHeader, LiveRegion, UndoSnackbar } from '../components/ui'
 import CalorieRing from '../components/CalorieRing'
@@ -391,7 +391,14 @@ export default function Nutrition({ userId = null, readOnly = false }) {
   const { t, locale } = useLang()
   const navigate = useNavigate()
   const today = toLocalISODate()
-  const [dateISO, setDateISO] = useState(today)
+  // ?d=YYYY-MM-DD abre directamente ese día. Es lo que deja que «editar la
+  // comida» desde la hoja del calendario caiga en el día que estabas mirando y
+  // no en hoy, que era el único día al que se podía llegar de un salto.
+  const [params] = useSearchParams()
+  const [dateISO, setDateISO] = useState(() => {
+    const d = params.get('d')
+    return /^\d{4}-\d{2}-\d{2}$/.test(d || '') ? d : today
+  })
   const isToday = dateISO === today
 
   const { entries, loading, error, refetch, addEntry, updateEntry, deleteEntry } = useNutritionDay(dateISO, userId)

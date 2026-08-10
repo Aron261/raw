@@ -20,6 +20,24 @@ vi.mock('../../hooks/useStartRoutineWorkout', () => ({
   useStartRoutineWorkout: () => ({ startWorkoutFromRoutineDay }),
 }))
 
+// La hoja del día es ahora también comida y peso: los dos cuelgan de supabase.
+let mockEntries = []
+let mockWeightLogs = []
+const addLog = vi.fn(async () => ({ id: 'w1' }))
+vi.mock('../../hooks/useNutrition', () => ({
+  useNutritionDay: () => ({ entries: mockEntries, loading: false }),
+  useNutritionTargets: () => ({ targets: { kcal: 3000, protein_g: 180, carbs_g: 400, fat_g: 80 } }),
+  DEFAULT_TARGETS: { kcal: 2000, protein_g: 150, carbs_g: 200, fat_g: 60 },
+}))
+vi.mock('../../hooks/useBodyWeight', () => ({
+  useBodyWeight: () => ({
+    logs: mockWeightLogs,
+    latestLog: mockWeightLogs[mockWeightLogs.length - 1] || null,
+    addLog,
+    adding: false,
+  }),
+}))
+
 vi.mock('motion/react', async () => {
   const React = await import('react')
   const mv = () => ({ get: () => 0, set: () => {}, on: () => () => {} })
@@ -69,8 +87,20 @@ const props = (over = {}) => ({
   ...over,
 })
 
-beforeEach(() => { navigate.mockClear(); startWorkoutFromRoutineDay.mockClear() })
-afterEach(cleanup)
+// El reloj se fija en el día que usan las pruebas. Sin esto, «el futuro no se
+// pesa» convierte al 11 de agosto en futuro o en pasado según cuándo se corra
+// la suite, y media docena de pruebas empiezan a fallar solas con el tiempo.
+// shouldAdvanceTime deja que waitFor siga funcionando.
+beforeEach(() => {
+  vi.useFakeTimers({ shouldAdvanceTime: true })
+  vi.setSystemTime(new Date(2026, 7, 11, 9, 0, 0))
+  navigate.mockClear()
+  startWorkoutFromRoutineDay.mockClear()
+  addLog.mockClear()
+  mockEntries = []
+  mockWeightLogs = []
+})
+afterEach(() => { vi.useRealTimers(); cleanup() })
 
 describe('DaySheet — la previsión del ciclo', () => {
   const ghost = {
@@ -345,5 +375,80 @@ describe('DaySheet — las hojas no se apilan', () => {
     // El cierre de Sheet es asíncrono (anima y luego avisa).
     await waitFor(() => expect(screen.getByText('Agregar al calendario')).toBeTruthy())
     expect(p.onClose).not.toHaveBeenCalled()
+  })
+})
+
+describe('DaySheet — el día entero, no solo el entreno', () => {
+  it('resume la comida de ESE día contra el objetivo', () => {
+    mockEntries = [
+      { id: 'e1', name: 'Avena', kcal: 400, protein_g: 20, carbs_g: 60, fat_g: 8 },
+      { id: 'e2', name: 'Pollo con arroz', kcal: 700, protein_g: 55, carbs_g: 70, fat_g: 15 },
+    ]
+    render(<DaySheet {...props()} />)
+    // El total y el objetivo los lleva el anillo; al lado va lo accionable.
+    expect(screen.getByText('1.100')).toBeTruthy()
+    expect(screen.getByText('/ 3.000 kcal')).toBeTruthy()
+    expect(screen.getByText(/1.900 kcal restantes/)).toBeTruthy()
+    expect(screen.getByText('P 75 · C 130 · G 23')).toBeTruthy()
+  })
+
+  it('desglosa qué se comió, no solo cuánto', () => {
+    mockEntries = [{ id: 'e1', name: 'Avena', kcal: 400, protein_g: 20, carbs_g: 60, fat_g: 8 }]
+    render(<DaySheet {...props()} />)
+    expect(screen.getByText('Avena')).toBeTruthy()
+    expect(screen.getByText('400 kcal')).toBeTruthy()
+  })
+
+  it('avisa cuando te pasaste, en vez de dar un negativo', () => {
+    mockEntries = [{ id: 'e1', name: 'Todo', kcal: 3500, protein_g: 0, carbs_g: 0, fat_g: 0 }]
+    render(<DaySheet {...props()} />)
+    expect(screen.getByText(/500 kcal de más/)).toBeTruthy()
+  })
+
+  it('un día sin comida lo dice y ofrece añadirla', () => {
+    render(<DaySheet {...props()} />)
+    expect(screen.getByText('Sin comidas registradas')).toBeTruthy()
+    expect(screen.getByText('Añadir')).toBeTruthy()
+  })
+
+  it('editar la comida lleva a Nutrición abierta en ESE día', () => {
+    mockEntries = [{ id: 'e1', name: 'Avena', kcal: 400, protein_g: 0, carbs_g: 0, fat_g: 0 }]
+    render(<DaySheet {...props()} />)
+    fireEvent.click(screen.getByText('Editar'))
+    expect(navigate).toHaveBeenCalledWith('/nutrition?d=2026-08-11')
+  })
+
+  it('enseña el peso de ese día, no el último de la lista', () => {
+    mockWeightLogs = [
+      { id: 'a', weight: 80, unit: 'kg', logged_at: '2026-08-11T08:00:00' },
+      { id: 'b', weight: 91, unit: 'kg', logged_at: '2026-08-12T08:00:00' },
+    ]
+    render(<DaySheet {...props()} />)
+    expect(screen.getByText('80')).toBeTruthy()
+    expect(screen.queryByText('91')).toBeNull()
+  })
+
+  it('deja anotar el peso de un día que ya pasó, fechado en ese día', async () => {
+    const p = props()
+    render(<DaySheet {...p} />)
+    fireEvent.change(screen.getByLabelText('Peso corporal'), { target: { value: '80.4' } })
+    fireEvent.click(screen.getByText('Guardar'))
+    await waitFor(() => expect(addLog).toHaveBeenCalledTimes(1))
+    // El cuarto argumento es la fecha: sin él, el peso del martes entra el jueves.
+    expect(addLog.mock.calls[0]).toEqual([80.4, 'kg', null, '2026-08-11T12:00:00'])
+  })
+
+  it('hereda la unidad en la que te pesaste la última vez', async () => {
+    mockWeightLogs = [{ id: 'a', weight: 176, unit: 'lb', logged_at: '2026-08-01T08:00:00' }]
+    render(<DaySheet {...props()} />)
+    fireEvent.change(screen.getByLabelText('Peso corporal'), { target: { value: '177' } })
+    fireEvent.click(screen.getByText('Guardar'))
+    await waitFor(() => expect(addLog).toHaveBeenCalledTimes(1))
+    expect(addLog.mock.calls[0][1]).toBe('lb')
+  })
+
+  it('el futuro no se pesa', () => {
+    render(<DaySheet {...props({ date: new Date(2099, 0, 1) })} />)
+    expect(screen.queryByLabelText('Peso corporal')).toBeNull()
   })
 })

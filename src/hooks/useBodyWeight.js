@@ -30,13 +30,20 @@ export function useBodyWeight() {
   const { data, loading, error, refetch } = useCachedResource(key, fetcher)
   const logs = data || []
 
-  const addLog = useCallback(async (weight, unit = 'kg', note = null) => {
+  // `loggedAt` deja fechar el registro en un día que no es hoy — lo pide la
+  // hoja del día del calendario, donde se anota el peso del martes el jueves.
+  // Sin él, la báscula del martes se guardaría con la fecha de hoy y la curva
+  // de peso contaría dos jueves y ningún martes.
+  const addLog = useCallback(async (weight, unit = 'kg', note = null, loggedAt = null) => {
     if (!user?.id || !weight) return null
     setAdding(true)
     try {
       const { data: row, error: insertErr } = await supabase
         .from('body_weight_logs')
-        .insert({ user_id: user.id, weight: parseFloat(weight), unit, note })
+        .insert({
+          user_id: user.id, weight: parseFloat(weight), unit, note,
+          ...(loggedAt ? { logged_at: loggedAt } : {}),
+        })
         .select()
         .single()
       if (insertErr) throw insertErr
