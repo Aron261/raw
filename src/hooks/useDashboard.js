@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
-import { calc1RM, calcVolume } from './useWorkout'
+import { calc1RM, calc1RMKg, calcVolume } from './useWorkout'
 import { useCachedResource } from '../lib/swr'
 
 // Returns the ISO Monday for any given date
@@ -81,21 +81,22 @@ export function useDashboard(targetUserId = null) {
         }))
 
         // ── Best lifts (all time, top 6 by 1RM) ───────────────────────
+        // Orden en kilos, pintura en la unidad de la marca (ver useStats).
         const exerciseMap = {}
         workouts.forEach(w => {
           w.workout_exercises.forEach(we => {
             const name = we.exercises?.name
             if (!name) return
             we.sets?.forEach(set => {
-              const rm = calc1RM(set.weight, set.reps)
-              if (!exerciseMap[name] || rm > exerciseMap[name].best1RM) {
-                exerciseMap[name] = { name, best1RM: rm, unit: we.unit }
+              const rmKg = calc1RMKg(set.weight, set.reps, we.unit)
+              if (!exerciseMap[name] || rmKg > exerciseMap[name].best1RMKg) {
+                exerciseMap[name] = { name, best1RMKg: rmKg, best1RM: calc1RM(set.weight, set.reps), unit: we.unit }
               }
             })
           })
         })
         const bestLifts = Object.values(exerciseMap)
-          .sort((a, b) => b.best1RM - a.best1RM)
+          .sort((a, b) => b.best1RMKg - a.best1RMKg)
           .slice(0, 6)
 
         // ── Muscle group volume (last 7 days) ─────────────────────────

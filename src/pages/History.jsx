@@ -6,7 +6,7 @@ import { LiveRegion, UndoSnackbar } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
 import { useLang } from '../hooks/useLang'
 import { formatVolume } from '../lib/format'
-import { useWorkouts, calc1RM, calcVolume } from '../hooks/useWorkout'
+import { useWorkouts, calc1RMKg, calcVolume } from '../hooks/useWorkout'
 import { useSchedule } from '../hooks/useSchedule'
 import { isLoggable } from '../lib/schedule'
 import SessionCard from '../components/SessionCard'
@@ -45,7 +45,9 @@ export default function History({ embedded = false }) {
         const name = we.exercises?.name
         if (!name) continue
         for (const s of we.sets || []) {
-          const rm = calc1RM(s.weight, s.reps)
+          // En kilos: sin normalizar, cambiar el toggle a lb regalaba una
+          // insignia de PR (100 lb > 90 "kg") o escondía una real.
+          const rm = calc1RMKg(s.weight, s.reps, we.unit)
           if (rm > 0 && rm > (best[name] || 0)) { best[name] = rm; isPR = true }
         }
       }

@@ -21,6 +21,35 @@ export function calc1RM(weight, reps) {
 
 const round1 = (n) => Math.round(n * 10) / 10
 
+// ── Unidades ──────────────────────────────────────────────────────────────
+// Cada workout_exercise carga su unidad (kg o lb) y el toggle existe por
+// ejercicio, así que CUALQUIER comparación entre sesiones puede cruzar
+// unidades. El volumen ya convertía; el camino del récord no: 100 lb (~45 kg)
+// le "ganaba" a 90 kg y la app celebraba un récord falso. Todo lo que compare
+// pesos de sesiones distintas pasa por aquí primero.
+export const KG_PER_LB = 0.453592
+
+export function weightInKg(weight, unit) {
+  const w = Number(weight) || 0
+  return unit === 'lb' ? w * KG_PER_LB : w
+}
+
+// Pasa un peso de una unidad a otra, redondeado a 0,1 (lo que pinta la app).
+// Sin unidad de origen se asume la de destino: los datos viejos sin unit no
+// deben moverse.
+export function convertWeight(weight, fromUnit, toUnit) {
+  const w = Number(weight) || 0
+  if (!fromUnit || !toUnit || fromUnit === toUnit) return w
+  const kg = weightInKg(w, fromUnit)
+  return round1(toUnit === 'lb' ? kg / KG_PER_LB : kg)
+}
+
+// 1RM estimado en kilos, venga la serie en la unidad que venga. Es la forma
+// comparable del récord: dos sesiones solo se pueden ordenar en la misma vara.
+export function calc1RMKg(weight, reps, unit) {
+  return calc1RM(weightInKg(weight, unit), reps)
+}
+
 /**
  * Compara { reps, weight } contra la misma serie de la vez anterior.
  *

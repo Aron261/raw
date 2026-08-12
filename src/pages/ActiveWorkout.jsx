@@ -8,7 +8,7 @@ import { useExerciseLang } from '../hooks/useExerciseLang'
 import { roundStep, groupLabel, canLinkNext, moveKind } from '../lib/supersets'
 import RestTimerSheet from '../components/RestTimerSheet'
 import { primeChime } from '../lib/chime'
-import { useActiveWorkout, useExercisePR, calc1RM, calcVolume, useOutboxCount } from '../hooks/useWorkout'
+import { useActiveWorkout, useExercisePR, calc1RM, calc1RMKg, convertWeight, calcVolume, useOutboxCount } from '../hooks/useWorkout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { hoverColor, ERROR_STYLE, pressable, clampLines } from '../lib/ui'
@@ -236,9 +236,12 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
 
   const perExercise = workoutExercises.map(we => {
     const sets = we.sets || []
+    // best1RM pinta (unidad de la fila); best1RMKg compara contra el historial,
+    // que puede venir en otra unidad.
     const best1RM = sets.reduce((b, s) => Math.max(b, calc1RM(s.weight, s.reps)), 0)
+    const best1RMKg = sets.reduce((b, s) => Math.max(b, calc1RMKg(s.weight, s.reps, we.unit)), 0)
     const topSet = sets.reduce((t, s) => (calc1RM(s.weight, s.reps) > (t ? calc1RM(t.weight, t.reps) : 0) ? s : t), null)
-    return { exerciseId: we.exercises?.id, name: we.exercises?.name, unit: we.unit, count: sets.length, best1RM, topSet }
+    return { exerciseId: we.exercises?.id, name: we.exercises?.name, unit: we.unit, count: sets.length, best1RM, best1RMKg, topSet }
   }).filter(e => e.count > 0)
 
   useEffect(() => {
@@ -249,22 +252,23 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
       try {
         const { data, error } = await supabase
           .from('sets')
-          .select('reps, weight, workout_exercises!inner(exercise_id, workout_id, workouts!inner(user_id))')
+          .select('reps, weight, workout_exercises!inner(exercise_id, workout_id, unit, workouts!inner(user_id))')
           .eq('workout_exercises.workouts.user_id', userId)
           .in('workout_exercises.exercise_id', ids)
         if (error) throw error
-        // Best 1RM per exercise from sessions OTHER than this one.
+        // Best 1RM per exercise from sessions OTHER than this one — en kilos,
+        // que es la única vara común entre sesiones con unidades distintas.
         const prevBest = {}
         for (const row of (data || [])) {
           const we = row.workout_exercises
           if (!we || we.workout_id === workout.id) continue
-          const rm = calc1RM(row.weight, row.reps)
+          const rm = calc1RMKg(row.weight, row.reps, we.unit)
           if (rm > (prevBest[we.exercise_id] || 0)) prevBest[we.exercise_id] = rm
         }
         const prs = new Set()
         for (const e of perExercise) {
           const prev = prevBest[e.exerciseId] || 0
-          if (e.exerciseId && prev > 0 && e.best1RM > prev) prs.add(e.exerciseId)
+          if (e.exerciseId && prev > 0 && e.best1RMKg > prev) prs.add(e.exerciseId)
         }
         if (!cancelled) { setPrIds(prs); setPrevBests(prevBest) }
       } catch { if (!cancelled) setPrIds(new Set()) }
@@ -307,7 +311,8 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '38vh', overflowY: 'auto', marginBottom: '16px' }}>
         {perExercise.map((e, i) => {
           const isPR = prIds?.has(e.exerciseId)
-          const prev = prevBests[e.exerciseId] || 0
+          // prevBests viene en kilos; el delta se pinta en la unidad de la fila.
+          const prev = prevBests[e.exerciseId] ? convertWeight(prevBests[e.exerciseId], 'kg', e.unit) : 0
           const delta = prev > 0 && e.best1RM > 0 ? Math.round(e.best1RM - prev) : null
           return (
             <div key={e.exerciseId || i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 2px', borderBottom: '1px solid var(--c-border-subtle)' }}>

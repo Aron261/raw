@@ -3,7 +3,7 @@ import { animate, useReducedMotion } from 'motion/react'
 import { EASE_POP_KEYFRAMES, POP_DURATION } from '../lib/motion'
 import PRBadge from './PRBadge'
 import { calc1RM } from '../hooks/useWorkout'
-import { compareSet, formatDelta, describeDelta } from '../lib/progress'
+import { compareSet, formatDelta, describeDelta, calc1RMKg } from '../lib/progress'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { useLang } from '../hooks/useLang'
 import { pressable, PRESS_TRANSITION } from '../lib/ui'
@@ -130,9 +130,14 @@ export default function SetRow({
   // esa cifra vacía la palabra. `allTimeBest1RM` ya excluye esta sesión, así
   // que el estricto compara contra lo de antes de hoy, no contra uno mismo.
   const { set1RM, isPR } = useMemo(() => {
-    const rm = calc1RM(parseFloat(weight) || 0, parseInt(reps, 10) || 0)
-    return { set1RM: rm, isPR: rm > 0 && allTimeBest1RM > 0 && rm > allTimeBest1RM }
-  }, [weight, reps, allTimeBest1RM])
+    // El listón llega en kilos (viene de sesiones que pudieron usar otra
+    // unidad): el veredicto de PR se decide en kilos, pero el ~1RM que se
+    // pinta sigue en la unidad de la fila — es el número que el lifter conoce.
+    const w = parseFloat(weight) || 0
+    const r = parseInt(reps, 10) || 0
+    const rmKg = calc1RMKg(w, r, unit)
+    return { set1RM: calc1RM(w, r), isPR: rmKg > 0 && allTimeBest1RM > 0 && rmKg > allTimeBest1RM }
+  }, [weight, reps, allTimeBest1RM, unit])
 
   // ¿Superaste esta misma serie la vez pasada? Solo cuando está confirmada: en
   // mitad de teclear el número aún no significa nada, y un veredicto que baila

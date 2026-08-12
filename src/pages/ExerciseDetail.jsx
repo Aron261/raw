@@ -4,6 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import Layout from '../components/Layout'
 import PRBadge from '../components/PRBadge'
 import { useExercisePR, calc1RM } from '../hooks/useWorkout'
+import { weightInKg } from '../lib/progress'
 import { useAuth } from '../hooks/useAuth'
 import { useLang } from '../hooks/useLang'
 import { useExerciseLang } from '../hooks/useExerciseLang'
@@ -52,17 +53,19 @@ export default function ExerciseDetail() {
 
   // PR by rep range: for each rep count, best weight logged ever
   const prByReps = useMemo(() => {
-    // Flatten all sets from all sessions
+    // Flatten all sets from all sessions. Cada serie ya trae SU unidad desde
+    // el hook; no se pisa con la de la sesión, porque el mejor peso se elige
+    // comparando en kilos y la fila se pinta con sus números reales.
     const allSets = prSets.flatMap(session =>
-      (session.sets || []).map(s => ({ ...s, unit: session.unit, date: session.date }))
+      (session.sets || []).map(s => ({ ...s, unit: s.unit || session.unit, date: session.date }))
     )
 
-    // Best weight per rep count
+    // Best weight per rep count — comparado en kilos, no en cifras crudas
     const bestByRep = {}
     for (const set of allSets) {
       if (!set.reps || !set.weight) continue
       const existing = bestByRep[set.reps]
-      if (!existing || set.weight > existing.weight) {
+      if (!existing || weightInKg(set.weight, set.unit) > weightInKg(existing.weight, existing.unit)) {
         bestByRep[set.reps] = set
       }
     }
@@ -307,13 +310,16 @@ export default function ExerciseDetail() {
                           .sort((a, b) => a.set_number - b.set_number)
                           .map(set => {
                             const set1RM = calc1RM(set.weight, set.reps)
-                            const isSetPR = isAllTimePR && set1RM === session.best1RM
+                            // Por identidad, no por igualdad de cifras: la mejor
+                            // serie se eligió en kilos y session.best1RM se pinta
+                            // convertido, así que los números ya no coinciden.
+                            const isSetPR = isAllTimePR && session.bestSet && set.id === session.bestSet.id
                             return (
                               <div key={set.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px' }}>
                                 <span style={{ color: 'var(--c-text-muted)', width: '20px', fontSize: '11px' }}>{set.set_number}</span>
                                 <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>
                                   {set.reps} × {set.weight}
-                                  <span style={{ color: 'var(--c-text-dim)', fontWeight: 400, fontSize: '11px', marginLeft: '3px' }}>{session.unit}</span>
+                                  <span style={{ color: 'var(--c-text-dim)', fontWeight: 400, fontSize: '11px', marginLeft: '3px' }}>{set.unit || session.unit}</span>
                                 </span>
                                 <span style={{ color: 'var(--c-text-muted)', fontSize: '11px', marginLeft: 'auto' }}>~{set1RM} 1RM</span>
                                 {isSetPR && <PRBadge />}

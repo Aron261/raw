@@ -105,24 +105,30 @@ describe('SetRow: aceptar el fantasma con el ✓', () => {
 
 // Récord es superar la marca, no igualarla. Solo hay un récord: repetir la
 // misma cifra es volver a tocar el mismo, no conseguir otro. El listón que
-// llega en `allTimeBest1RM` ya excluye la sesión en curso, así que aquí basta
-// con que la comparación sea estricta.
+// llega en `allTimeBest1RM` ya excluye la sesión en curso Y VIENE EN KILOS:
+// el historial puede mezclar unidades y solo en la misma vara la comparación
+// es honesta. La fila del harness está en lb: 8 × 60 lb ≈ 27,2 kg → 1RM 34,5 kg.
 describe('SetRow — la insignia de récord', () => {
-  // 8 × 60 con la fórmula del harness (w · (1 + r/30)) da 76.
   const pr = (best) => renderRow({ set: { id: 's1', reps: 8, weight: 60 }, allTimeBest1RM: best })
 
   it('aparece al superar la marca anterior', () => {
-    pr(70)
+    pr(30)
     expect(screen.getByText('PR')).toBeTruthy()
   })
 
   it('NO aparece al igualarla — el récord sigue siendo el mismo', () => {
-    pr(76)
+    pr(34.5)
     expect(screen.queryByText('PR')).toBeNull()
   })
 
   it('no aparece por debajo', () => {
     pr(90)
+    expect(screen.queryByText('PR')).toBeNull()
+  })
+
+  it('60 lb NO superan un listón de 40 kg — la unidad no infla el récord', () => {
+    // Sin normalizar, 76 (1RM en lb) > 40 celebraba un récord falso.
+    pr(40)
     expect(screen.queryByText('PR')).toBeNull()
   })
 

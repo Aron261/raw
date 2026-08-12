@@ -4,7 +4,8 @@ import { motion, useReducedMotion } from 'motion/react'
 import { SPRING_POP, FADE } from '../lib/motion'
 import SetRow from './SetRow'
 import PRBadge from './PRBadge'
-import { calc1RM, useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWorkout'
+import { useExerciseAllTimeBest, usePreviousSets } from '../hooks/useWorkout'
+import { calc1RMKg, convertWeight } from '../lib/progress'
 import { useAuth } from '../hooks/useAuth'
 import { useExerciseLang } from '../hooks/useExerciseLang'
 import { UnitToggle, Sheet } from './ui'
@@ -127,7 +128,17 @@ export default function ExerciseRow({
   // El récord a batir es el de ANTES de esta sesión: lo que se registre hoy no
   // puede ser a la vez la marca y el listón.
   const { allTimeBestWeight } = useExerciseAllTimeBest(exercise?.id, user?.id, workoutId)
-  const { previousSets } = usePreviousSets(exercise?.id, workoutId, user?.id)
+  const { previousSets: rawPreviousSets, previousUnit } = usePreviousSets(exercise?.id, workoutId, user?.id)
+
+  // La vez anterior pudo registrarse en otra unidad. Convertir aquí arregla
+  // las tres cosas que cuelgan de estos números: el fantasma del placeholder
+  // (y el ✓ que lo acepta), la comparación vs. la vez pasada, y el conteo de
+  // filas — todo en la unidad con la que se está levantando HOY.
+  const previousSets = useMemo(() => (
+    previousUnit && previousUnit !== unit
+      ? rawPreviousSets.map(s => ({ ...s, weight: convertWeight(s.weight, previousUnit, unit) }))
+      : rawPreviousSets
+  ), [rawPreviousSets, previousUnit, unit])
 
   // The routine's prescription for this exercise, when the workout came from a
   // routine day: target_sets (count) + target_reps (text, e.g. "8-12"). Shown
@@ -168,13 +179,17 @@ export default function ExerciseRow({
   )
   const allDone = sets.length > 0 && doneCount === sets.length
 
-  const sessionBest1RM = useMemo(() => sets.reduce((best, set) => {
-    const rm = calc1RM(set.weight, set.reps)
+  // El veredicto de PR se decide en kilos (el listón viene de sesiones que
+  // pudieron usar otra unidad); el «mejor ~1RM» que se pinta queda en la
+  // unidad de la fila, que es el número que el lifter reconoce.
+  const sessionBest1RMKg = useMemo(() => sets.reduce((best, set) => {
+    const rm = calc1RMKg(set.weight, set.reps, unit)
     return rm > best ? rm : best
-  }, 0), [sets])
+  }, 0), [sets, unit])
+  const sessionBest1RM = useMemo(() => convertWeight(sessionBest1RMKg, 'kg', unit), [sessionBest1RMKg, unit])
 
   // PR detection — banner when this session beats the all-time best
-  const isNewPR = !readOnly && sets.length > 0 && allTimeBestWeight > 0 && sessionBest1RM > allTimeBestWeight
+  const isNewPR = !readOnly && sets.length > 0 && allTimeBestWeight > 0 && sessionBest1RMKg > allTimeBestWeight
   const prevPR = useRef(false)
   const [showPRBanner, setShowPRBanner] = useState(false)
 

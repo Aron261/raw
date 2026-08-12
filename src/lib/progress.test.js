@@ -2,7 +2,7 @@
 // sobre el entrenamiento de alguien — así que se prueba sola y a conciencia.
 
 import { describe, it, expect } from 'vitest'
-import { calc1RM, compareSet, formatDelta, describeDelta } from './progress'
+import { calc1RM, calc1RMKg, convertWeight, compareSet, formatDelta, describeDelta } from './progress'
 
 describe('calc1RM (Epley)', () => {
   it('a una repetición el 1RM es el peso', () => {
@@ -103,5 +103,32 @@ describe('describeDelta — lo que se oye', () => {
   it('respeta la unidad del ejercicio', () => {
     expect(describeDelta(compareSet({ reps: 5, weight: 180 }, { reps: 5, weight: 175 }), 'lb'))
       .toBe('5 lb más que la vez anterior')
+  })
+})
+
+describe('unidades — el récord no depende de la unidad en que se escribió', () => {
+  // 100 lb son ~45 kg: si el 1RM se compara sin convertir, 100 lb "gana" a
+  // 90 kg y la app celebra un récord falso — o calla uno real. La señal
+  // central de la app deja de ser confiable en cuanto alguien toca el toggle.
+  it('calc1RMKg normaliza antes de estimar', () => {
+    expect(calc1RMKg(100, 1, 'lb')).toBeCloseTo(45.36, 1)
+    expect(calc1RMKg(100, 1, 'kg')).toBe(100)
+    expect(calc1RMKg(100, 1, 'lb')).toBeLessThan(calc1RMKg(90, 1, 'kg'))
+  })
+
+  it('convertWeight pasa el peso de la vez anterior a la unidad actual', () => {
+    expect(convertWeight(100, 'lb', 'kg')).toBeCloseTo(45.4, 1)
+    expect(convertWeight(45.4, 'kg', 'lb')).toBeCloseTo(100.1, 1)
+    expect(convertWeight(80, 'kg', 'kg')).toBe(80)
+    expect(convertWeight(80, null, 'kg')).toBe(80)
+  })
+
+  it('comparar contra una sesión en otra unidad no miente', () => {
+    // Hoy 60 kg × 5; la vez pasada 100 lb (≈45,4 kg) × 5 → superada por ~14,6 kg.
+    const prev = { reps: 5, weight: convertWeight(100, 'lb', 'kg') }
+    const c = compareSet({ reps: 5, weight: 60 }, prev)
+    expect(c.verdict).toBe('beat')
+    expect(c.axis).toBe('weight')
+    expect(c.delta).toBeCloseTo(14.6, 1)
   })
 })

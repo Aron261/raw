@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
-import { calc1RM, calcVolume } from './useWorkout'
+import { calc1RM, calc1RMKg, calcVolume } from './useWorkout'
 import { useLang } from './useLang'
 import { attributeSplit, totalOf, indexLibrary, resolveMuscles } from '../lib/volumeAttribution'
 import { useCachedResource } from '../lib/swr'
@@ -99,20 +99,22 @@ export function useStats(targetUserId = null) {
         }))
 
         // ── All lifts ranked by best estimated 1RM ────────────────────
+        // El ranking se ordena en kilos (100 lb no le ganan a 90 kg); lo que
+        // se PINTA es el 1RM en la unidad en que se levantó esa marca.
         const liftMap = {}
         list.forEach(w => {
           ;(w.workout_exercises || []).forEach(we => {
             const name = we.exercises?.name
             if (!name) return
             ;(we.sets || []).forEach(s => {
-              const rm = calc1RM(s.weight, s.reps)
-              if (!liftMap[name] || rm > liftMap[name].best1RM) {
-                liftMap[name] = { name, best1RM: rm, unit: we.unit || 'kg' }
+              const rmKg = calc1RMKg(s.weight, s.reps, we.unit)
+              if (!liftMap[name] || rmKg > liftMap[name].best1RMKg) {
+                liftMap[name] = { name, best1RMKg: rmKg, best1RM: calc1RM(s.weight, s.reps), unit: we.unit || 'kg' }
               }
             })
           })
         })
-        const allLifts = Object.values(liftMap).sort((a, b) => b.best1RM - a.best1RM)
+        const allLifts = Object.values(liftMap).sort((a, b) => b.best1RMKg - a.best1RMKg)
 
         // ── Volume by muscle group (all-time) ─────────────────────────
         // El tonelaje de un ejercicio se le acredita entero a su músculo

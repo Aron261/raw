@@ -8,7 +8,7 @@ import { outbox } from '../lib/outbox'
 import { sessionCache } from '../lib/sessionCache'
 import { useProfile } from './useProfile'
 import { defaultLiftUnit } from '../lib/units'
-import { calc1RM } from '../lib/progress'
+import { calc1RM, calc1RMKg, convertWeight } from '../lib/progress'
 import { matchPlannedSession } from '../lib/schedule'
 import { toLocalISODate } from '../lib/calendar'
 
@@ -77,7 +77,7 @@ const newSetId = () => {
 // useExercisePR y useExerciseAllTimeBest que se tragaba el catch: el detalle
 // de un ejercicio decía "Sin datos aún" para ejercicios con años de historial.
 // El import de arriba lo mete en ámbito; esto solo lo vuelve a exponer.
-export { calc1RM }
+export { calc1RM, calc1RMKg, convertWeight }
 
 // Calculate total volume for a list of sets, normalizado a kg.
 // Si el set tiene unit='lb', convierte antes de sumar.
@@ -805,23 +805,27 @@ export function useExercisePR(exerciseName, userId) {
 
       if (error) throw error
 
-      // Build progression data: best 1RM per workout session
+      // Build progression data: best 1RM per workout session. Las sesiones se
+      // comparan en kilos (cada workout_exercise carga SU unidad, y 100 lb no
+      // son 100 kg); para pintar, todo se pasa a la unidad de la sesión más
+      // reciente — la que la persona está usando hoy.
       const sessionData = (data || []).map(workout => {
-        const allSets = workout.workout_exercises.flatMap(we => we.sets || [])
-        const unit = workout.workout_exercises[0]?.unit || 'lb'
-        const best1RM = allSets.reduce((best, set) => {
-          const rm = calc1RM(set.weight, set.reps)
+        const allSets = workout.workout_exercises.flatMap(we =>
+          (we.sets || []).map(s => ({ ...s, unit: we.unit || 'kg' })))
+        const unit = workout.workout_exercises[0]?.unit || 'kg'
+        const best1RMKg = allSets.reduce((best, set) => {
+          const rm = calc1RMKg(set.weight, set.reps, set.unit)
           return rm > best ? rm : best
         }, 0)
         const bestSet = allSets.reduce((best, set) => {
-          const rm = calc1RM(set.weight, set.reps)
-          const bestRm = best ? calc1RM(best.weight, best.reps) : 0
+          const rm = calc1RMKg(set.weight, set.reps, set.unit)
+          const bestRm = best ? calc1RMKg(best.weight, best.reps, best.unit) : 0
           return rm > bestRm ? set : best
         }, null)
 
         return {
           date: workout.started_at,
-          best1RM,
+          best1RMKg,
           bestSet,
           unit,
           sets: allSets,
@@ -829,13 +833,18 @@ export function useExercisePR(exerciseName, userId) {
         }
       })
 
-      setPrSets(sessionData)
+      const displayUnit = sessionData.length ? sessionData[sessionData.length - 1].unit : 'kg'
+      const sessions = sessionData.map(s => ({
+        ...s,
+        best1RM: convertWeight(s.best1RMKg, 'kg', displayUnit),
+      }))
+      setPrSets(sessions)
 
-      // Find all-time PR
-      const pr = sessionData.reduce((best, session) => {
-        return session.best1RM > (best?.best1RM || 0) ? session : best
+      // Find all-time PR (en kilos; el empate por conversión no puede mentir)
+      const pr = sessions.reduce((best, session) => {
+        return session.best1RMKg > (best?.best1RMKg || 0) ? session : best
       }, null)
-      setAllTimePR(pr)
+      setAllTimePR(pr ? { ...pr, unit: displayUnit } : null)
       setError(null)
     } catch (err) {
       console.error('Error fetching PR:', err)
@@ -877,7 +886,7 @@ export function useExerciseAllTimeBest(exerciseId, userId, excludeWorkoutId = nu
           .select(`
             weight, reps,
             workout_exercises!inner (
-              exercise_id, workout_id,
+              exercise_id, workout_id, unit,
               workouts!inner ( user_id )
             )
           `)
@@ -887,9 +896,11 @@ export function useExerciseAllTimeBest(exerciseId, userId, excludeWorkoutId = nu
 
         if (error) throw error
 
+        // En kilos: el listón se compara contra series que pueden venir en
+        // otra unidad. Quien consuma este valor convierte a su unidad al pintar.
         const best = (data || []).reduce((max, set) => {
           if (excludeWorkoutId && set.workout_exercises?.workout_id === excludeWorkoutId) return max
-          const rm = calc1RM(set.weight, set.reps)
+          const rm = calc1RMKg(set.weight, set.reps, set.workout_exercises?.unit)
           return rm > max ? rm : max
         }, 0)
 
