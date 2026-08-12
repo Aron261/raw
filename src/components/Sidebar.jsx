@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { useLang } from '../hooks/useLang'
+import { outbox } from '../lib/outbox'
 
 function BarbellIcon() {
   const { t } = useLang()
@@ -108,6 +109,12 @@ export default function Sidebar() {
   const navigate = useNavigate()
 
   const handleSignOut = async () => {
+    // signOut borra el outbox (higiene de dispositivo compartido). Si hay
+    // series sin sincronizar, eso es pérdida de datos: se avisa antes.
+    const pending = await outbox.count()
+    if (pending > 0 && !window.confirm(
+      t('Tienes {n} series sin sincronizar. Si cierras sesión ahora, se perderán. ¿Cerrar sesión igualmente?', { n: pending })
+    )) return
     await signOut()
     navigate('/login', { replace: true })
   }

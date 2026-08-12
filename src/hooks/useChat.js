@@ -94,6 +94,17 @@ export function useChat(otherUserId) {
           // Confirmar que pertenece a esta conversación
           if (m.trainer_id !== convo.trainer_id) return
           setMessages(prev => (prev.some(x => x.id === m.id) ? prev : [...prev, m]))
+          // Con la conversación ABIERTA, un mensaje entrante ya está leído: sin
+          // esto, el remitente lo veía como no entregado y los badges propios
+          // quedaban inflados hasta cerrar y reabrir el chat. Mejor esfuerzo:
+          // si falla, el init() de la próxima apertura lo sella igual.
+          if (m.sender_id !== user.id) {
+            supabase.from('messages')
+              .update({ read_at: new Date().toISOString() })
+              .eq('id', m.id)
+              .is('read_at', null)
+              .then(() => {}, () => {})
+          }
         }
       )
       .subscribe()

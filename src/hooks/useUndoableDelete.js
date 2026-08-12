@@ -11,7 +11,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 //   del.request(item, { deletedMsg, restoredMsg })     // start the window
 //   <LiveRegion>{del.liveMsg}</LiveRegion>
 //   <UndoSnackbar show={!!del.pending} ... onUndo={del.undo} />
-export function useUndoableDelete(commit, { delay = 5000 } = {}) {
+export function useUndoableDelete(commit, { delay = 5000, onError } = {}) {
   const [pending, setPending] = useState(null) // the whole item awaiting delete
   const [liveMsg, setLiveMsg] = useState('')   // screen-reader announcement
   const timer = useRef(null)
@@ -26,10 +26,16 @@ export function useUndoableDelete(commit, { delay = 5000 } = {}) {
 
   const setPendingBoth = (item) => { pendingRef.current = item; setPending(item) }
 
+  const onErrorRef = useRef(onError)
+  onErrorRef.current = onError
+
   const commitNow = useCallback((item) => {
     clearTimer()
     setPendingBoth(null)
-    Promise.resolve(commitRef.current(item)).catch(() => {}) // hooks surface their own errors
+    // Un commit fallido resucita el elemento en el siguiente refetch: sin
+    // onError, esa resurrección parece un bug de datos en vez de un borrado
+    // que no llegó al servidor.
+    Promise.resolve(commitRef.current(item)).catch((err) => { onErrorRef.current?.(err, item) })
   }, [])
 
   const request = useCallback((item, { deletedMsg = '', restoredMsg = '' } = {}) => {

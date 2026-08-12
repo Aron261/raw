@@ -112,10 +112,17 @@ export default function EntrySheet({ initial, defaultMeal, foods, onSave, onDele
     micros: b.micros || {},
   })
 
+  // Guardar sin señal fallaba en silencio: el spinner paraba, la hoja seguía
+  // abierta y nadie sabía si la comida quedó registrada. El error se muestra
+  // aquí mismo y la hoja no se cierra (cerrar lo hace onSave solo si guardó).
+  const [saveError, setSaveError] = useState(null)
   const doSave = async (fields, food) => {
     if (saving) return
     setSaving(true)
-    try { await onSave(fields, food) } finally { setSaving(false) }
+    setSaveError(null)
+    try { await onSave(fields, food) }
+    catch (err) { setSaveError(err?.message || t('No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.')) }
+    finally { setSaving(false) }
   }
 
   const handleSave = () => {
@@ -332,6 +339,17 @@ export default function EntrySheet({ initial, defaultMeal, foods, onSave, onDele
           </div>
         )}
       </div>
+
+      {saveError && (
+        <div className="fade-in" role="alert" style={{
+          color: 'var(--c-text)', background: 'var(--c-surface-2)',
+          border: '1px solid var(--c-border)', borderRadius: 'var(--r-md)',
+          padding: '10px 12px', fontSize: '12px', fontWeight: 700, letterSpacing: '-0.01em',
+          marginTop: '8px',
+        }}>
+          {saveError}
+        </div>
+      )}
 
       <Button
         variant="primary" full size="lg"

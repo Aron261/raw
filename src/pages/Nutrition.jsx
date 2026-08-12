@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Layout from '../components/Layout'
-import { Button, PageHeader, LiveRegion, UndoSnackbar } from '../components/ui'
+import { Button, PageHeader, LiveRegion, UndoSnackbar, Toast } from '../components/ui'
 import CalorieRing from '../components/CalorieRing'
 import MacroLegend from '../components/MacroLegend'
 import MicroGrid from '../components/MicroGrid'
@@ -78,8 +78,18 @@ export default function Nutrition({ userId = null, readOnly = false }) {
   const [sheet, setSheet] = useState(null)   // { entry?, meal? } | 'targets' | null
 
   // Undoable entry delete (shared primitive) — hide optimistically, commit
-  // after a grace window, announce to screen readers.
-  const entryDelete = useUndoableDelete(entry => deleteEntry(entry.id))
+  // after a grace window, announce to screen readers. Si el borrado real falla
+  // (sin señal en el gimnasio), la comida va a reaparecer: se dice por qué en
+  // vez de dejar que parezca un fantasma.
+  const [failMsg, setFailMsg] = useState(null)
+  const entryDelete = useUndoableDelete(entry => deleteEntry(entry.id), {
+    onError: (_err, entry) => {
+      const msg = t('No se pudo borrar «{name}». Revisa tu conexión: sigue registrada.', { name: entry?.name || '' })
+      entryDelete.setLiveMsg(msg)
+      setFailMsg(msg)
+      refetch()
+    },
+  })
   const pendingId = entryDelete.pending?.id
 
   // Colapso por comida, recordado en el dispositivo.
@@ -427,6 +437,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
 
       {/* ── Feedback compartido: región viva + snackbar de deshacer ── */}
       <LiveRegion>{entryDelete.liveMsg}</LiveRegion>
+      <Toast message={failMsg} onDismiss={() => setFailMsg(null)} />
       <UndoSnackbar show={!!entryDelete.pending} message="Comida eliminada" onUndo={entryDelete.undo} />
     </Layout>
   )

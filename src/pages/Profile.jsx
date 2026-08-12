@@ -4,6 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import Layout from '../components/Layout'
 import { useProfile } from '../hooks/useProfile'
 import { useAuth } from '../hooks/useAuth'
+import { outbox } from '../lib/outbox'
 import { useBodyWeight } from '../hooks/useBodyWeight'
 import { useTrainer } from '../hooks/useTrainer'
 import { useInvites } from '../hooks/useInvites'
@@ -11,6 +12,8 @@ import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { useOAuthConnections } from '../hooks/useOAuthConnections'
 import { useTheme } from '../hooks/useTheme'
 import { useLang } from '../hooks/useLang'
+import { usePlan } from '../hooks/usePlan'
+import PremiumGate from '../components/PremiumGate'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Button, Sheet, UnitToggle, ErrorRetry } from '../components/ui'
 import BodyFatPicker from '../components/BodyFatPicker'
@@ -654,8 +657,15 @@ const CANNOT_DO = [
 
 export function ClaudeSection() {
   const { t, locale } = useLang()
+  const { isPro } = usePlan()
   const [copied, setCopied] = useState(false)
   const [open, setOpen] = useState(false)
+
+  // El conector es la función Pro insignia, y el candado de verdad está en el
+  // servidor (el MCP rechaza tokens de cuentas free): esto solo lo cuenta.
+  if (!isPro) {
+    return <PremiumGate need="pro" title={t('Conecta RAW a tu cuenta de Claude')} />
+  }
 
   const copy = async () => {
     try {
@@ -845,6 +855,7 @@ function ConnectionsList() {
 function TrainerSection() {
   const { t, locale } = useLang()
   const navigate = useNavigate()
+  const { isCoach } = usePlan()
   const { isTrainer, toggleTrainer, error: trainerError } = useTrainer()
   const { trainers, redeemCode, removeTrainer, redeeming, error: inviteError } = useInvites()
   const { counts } = useUnreadCounts()
@@ -879,7 +890,14 @@ function TrainerSection() {
         <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError || trainerError || inviteError}</div>
       )}
 
-      {/* Toggle: soy entrenador */}
+      {/* Toggle: soy entrenador. Entrenar gente es el tier Coach: sin el plan,
+          en vez del interruptor va el candado. Vincularse a un entrenador
+          (más abajo) sigue libre — el cliente no paga. */}
+      {!isCoach && !isTrainer ? (
+        <div style={{ marginBottom: '20px' }}>
+          <PremiumGate need="coach" compact title={t('Soy entrenador')} />
+        </div>
+      ) : (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div style={{ flex: 1, paddingRight: '12px' }}>
           <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700 }}>{t('Soy entrenador')}</p>
@@ -910,6 +928,7 @@ function TrainerSection() {
           }} />
         </button>
       </div>
+      )}
 
       {/* Vincular entrenador por código */}
       <div>
@@ -1176,6 +1195,12 @@ export default function Profile() {
   const { preference: themePreference } = useTheme()
 
   const handleSignOut = async () => {
+    // signOut borra el outbox (higiene de dispositivo compartido). Si hay
+    // series sin sincronizar, eso es pérdida de datos: se avisa antes.
+    const pending = await outbox.count()
+    if (pending > 0 && !window.confirm(
+      t('Tienes {n} series sin sincronizar. Si cierras sesión ahora, se perderán. ¿Cerrar sesión igualmente?', { n: pending })
+    )) return
     await signOut()
     navigate('/login', { replace: true })
   }

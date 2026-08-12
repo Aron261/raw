@@ -167,6 +167,24 @@ const EN = {
   'Aún sin registrar': 'Not logged yet',
   'Toca un día para planear': 'Tap a day to plan',
   'Tus clientes': 'Your clients',
+  'Mi coach': 'My coach',
+  'Tienes {n} series sin sincronizar. Si cierras sesión ahora, se perderán. ¿Cerrar sesión igualmente?':
+    'You have {n} unsynced sets. Signing out now will delete them. Sign out anyway?',
+  'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.':
+    'Could not save. Check your connection and try again.',
+  'No se pudo borrar «{name}». Revisa tu conexión: sigue registrada.':
+    'Could not delete "{name}". Check your connection: it is still logged.',
+  // ── Candados premium ──
+  'Parte del plan Pro. Se activa por cuenta durante la beta.':
+    'Part of the Pro plan. Enabled per account during the beta.',
+  'Parte del plan para entrenadores. Se activa por cuenta durante la beta.':
+    'Part of the coaching plan. Enabled per account during the beta.',
+  'Un plan a tu medida, calculado con tu historial': 'A plan built for you, computed from your history',
+  'A qué músculo se va tu tonelaje, directo e indirecto': 'Where your tonnage goes, direct and indirect',
+  'Conecta RAW a tu cuenta de Claude': 'Connect RAW to your Claude account',
+  'Recomendación calculada con tu cuerpo y tu fase': 'A recommendation computed from your body and phase',
+  'Panel de entrenador: clientes, actividad y asignación': 'Coach panel: clients, activity and assignment',
+  'Series que se repiten solas (semanal, deload)': 'Recurring sessions (weekly, deload)',
   'sin leer': 'unread',
   'Entreno de hoy': "Today's workout",
   'Ciclo activo': 'Active cycle',

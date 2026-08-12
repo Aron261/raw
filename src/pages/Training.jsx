@@ -26,7 +26,9 @@ import Calendar from '../components/calendar/Calendar'
 import { computeStreak, mondayOf, KINDS } from '../lib/calendar'
 import { projectionByDate, loggedMinutes, isLoggable } from '../lib/schedule'
 import { useLang } from '../hooks/useLang'
-import { calc1RM } from '../lib/progress'
+import { usePlan } from '../hooks/usePlan'
+import { calc1RM, calc1RMKg, convertWeight } from '../lib/progress'
+import { defaultLiftUnit } from '../lib/units'
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
@@ -517,6 +519,7 @@ export default function Training() {
 
   const { sessions, createSession, updateSession, deleteSession, deleteSeries } = useSchedule()
   const { counts: unreadMap } = useUnreadCounts()
+  const { isPro } = usePlan()
 
   // Tocar un día ya no abre una hoja: lleva a /dia/:fecha, que es una pantalla
   // entera. El día pasó a significar tres cosas —entreno, comida y peso— y eso
@@ -705,27 +708,29 @@ export default function Training() {
       return { day, vol, future: false }
     })
 
-    // Mejor 1RM histórico por ejercicio (antes de esta semana)
+    // Mejor 1RM histórico por ejercicio (antes de esta semana) — en kilos,
+    // porque las sesiones comparadas pueden venir en unidades distintas.
     const historicBest = {}
     previousWorkouts.forEach(w => {
       ;(w.workout_exercises || []).forEach(we => {
         const name = we.exercises?.name
         if (!name) return
         ;(we.sets || []).forEach(s => {
-          const rm = calc1RM(s.weight, s.reps)
+          const rm = calc1RMKg(s.weight, s.reps, we.unit)
           if (rm > (historicBest[name] || 0)) historicBest[name] = rm
         })
       })
     })
 
-    // Mejor 1RM esta semana por ejercicio
+    // Mejor 1RM esta semana por ejercicio (rm en kilos para comparar; la
+    // serie se guarda tal cual para pintarla con sus números reales)
     const weekBest = {}
     thisWeekWorkouts.forEach(w => {
       ;(w.workout_exercises || []).forEach(we => {
         const name = we.exercises?.name
         if (!name) return
         ;(we.sets || []).forEach(s => {
-          const rm = calc1RM(s.weight, s.reps)
+          const rm = calc1RMKg(s.weight, s.reps, we.unit)
           if (!weekBest[name] || rm > weekBest[name].rm) {
             weekBest[name] = { rm, weight: s.weight, reps: s.reps, unit: we.unit }
           }
@@ -770,10 +775,12 @@ export default function Training() {
   )
 
   // La previsión del ciclo sobre los días que se entrenan de verdad. No se
-  // guarda nada: son fantasmas en la rejilla hasta que los fijas.
+  // guarda nada: son fantasmas en la rejilla hasta que los fijas. Es Pro: el
+  // calendario de lo hecho y lo planeado a mano queda libre; la proyección
+  // automática es la capa con criterio propio.
   const projection = useMemo(
-    () => projectionByDate({ activeCycle, workouts, sessions }),
-    [activeCycle, workouts, sessions]
+    () => (isPro ? projectionByDate({ activeCycle, workouts, sessions }) : {}),
+    [isPro, activeCycle, workouts, sessions]
   )
 
   // Lo que viene: un plan escrito gana a una previsión, pero si no has escrito
@@ -800,6 +807,10 @@ export default function Training() {
     }
     if (goal.type === 'exercise_weight') {
       const hasRepsTarget = goal.target_reps && goal.target_reps > 0
+      // La meta se escribió en la unidad del perfil; las series pueden venir
+      // en otra (el toggle es por ejercicio). Todo se compara en la unidad de
+      // la meta o el progreso se infla/encoge 2,2×.
+      const goalUnit = defaultLiftUnit(profile)
       let best = 0
 
       workouts.filter(w => w.ended_at).forEach(w => {
@@ -808,12 +819,13 @@ export default function Training() {
             ;(we.sets || []).forEach(s => {
               if (hasRepsTarget) {
                 // Modo reps: mejor peso real donde reps >= objetivo
-                if ((s.reps || 0) >= goal.target_reps && (s.weight || 0) > best) {
-                  best = s.weight
+                const w2 = convertWeight(s.weight || 0, we.unit, goalUnit)
+                if ((s.reps || 0) >= goal.target_reps && w2 > best) {
+                  best = w2
                 }
               } else {
                 // Modo 1RM estimado (Epley)
-                const rm = calc1RM(s.weight, s.reps)
+                const rm = convertWeight(calc1RMKg(s.weight, s.reps, we.unit), 'kg', goalUnit)
                 if (rm > best) best = rm
               }
             })
@@ -836,6 +848,7 @@ export default function Training() {
     const finished = workouts.filter(w => w.ended_at)
     if (!finished.length) return null
 
+    // rmKg compara; rm/unit pintan la marca con los números en que se levantó.
     const bestRMMap = (list) => {
       const map = {}
       list.forEach(w => {
@@ -843,8 +856,10 @@ export default function Training() {
           const name = we.exercises?.name
           if (!name) return
           ;(we.sets || []).forEach(s => {
-            const rm = calc1RM(s.weight, s.reps)
-            if (!map[name] || rm > map[name].rm) map[name] = { rm, unit: we.unit }
+            const rmKg = calc1RMKg(s.weight, s.reps, we.unit)
+            if (!map[name] || rmKg > map[name].rmKg) {
+              map[name] = { rmKg, rm: calc1RM(s.weight, s.reps), unit: we.unit }
+            }
           })
         })
       })
@@ -862,9 +877,9 @@ export default function Training() {
     }))
 
     let topGain = null
-    Object.entries(recentMap).forEach(([name, { rm }]) => {
-      if (!prevMap[name] || prevMap[name].rm === 0) return
-      const gain = ((rm - prevMap[name].rm) / prevMap[name].rm) * 100
+    Object.entries(recentMap).forEach(([name, { rmKg }]) => {
+      if (!prevMap[name] || prevMap[name].rmKg === 0) return
+      const gain = ((rmKg - prevMap[name].rmKg) / prevMap[name].rmKg) * 100
       if (gain > 0 && (!topGain || gain > topGain.gain)) topGain = { name, gain: Math.round(gain) }
     })
     if (topGain) {
@@ -879,7 +894,7 @@ export default function Training() {
     // 2) Sin comparación posible todavía: el mejor 1RM estimado de siempre.
     const best = Object.entries(bestRMMap(finished))
       .map(([name, d]) => ({ name, ...d }))
-      .sort((a, b) => b.rm - a.rm)[0]
+      .sort((a, b) => b.rmKg - a.rmKg)[0]
     if (!best) return null
     return {
       label: 'Mejor levantamiento',
@@ -1195,6 +1210,21 @@ export default function Training() {
                   live={unread > 0}
                   value={unread > 0 ? `${unread} ${t('sin leer')}` : t('Tus clientes')}
                   onClick={() => navigate('/coach')}
+                />
+              )}
+              {/* El espejo para el CLIENTE: sin este chip, un mensaje del
+                  entrenador solo se descubría buceando en Perfil — el badge de
+                  no-leídos existía únicamente del lado del coach. Un solo
+                  entrenador lleva directo a su chat; varios, a la lista. */}
+              {!profile?.is_trainer && trainers.length > 0 && (
+                <Chip
+                  index={4}
+                  label={t('Mi coach')}
+                  live={unread > 0}
+                  value={unread > 0 ? `${unread} ${t('sin leer')}` : (trainers[0].profile?.name || t('Chat'))}
+                  onClick={() => navigate(trainers.length === 1
+                    ? `/chat/${trainers[0].trainerId}`
+                    : '/profile?s=entrenamiento')}
                 />
               )}
             </nav>
