@@ -44,6 +44,12 @@ export function useAdmin() {
     setUsers(prev => prev.map(u => u.id === target ? { ...u, beta_approved: value } : u))
   }
 
+  const setPlan = async (target, value) => {
+    const { error } = await supabase.rpc('admin_set_plan', { target, value })
+    if (error) throw new Error(error.message)
+    await load()
+  }
+
   const setAdmin = async (target, value) => {
     const { error } = await supabase.rpc('admin_set_admin', { target, value })
     if (error) throw error
@@ -57,5 +63,5 @@ export function useAdmin() {
     await load()
   }
 
-  return { isAdmin, overview, users, loading, error, refetch: load, setBeta, setAdmin, deleteUser }
+  return { isAdmin, overview, users, loading, error, refetch: load, setBeta, setAdmin, setPlan, deleteUser }
 }

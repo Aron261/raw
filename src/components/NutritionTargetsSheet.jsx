@@ -5,6 +5,8 @@ import { useAuth } from '../hooks/useAuth'
 import { calcAge } from '../hooks/useProfile'
 import { DEFAULT_TARGETS } from '../hooks/useNutrition'
 import { useLang } from '../hooks/useLang'
+import { usePlan } from '../hooks/usePlan'
+import PremiumGate from './PremiumGate'
 import { NUTRIENTS, CEILINGS, sanitizeMicros } from '../lib/nutrients'
 import { recommendPlan, computeMacros, computeMicroTargets, toKg, toCm } from '../lib/nutritionPlan'
 
@@ -203,6 +205,7 @@ function MicroTargetsSection({ t, values, onChange, onReset }) {
 // para planificar su nutrición (el prefill de peso usa el peso del cliente).
 export default function NutritionTargetsSheet({ targets, onSave, onClose, userId = null, profile = null, onOpenProfile = null, title = 'Objetivos diarios', subtitle = 'Tu meta de calorías y macros para cada día.' }) {
   const { t, locale } = useLang()
+  const { isPro } = usePlan()
   const tgt = targets || DEFAULT_TARGETS
   const { user } = useAuth()
   const ownerId = userId || user?.id
@@ -401,11 +404,19 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
 
   return (
     <Sheet title={title} subtitle={subtitle} onClose={onClose}>
-      <RecommendationCard
-        t={t} locale={locale} plan={plan}
-        onApply={applyRecommendation}
-        onOpenProfile={onOpenProfile}
-      />
+      {/* El motor que explica su recomendación (BMR, fase, micros por RDA) es
+          Pro; fijar objetivos a mano queda libre — es el hábito diario. */}
+      {isPro ? (
+        <RecommendationCard
+          t={t} locale={locale} plan={plan}
+          onApply={applyRecommendation}
+          onOpenProfile={onOpenProfile}
+        />
+      ) : (
+        <div style={{ marginBottom: '16px' }}>
+          <PremiumGate need="pro" compact title={t('Recomendación calculada con tu cuerpo y tu fase')} />
+        </div>
+      )}
 
       {/* El candado vive pegado a la tarjeta porque es de ahí de donde
           protege: sin él, «Usar esto» sustituye la proteína por la calculada

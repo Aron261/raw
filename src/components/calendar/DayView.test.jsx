@@ -11,6 +11,9 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/re
 vi.mock('../../hooks/useLang', () => ({
   useLang: () => ({ t: (x) => x, locale: 'es-CO', lang: 'es' }),
 }))
+// Cuenta Pro: el formulario con series recurrentes es el camino que estas
+// pruebas ejercitan; el candado free tiene su propio componente.
+vi.mock('../../hooks/usePlan', () => ({ usePlan: () => ({ plan: 'pro', isPro: true, isCoach: false, loading: false }) }))
 
 const navigate = vi.fn()
 vi.mock('react-router-dom', () => ({ useNavigate: () => navigate }))

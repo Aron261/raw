@@ -20,6 +20,8 @@ vi.mock('recharts', () => ({
   XAxis: () => null, YAxis: () => null, CartesianGrid: () => null,
   Tooltip: () => null, Cell: () => null, Legend: () => null,
 }))
+// Cuenta Pro: estas pruebas son de la sección desbloqueada.
+vi.mock('../hooks/usePlan', () => ({ usePlan: () => ({ plan: 'pro', isPro: true, isCoach: false, loading: false }) }))
 vi.mock('../hooks/useLang', () => ({
   useLang: () => ({
     t: (k, vars) => (vars ? String(k).replace(/\{(\w+)\}/g, (_, n) => vars[n] ?? `{${n}}`) : k),

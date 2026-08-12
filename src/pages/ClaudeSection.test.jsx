@@ -25,6 +25,9 @@ vi.mock('recharts', () => ({
 // useLang cuelga de useProfile → supabase. Con la identidad basta: las
 // aserciones son sobre el español, que es la clave.
 vi.mock('../hooks/useLang', () => ({ useLang: () => ({ t: (x) => x, locale: 'es-CO', lang: 'es' }) }))
+// Cuenta Pro: estas pruebas son de la sección desbloqueada. El candado tiene
+// su propio camino (PremiumGate) y su propia decisión de plan.
+vi.mock('../hooks/usePlan', () => ({ usePlan: () => ({ plan: 'pro', isPro: true, isCoach: false, loading: false }) }))
 // La sección lista ahora las conexiones OAuth activas, que cuelgan de la
 // sesión. Aquí no se prueban: sin conexiones el bloque no se pinta, y lo que
 // se mide en este archivo es la URL del conector y los permisos.

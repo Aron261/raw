@@ -99,6 +99,21 @@ async function handleMessage(msg: any, req: Request): Promise<unknown | null> {
       throw new Unauthorized()
     }
 
+    // El conector es una función del plan Pro, y ESTE es el candado de verdad
+    // (el de la UI solo informa). Se comprueba por llamada, como el token: el
+    // plan vive en profiles.plan, protegido por trigger — solo la RPC admin lo
+    // cambia, así que el propio conector no puede autoascenderse.
+    {
+      const { data: prof } = await ctx.supabase.from('profiles')
+        .select('plan').eq('id', ctx.userId).maybeSingle()
+      const plan = (prof?.plan as string | undefined) ?? 'free'
+      if (plan !== 'pro' && plan !== 'coach') {
+        return toolFailure(id,
+          'El conector de Claude es parte del plan Raw Pro y esta cuenta está en el plan gratuito. ' +
+          'Durante la beta se activa cuenta por cuenta desde el panel de administración.')
+      }
+    }
+
     try {
       const data = await tool.handler(params?.arguments ?? {}, ctx)
       return toolOk(id, data)

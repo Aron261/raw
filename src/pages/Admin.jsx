@@ -63,7 +63,7 @@ function MiniChart({ data, colors }) {
 }
 
 // ── User management row ──────────────────────────────────────────────────────
-function UserRow({ u, onSetBeta, onSetAdmin, onDelete, onError }) {
+function UserRow({ u, onSetBeta, onSetAdmin, onSetPlan, onDelete, onError }) {
   const { t, locale } = useLang()
   const [busy, setBusy] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
@@ -94,6 +94,7 @@ function UserRow({ u, onSetBeta, onSetAdmin, onDelete, onError }) {
       <td style={{ padding: '10px 8px' }}>
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           {chip(u.beta_approved, 'Beta')}
+          {chip(u.plan !== 'free', (u.plan || 'free').toUpperCase())}
           {u.is_trainer && chip(true, 'Coach')}
           {u.is_admin && chip(true, 'Admin')}
         </div>
@@ -104,6 +105,10 @@ function UserRow({ u, onSetBeta, onSetAdmin, onDelete, onError }) {
             style={btnStyle}>{t(u.beta_approved ? 'Quitar beta' : 'Dar beta')}</button>
           <button type="button" disabled={busy} onClick={wrap(() => onSetAdmin(u.id, !u.is_admin))}
             style={btnStyle}>{u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
+          {/* Rota free → pro → coach → free: tres planes no ameritan un menú. */}
+          <button type="button" disabled={busy}
+            onClick={wrap(() => onSetPlan(u.id, { free: 'pro', pro: 'coach', coach: 'free' }[u.plan || 'free']))}
+            style={btnStyle}>Plan: {(u.plan || 'free')}</button>
           {confirmDel ? (
             <button type="button" disabled={busy} onClick={wrap(() => onDelete(u.id))}
               style={{ ...btnStyle, color: 'var(--c-on-action)', background: 'var(--c-action)', borderColor: 'transparent' }}>{t('Confirmar')}</button>
@@ -129,7 +134,7 @@ export default function Admin() {
   const navigate = useNavigate()
   const cc = useChartColors()
   const { profile, loading: profileLoading } = useProfile()
-  const { overview, users, loading, error, refetch, setBeta, setAdmin, deleteUser } = useAdmin()
+  const { overview, users, loading, error, refetch, setBeta, setAdmin, setPlan, deleteUser } = useAdmin()
   const [toast, setToast] = useState('')
 
   // Gate: espera a que el perfil cargue; si no es admin, fuera.
@@ -256,7 +261,7 @@ export default function Admin() {
                   </thead>
                   <tbody>
                     {users.map(u => (
-                      <UserRow key={u.id} u={u} onSetBeta={setBeta} onSetAdmin={setAdmin} onDelete={deleteUser} onError={setToast} />
+                      <UserRow key={u.id} u={u} onSetBeta={setBeta} onSetAdmin={setAdmin} onSetPlan={setPlan} onDelete={deleteUser} onError={setToast} />
                     ))}
                   </tbody>
                 </table>

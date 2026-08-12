@@ -5,6 +5,8 @@ import SectionHeader from './SectionHeader'
 import { useLang } from '../../hooks/useLang'
 import { useExerciseLang } from '../../hooks/useExerciseLang'
 import { formatVolume } from '../../lib/format'
+import { usePlan } from '../../hooks/usePlan'
+import PremiumGate from '../PremiumGate'
 
 // All-time volume distribution across muscle groups, shown as proportional
 // horizontal bars (relative to the most-trained group). Each exercise credits
@@ -17,9 +19,22 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
   const { term } = useExerciseLang()
   const navigate = useNavigate()
   const { needsAttention } = useExerciseGroups()
+  const { isPro } = usePlan()
 
   const groups = data?.muscleBalance || []
   if (groups.length === 0) return null
+
+  // Analítica avanzada = Pro. Los totales y la lista de levantamientos quedan
+  // libres; la atribución por músculo (directo + mitad secundario) es la pieza
+  // con criterio propio.
+  if (!isPro) {
+    return (
+      <div>
+        <SectionHeader title={t('Balance muscular')} />
+        <PremiumGate need="pro" title={t('A qué músculo se va tu tonelaje, directo e indirecto')} />
+      </div>
+    )
+  }
 
   // Keep the catch-all bucket last and visually muted — it's "sin clasificar",
   // not a real muscle group.

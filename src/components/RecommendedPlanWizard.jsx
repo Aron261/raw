@@ -14,6 +14,8 @@ import {
 import { MUSCLE_GROUPS } from '../lib/muscleGroups'
 import { useExerciseLang } from '../hooks/useExerciseLang'
 import { useLang } from '../hooks/useLang'
+import { usePlan } from '../hooks/usePlan'
+import PremiumGate from './PremiumGate'
 
 const DAYS_OPTIONS = [2, 3, 4, 5, 6]
 
@@ -219,6 +221,7 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
   const { term } = useExerciseLang()
   const { t } = useLang()
   const { profile } = useProfile()
+  const { isPro } = usePlan()
 
   const [goal, setGoal]           = useState(null)
   const [level, setLevel]         = useState(null)
@@ -367,6 +370,16 @@ export default function RecommendedPlanWizard({ mode = 'cycle', onClose, onCreat
   const stepIndexLabel = stepKey !== 'preview'
     ? `Paso ${step + 1} de ${steps.length - 1} — ${STEP_TITLES[stepKey]}`
     : undefined
+
+  // El motor de planes es la función Pro más clara de la app (coach en una
+  // caja). La hoja se abre igual y dice qué es y en qué plan viene.
+  if (!isPro) {
+    return (
+      <Sheet title={isCycle ? 'Ciclo recomendado' : 'Rutina recomendada'} onClose={onClose}>
+        <PremiumGate need="pro" title={t('Un plan a tu medida, calculado con tu historial')} />
+      </Sheet>
+    )
+  }
 
   return (
     <Sheet

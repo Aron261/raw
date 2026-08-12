@@ -7,6 +7,7 @@ import { useWorkouts } from '../hooks/useWorkout'
 import { useSchedule } from '../hooks/useSchedule'
 import { useRoutines } from '../hooks/useRoutines'
 import { projectionByDate } from '../lib/schedule'
+import { usePlan } from '../hooks/usePlan'
 import { toLocalISODate, longDate } from '../lib/calendar'
 import { useLang } from '../hooks/useLang'
 
@@ -44,6 +45,7 @@ export default function Day() {
   const { fecha } = useParams()
   const navigate = useNavigate()
   const { t, locale } = useLang()
+  const { isPro } = usePlan()
 
   const todayISO = toLocalISODate()
   // Una fecha inventada en la URL no puede reventar la pantalla: cae en hoy.
@@ -57,9 +59,10 @@ export default function Day() {
   const activeCycle = (activeRoutine?.type === 'cycle' && activeRoutine?.is_active === true)
     ? activeRoutine : null
 
+  // La proyección del ciclo es Pro (mismo criterio que en la portada).
   const projection = useMemo(
-    () => projectionByDate({ activeCycle, workouts, sessions }),
-    [activeCycle, workouts, sessions]
+    () => (isPro ? projectionByDate({ activeCycle, workouts, sessions }) : {}),
+    [isPro, activeCycle, workouts, sessions]
   )
 
   const dayWorkouts = useMemo(

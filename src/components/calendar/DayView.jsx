@@ -5,6 +5,8 @@ import { KINDS, KIND_ORDER, toLocalISODate } from '../../lib/calendar'
 import { isLoggable, formatSessionLog } from '../../lib/schedule'
 import { useStartRoutineWorkout } from '../../hooks/useStartRoutineWorkout'
 import { useLang } from '../../hooks/useLang'
+import { usePlan } from '../../hooks/usePlan'
+import PremiumGate from '../PremiumGate'
 import SessionLogSheet from './SessionLogSheet'
 import DayNutrition from './DayNutrition'
 import DayWeight from './DayWeight'
@@ -46,6 +48,7 @@ export default function DayView({
   onCreate, onUpdate, onDelete, onDeleteSeries,
 }) {
   const { t, locale } = useLang()
+  const { isPro } = usePlan()
   const navigate = useNavigate()
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
   const iso = toLocalISODate(date)
@@ -543,8 +546,14 @@ export default function DayView({
 
       {/* Repetir. Lo que se repite —cardio los martes, movilidad los domingos—
           es justo lo que nadie sostiene escribiéndolo día a día. Un descanso o
-          una nota suelta no se repiten: no se ofrece. */}
-      {kind !== 'note' && (
+          una nota suelta no se repiten: no se ofrece. Las series recurrentes
+          son Pro; planear sesiones sueltas queda libre. */}
+      {kind !== 'note' && !isPro && (
+        <div style={{ marginBottom: '16px' }}>
+          <PremiumGate need="pro" compact title={t('Series que se repiten solas (semanal, deload)')} />
+        </div>
+      )}
+      {kind !== 'note' && isPro && (
         <Field
           label="Repetir"
           hint={kind === 'deload' ? 'A partir de esta semana' : 'Cada semana, a partir de este día'}

@@ -7,6 +7,8 @@ import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
 import { Sheet, Button, ErrorRetry } from '../components/ui'
 import { useLang } from '../hooks/useLang'
+import { usePlan } from '../hooks/usePlan'
+import PremiumGate from '../components/PremiumGate'
 
 // "hace 2 h" / "ayer" / "hace 3 d" — a coach scans by recency, not calendar.
 function relativeDate(iso, t = (x) => x, locale = 'es-CO') {
@@ -273,6 +275,7 @@ function ClientCard({ client, onOpen, onRevoke, onChat, unread }) {
 // ── Página principal ───────────────────────────────────────────────────────
 export default function Coach() {
   const { t, locale } = useLang()
+  const { isCoach } = usePlan()
   const navigate = useNavigate()
   const {
     isTrainer, clients, activeInvites, loading, error,
@@ -290,6 +293,19 @@ export default function Coach() {
 
   const activeClients = clients.filter(c => c.status === 'active')
   const { feed, loading: feedLoading, error: feedError, refresh: refreshFeed } = useCoachFeed(activeClients)
+
+  // El panel de entrenador entero es el tier Coach: roster, feed, detalle de
+  // cliente, asignación. El lado del CLIENTE no paga — recibir coaching es
+  // gratis; lo premium es la herramienta de trabajo del coach.
+  if (!isCoach) {
+    return (
+      <Layout>
+        <div style={{ padding: '40px 16px 0', maxWidth: '480px', margin: '0 auto', width: '100%' }}>
+          <PremiumGate need="coach" title={t('Panel de entrenador: clientes, actividad y asignación')} />
+        </div>
+      </Layout>
+    )
+  }
 
   return (
     <Layout>
