@@ -8,7 +8,13 @@
 -- nutrition_entries/nutrition_targets NO tienen cascade, así que se borran
 -- explícitamente antes de eliminar el usuario de auth.users (lo demás cae por
 -- cascade: profiles, workouts, exercises, routines, goals, trainer_clients,
--- trainer_invites, messages).
+-- trainer_invites, messages). agent_writes y exercise_merge_log no tienen FK a
+-- auth.users, así que también van explícitas: si se olvidan no rompen el borrado,
+-- pero dejarían snapshots con datos personales de una cuenta que ya no existe.
+--
+-- Si una tabla nueva referencia auth.users SIN cascade y no se añade aquí, el
+-- `delete from auth.users` final revienta con violación de FK y NADIE con filas
+-- en esa tabla puede borrar su cuenta (pasó con nutrition_foods).
 --
 -- SECURITY DEFINER para poder borrar de auth.users. Solo actúa sobre auth.uid(),
 -- nunca sobre otro usuario. Ejecutable solo por 'authenticated'.
@@ -34,6 +40,10 @@ begin
   delete from bloodwork_results  where user_id = uid;
   delete from nutrition_entries  where user_id = uid;
   delete from nutrition_targets  where user_id = uid;
+  delete from nutrition_foods    where user_id = uid;
+  -- Tablas sin FK a auth.users (snapshots de auditoría con datos personales)
+  delete from agent_writes       where user_id = uid;
+  delete from exercise_merge_log where user_id = uid;
 
   -- El resto cae por cascade al eliminar el usuario de auth.
   delete from auth.users where id = uid;

@@ -218,6 +218,9 @@ begin
   delete from bloodwork_results  where user_id = target;
   delete from nutrition_entries  where user_id = target;
   delete from nutrition_targets  where user_id = target;
+  delete from nutrition_foods    where user_id = target;
+  delete from agent_writes       where user_id = target;
+  delete from exercise_merge_log where user_id = target;
   delete from auth.users where id = target;   -- cascade al resto
 end;
 $$;

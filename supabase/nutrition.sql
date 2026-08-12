@@ -49,7 +49,7 @@ create policy "Beta gate" on nutrition_targets as restrictive for all using (pub
 -- criterio para el upsert.
 create table if not exists nutrition_foods (
   id           uuid         primary key default gen_random_uuid(),
-  user_id      uuid         references auth.users not null,
+  user_id      uuid         not null references auth.users on delete cascade,
   name         text         not null,
   name_norm    text         not null,
   serving_qty  numeric(6,1) not null default 1 check (serving_qty > 0),

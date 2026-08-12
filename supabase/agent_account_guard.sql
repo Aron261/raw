@@ -93,6 +93,9 @@ begin
   delete from bloodwork_results  where user_id = target;
   delete from nutrition_entries  where user_id = target;
   delete from nutrition_targets  where user_id = target;
+  delete from nutrition_foods    where user_id = target;
+  delete from agent_writes       where user_id = target;
+  delete from exercise_merge_log where user_id = target;
   delete from auth.users where id = target;
 end;
 $function$;
@@ -115,6 +118,9 @@ begin
   delete from bloodwork_results  where user_id = uid;
   delete from nutrition_entries  where user_id = uid;
   delete from nutrition_targets  where user_id = uid;
+  delete from nutrition_foods    where user_id = uid;
+  delete from agent_writes       where user_id = uid;
+  delete from exercise_merge_log where user_id = uid;
 
   delete from auth.users where id = uid;
 end;
@@ -165,6 +171,9 @@ begin
     raise exception 'No puedes vincularte contigo mismo';
   end if;
 
+  -- Un código nuevo ES el consentimiento nuevo: permite reactivar un vínculo
+  -- revocado, cosa que el trigger freeze_trainer_link_parties bloquea fuera de aquí.
+  perform set_config('app.allow_link_reactivation', 'on', true);
   insert into trainer_clients (trainer_id, client_id, status)
   values (v_invite.trainer_id, auth.uid(), 'active')
   on conflict (trainer_id, client_id) do update set status = 'active';
