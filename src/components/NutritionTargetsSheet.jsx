@@ -338,7 +338,7 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
       carbs_g:   Math.round(k * c / 100 / 4),
       fat_g:     Math.round(k * f / 100 / 9),
     }
-  }, [mode, kcal, weight, pctP, pctF, gP, gC, gF])
+  }, [mode, kcal, weight, pctP, pctF, gP, gC, gF, profile, proteinLocked, canLock, lockedProtein])
 
   const pct = (g, per, k) => (k > 0 ? Math.round((g * per / k) * 100) : 0)
 

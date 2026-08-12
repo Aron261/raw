@@ -1110,7 +1110,10 @@ function DeleteAccountSheet({ onClose }) {
   const [confirmText, setConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState(null)
-  const ready = confirmText.trim().toUpperCase() === 'ELIMINAR'
+  // La palabra exigida es la MISMA que la instrucción enseña en el idioma
+  // activo; ELIMINAR se acepta siempre para no romper hábitos ni capturas.
+  const typed = confirmText.trim().toUpperCase()
+  const ready = typed === t('ELIMINAR').toUpperCase() || typed === 'ELIMINAR'
 
   const submit = async () => {
     if (!ready) return
@@ -1134,7 +1137,7 @@ function DeleteAccountSheet({ onClose }) {
       <input
         aria-label={t('Escribe ELIMINAR para confirmar')}
         type="text" value={confirmText} onChange={e => setConfirmText(e.target.value)}
-        className="input-field" placeholder="ELIMINAR"
+        className="input-field" placeholder={t('ELIMINAR')}
         style={{ marginBottom: '12px', letterSpacing: '-0.01em', fontWeight: 700 }}
       />
       <Button

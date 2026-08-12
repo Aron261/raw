@@ -10,7 +10,7 @@ import { useLang } from '../hooks/useLang'
 // solo pedimos y guardamos la contraseña nueva.
 export default function ResetPassword() {
   const { t } = useLang()
-  const { user, loading, setNewPassword } = useAuth()
+  const { user, loading, recoverySession, setNewPassword } = useAuth()
   const navigate = useNavigate()
 
   const [password, setPassword] = useState('')
@@ -55,8 +55,10 @@ export default function ResetPassword() {
     )
   }
 
-  // Sin sesión de recuperación → enlace inválido o expirado
-  if (!user) {
+  // Sin sesión DE RECUPERACIÓN → enlace inválido o expirado. Una sesión normal
+  // no basta: cambiar contraseña sin la actual es privilegio del enlace del
+  // correo, no de cualquier teléfono que quede desbloqueado.
+  if (!user || !recoverySession) {
     return shell(
       <div style={{ textAlign: 'center' }}>
         <div style={{ ...ERROR_STYLE, marginBottom: '16px' }}>

@@ -129,3 +129,32 @@ describe('Perfil — qué vive dentro', () => {
     expect(navigate).toHaveBeenCalledWith('/admin')
   })
 })
+
+describe('Perfil — eliminar cuenta', () => {
+  // La confirmación debe pedir la MISMA palabra que la instrucción enseña.
+  // En inglés la pantalla dice "Type DELETE to confirm": DELETE habilita.
+  it('en inglés, escribir DELETE habilita el botón', () => {
+    state.profile = { ...state.profile, app_lang: 'en' }
+    searchParams = new URLSearchParams('s=cuenta')
+    render(<Profile />)
+    fireEvent.click(screen.getByRole('button', { name: /eliminar cuenta/i }))
+    fireEvent.change(screen.getByLabelText(/type delete to confirm/i), { target: { value: 'delete' } })
+    expect(screen.getByRole('button', { name: /delete my account/i }).disabled).toBe(false)
+  })
+
+  it('en español, ELIMINAR habilita el botón (con minúsculas y espacios)', () => {
+    searchParams = new URLSearchParams('s=cuenta')
+    render(<Profile />)
+    fireEvent.click(screen.getByRole('button', { name: /eliminar cuenta/i }))
+    fireEvent.change(screen.getByLabelText(/escribe eliminar para confirmar/i), { target: { value: ' eliminar ' } })
+    expect(screen.getByRole('button', { name: /eliminar mi cuenta/i }).disabled).toBe(false)
+  })
+
+  it('otra palabra no habilita nada', () => {
+    searchParams = new URLSearchParams('s=cuenta')
+    render(<Profile />)
+    fireEvent.click(screen.getByRole('button', { name: /eliminar cuenta/i }))
+    fireEvent.change(screen.getByLabelText(/escribe eliminar para confirmar/i), { target: { value: 'BORRAR' } })
+    expect(screen.getByRole('button', { name: /eliminar mi cuenta/i }).disabled).toBe(true)
+  })
+})

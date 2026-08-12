@@ -19,6 +19,12 @@ export function useAuth() {
 export function useAuthProvider() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  // Sesión de recuperación: solo ella puede fijar contraseña sin la actual.
+  // El hash se mira de entrada porque supabase-js puede procesar el token (y
+  // limpiarlo) antes de que el listener de abajo llegue a suscribirse.
+  const [recovery, setRecovery] = useState(() => {
+    try { return window.location.hash.includes('type=recovery') } catch { return false }
+  })
 
   useEffect(() => {
     // Get initial session
@@ -28,8 +34,10 @@ export function useAuthProvider() {
     })
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      if (event === 'PASSWORD_RECOVERY') setRecovery(true)
+      if (event === 'SIGNED_OUT') setRecovery(false)
     })
 
     return () => subscription.unsubscribe()
@@ -79,9 +87,14 @@ export function useAuthProvider() {
   }
 
   // Fija una contraseña nueva usando la sesión de recuperación (sin la actual).
+  // Con una sesión normal se niega: para eso está updatePassword, que
+  // reautentica. Si esto aceptara cualquier sesión, /reset-password sería un
+  // cambio de contraseña sin re-auth para quien agarre un teléfono desbloqueado.
   const setNewPassword = async (newPassword) => {
+    if (!recovery) throw new Error('Este enlace ya no es válido. Solicita uno nuevo.')
     const { error } = await supabase.auth.updateUser({ password: newPassword })
     if (error) throw error
+    setRecovery(false)  // privilegio de un solo uso
   }
 
   // Cambia el email. Supabase envía confirmación al correo nuevo (y al viejo);
@@ -102,7 +115,7 @@ export function useAuthProvider() {
   }
 
   return {
-    user, loading, signIn, signUp, signOut,
+    user, loading, recoverySession: recovery, signIn, signUp, signOut,
     sendPasswordReset, updatePassword, setNewPassword, updateEmail, deleteAccount,
   }
 }

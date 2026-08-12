@@ -194,6 +194,30 @@ describe('el candado de proteína', () => {
     expect(onSave.mock.calls[0][0].protein_locked).toBe(true)
   })
 
+  // El caso que rompía: activar el candado y guardar SIN tocar nada más.
+  // El objeto que se guarda se memoiza; si sus dependencias no incluyen el
+  // candado, se persiste protein_locked=true junto a una proteína recalculada
+  // sin candado — pisando en silencio la cifra que el candado protege.
+  it('activarlo y guardar sin tocar nada más guarda LA proteína fijada', async () => {
+    abrir({ targets: CON_OBJETIVOS })
+    fireEvent.click(screen.getByText('Según tu cuerpo'))
+    fireEvent.click(screen.getByText('Mantener mi proteína en 180 g'))
+    fireEvent.click(screen.getByText('Guardar objetivos'))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave.mock.calls[0][0].protein_locked).toBe(true)
+    expect(onSave.mock.calls[0][0].protein_g).toBe(180)
+  })
+
+  it('y el caso inverso: quitarlo y guardar recalcula en vez de conservarla', async () => {
+    abrir({ targets: { ...CON_OBJETIVOS, protein_locked: true } })
+    fireEvent.click(screen.getByText('Según tu cuerpo'))
+    fireEvent.click(screen.getByText('Mantener mi proteína en 180 g'))
+    fireEvent.click(screen.getByText('Guardar objetivos'))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave.mock.calls[0][0].protein_locked).toBe(false)
+    expect(onSave.mock.calls[0][0].protein_g).not.toBe(180)
+  })
+
   it('llega activado si ya lo estaba', () => {
     abrir({ targets: { ...CON_OBJETIVOS, protein_locked: true } })
     fireEvent.click(screen.getByText('Recomendado para ti'))
