@@ -230,6 +230,11 @@ alter table exercise_merge_log enable row level security;
 drop policy if exists "Users read own merge log" on exercise_merge_log;
 create policy "Users read own merge log" on exercise_merge_log
   for select using (auth.uid() = user_id);
+-- merge_exercise_into_library es SECURITY INVOKER (a propósito): sin esta
+-- política, su insert al log moría por RLS y el merge entero abortaba.
+drop policy if exists "Users log own merges" on exercise_merge_log;
+create policy "Users log own merges" on exercise_merge_log
+  for insert with check (auth.uid() = user_id);
 
 -- Non-destructive: an unmatched name keeps library_id null and stays its own canon.
 update exercises set library_id = resolve_library_exercise(name) where library_id is null;

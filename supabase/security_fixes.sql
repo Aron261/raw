@@ -40,6 +40,15 @@ begin
   if new.trainer_id <> old.trainer_id or new.client_id <> old.client_id then
     raise exception 'No se pueden cambiar las partes de un vínculo entrenador-cliente';
   end if;
+  -- Revocar es final: la política "Either party updates link" dejaba al propio
+  -- entrenador revocado volver a ponerse 'active' y recuperar acceso a los datos
+  -- del cliente sin consentimiento nuevo. Reactivar exige un código nuevo:
+  -- redeem_invite marca la transacción con app.allow_link_reactivation.
+  if old.status = 'revoked' and new.status = 'active'
+     and coalesce(current_setting('app.allow_link_reactivation', true), 'off') <> 'on'
+  then
+    raise exception 'Un vínculo revocado no se reactiva; genera un código de invitación nuevo';
+  end if;
   return new;
 end;
 $$;
@@ -68,13 +77,22 @@ begin
     -- Ignorar el intento de cambio en vez de fallar: preserva el valor anterior.
     new.beta_approved := old.beta_approved;
   end if;
+  -- Sin trigger de signup, la fila de profiles la crea el cliente: sin esta rama,
+  -- un INSERT directo (o DELETE + re-INSERT) con beta_approved = true saltaba el
+  -- gate entero. Mismo patrón que protect_is_admin.
+  if tg_op = 'INSERT'
+     and new.beta_approved = true
+     and coalesce(current_setting('app.allow_beta_change', true), 'off') <> 'on'
+  then
+    new.beta_approved := false;
+  end if;
   return new;
 end;
 $$;
 
 drop trigger if exists trg_protect_beta_approved on profiles;
 create trigger trg_protect_beta_approved
-  before update on profiles
+  before insert or update on profiles
   for each row execute function public.protect_beta_approved();
 
 -- redeem_beta_code() debe activar el flag antes de escribir. Recreamos la
