@@ -254,9 +254,30 @@ begin
       using w.before;
   end if;
 
-  update agent_writes set undone_at = now() where id = p_id;
+  -- Vía helper DEFINER: agent_writes no tiene política de UPDATE (a propósito)
+  -- y el guard anti-agente además bloquearía el UPDATE desde un conector — que
+  -- es justo desde donde se deshace. Con invoker este update tocaba 0 filas en
+  -- silencio: el cambio quedaba revertido pero nunca sellado, el "ya se
+  -- deshizo" de arriba jamás saltaba y un segundo undo re-ejecutaba la
+  -- reversión (duplicando la fila reinsertada o muriendo por clave duplicada).
+  perform public.mark_agent_write_undone(p_id);
   return jsonb_build_object('undone', true, 'table', w.table_name, 'op', w.op);
 end $$;
+
+-- Sella undone_at saltándose RLS, pero SOLO en filas propias: la comprobación
+-- de user_id hace aquí el trabajo que la política no puede hacer.
+create or replace function public.mark_agent_write_undone(p_id bigint)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update agent_writes set undone_at = now()
+  where id = p_id and user_id = auth.uid() and undone_at is null;
+$$;
+
+revoke execute on function public.mark_agent_write_undone(bigint) from public, anon;
+grant  execute on function public.mark_agent_write_undone(bigint) to authenticated;
 
 create or replace function public.restore_routine_revision(p_revision_id uuid)
 returns jsonb
