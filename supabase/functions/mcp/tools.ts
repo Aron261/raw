@@ -63,6 +63,29 @@ const MAX_SERIES_OCCURRENCES = 26
 
 // Solo una fecha local YYYY-MM-DD; cualquier otra cosa se descarta en vez de
 // llegar a Postgres como un rango medio interpretado.
+// "Hoy" es el hoy de la PERSONA, no el del servidor. Las edge functions corren
+// en UTC: sin esto, una cena registrada desde Claude a las 8pm de Bogotá caía
+// en el día siguiente y "cómo voy hoy" respondía con un día vacío. La zona la
+// sella la app en profiles.timezone; sin ella (perfil viejo), UTC como antes.
+const localDay = (tz: string | null, shiftDays = 0): string => {
+  const d = new Date()
+  if (shiftDays) d.setUTCDate(d.getUTCDate() + shiftDays)
+  try {
+    // en-CA formatea YYYY-MM-DD, que es exactamente el formato de eaten_on/date.
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz || 'UTC', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(d)
+  } catch {
+    return d.toISOString().slice(0, 10)
+  }
+}
+
+const userTimezone = async (supabase: SupabaseClient, userId: string): Promise<string | null> => {
+  const { data } = await supabase.from('profiles').select('timezone')
+    .eq('id', userId).maybeSingle()
+  return (data?.timezone as string | null) || null
+}
+
 const isoDate = (v: unknown): string | null =>
   typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null
 
@@ -247,7 +270,7 @@ export const TOOLS: Record<string, Tool> = {
     description: 'Comidas registradas de un día, con los totales (macros y micros) y los objetivos. Los objetivos son de SOLO LECTURA: se fijan en la app, donde se calculan a partir del peso, la grasa corporal y la fase. Si `targets.protein_locked` es true, esa persona ha fijado su proteína a mano y no quiere que se la recalculen: no le propongas otra cifra. `micros_coverage` dice de cuántas comidas se conocen micros — sin ese dato, un total de micros bajo puede ser falta de información y no falta de nutrientes.',
     inputSchema: obj({ date: str('Fecha YYYY-MM-DD. Por defecto, hoy.') }),
     handler: async (a, { supabase, userId }) => {
-      const day = a.date || new Date().toISOString().slice(0, 10)
+      const day = a.date || localDay(await userTimezone(supabase, userId))
       const [entries, targets] = await Promise.all([
         supabase.from('nutrition_entries').select('*')
           .eq('user_id', userId).eq('eaten_on', day).order('created_at'),
@@ -297,11 +320,10 @@ export const TOOLS: Record<string, Tool> = {
       status: { ...str('Filtra por estado'), enum: SESSION_STATUSES },
     }),
     handler: async (a, { supabase, userId }) => {
-      const day = (offset: number) => {
-        const d = new Date()
-        d.setDate(d.getDate() + offset)
-        return d.toISOString().slice(0, 10)
-      }
+      // La ventana por defecto se ancla al hoy LOCAL de la persona; cerca de
+      // medianoche el hoy UTC ya es otro día y se caían sesiones del borde.
+      const tz = (isoDate(a.from) && isoDate(a.to)) ? null : await userTimezone(supabase, userId)
+      const day = (offset: number) => localDay(tz, offset)
       let q = supabase.from('scheduled_sessions')
         .select('id,date,kind,title,status,notes,routine_id,routine_day_id,series_id,duration_min,distance_km,rpe')
         .eq('user_id', userId)
@@ -582,13 +604,15 @@ export const TOOLS: Record<string, Tool> = {
       note: str('Nota opcional'),
     }, ['name', 'meal']),
     handler: async (a, { supabase, userId }) =>
+      // eaten_on siempre explícito: el default de la columna es current_date
+      // en UTC, que desde las 7pm de Bogotá ya es "mañana".
       unwrap(await supabase.from('nutrition_entries').insert({
         user_id: userId, name: a.name, meal: a.meal,
         kcal: a.kcal ?? 0, protein_g: a.protein_g ?? 0,
         carbs_g: a.carbs_g ?? 0, fat_g: a.fat_g ?? 0,
         micros: sanitizeMicros(a.micros),
         note: a.note ?? null,
-        ...(a.date ? { eaten_on: a.date } : {}),
+        eaten_on: a.date || localDay(await userTimezone(supabase, userId)),
       }).select().maybeSingle()),
   },
 

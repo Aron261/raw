@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { useCachedResource, mutateCache } from '../lib/swr'
@@ -34,6 +34,22 @@ export function useProfile() {
   const { data, loading, error: loadError, refetch } = useCachedResource(key, fetcher)
   const profile = data || null
   const fetchProfile = refetch
+
+  // Sella la zona horaria del dispositivo en el perfil. No es cosmético: el
+  // conector MCP necesita saber qué día es "hoy" PARA ESTA PERSONA — con el
+  // servidor en UTC, una cena registrada desde Claude a las 8pm de Bogotá caía
+  // en mañana. Silencioso e idempotente; la caché compartida evita repetirlo.
+  useEffect(() => {
+    if (!user || !data) return
+    let tz = null
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null } catch { /* sin Intl */ }
+    if (!tz || data.timezone === tz) return
+    supabase.from('profiles')
+      .upsert({ id: user.id, timezone: tz, updated_at: new Date().toISOString() })
+      .then(({ error: err }) => {
+        if (!err) mutateCache(key, prev => ({ ...(prev || {}), timezone: tz }))
+      })
+  }, [user, data, key])
   const error = loadError ? (loadError.message || 'Error inesperado') : null
 
   const saveProfile = async (updates) => {

@@ -18,3 +18,9 @@ alter table profiles enable row level security;
 
 create policy "Users manage own profile" on profiles
   for all using (auth.uid() = id) with check (auth.uid() = id);
+
+-- Zona horaria IANA del dispositivo, sellada por la app al cargar el perfil.
+-- El conector MCP la usa para saber qué día es "hoy" para esta persona: con el
+-- servidor en UTC, una cena registrada desde Claude a las 8pm de Bogotá caía
+-- en el día siguiente.
+alter table profiles add column if not exists timezone text;
