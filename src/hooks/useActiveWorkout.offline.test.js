@@ -124,6 +124,39 @@ describe('useActiveWorkout sin conexión', () => {
     expect(result.current.workout).toBeNull()
   })
 
+  // El taponazo: una op que el servidor rechaza para siempre (p. ej. la serie
+  // de un ejercicio que ya se borró → FK) se reintentaba eternamente, y como
+  // finalizar exigía la cola GLOBAL vacía, ningún entreno futuro podía cerrarse
+  // — con un contador que decía 0 para ese entreno. Única salida: logout.
+  it('una op envenenada de OTRO entreno no impide finalizar este', async () => {
+    RESULTS.sets = { data: null, error: { code: '23503', message: 'violates foreign key constraint' } }
+    await outbox.enqueue({
+      kind: 'set.upsert', workoutId: 'w2', dedupeKey: 'sx',
+      data: { id: 'sx', workout_exercise_id: 'we-borrado', set_number: 1, reps: 8, weight: 60 },
+    })
+
+    const { result } = renderHook(() => useActiveWorkout('w1'))
+    await waitFor(() => expect(result.current.workout).toBeTruthy())
+
+    await result.current.finishWorkout()
+    await waitFor(() => expect(result.current.workout.ended_at).toBeTruthy())
+  })
+
+  it('borrar un ejercicio purga sus series aún encoladas', async () => {
+    const { result } = renderHook(() => useActiveWorkout('w1'))
+    await waitFor(() => expect(result.current.workoutExercises.length).toBe(1))
+
+    // La serie no llega al servidor (error transitorio, sin código): se queda en cola.
+    RESULTS.sets = { data: null, error: { message: 'Failed to fetch' } }
+    await result.current.addSet('we1', 8, 60)
+    expect(await outbox.count('w1')).toBe(1)
+
+    // Al borrar el ejercicio, su upsert encolado moriría por FK en cada
+    // reintento: se cancela junto con el padre.
+    await result.current.removeExercise('we1')
+    expect(await outbox.count('w1')).toBe(0)
+  })
+
   it('al finalizar se borra la foto', async () => {
     const { result } = renderHook(() => useActiveWorkout('w1'))
     await waitFor(() => expect(result.current.workout).toBeTruthy())

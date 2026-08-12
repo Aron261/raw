@@ -86,15 +86,30 @@ export function createOutbox(backend = openStore(STORE)) {
       return hits.length
     },
 
+    // Drop every pending op matching the predicate. Used when the row an op
+    // targets stops existing (exercise removed, workout discarded): sin esto,
+    // el upsert huérfano muere por FK en cada reintento y tapona la cola.
+    async removeWhere(pred) {
+      const hits = (await backend.getAll()).filter(pred)
+      for (const o of hits) await backend.delete(o.id)
+      if (hits.length) await bump()
+      return hits.length
+    },
+
     async clear() { await backend.clear(); seq = 0; await bump() },
 
     subscribe(cb) { subscribers.add(cb); return () => subscribers.delete(cb) },
 
-    // Drain in seq order using per-kind handlers. Stops at the first failure so
-    // ordering/dependencies hold; returns {synced, remaining, error?}.
-    async drain(handlers) {
+    // Drain in seq order using per-kind handlers. A TRANSIENT failure (offline,
+    // 5xx) stops the drain and keeps everything, so ordering/dependencies hold.
+    // A PERMANENT failure — `isPermanent(error)` true: FK, RLS, datos que el
+    // servidor nunca va a aceptar — descarta esa op y sigue con las demás:
+    // reintentarla eternamente taponaría la cola y ningún entreno podría
+    // finalizar jamás. Returns {synced, remaining, dropped, error?}.
+    async drain(handlers, { isPermanent } = {}) {
       const ops = await ordered()
       let synced = 0
+      let dropped = 0
       for (const op of ops) {
         const handler = handlers[op.kind]
         try {
@@ -102,12 +117,17 @@ export function createOutbox(backend = openStore(STORE)) {
           await backend.delete(op.id)
           synced++
         } catch (error) {
+          if (isPermanent && isPermanent(error)) {
+            await backend.delete(op.id)
+            dropped++
+            continue
+          }
           await bump()
-          return { synced, remaining: ops.length - synced, error }
+          return { synced, remaining: ops.length - synced - dropped, dropped, error }
         }
       }
-      if (synced) await bump()
-      return { synced, remaining: 0 }
+      if (synced || dropped) await bump()
+      return { synced, remaining: 0, dropped }
     },
   }
 }

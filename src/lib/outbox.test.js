@@ -26,7 +26,7 @@ describe('outbox queue', () => {
       'set.upsert': async (op) => { order.push(['upsert', op.dedupeKey]) },
       'set.delete': async (op) => { order.push(['delete', op.dedupeKey]) },
     })
-    expect(res).toEqual({ synced: 3, remaining: 0 })
+    expect(res).toEqual({ synced: 3, remaining: 0, dropped: 0 })
     expect(order).toEqual([['upsert', 's1'], ['upsert', 's2'], ['delete', 's1']])
     expect(await ob.count()).toBe(0)
   })
@@ -64,6 +64,46 @@ describe('outbox queue', () => {
     expect(await ob.count()).toBe(3)
     await ob.clear()
     expect(await ob.count()).toBe(0)
+  })
+
+  it('a permanent error drops the op and the rest still sync', async () => {
+    // Un error permanente (FK, RLS: el servidor NUNCA va a aceptar esa op)
+    // reintentaría para siempre y taponaría la cola entera — incluidas las
+    // series buenas de entrenos futuros. Se descarta y se sigue.
+    await ob.enqueue({ kind: 'set.upsert', workoutId: 'w', dedupeKey: 's1', data: {} }) // poison
+    await ob.enqueue({ kind: 'set.upsert', workoutId: 'w', dedupeKey: 's2', data: {} })
+    const fk = Object.assign(new Error('violates foreign key constraint'), { code: '23503' })
+    const res = await ob.drain(
+      { 'set.upsert': async (op) => { if (op.dedupeKey === 's1') throw fk } },
+      { isPermanent: (e) => e?.code === '23503' },
+    )
+    expect(res.dropped).toBe(1)
+    expect(res.synced).toBe(1)
+    expect(res.remaining).toBe(0)
+    expect(await ob.count()).toBe(0)
+  })
+
+  it('a transient error still stops the queue even with isPermanent given', async () => {
+    await ob.enqueue({ kind: 'set.upsert', workoutId: 'w', dedupeKey: 's1', data: {} })
+    await ob.enqueue({ kind: 'set.upsert', workoutId: 'w', dedupeKey: 's2', data: {} })
+    const res = await ob.drain(
+      { 'set.upsert': async () => { throw new Error('Failed to fetch') } },
+      { isPermanent: (e) => e?.code === '23503' },
+    )
+    expect(res.dropped).toBe(0)
+    expect(res.synced).toBe(0)
+    expect(res.remaining).toBe(2)
+    expect(await ob.count()).toBe(2)
+  })
+
+  it('removeWhere purges the ops of a deleted parent', async () => {
+    await ob.enqueue({ kind: 'set.upsert', workoutId: 'wA', dedupeKey: 'a', data: { workout_exercise_id: 'we1' } })
+    await ob.enqueue({ kind: 'set.delete', workoutId: 'wA', dedupeKey: 'b', data: { id: 'b' } })
+    await ob.enqueue({ kind: 'set.upsert', workoutId: 'wB', dedupeKey: 'c', data: { workout_exercise_id: 'we9' } })
+    const n = await ob.removeWhere(op => op.workoutId === 'wA')
+    expect(n).toBe(2)
+    expect(await ob.count('wA')).toBe(0)
+    expect(await ob.count('wB')).toBe(1)
   })
 
   it('notifies subscribers on enqueue, drain, and clear', async () => {

@@ -183,6 +183,9 @@ export function useWorkouts() {
     try {
       const { error: err } = await supabase.from('workouts').delete().eq('id', id)
       if (err) throw err
+      // El entreno ya no existe: sus ops encoladas (descartar con series sin
+      // sincronizar) solo pueden fallar por FK para siempre. Fuera con él.
+      await outbox.removeWhere(op => op.workoutId === id)
       await fetchWorkouts()
     } catch (err) {
       console.error('Error deleting workout:', err)
@@ -395,8 +398,11 @@ export function useActiveWorkout(workoutId) {
     // Flush queued sets before closing the workout, so what's finished on the
     // server is what the lifter actually logged. Ops are idempotent, so this
     // is safe even if the background loop drains at the same time.
-    const res = await outbox.drain(syncHandlers)
-    if (res.remaining > 0) throw new Error('Quedan series sin sincronizar. Reconéctate para finalizar.')
+    // El candado es SOLO sobre las ops de ESTE entreno: exigir la cola global
+    // vacía dejaba una op atascada de otro entreno bloqueando todos los cierres
+    // futuros, con el contador de este en 0 — un error indescifrable.
+    await outbox.drain(syncHandlers, { isPermanent: isPermanentSyncError })
+    if ((await outbox.count(workoutId)) > 0) throw new Error('Quedan series sin sincronizar. Reconéctate para finalizar.')
     const endedAt = new Date().toISOString()
     const { error: err } = await supabase
       .from('workouts')
@@ -469,12 +475,17 @@ export function useActiveWorkout(workoutId) {
     },
   }
 
+  // Permanente = el servidor NUNCA va a aceptar esta op: integridad (23xxx,
+  // p. ej. FK de un ejercicio ya borrado), permisos/RLS (42xxx) o datos
+  // inválidos (22xxx). Un error de red no trae SQLSTATE y se queda en cola.
+  const isPermanentSyncError = (error) => /^(22|23|42)\d{3}$/.test(String(error?.code ?? ''))
+
   const sync = useCallback(async () => {
     if (syncing.current) return
     if (typeof navigator !== 'undefined' && navigator.onLine === false) return
     syncing.current = true
     try {
-      const res = await outbox.drain(syncHandlers)
+      const res = await outbox.drain(syncHandlers, { isPermanent: isPermanentSyncError })
       // A clean drain means the server now matches local state; reconcile once
       // to pick up server-authoritative fields (created_at, ordering).
       if (res.remaining === 0 && (await outbox.count(workoutId)) === 0) {
@@ -605,6 +616,11 @@ export function useActiveWorkout(workoutId) {
       .delete()
       .eq('id', workoutExerciseId)
     if (err) throw err
+    // Las series de este ejercicio aún en cola morirían por FK en cada
+    // reintento (el padre ya no existe): se cancelan con él. Los set.delete
+    // pendientes pueden quedarse — borrar una fila ya borrada no falla.
+    await outbox.removeWhere(op =>
+      op.kind === 'set.upsert' && op.data?.workout_exercise_id === workoutExerciseId)
     await fetchWorkout()
   }
 
