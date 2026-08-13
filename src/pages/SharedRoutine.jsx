@@ -118,7 +118,7 @@ export default function SharedRoutine() {
       <Shell>
         <Brand />
         <h1 style={{ color: 'var(--c-text)', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '8px' }}>
-          {t(t('Este enlace ya no está disponible'))}
+          {t('Este enlace ya no está disponible')}
         </h1>
         <p style={{ color: 'var(--c-text-dim)', fontSize: '13px', lineHeight: 1.5, marginBottom: '20px' }}>
           {t('Puede que quien lo compartió lo haya desactivado. Pídele uno nuevo.')}
@@ -186,13 +186,13 @@ export default function SharedRoutine() {
         {/* Meta: lo que define el plan de un vistazo. */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '12px', marginBottom: '24px' }}>
           <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>
-            {days.length} {days.length === 1 ? 'día' : 'días'}
+            {days.length} {t(days.length === 1 ? 'día' : 'días')}
           </span>
-          <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {exercises} ejercicios</span>
+          <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {exercises} {t('ejercicios')}</span>
           {shared.goal && <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {shared.goal}</span>}
           {shared.level && <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {shared.level}</span>}
           {shared.days_per_week && (
-            <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {shared.days_per_week} días/sem</span>
+            <span style={{ color: 'var(--c-text-muted)', fontSize: '10px' }}>· {shared.days_per_week} {t('días/sem')}</span>
           )}
         </div>
 

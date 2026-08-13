@@ -49,6 +49,22 @@ export default function NutritionMicrosSheet({ totals, targets, entryCount = 0, 
               </div>
             )
           }
+          // Ausente ≠ cero: si ninguna comida reportó este nutriente, la barra
+          // en «0 / techo» leía como un día impecable de sodio — justo la
+          // mentira contra la que avisa el propio contrato de micros. El guion
+          // dice la verdad: no se sabe. (MicroGrid ya lo hacía; esta hoja no.)
+          if (totals?.micros?.[n.key] === undefined) {
+            return (
+              <div key={n.key} style={{ minWidth: 0 }}>
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginBottom: '5px' }}>
+                  {t(n.label)}
+                </p>
+                <p className="tnum" style={{ fontSize: '13px', fontWeight: 800, color: 'var(--c-text-ghost)' }}>
+                  — <span style={{ fontWeight: 400, fontSize: '11px' }}>/ {objetivo} {n.unit}</span>
+                </p>
+              </div>
+            )
+          }
           return (
             <MacroBar
               key={n.key}

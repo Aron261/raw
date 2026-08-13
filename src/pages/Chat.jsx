@@ -132,6 +132,7 @@ export default function Chat() {
         <textarea
           aria-label={t('Escribe un mensaje')}
           value={text}
+          maxLength={4000}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
           placeholder="Escribe un mensaje..."

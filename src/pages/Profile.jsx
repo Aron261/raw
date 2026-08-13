@@ -933,6 +933,12 @@ function TrainerSection() {
       {/* Vincular entrenador por código */}
       <div>
         <label style={LABEL}>{t('Vincular un entrenador (código)')}</label>
+        {/* El alcance ANTES del canje: vincular no es un follow, es darle a
+            alguien lectura de tus datos y edición de tu plan. Decirlo después
+            no es consentimiento. */}
+        <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5, margin: '2px 0 8px' }}>
+          {t('Tu entrenador podrá ver tu perfil, tus entrenos, tu nutrición y tu peso, y editar tus rutinas, metas y objetivos de nutrición. Puedes desvincularlo cuando quieras.')}
+        </p>
         <div style={{ display: 'flex', gap: '8px' }}>
           <input
             type="text"

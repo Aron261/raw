@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useAdmin } from '../hooks/useAdmin'
@@ -68,6 +68,14 @@ function UserRow({ u, onSetBeta, onSetAdmin, onSetPlan, onDelete, onError }) {
   const [busy, setBusy] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
 
+  // El «Confirmar» armado no se queda esperando un toque perdido: un borrado
+  // permanente no debería poder ocurrir por rozar la tabla minutos después.
+  useEffect(() => {
+    if (!confirmDel) return
+    const timer = setTimeout(() => setConfirmDel(false), 4000)
+    return () => clearTimeout(timer)
+  }, [confirmDel])
+
   const wrap = (fn) => async () => {
     setBusy(true)
     try { await fn() } catch (e) { onError(e.message || 'Error') } finally { setBusy(false) }
@@ -104,7 +112,7 @@ function UserRow({ u, onSetBeta, onSetAdmin, onSetPlan, onDelete, onError }) {
           <button type="button" disabled={busy} onClick={wrap(() => onSetBeta(u.id, !u.beta_approved))}
             style={btnStyle}>{t(u.beta_approved ? 'Quitar beta' : 'Dar beta')}</button>
           <button type="button" disabled={busy} onClick={wrap(() => onSetAdmin(u.id, !u.is_admin))}
-            style={btnStyle}>{u.is_admin ? 'Quitar admin' : 'Hacer admin'}</button>
+            style={btnStyle}>{t(u.is_admin ? 'Quitar admin' : 'Hacer admin')}</button>
           {/* Rota free → pro → coach → free: tres planes no ameritan un menú. */}
           <button type="button" disabled={busy}
             onClick={wrap(() => onSetPlan(u.id, { free: 'pro', pro: 'coach', coach: 'free' }[u.plan || 'free']))}
@@ -160,7 +168,7 @@ export default function Admin() {
             <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '26px', fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--c-text)', lineHeight: 1 }}>{t('Panel de control')}</h1>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button type="button" onClick={refetch} style={{ ...btnStyle, padding: '8px 12px' }}>↻ Refrescar</button>
+            <button type="button" onClick={refetch} style={{ ...btnStyle, padding: '8px 12px' }}>↻ {t('Refrescar')}</button>
             <button type="button" onClick={() => navigate('/')} style={{ ...btnStyle, padding: '8px 12px' }}>{t('Volver a la app')}</button>
           </div>
         </div>

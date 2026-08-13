@@ -87,9 +87,20 @@ describe('cobertura', () => {
 
 describe('objetivos', () => {
   it('un nutriente sin objetivo se pinta con un guion, no con una barra a cero', () => {
-    const { container } = abrir({ targets: { micros: { sodio: 2300 } } })
+    // El sodio trae dato Y objetivo: es la única barra. El resto, guion.
+    const { container } = abrir({
+      targets: { micros: { sodio: 2300 } },
+      totals: { micros: { sodio: 800 } },
+    })
     expect(screen.getAllByText('—').length).toBeGreaterThan(0)
     expect(container.querySelectorAll('div[role="progressbar"]').length).toBe(1)
+  })
+
+  it('con objetivo pero SIN dato, guion — «0 / techo» leería como un día impecable', () => {
+    // Ninguna comida reportó sodio: ausente significa desconocido, no cero.
+    const { container } = abrir({ targets: { micros: { sodio: 2300 } }, totals: { micros: {} } })
+    expect(container.querySelectorAll('div[role="progressbar"]').length).toBe(0)
+    expect(screen.getAllByText('—').length).toBeGreaterThan(0)
   })
 
   it('sin ningún objetivo ofrece calcularlos', () => {

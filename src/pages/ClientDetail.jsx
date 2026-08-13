@@ -90,7 +90,7 @@ function NutritionSection({ clientId, clientName, clientProfile, onOpenLog }) {
             {t('Sin plan de nutrición')}
           </p>
           <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', lineHeight: 1.5 }}>
-            Define las calorías y macros diarios de {clientName}.
+            {t('Define las calorías y macros diarios de {name}.', { name: clientName })}
           </p>
         </div>
       ) : (
@@ -113,16 +113,16 @@ function NutritionSection({ clientId, clientName, clientProfile, onOpenLog }) {
             </span>
           </p>
           <div style={{ display: 'flex', gap: '14px' }}>
-            <MacroBar label="Proteína" current={todayTotals.protein} target={targets.protein_g} />
-            <MacroBar label="Carbos"   current={todayTotals.carbs}   target={targets.carbs_g} />
-            <MacroBar label="Grasa"    current={todayTotals.fat}     target={targets.fat_g} />
+            <MacroBar label={t('Proteína')} current={todayTotals.protein} target={targets.protein_g} />
+            <MacroBar label={t('Carbos')}   current={todayTotals.carbs}   target={targets.carbs_g} />
+            <MacroBar label={t('Grasa')}    current={todayTotals.fat}     target={targets.fat_g} />
           </div>
 
           {/* Últimos 7 días */}
           <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--c-border-subtle)' }}>
-            Últimos 7 días: {daysLogged === 0
-              ? 'sin registros'
-              : `${daysLogged} ${daysLogged === 1 ? 'día registrado' : 'días registrados'} · prom. ${fmt(avgKcal, locale)} kcal`}
+            {t('Últimos 7 días:')} {daysLogged === 0
+              ? t('sin registros')
+              : `${daysLogged} ${t(daysLogged === 1 ? 'día registrado' : 'días registrados')} · ${t('prom.')} ${fmt(avgKcal, locale)} kcal`}
           </p>
         </div>
       )}
@@ -132,8 +132,8 @@ function NutritionSection({ clientId, clientName, clientProfile, onOpenLog }) {
           targets={targets}
           userId={clientId}
           profile={clientProfile}
-          title="Plan de nutrición"
-          subtitle={`Calorías y macros diarios para ${clientName}.`}
+          title={t('Plan de nutrición')}
+          subtitle={t('Calorías y macros diarios para {name}.', { name: clientName })}
           onSave={async (fields) => { await saveTargets(fields); setShowPlan(false) }}
           onClose={() => setShowPlan(false)}
         />
@@ -164,6 +164,9 @@ function routineToBuilderDays(routine) {
       sets: ex.sets == null ? '' : String(ex.sets),
       reps: ex.reps || '',
       notes: ex.notes || '',
+      // Sin campo en el constructor, pero viaja con el ejercicio: copiar una
+      // rutina por aquí perdía los descansos que el envío directo sí conserva.
+      rest_seconds: ex.rest_seconds ?? null,
     })),
   }))
   // El constructor asume al menos un día con al menos un ejercicio editable.
@@ -249,6 +252,7 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
           sets: e.sets !== '' ? parseInt(e.sets, 10) : null,
           reps: e.reps.trim() || null,
           notes: e.notes.trim() || null,
+          rest_seconds: e.rest_seconds ?? null,
         })),
     }))
 
@@ -792,7 +796,7 @@ export default function ClientDetail() {
                             <span style={{ color: 'var(--c-action-text)', fontSize: '9px', fontWeight: 800, letterSpacing: '-0.01em' }}>· Activo</span>
                           )}
                           {r.assigned_by && (
-                            <span style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700 }}>· Asignada por ti</span>
+                            <span style={{ color: 'var(--c-text-muted)', fontSize: '9px', fontWeight: 700 }}>· {t('Asignada por ti')}</span>
                           )}
                         </div>
                       </div>
@@ -835,7 +839,7 @@ export default function ClientDetail() {
                     <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700 }}>{g.label}</p>
                     <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', marginTop: '2px' }}>
                       Objetivo: {g.target_value} {g.unit}
-                      {g.assigned_by ? ' · Asignada por ti' : ''}
+                      {g.assigned_by ? ` · ${t('Asignada por ti')}` : ''}
                     </p>
                   </div>
                   <button onClick={() => run(() => deleteGoal(g.id))} aria-label="Eliminar" style={{ color: 'var(--c-text-ghost)', fontSize: '12px', padding: '2px 4px' }}

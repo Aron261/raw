@@ -159,7 +159,10 @@ export function useTrainer() {
     }
   }
 
-  const activeInvites = invites.filter(i => !i.used_by)
+  // Un código vencido no es «activo»: seguía listado y el entrenador lo
+  // compartía solo para que muriera en el canje con «Código inválido».
+  const activeInvites = invites.filter(i =>
+    !i.used_by && (!i.expires_at || new Date(i.expires_at) > new Date()))
 
   return {
     isTrainer,

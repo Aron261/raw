@@ -767,6 +767,9 @@ export default function Training() {
   // que planear un cardio sirva para algo más que pintar un punto.
   const weekMinutes = useMemo(() => loggedMinutes(sessions, {
     from: toLocalISODate(mondayOf(new Date())),
+    // Hasta hoy: un cardio registrado en un día futuro (posible desde la hoja
+    // de log) no cuenta todavía en «esta semana».
+    to: toLocalISODate(),
   }), [sessions])
 
   const hasNonLifting = useMemo(
