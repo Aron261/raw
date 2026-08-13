@@ -3,16 +3,13 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { calc1RM, calc1RMKg, calcVolume } from './useWorkout'
 import { useCachedResource } from '../lib/swr'
+import { weekKey as calWeekKey } from '../lib/calendar'
 
-// Returns the ISO Monday for any given date
-function getWeekKey(date) {
-  const d = new Date(date)
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  const monday = new Date(d)
-  monday.setDate(diff)
-  return monday.toISOString().slice(0, 10)
-}
+// La clave de semana es la del calendario (lunes LOCAL, serializado local).
+// La versión casera calculaba el lunes local y luego lo serializaba con
+// toISOString(): en UTC-5, un entreno de después de las 7pm caía en la clave
+// del día UTC siguiente y desaparecía de la gráfica semanal del coach.
+const getWeekKey = (date) => calWeekKey(date)
 
 // Generate the last N week keys (Monday dates), oldest first
 function getLastNWeeks(n = 8) {
@@ -27,7 +24,9 @@ function getLastNWeeks(n = 8) {
 }
 
 function weekLabel(isoDate) {
-  return new Date(isoDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  // Mediodía local: 'YYYY-MM-DD' a secas se interpreta como UTC y en una zona
+  // negativa la etiqueta retrocedía un día. El idioma respeta el del navegador.
+  return new Date(`${isoDate}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
 // useDashboard(targetUserId?) — sin argumento, dashboard del usuario actual.
@@ -58,7 +57,7 @@ export function useDashboard(targetUserId = null) {
 
         // ── Weekly data ────────────────────────────────────────────────
         const weekKeys = getLastNWeeks(8)
-        const cutoff = new Date(weekKeys[0])
+        const cutoff = new Date(`${weekKeys[0]}T00:00:00`)  // lunes 00:00 LOCAL, no UTC
         const weekMap = Object.fromEntries(
           weekKeys.map(k => [k, { week: k, label: weekLabel(k), count: 0, volume: 0 }])
         )

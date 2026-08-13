@@ -155,6 +155,20 @@ export function projectCycle({
     if (w.ended_at && w.started_at) taken.add(toLocalISODate(new Date(w.started_at)))
   }
 
+  // Un plan FIJADO a un día de ESTE ciclo consume su turno en la rotación.
+  // Sin esto, fijar el ghost «d1» del lunes dejaba el índice quieto y el
+  // siguiente hueco proyectaba «d1» otra vez: la rejilla se contradecía con lo
+  // que el usuario acababa de fijar. Un cardio o un plan libre sí ceden el
+  // sitio sin consumir turno (eso es lo que prueba el caso del 12→14).
+  const pinnedByDate = new Map()
+  for (const s of sessions) {
+    if (s.kind === 'strength' && s.status !== 'skipped'
+        && s.routine_id === activeCycle.id && s.routine_day_id) {
+      pinnedByDate.set(s.date, s.routine_day_id)
+    }
+  }
+  const dayPos = new Map(days.map((d, i) => [d.id, i]))
+
   let idx = rotationIndex(days, workouts, activeCycle.id)
 
   const out = []
@@ -172,6 +186,9 @@ export function projectCycle({
         ghost: true,
       })
       idx++
+    } else if (iso >= fromISO && pinnedByDate.has(iso)) {
+      const pos = dayPos.get(pinnedByDate.get(iso))
+      if (pos !== undefined) idx = pos + 1
     }
     cursor.setDate(cursor.getDate() + 1)
   }

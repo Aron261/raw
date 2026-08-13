@@ -197,6 +197,22 @@ describe('projectCycle', () => {
     expect(got.find(g => g.date === '2026-08-14').day.id).toBe('d2')
   })
 
+  it('fijar el ghost consume su turno: la rotación avanza, no se repite', () => {
+    // «Fijar» el d1 del lunes crea un plan vinculado a ese día de rutina. El
+    // siguiente hueco libre (el miércoles) debe proyectar d2 — no d1 otra vez,
+    // que dejaba la rejilla contradiciendo lo que el usuario acababa de fijar:
+    // «d1 (Planeado)» el 10 y un ghost «d1 (Previsto)» el 12.
+    const got = projectCycle({
+      activeCycle: cycle(),
+      workouts: history(),
+      sessions: [session('2026-08-10', { routine_id: 'cycle-1', routine_day_id: 'd1' })],
+      from,
+      horizonDays: 7,
+    })
+    expect(got.map(g => g.date)).not.toContain('2026-08-10')
+    expect(got.find(g => g.date === '2026-08-12').day.id).toBe('d2')
+  })
+
   it('no proyecta sobre un día ya entrenado', () => {
     const ws = [...history(), workout('2026-08-10', { routine_id: 'cycle-1', routine_day_id: 'd1' })]
     const got = projectCycle({ activeCycle: cycle(), workouts: ws, from, horizonDays: 7 })

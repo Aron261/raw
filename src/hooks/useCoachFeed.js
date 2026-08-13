@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { calc1RM, calcVolume } from './useWorkout'
+import { calc1RMKg, calcVolume } from './useWorkout'
 
 // Pure feed builder — separated from the fetch so it can be tested without a
 // database. Given finished workouts (any order) and a clientId→name map,
 // returns feed items newest-first with volume and a PR flag. PRs are per
-// client, keyed by canonical exercise (library_id), computed oldest→newest so
-// "best so far" is honest.
+// client, keyed by canonical exercise (library_id), computed oldest→newest —
+// EN KILOS (las sesiones pueden mezclar kg y lb) y solo contra un listón
+// VISTO: el feed trabaja sobre una ventana del historial, así que la primera
+// aparición de un ejercicio no puede reclamar récord — el cliente pudo
+// levantar más antes de la ventana. Señal ganada, no adivinada.
 export function buildCoachFeed(workouts, nameById = {}) {
   const prIds = new Set()
   const best = {}
@@ -18,8 +21,11 @@ export function buildCoachFeed(workouts, nameById = {}) {
       if (!exKey) continue
       const bk = `${w.user_id}:${exKey}`
       for (const s of we.sets || []) {
-        const rm = calc1RM(s.weight, s.reps)
-        if (rm > 0 && rm > (best[bk] || 0)) { best[bk] = rm; isPR = true }
+        const rm = calc1RMKg(s.weight, s.reps, we.unit)
+        if (rm <= 0) continue
+        const prev = best[bk]
+        if (prev !== undefined && rm > prev) isPR = true
+        if (rm > (prev ?? 0)) best[bk] = rm
       }
     }
     if (isPR) prIds.add(w.id)
@@ -65,15 +71,24 @@ export function useCoachFeed(clients) {
     setLoading(true)
     setError(null)
     try {
-      const { data, error: err } = await supabase
-        .from('workouts')
-        .select('id, name, user_id, started_at, ended_at, workout_exercises(unit, exercises(id, library_id), sets(reps, weight))')
-        .in('user_id', ids)
-        .not('ended_at', 'is', null)
-        .order('started_at', { ascending: false })
-        .limit(200)
-      if (err) throw err
-      setFeed(buildCoachFeed(data || [], nameById))
+      // Por cliente, no una ventana global: con limit(200) compartido, un
+      // cliente muy activo expulsaba del feed a los callados. 30 recientes por
+      // cabeza dan además listón dentro de la ventana para el cálculo de PR.
+      const results = await Promise.all(ids.map(id =>
+        supabase
+          .from('workouts')
+          .select('id, name, user_id, started_at, ended_at, workout_exercises(unit, exercises(id, library_id), sets(reps, weight))')
+          .eq('user_id', id)
+          .not('ended_at', 'is', null)
+          .order('started_at', { ascending: false })
+          .limit(30)
+      ))
+      const rows = []
+      for (const r of results) {
+        if (r.error) throw r.error
+        rows.push(...(r.data || []))
+      }
+      setFeed(buildCoachFeed(rows, nameById))
     } catch (e) {
       console.error('Error fetching coach feed:', e)
       setError(e.message || 'Error inesperado')
