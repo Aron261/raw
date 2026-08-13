@@ -204,7 +204,7 @@ describe('DayView — borrar', () => {
     fireEvent.click(screen.getByLabelText('Eliminar: Bici'))
     // Nada se ha borrado todavía — solo se ha preguntado.
     expect(p.onDelete).not.toHaveBeenCalled()
-    expect(screen.getByText('Se repite cada semana')).toBeTruthy()
+    expect(screen.getByText('Parte de una serie')).toBeTruthy()
 
     fireEvent.click(screen.getByText('Solo este día'))
     await waitFor(() => expect(p.onDelete).toHaveBeenCalledWith('s2'))
@@ -222,7 +222,7 @@ describe('DayView — borrar', () => {
 
   it('declara que una sesión pertenece a una serie', () => {
     render(<DayView {...props({ sessions: [inSeries] })} />)
-    expect(screen.getByText('Cardio · Planeado · Cada semana')).toBeTruthy()
+    expect(screen.getByText('Cardio · Planeado · Parte de una serie')).toBeTruthy()
   })
 })
 

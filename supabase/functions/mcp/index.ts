@@ -126,6 +126,32 @@ async function handleMessage(msg: any, req: Request): Promise<unknown | null> {
   return rpcError(id, -32601, `Método no soportado: ${method}`)
 }
 
+// ── Rate limit ────────────────────────────────────────────────────────────
+// Token bucket por IP, en memoria del isolate. No es exacto (cada isolate
+// lleva su propia cuenta y un redeploy la borra) y no protege datos — eso ya
+// lo hacen el token y RLS. Protege COSTO: sin esto, un flooder anónimo quemaba
+// invocaciones y peticiones de Auth a voluntad, y un solo POST podía traer un
+// lote arbitrariamente largo procesado en serie.
+const RL_BURST = 30            // ráfaga máxima por IP
+const RL_PER_SECOND = 2        // reposición
+const MAX_BATCH = 20           // mensajes por lote JSON-RPC
+const buckets = new Map<string, { tokens: number; ts: number }>()
+
+function rateLimited(req: Request): boolean {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'sin-ip'
+  const now = Date.now()
+  const b = buckets.get(ip) ?? { tokens: RL_BURST, ts: now }
+  b.tokens = Math.min(RL_BURST, b.tokens + ((now - b.ts) / 1000) * RL_PER_SECOND)
+  b.ts = now
+  const limited = b.tokens < 1
+  if (!limited) b.tokens -= 1
+  buckets.set(ip, b)
+  // Tope de memoria: ante un ataque distribuido se prefiere olvidar cuentas a
+  // crecer sin límite. Olvidar re-regala una ráfaga; aceptable para costo.
+  if (buckets.size > 10_000) buckets.clear()
+  return limited
+}
+
 // ── Servidor HTTP ─────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
@@ -152,11 +178,21 @@ Deno.serve(async (req) => {
     return json({ error: 'Método no permitido' }, 405)
   }
 
+  if (rateLimited(req)) {
+    return json(rpcError(null, -32000, 'Demasiadas peticiones. Espera un momento e inténtalo de nuevo.'), 429, {
+      'Retry-After': '10',
+    })
+  }
+
   let payload: unknown
   try {
     payload = await req.json()
   } catch {
     return json(rpcError(null, -32700, 'JSON inválido'), 400)
+  }
+
+  if (Array.isArray(payload) && payload.length > MAX_BATCH) {
+    return json(rpcError(null, -32600, `El lote supera el máximo de ${MAX_BATCH} mensajes.`), 400)
   }
 
   try {
