@@ -10,6 +10,7 @@ import { useProfile } from './hooks/useProfile'
 // only ships the shell + whatever route the user landed on. Recharts and other
 // heavy per-page deps ride along in their route's chunk instead of the entry.
 const BetaGate       = lazy(() => import('./pages/BetaGate'))
+const Landing        = lazy(() => import('./pages/Landing'))
 const Auth           = lazy(() => import('./pages/Auth'))
 const ResetPassword  = lazy(() => import('./pages/ResetPassword'))
 const Training       = lazy(() => import('./pages/Training'))
@@ -128,6 +129,16 @@ function R({ auth, element }) {
   return <RequireAuth auth={auth}>{element}</RequireAuth>
 }
 
+// La raíz es la única ruta con dos caras: sin sesión es la landing pública
+// (antes era un rebote ciego a /login y un visitante no sabía qué es Raw);
+// con sesión, exactamente lo mismo de siempre — RequireAuth incluido, para
+// que la puerta de beta y el onboarding sigan mandando.
+function RootGate({ auth }) {
+  if (auth.loading) return <Splash />
+  if (!auth.user) return <Landing />
+  return <RequireAuth auth={auth}><HomeGate /></RequireAuth>
+}
+
 // Home ("Hoy") with a cold-launch gate: the first time the app resolves the
 // workout list in this session, an in-progress workout pulls you straight
 // into it — the gym case. Navigating home afterwards never re-triggers it.
@@ -204,7 +215,7 @@ function AppWithAuth() {
           {/* Protected — home ("Inicio"): calendario + portada. El antiguo
               índice /menu se fusionó aquí (sus secciones son ahora chips en la
               portada), así que la ruta sobrevive solo como redirección. */}
-          <Route path="/"           element={<R auth={auth} element={<HomeGate />} />} />
+          <Route path="/"           element={<RootGate auth={auth} />} />
           <Route path="/menu"       element={<Navigate to="/" replace />} />
 
           {/* Entreno */}

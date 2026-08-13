@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -9,7 +9,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Raw" />
-    <meta name="description" content="Gym workout logger" />
+    <meta name="description" content="Raw: registra tu entrenamiento de fuerza serie a serie, compara contra la última sesión y deja que el ciclo se proyecte solo en tu calendario. Registra. Progresa. Nada más." />
+    <meta property="og:title" content="Raw — Registra. Progresa. Nada más." />
+    <meta property="og:description" content="Registro de fuerza serie a serie, offline y sin estorbar. PR honesto, ciclo en el calendario y nutrición que se explica." />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <title>Raw</title>
     <script>
@@ -31,6 +36,19 @@
     </script>
   </head>
   <body>
+    <!-- Lo mínimo indexable/legible sin JS: el hero de la landing, duplicado
+         a mano. Si cambia el copy de Landing.jsx, cambia también aquí. -->
+    <noscript>
+      <div style="font-family: system-ui, sans-serif; padding: 32px 20px; max-width: 680px; margin: 0 auto;">
+        <p style="font-weight: 900; font-size: 22px; margin: 0 0 24px;">RAW</p>
+        <h1 style="font-weight: 900; font-size: 44px; line-height: 1.05; margin: 0;">Registra. Progresa. Nada más.</h1>
+        <p style="font-size: 16px; line-height: 1.55; margin: 18px 0 0; max-width: 46ch;">
+          Raw es un registro de fuerza serie a serie: apuntas lo que acabas de
+          levantar, ves si le ganaste a la última sesión y sigues entrenando.
+        </p>
+        <p style="font-size: 14px; margin: 18px 0 0;">Raw necesita JavaScript para funcionar. Actívalo para entrar.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
