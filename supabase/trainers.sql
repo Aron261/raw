@@ -99,11 +99,12 @@ create policy "View own trainer links"
   on trainer_clients for select
   using (trainer_id = auth.uid() or client_id = auth.uid());
 
--- Crear: solo el propio cliente puede crear un vínculo donde él es el cliente
--- (esto ocurre vía redeem_invite, pero la política protege inserciones directas).
-create policy "Client creates own link"
-  on trainer_clients for insert
-  with check (client_id = auth.uid());
+-- Crear: NO hay política de INSERT a propósito. El canje ocurre vía
+-- redeem_invite (SECURITY DEFINER, que no pasa por RLS de INSERT). La política
+-- "Client creates own link" que vivía aquí era la fila semilla de una escalada
+-- de privilegios (ver security_fixes.sql) y ese archivo la eliminaba — pero
+-- re-ejecutar ESTE la resucitaba. Fuera de aquí, fuera de verdad.
+drop policy if exists "Client creates own link" on trainer_clients;
 
 -- Actualizar (p. ej. revocar): cualquiera de las dos partes.
 create policy "Either party updates link"
@@ -142,6 +143,7 @@ as $$
 declare
   v_invite trainer_invites%rowtype;
 begin
+  perform public.assert_app_actor('vincular un entrenador');
   select * into v_invite
   from trainer_invites
   where code = upper(trim(p_code))

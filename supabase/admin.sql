@@ -173,6 +173,7 @@ security definer
 set search_path = public
 as $$
 begin
+  perform public.assert_app_actor('cambiar acceso beta');
   if not public.is_admin() then raise exception 'No autorizado'; end if;
   perform set_config('app.allow_beta_change', 'on', true);
   insert into profiles (id, beta_approved) values (target, value)
@@ -187,6 +188,7 @@ security definer
 set search_path = public
 as $$
 begin
+  perform public.assert_app_actor('cambiar administrador');
   if not public.is_admin() then raise exception 'No autorizado'; end if;
   -- No permitir quedarse sin ningún administrador
   if value = false
@@ -208,6 +210,7 @@ security definer
 set search_path = public
 as $$
 begin
+  perform public.assert_app_actor('borrar la cuenta de otra persona');
   if not public.is_admin() then raise exception 'No autorizado'; end if;
   if target = auth.uid() then
     raise exception 'Usa "Eliminar cuenta" para tu propia cuenta';

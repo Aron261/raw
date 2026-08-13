@@ -116,8 +116,11 @@ end $$;
 do $$
 declare t text;
 begin
+  -- scheduled_sessions entró con schedule_agent_writable.sql; está aquí
+  -- también para que re-ejecutar ESTE archivo no deje su trigger atrás.
   foreach t in array array['routines','routine_days','routine_day_exercises',
-                           'goals','nutrition_entries','nutrition_foods','body_weight_logs']
+                           'goals','nutrition_entries','nutrition_foods','body_weight_logs',
+                           'scheduled_sessions']
   loop
     execute format('drop trigger if exists trg_log_agent_write on %I', t);
     execute format(
@@ -157,9 +160,14 @@ declare
   -- body_weight_logs salió de aquí: el peso corporal se ve desde un conector
   -- pero no se escribe. Quitar la herramienta del MCP no bastaba —eso es una
   -- omisión, no una garantía—; fuera de esta lista lo rechaza Postgres.
+  -- LA MISMA lista que schedule_agent_writable.sql. Cuando divergían,
+  -- re-ejecutar este archivo re-creaba las políticas de deny sobre
+  -- scheduled_sessions y revertía en silencio la escritura del calendario
+  -- desde el conector — y el chequeo final no se enteraba.
   writable text[] := array[
     'routines','routine_days','routine_day_exercises',
-    'goals','nutrition_entries','nutrition_foods'
+    'goals','nutrition_entries','nutrition_foods',
+    'scheduled_sessions'
   ];
 begin
   for t in
@@ -313,7 +321,8 @@ begin
   where n.nspname = 'public' and c.relkind = 'r' and c.relrowsecurity
     and c.relname <> all (array[
       'routines','routine_days','routine_day_exercises',
-      'goals','nutrition_entries','nutrition_foods','body_weight_logs'
+      'goals','nutrition_entries','nutrition_foods','body_weight_logs',
+      'scheduled_sessions'
     ])
     and (select count(*) from pg_policy p
          where p.polrelid = c.oid

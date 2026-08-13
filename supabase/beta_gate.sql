@@ -29,9 +29,13 @@ create table if not exists app_settings (
   key   text primary key,
   value text not null
 );
+-- El código REAL no vive en el repo (esto es público en GitHub) y este insert
+-- no pisa el que ya esté configurado: DO NOTHING, no DO UPDATE — re-ejecutar
+-- este archivo pisaba el código vivo con el del repo. Para fijarlo o rotarlo:
+--   update app_settings set value = 'NUEVO' where key = 'beta_code';
 insert into app_settings (key, value)
-values ('beta_code', 'RAW2026')
-on conflict (key) do update set value = excluded.value;
+values ('beta_code', 'CAMBIA-ESTE-CODIGO')
+on conflict (key) do nothing;
 
 alter table app_settings enable row level security;
 
@@ -50,6 +54,10 @@ revoke execute on function public.is_beta_approved() from anon;
 grant  execute on function public.is_beta_approved() to authenticated;
 
 -- 5. Canjear el código beta
+-- Cuerpo CANÓNICO, idéntico al de agent_account_guard.sql: lleva el
+-- assert_app_actor (un conector no puede autoaprobarse) y el set_config que
+-- exige el trigger de security_fixes.sql. Antes cada archivo tenía su propia
+-- versión y re-ejecutar el más viejo borraba en silencio las guardas nuevas.
 create or replace function public.redeem_beta_code(p_code text)
 returns void
 language plpgsql
@@ -59,6 +67,7 @@ as $$
 declare
   v_code text;
 begin
+  perform public.assert_app_actor('canjear el código beta');
   select value into v_code from app_settings where key = 'beta_code';
   if v_code is null then
     raise exception 'Beta no configurada';
@@ -66,6 +75,8 @@ begin
   if upper(trim(p_code)) <> upper(v_code) then
     raise exception 'Código beta inválido';
   end if;
+
+  perform set_config('app.allow_beta_change', 'on', true);
   insert into profiles (id, beta_approved)
   values (auth.uid(), true)
   on conflict (id) do update set beta_approved = true;

@@ -106,6 +106,7 @@ as $$
 declare
   v_code text;
 begin
+  perform public.assert_app_actor('canjear el código beta');
   select value into v_code from app_settings where key = 'beta_code';
   if v_code is null then
     raise exception 'Beta no configurada';
