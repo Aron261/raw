@@ -24,7 +24,8 @@ export default defineConfig({
       manifest: {
         name: 'Raw',
         short_name: 'Raw',
-        description: 'Gym workout logger',
+        lang: 'es',
+        description: 'Registro de entrenamiento de fuerza: serie a serie, sin estorbar.',
         // El hueso del modo claro. Es el color del chrome del sistema y del
         // splash cuando la app está instalada: si se queda con el gris del
         // sistema anterior, la app instalada arranca con un marco que ya no
@@ -41,6 +42,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // La imagen social solo la piden los crawlers al desplegar un enlace;
+        // precachearla en cada instalación es peso muerto para la app.
+        globIgnores: ['og.png'],
         // Los listeners de push viven en public/push-sw.js y se enganchan aquí.
         // La alternativa era pasarse a injectManifest y escribir el service
         // worker entero a mano, lo que obliga a hacerse cargo también de todo
