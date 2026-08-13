@@ -34,11 +34,16 @@ export default function Onboarding({ onDone }) {
 
   const guardar = async () => {
     const limpio = name.trim()
-    await saveProfile({
+    const ok = await saveProfile({
       ...(limpio ? { name: limpio } : {}),
       weight_unit: unit,
       goal,
     })
+    // Sin guardado no hay despedida: cerrar con el save fallido perdía nombre,
+    // unidad y objetivo en silencio Y sellaba el skip — el onboarding no
+    // volvía a aparecer en este dispositivo. El error queda a la vista y se
+    // puede reintentar (o salir con «Ahora no», que sí es una decisión).
+    if (!ok) return
     onDone?.()
   }
 

@@ -52,8 +52,11 @@ export function useProfile() {
   }, [user, data, key])
   const error = loadError ? (loadError.message || 'Error inesperado') : null
 
+  // Devuelve true/false: el error ya se expone en saveError, pero quien llama
+  // necesita saber si puede CERRAR su pantalla — el onboarding se despedía con
+  // el guardado fallido y el mensaje de error se desmontaba sin ser leído.
   const saveProfile = async (updates) => {
-    if (!user) return
+    if (!user) return false
     setSaving(true)
     setSaveError(null)
     setSaveSuccess(false)
@@ -66,8 +69,10 @@ export function useProfile() {
       mutateCache(key, prev => ({ ...(prev || {}), ...updates }))
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 2500)
+      return true
     } catch (err) {
       setSaveError(err.message)
+      return false
     } finally {
       setSaving(false)
     }

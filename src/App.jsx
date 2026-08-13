@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useNavigationType, useParams } from 'react-router-dom'
 import ErrorBoundary from './components/ErrorBoundary'
-import { AuthContext, useAuthProvider } from './hooks/useAuth'
+import { AuthContext, useAuth, useAuthProvider } from './hooks/useAuth'
 import { useBetaGate } from './hooks/useBetaGate'
 import { useWorkouts } from './hooks/useWorkout'
 import { useProfile } from './hooks/useProfile'
@@ -92,14 +92,19 @@ function RequireAuth({ children, auth }) {
 // ya tenga cuenta no ve esto jamás. Y quien diga «ahora no» tampoco vuelve a
 // verlo en este dispositivo: insistir en cada navegación no consigue un perfil
 // completo, consigue un nombre escrito de mala gana.
-const ONBOARDING_SKIP = 'raw.onboardingSkipped'
-const seSalto = () => {
-  try { return window.localStorage.getItem(ONBOARDING_SKIP) === '1' } catch { return false }
+// La clave lleva el id del usuario: era global por dispositivo, así que en un
+// teléfono compartido la segunda cuenta jamás veía el onboarding, y quien
+// borraba su cuenta y volvía a registrarse tampoco. Por usuario, cada cuenta
+// decide por sí misma — y borrar la cuenta se limpia solo (uid nuevo, clave nueva).
+const skipKeyFor = (uid) => `raw.onboardingSkipped.${uid || 'anon'}`
+const seSalto = (uid) => {
+  try { return window.localStorage.getItem(skipKeyFor(uid)) === '1' } catch { return false }
 }
 
 function OnboardingGate({ children }) {
+  const { user } = useAuth()
   const { profile, loading } = useProfile()
-  const [skipped, setSkipped] = useState(seSalto)
+  const [skipped, setSkipped] = useState(() => seSalto(user?.id))
 
   // Sin perfil todavía cargado no se decide nada: enseñar el onboarding a
   // alguien que sí tiene nombre, aunque sea un instante, es peor que esperar.
@@ -109,7 +114,7 @@ function OnboardingGate({ children }) {
     return (
       <Onboarding
         onDone={() => {
-          try { window.localStorage.setItem(ONBOARDING_SKIP, '1') } catch { /* solo esta sesión */ }
+          try { window.localStorage.setItem(skipKeyFor(user?.id), '1') } catch { /* solo esta sesión */ }
           setSkipped(true)
         }}
       />

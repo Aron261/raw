@@ -17,7 +17,8 @@ vi.mock('../hooks/useLang', () => ({
   useLang: () => ({ t: (x) => x, locale: 'es-CO', lang: 'es' }),
 }))
 
-const saveProfile = vi.fn().mockResolvedValue(undefined)
+// saveProfile devuelve true si guardó, false si no (el hook atrapa su error).
+const saveProfile = vi.fn().mockResolvedValue(true)
 const estado = { saving: false, saveError: null }
 vi.mock('../hooks/useProfile', () => ({
   useProfile: () => ({ saveProfile, ...estado }),
@@ -89,6 +90,17 @@ describe('errores', () => {
     estado.saveError = 'No hay conexión'
     render(<Onboarding onDone={() => {}} />)
     expect(screen.getByText('No hay conexión')).toBeTruthy()
+  })
+
+  it('un guardado fallido NO despide la pantalla', async () => {
+    // Cerrarse con el save fallido perdía nombre/unidad/objetivo en silencio
+    // Y sellaba el skip: el onboarding no volvía a aparecer en el dispositivo.
+    saveProfile.mockResolvedValueOnce(false)
+    const onDone = vi.fn()
+    render(<Onboarding onDone={onDone} />)
+    fireEvent.click(screen.getByText('Empezar'))
+    await waitFor(() => expect(saveProfile).toHaveBeenCalled())
+    expect(onDone).not.toHaveBeenCalled()
   })
 
   it('mientras guarda, el botón no se puede repulsar', () => {
