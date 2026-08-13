@@ -6,6 +6,18 @@ import { ERROR_STYLE, pressProps } from '../lib/ui'
 import { Button, Logo } from '../components/ui'
 import { useLang } from '../hooks/useLang'
 
+// Los errores de Supabase Auth llegan en inglés técnico ('Invalid login
+// credentials'). En la pantalla más sensible de la app no se muestra jerga de
+// proveedor: se traducen los conocidos y el resto cae en un genérico honesto.
+function authErrorMessage(err, t) {
+  const m = err?.message || ''
+  if (/invalid login credentials/i.test(m)) return t('Email o contraseña incorrectos.')
+  if (/email not confirmed/i.test(m)) return t('Confirma tu email antes de entrar. Revisa tu bandeja.')
+  if (/for security purposes|rate limit|too many/i.test(m)) return t('Demasiados intentos. Espera un momento e inténtalo de nuevo.')
+  if (/at least 6 characters/i.test(m)) return t('La contraseña debe tener al menos 6 caracteres.')
+  return m || t('Algo salió mal.')
+}
+
 export default function Auth() {
   const { t } = useLang()
   const { signIn, signUp, sendPasswordReset } = useAuth()
@@ -36,7 +48,7 @@ export default function Auth() {
     try {
       if (mode === 'reset') {
         await sendPasswordReset(email)
-        setMessage('Si el email existe, te enviamos un enlace para restablecer tu contraseña. Revisa tu bandeja.')
+        setMessage(t('Si el email existe, te enviamos un enlace para restablecer tu contraseña. Revisa tu bandeja.'))
       } else if (mode === 'login') {
         await signIn(email, password)
         navigate(redirectTo, { replace: true })
@@ -52,7 +64,7 @@ export default function Auth() {
         }
       }
     } catch (err) {
-      setError(err.message || t('Algo salió mal.'))
+      setError(authErrorMessage(err, t))
     } finally {
       setLoading(false)
     }
@@ -155,9 +167,9 @@ export default function Auth() {
                 {t('Instalar en iPhone')}
               </p>
               <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5 }}>
-                Toca <span style={{ color: 'var(--c-text-secondary)', fontWeight: 700 }}>{t('Compartir')}</span>{' '}
-                <span style={{ fontSize: '13px' }}>⎋</span> y luego{' '}
-                <span style={{ color: 'var(--c-text-secondary)', fontWeight: 700 }}>"Agregar a pantalla de inicio"</span>
+                {t('Toca')} <span style={{ color: 'var(--c-text-secondary)', fontWeight: 700 }}>{t('Compartir')}</span>{' '}
+                <span style={{ fontSize: '13px' }}>⎋</span> {t('y luego')}{' '}
+                <span style={{ color: 'var(--c-text-secondary)', fontWeight: 700 }}>"{t('Agregar a pantalla de inicio')}"</span>
               </p>
             </div>
           )}
@@ -298,7 +310,7 @@ export default function Auth() {
               onClick={() => switchMode('login')}
               style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', background: 'transparent' }}
             >
-              ← Volver a iniciar sesión
+              ← {t('Volver a iniciar sesión')}
             </button>
           )}
         </div>

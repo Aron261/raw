@@ -316,8 +316,10 @@ export default function DayView({
                     {s.title || meta.label}
                   </p>
                   <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', marginTop: '2px' }}>
-                    {meta.label} · {STATUS_LABEL[s.status]}
-                    {s.series_id ? ` · ${t('Cada semana')}` : ''}
+                    {t(meta.label)} · {t(STATUS_LABEL[s.status])}
+                    {/* Sin inventar cadencia: una serie de deload repite cada
+                        4/6/8 semanas y esto decía «Cada semana» igual. */}
+                    {s.series_id ? ` · ${t('Parte de una serie')}` : ''}
                     {s.notes ? ` · ${s.notes}` : ''}
                   </p>
                   {/* Lo registrado manda sobre la etiqueta: "45 min · 8,2 km"
@@ -395,7 +397,7 @@ export default function DayView({
                   borderTop: 'none', borderRadius: '0 0 var(--r-sm) var(--r-sm)',
                 }}>
                   <span style={{ color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700, marginRight: 'auto' }}>
-                    {t('Se repite cada semana')}
+                    {t('Parte de una serie')}
                   </span>
                   <button
                     onClick={() => remove(s)}
@@ -485,7 +487,7 @@ export default function DayView({
       <DayWeight dateISO={iso} isFuture={iso > toLocalISODate()} />
 
       {/* ── Planear algo nuevo ── */}
-      <Field label="Qué vas a hacer">
+      <Field label={t('Qué vas a hacer')}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {KIND_ORDER.map(k => {
             const on = kind === k
@@ -509,7 +511,7 @@ export default function DayView({
         </div>
       </Field>
 
-      <Field label="Título" hint="Opcional — ej: «Cardio 40 min» o «Upper A»">
+      <Field label={t('Título')} hint={t('Opcional — ej: «Cardio 40 min» o «Upper A»')}>
         <input
           className="input-field"
           placeholder={KINDS[kind].label}
@@ -519,7 +521,7 @@ export default function DayView({
       </Field>
 
       {kind === 'strength' && dayOptions.length > 0 && (
-        <Field label="Vincular a un día de rutina" hint="Opcional — te deja empezar el entreno desde aquí">
+        <Field label={t('Vincular a un día de rutina')} hint={t('Opcional — te deja empezar el entreno desde aquí')}>
           <select className="input-field" value={routineDayId} onChange={e => setRoutineDayId(e.target.value)}>
             <option value="">— Sin vincular —</option>
             {dayOptions.map(o => (
@@ -535,7 +537,7 @@ export default function DayView({
         </p>
       )}
 
-      <Field label="Notas">
+      <Field label={t('Notas')}>
         <input
           className="input-field"
           placeholder="Opcional"
@@ -555,7 +557,7 @@ export default function DayView({
       )}
       {kind !== 'note' && isPro && (
         <Field
-          label="Repetir"
+          label={t('Repetir')}
           hint={kind === 'deload' ? 'A partir de esta semana' : 'Cada semana, a partir de este día'}
         >
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -584,7 +586,7 @@ export default function DayView({
       )}
 
       <Button variant="primary" full size="lg" loading={saving} disabled={saving} onClick={handleCreate}>
-        {saving ? 'Guardando...' : 'Agregar al calendario'}
+        {t(saving ? 'Guardando...' : 'Agregar al calendario')}
       </Button>
 
       {/* Registrar algo que YA hiciste sin haberlo planeado antes. Hasta ahora

@@ -81,7 +81,7 @@ function ReorderList({ order, enabled, onToggle, onReorder }) {
               ⠿
             </span>
             <span style={{ flex: 1, minWidth: 0, color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em' }}>
-              {m.label}
+              {t(m.label)}
             </span>
             <button
               onClick={() => onToggle(id)}
@@ -227,8 +227,8 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
       {/* Customize sheet — own view only */}
       {!readOnly && customizing && (
         <Sheet
-          title="Personalizar"
-          subtitle="Arrastra para ordenar; toca el interruptor para mostrar u ocultar."
+          title={t('Personalizar')}
+          subtitle={t('Arrastra para ordenar; toca el interruptor para mostrar u ocultar.')}
           onClose={() => setCustomizing(false)}
         >
           <ReorderList order={order} enabled={enabled} onToggle={toggle} onReorder={setOrder} />

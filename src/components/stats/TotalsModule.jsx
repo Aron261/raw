@@ -23,7 +23,7 @@ export default function TotalsModule({ data }) {
   // resto del código: aquí la sombreaba y hacía imposible usar useLang sin
   // romper cuatro líneas por accidente.
   const totals = data?.totals || { workouts: 0, volume: 0, sets: 0 }
-  const { locale } = useLang()
+  const { t, locale } = useLang()
 
   return (
     <section style={{ marginBottom: '40px' }}>
@@ -33,7 +33,7 @@ export default function TotalsModule({ data }) {
         <span style={{ fontFamily: 'var(--font-sans)', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text-dim)', marginLeft: '6px' }}>kg</span>
       </p>
       <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 500, marginTop: '8px' }}>
-        levantados en total
+        {t('levantados en total')}
       </p>
 
       {/* Subordinate stats */}

@@ -86,20 +86,20 @@ export default function ResetPassword() {
 
       {done ? (
         <div style={{ textAlign: 'center', color: 'var(--c-success)', fontSize: '13px', fontWeight: 700 }}>
-          ✓ Contraseña actualizada. Entrando…
+          ✓ {t('Contraseña actualizada. Entrando…')}
         </div>
       ) : (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <input
             aria-label={t('Nueva contraseña')}
             type="password" value={password} onChange={e => setPassword(e.target.value)}
-            className="input-field" placeholder="Nueva contraseña" required minLength={6}
+            className="input-field" placeholder={t('Nueva contraseña')} required minLength={6}
             autoComplete="new-password" autoFocus
           />
           <input
             aria-label={t('Repite la contraseña')}
             type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
-            className="input-field" placeholder="Repite la contraseña" required minLength={6}
+            className="input-field" placeholder={t('Repite la contraseña')} required minLength={6}
             autoComplete="new-password"
           />
           <Button type="submit" variant="primary" full size="lg" loading={saving} disabled={saving} style={{ marginTop: '4px' }}>

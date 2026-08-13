@@ -459,11 +459,11 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
         </button>
       )}
 
-      <Field label="Balance de macros">
+      <Field label={t('Balance de macros')}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {BALANCES.map(b => (
             <button key={b.id} onClick={() => switchMode(b.id)} style={{ ...tabStyle(mode === b.id), flex: '1 1 30%' }}>
-              {b.label}
+              {t(b.label)}
             </button>
           ))}
         </div>
@@ -471,13 +471,13 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
         <Field
-          label="Calorías (kcal)"
+          label={t('Calorías (kcal)')}
           hint={mode === 'gramos' ? 'Editarla ajusta los carbos' : undefined}
         >
           <input className="input-field tnum" type="number" inputMode="numeric" value={kcal} onChange={onKcal} />
         </Field>
         {mode === 'peso' && (
-          <Field label="Peso ideal (kg)">
+          <Field label={t('Peso ideal (kg)')}>
             <input className="input-field tnum" type="number" inputMode="decimal" placeholder="70" value={weight} onChange={e => setWeight(e.target.value)} />
           </Field>
         )}
@@ -524,7 +524,7 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
             ].map(x => (
               <div key={x.label} style={{ flex: 1 }}>
                 <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--c-text-dim)', marginBottom: '4px' }}>
-                  {x.label}
+                  {t(x.label)}
                 </p>
                 <p className="tnum" style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--c-text)' }}>
                   {x.g}<span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--c-text-muted)' }}> g</span>
@@ -537,7 +537,10 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
           </div>
           {mode === 'peso' && (
             <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', lineHeight: 1.5, marginTop: '12px' }}>
-              Proteína = 2 g por kg de peso ideal · grasa 25% de las calorías · el resto, carbos.
+              {/* El mismo motor que el asistente (computeMacros): la fórmula
+                  vieja de 2 g/kg + 25% siguió escrita aquí después de morir y
+                  el número de arriba desmentía a su propia explicación. */}
+              {t('Proteína según tu fase (sobre masa magra si hay % de grasa) · grasa: mínimo 0,6 g/kg o 22% de las kcal · el resto, carbos.')}
             </p>
           )}
           {mode === 'gramos' && KCAL_OF(parseFloat(gP) || 0, parseFloat(gC) || 0, parseFloat(gF) || 0) !== rec.kcal && (
@@ -564,7 +567,7 @@ export default function NutritionTargetsSheet({ targets, onSave, onClose, userId
         loading={saving} disabled={saving || !rec}
         onClick={handleSave} style={{ marginTop: '8px' }}
       >
-        {saving ? 'Guardando...' : 'Guardar objetivos'}
+        {t(saving ? 'Guardando...' : 'Guardar objetivos')}
       </Button>
     </Sheet>
   )

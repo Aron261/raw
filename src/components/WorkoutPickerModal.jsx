@@ -72,11 +72,11 @@ export default function WorkoutPickerModal({
     .filter(r => r.days.length > 0)
 
   return (
-    <Sheet title="¿Cómo empezamos?" onClose={onClose} maxHeight="85dvh">
+    <Sheet title={t('¿Cómo empezamos?')} onClose={onClose} maxHeight="85dvh">
       {/* Blank */}
       <OptionRow
-        title="En blanco"
-        subtitle="Empieza sin ejercicios predefinidos"
+        title={t('En blanco')}
+        subtitle={t('Empieza sin ejercicios predefinidos')}
         onClick={onSelectBlank}
         filled
       />
@@ -89,7 +89,7 @@ export default function WorkoutPickerModal({
             <OptionRow
               key={day.id}
               title={day.day_name}
-              subtitle={`${(day.exercises || []).length} ejercicios${day.muscle_groups?.length > 0 ? ` · ${day.muscle_groups.join(', ')}` : ''}`}
+              subtitle={`${(day.exercises || []).length} ${t('ejercicios')}${day.muscle_groups?.length > 0 ? ` · ${day.muscle_groups.join(', ')}` : ''}`}
               onClick={() => onSelectCycleDay(day)}
               arrowColor="var(--c-action-text)"
             />
@@ -107,7 +107,7 @@ export default function WorkoutPickerModal({
               <OptionRow
                 key={routine.id}
                 title={routine.name}
-                subtitle={`${exerciseCount(days[0])} ejercicios${days[0].focus ? ` · ${days[0].focus}` : ''}`}
+                subtitle={`${exerciseCount(days[0])} ${t('ejercicios')}${days[0].focus ? ` · ${days[0].focus}` : ''}`}
                 onClick={() => onSelectCycleDay(buildDay(routine, days[0]))}
                 arrowColor="var(--c-action-text)"
               />
@@ -119,8 +119,8 @@ export default function WorkoutPickerModal({
                 {days.map(day => (
                   <OptionRow
                     key={day.id}
-                    title={day.day_name || 'Día'}
-                    subtitle={`${exerciseCount(day)} ejercicios${day.focus ? ` · ${day.focus}` : ''}`}
+                    title={day.day_name || t('Día')}
+                    subtitle={`${exerciseCount(day)} ${t('ejercicios')}${day.focus ? ` · ${day.focus}` : ''}`}
                     onClick={() => onSelectCycleDay(buildDay(routine, day))}
                     arrowColor="var(--c-action-text)"
                   />

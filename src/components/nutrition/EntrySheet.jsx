@@ -156,10 +156,10 @@ export default function EntrySheet({ initial, defaultMeal, foods, onSave, onDele
 
   return (
     <Sheet title={t(editing ? 'Editar comida' : 'Agregar comida')} onClose={onClose}>
-      <Field label="Nombre">
+      <Field label={t('Nombre')}>
         <input
           className="input-field"
-          placeholder="Busca o escribe: Pollo con arroz"
+          placeholder={t('Busca o escribe: Pollo con arroz')}
           value={name}
           onChange={e => { setName(e.target.value); setPicked(false) }}
           autoFocus={!editing}
@@ -203,7 +203,7 @@ export default function EntrySheet({ initial, defaultMeal, foods, onSave, onDele
         </div>
       )}
 
-      <Field label="Comida">
+      <Field label={t('Comida')}>
         <div style={{ display: 'flex', gap: '6px' }}>
           {MEALS.map(m => (
             <button
@@ -226,7 +226,7 @@ export default function EntrySheet({ initial, defaultMeal, foods, onSave, onDele
 
       {base && (
         <Field
-          label={base.unit && base.unit !== 'porción' ? `Porción (${base.unit})` : 'Porción'}
+          label={base.unit && base.unit !== 'porción' ? `${t('Porción')} (${base.unit})` : t('Porción')}
           hint={amount === '' ? 'Macros ajustados a mano' : undefined}
         >
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -268,16 +268,16 @@ export default function EntrySheet({ initial, defaultMeal, foods, onSave, onDele
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
-        <Field label="Proteína (g)">
+        <Field label={t('Proteína (g)')}>
           <input className="input-field tnum" type="number" inputMode="decimal" placeholder="0" value={protein} onChange={manual(setProtein)} />
         </Field>
-        <Field label="Carbos (g)">
+        <Field label={t('Carbos (g)')}>
           <input className="input-field tnum" type="number" inputMode="decimal" placeholder="0" value={carbs} onChange={manual(setCarbs)} />
         </Field>
-        <Field label="Grasa (g)">
+        <Field label={t('Grasa (g)')}>
           <input className="input-field tnum" type="number" inputMode="decimal" placeholder="0" value={fat} onChange={manual(setFat)} />
         </Field>
-        <Field label="Calorías" hint={kcal === '' && kcalComputed > 0 ? `Auto: ${kcalComputed} kcal` : undefined}>
+        <Field label={t('Calorías')} hint={kcal === '' && kcalComputed > 0 ? `${t('Auto:')} ${kcalComputed} kcal` : undefined}>
           <input className="input-field tnum" type="number" inputMode="decimal" placeholder={kcalComputed > 0 ? String(kcalComputed) : '0'} value={kcal} onChange={manual(setKcal)} />
         </Field>
       </div>

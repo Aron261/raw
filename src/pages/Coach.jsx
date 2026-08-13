@@ -13,12 +13,12 @@ import PremiumGate from '../components/PremiumGate'
 // "hace 2 h" / "ayer" / "hace 3 d" — a coach scans by recency, not calendar.
 function relativeDate(iso, t = (x) => x, locale = 'es-CO') {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
-  if (mins < 60) return mins <= 1 ? 'ahora' : `hace ${mins} min`
+  if (mins < 60) return mins <= 1 ? t('ahora') : t('hace {n} min', { n: mins })
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `hace ${hrs} h`
+  if (hrs < 24) return t('hace {n} h', { n: hrs })
   const days = Math.floor(hrs / 24)
-  if (days === 1) return 'ayer'
-  if (days < 7) return `hace ${days} d`
+  if (days === 1) return t('ayer')
+  if (days < 7) return t('hace {n} d', { n: days })
   return new Date(iso).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
 }
 
@@ -121,13 +121,12 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
   }
 
   return (
-    <Sheet title="Invitar cliente" onClose={onClose} maxHeight="85dvh">
+    <Sheet title={t('Invitar cliente')} onClose={onClose} maxHeight="85dvh">
 
         {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
         <p style={{ color: 'var(--c-text-dim)', fontSize: '11px', marginBottom: '16px', lineHeight: 1.5 }}>
-          Genera un código y compártelo con tu cliente. Él lo ingresa en su perfil
-          (sección «Entrenador») para vincularse contigo.
+          {t('Genera un código y compártelo con tu cliente. Él lo ingresa en su perfil (sección «Entrenador») para vincularse contigo.')}
         </p>
 
         {code ? (
@@ -161,7 +160,7 @@ function InviteModal({ onClose, onCreate, activeInvites, onDelete }) {
 
         {activeInvites.length > 0 && (
           <div>
-            <p style={SECTION_LABEL}>Códigos activos ({activeInvites.length})</p>
+            <p style={SECTION_LABEL}>{t('Códigos activos')} ({activeInvites.length})</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {activeInvites.map(inv => (
                 <div key={inv.id} style={{

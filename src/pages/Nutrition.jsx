@@ -183,7 +183,7 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           </div>
         ) : (
           <PageHeader
-            title="Nutrición"
+            title={t('Nutrición')}
             right={
               <button
                 onClick={() => setSheet('targets')}

@@ -22,7 +22,8 @@ export default function BetaGate() {
       // Al aprobarse, recargamos para entrar a la app ya con acceso completo.
       window.location.assign('/')
     } catch (err) {
-      setLocalError(err.message)
+      // La RPC habla español; para app_lang=en se pasa por el diccionario.
+      setLocalError(t(err.message || 'Algo salió mal.'))
     }
   }
 
@@ -55,7 +56,7 @@ export default function BetaGate() {
               type="text"
               value={code}
               onChange={e => setCode(e.target.value.toUpperCase())}
-              placeholder="Código beta"
+              placeholder={t('Código beta')}
               autoFocus
               className="input-field"
               style={{ textAlign: 'center', letterSpacing: '0.14em', fontWeight: 700, fontSize: '15px', marginBottom: '14px' }}

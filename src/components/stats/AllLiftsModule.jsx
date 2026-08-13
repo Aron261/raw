@@ -51,8 +51,8 @@ export default function AllLiftsModule({ data, readOnly = false }) {
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Buscar ejercicio..."
-          aria-label="Buscar ejercicio"
+          placeholder={t('Buscar ejercicio...')}
+          aria-label={t('Buscar ejercicio')}
           className="input-field"
           style={{ width: '100%', fontSize: '13px', marginBottom: '10px' }}
         />
@@ -71,7 +71,7 @@ export default function AllLiftsModule({ data, readOnly = false }) {
         >
           <div style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'block', fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)', fontSize: '11px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '4px' }}>
-              ▲ Más fuerte
+              ▲ {t('Más fuerte')}
             </span>
             <span style={{ color: 'var(--c-text)', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.02em', ...clampLines(2) }}>
               {featured.name}
@@ -123,7 +123,7 @@ export default function AllLiftsModule({ data, readOnly = false }) {
             letterSpacing: '-0.01em',
           }}
         >
-          {expanded ? 'Ver menos' : `Ver todos (${filtered.length})`}
+          {expanded ? t('Ver menos') : `${t('Ver todos')} (${filtered.length})`}
           <span aria-hidden="true" style={{ fontSize: '13px' }}>{expanded ? '↑' : '↓'}</span>
         </button>
       )}

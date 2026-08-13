@@ -223,7 +223,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
                 onMouseLeave: e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--c-border)' },
               })}
             >
-              + Crear "{query.trim()}"
+              + {t('Crear')} "{query.trim()}"
             </button>
           )}
 
@@ -295,8 +295,8 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
         {!closeOnSelect && (
           <Button variant="primary" full size="lg" onClick={onClose} style={{ marginBottom: '8px' }}>
             {added.length === 0
-              ? 'Listo'
-              : `Listo (${added.length} agregado${added.length !== 1 ? 's' : ''})`
+              ? t('Listo')
+              : t('Listo ({n} agregados)', { n: added.length })
             }
           </Button>
         )}

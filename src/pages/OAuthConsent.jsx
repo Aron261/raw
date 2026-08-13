@@ -141,8 +141,7 @@ export default function OAuthConsent() {
       <Shell>
         <h1 style={H1}>{t('Solicitud incompleta')}</h1>
         <p style={P}>
-          Falta el identificador de autorización. Vuelve a intentar la conexión desde la
-          aplicación que quieres conectar.
+          {t('Falta el identificador de autorización. Vuelve a intentar la conexión desde la aplicación que quieres conectar.')}
         </p>
         <Button onClick={() => navigate('/')} variant="secondary" style={{ marginTop: '18px' }}>
           {t('Ir a RAW')}
@@ -161,8 +160,7 @@ export default function OAuthConsent() {
       <Shell>
         <h1 style={H1}>{t('No se pudo cargar la solicitud')}</h1>
         <p style={P}>
-          No hemos podido verificar quién pide acceso, así que no se muestra nada que autorizar.
-          Vuelve a intentarlo desde la aplicación que quieres conectar.
+          {t('No hemos podido verificar quién pide acceso, así que no se muestra nada que autorizar. Vuelve a intentarlo desde la aplicación que quieres conectar.')}
         </p>
         {error && <div style={{ ...ERROR_STYLE, marginTop: '14px' }}>{error}</div>}
         <Button onClick={() => navigate('/')} variant="secondary" style={{ marginTop: '18px' }}>
@@ -181,8 +179,7 @@ export default function OAuthConsent() {
         {t('Conectar RAW con')} <span style={{ color: 'var(--c-action-text)' }}>{clientName}</span>
       </h1>
       <p style={P}>
-        Le darás acceso a tus datos de entrenamiento para que puedas planificar desde ahí.
-        Puedes revocarlo cuando quieras.
+        {t('Le darás acceso a tus datos de entrenamiento para que puedas planificar desde ahí. Puedes revocarlo cuando quieras.')}
       </p>
 
       <div style={{ height: '1px', background: 'var(--c-border-subtle)', margin: '20px 0' }} />

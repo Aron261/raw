@@ -9,8 +9,15 @@ import {
 } from '../../lib/calendar'
 import { weekAdherence } from '../../lib/schedule'
 
-const DAY_HEADS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-const DAY_ABBR = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+// Cabeceras según el idioma: la «X» del miércoles solo existe en español.
+const DAY_HEADS_BY_LANG = {
+  es: ['L', 'M', 'X', 'J', 'V', 'S', 'D'],
+  en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+}
+const DAY_ABBR_BY_LANG = {
+  es: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+  en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+}
 
 // Punto de un día: relleno = pasó de verdad (entreno registrado o plan hecho),
 // anillo = todavía es un plan, anillo discontinuo = previsión del ciclo, que
@@ -34,6 +41,8 @@ function Dot({ color, filled, ghost, size = 6 }) {
 // ── Vista mes ────────────────────────────────────────────────────────────
 // Densidad máxima: el mes entero de un vistazo, cada día reducido a puntos.
 function MonthGrid({ anchor, todayISO, doneByDate, planByDate, projection, deloadWeeks, onSelectDay, reduce }) {
+  const { t, lang } = useLang()
+  const DAY_HEADS = DAY_HEADS_BY_LANG[lang] || DAY_HEADS_BY_LANG.es
   const cells = useMemo(
     () => monthMatrix(anchor.getFullYear(), anchor.getMonth()),
     [anchor]
@@ -83,7 +92,7 @@ function MonthGrid({ anchor, todayISO, doneByDate, planByDate, projection, deloa
               key={iso}
               data-date={iso}
               onClick={() => onSelectDay?.(date)}
-              aria-label={`${longDate(date)} — ${done.length} entrenos, ${plan.length} planificados${ghost ? `, previsto ${ghost.day?.day_name || ''}` : ''}`}
+              aria-label={`${longDate(date)} — ${done.length} ${t('entrenos')}, ${plan.length} ${t('planificados')}${ghost ? `, ${t('previsto')} ${ghost.day?.day_name || ''}` : ''}`}
               whileTap={reduce ? undefined : { scale: 0.93 }}
               transition={SPRING_PRESS}
               style={{
@@ -164,6 +173,8 @@ function DayChip({ color, filled, label, detail, struck, ghost }) {
 // programación de un vistazo — lunes a domingo de izquierda a derecha, igual
 // que la rejilla del mes. Cada columna es tocable y abre la hoja del día.
 function WeekColumns({ anchor, todayISO, sessions, doneByDate, planByDate, projection, deloadWeeks, dayById, onSelectDay, reduce, t }) {
+  const { lang } = useLang()
+  const DAY_ABBR = DAY_ABBR_BY_LANG[lang] || DAY_ABBR_BY_LANG.es
   const days = useMemo(() => weekDays(anchor), [anchor])
   const isDeloadWeek = deloadWeeks.has(weekKey(anchor))
   const adherence = useMemo(() => weekAdherence(sessions, anchor), [sessions, anchor])
@@ -223,7 +234,7 @@ function WeekColumns({ anchor, todayISO, sessions, doneByDate, planByDate, proje
               key={iso}
               data-date={iso}
               onClick={() => onSelectDay?.(date)}
-              aria-label={`${longDate(date)} — ${done.length} entrenos, ${plan.length} planificados${ghost ? `, previsto ${ghost.day?.day_name || ''}` : ''}`}
+              aria-label={`${longDate(date)} — ${done.length} ${t('entrenos')}, ${plan.length} ${t('planificados')}${ghost ? `, ${t('previsto')} ${ghost.day?.day_name || ''}` : ''}`}
               whileTap={reduce ? undefined : { scale: 0.96 }}
               transition={SPRING_PRESS}
               style={{

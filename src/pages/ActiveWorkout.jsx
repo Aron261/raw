@@ -71,7 +71,7 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
 
   const stats = [
     { label: t('Duración'), value: durationLabel() },
-    { label: 'Ejercicios', value: workoutExercises.length },
+    { label: t('Ejercicios'), value: workoutExercises.length },
     { label: t('Series totales'), value: totalSets },
   ]
 
@@ -106,7 +106,7 @@ function FinishConfirmModal({ workout, workoutExercises, onConfirm, onCancel }) 
 function DiscardConfirmModal({ onConfirm, onCancel, busy }) {
   const { t, locale } = useLang()
   return (
-    <Sheet title="Descartar entreno" onClose={onCancel}>
+    <Sheet title={t('Descartar entreno')} onClose={onCancel}>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
         {t('Se eliminará esta sesión y todo lo que llevas registrado en ella. Esta acción no se puede deshacer.')}
       </p>
@@ -126,9 +126,9 @@ function DiscardConfirmModal({ onConfirm, onCancel, busy }) {
 function DeleteWorkoutModal({ name, onConfirm, onCancel, busy }) {
   const { t, locale } = useLang()
   return (
-    <Sheet title="Eliminar entreno" onClose={onCancel}>
+    <Sheet title={t('Eliminar entreno')} onClose={onCancel}>
       <p style={{ color: 'var(--c-text-dim)', fontSize: '12px', lineHeight: 1.6, marginBottom: '16px' }}>
-        Se eliminará «{name}» de tu historial junto con todas sus series. Esta acción no se puede deshacer.
+        {t('Se eliminará «{name}» de tu historial junto con todas sus series. Esta acción no se puede deshacer.', { name })}
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <Button variant="primary" full size="lg" loading={busy} disabled={busy} onClick={onConfirm}>
@@ -163,7 +163,7 @@ function ExerciseHistorySheet({ exercise, userId, onClose }) {
   }
 
   return (
-    <Sheet title={exercise?.name || 'Historial'} subtitle="Sesiones anteriores" onClose={onClose}>
+    <Sheet title={exercise?.name || 'Historial'} subtitle={t('Sesiones anteriores')} onClose={onClose}>
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
           <span className="spinner" style={{ width: '18px', height: '18px' }} />
@@ -280,7 +280,7 @@ function SessionSummary({ workout, workoutExercises, userId, onClose }) {
   const prCount = prIds ? prIds.size : 0
 
   return (
-    <Sheet title={workout.name} subtitle="Entreno completo" onClose={onClose}>
+    <Sheet title={workout.name} subtitle={t('Entreno completo')} onClose={onClose}>
       {/* Hero — volume leads (data voice) */}
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px',
@@ -846,7 +846,7 @@ export default function ActiveWorkout() {
     const we = workoutExercises.find(w => w.id === weId)
     if (!we) return
     exerciseDelete.request(we, {
-      deletedMsg: `«${we.exercises?.name || 'Ejercicio'}» eliminado. Toca deshacer para recuperarlo.`,
+      deletedMsg: t('«{name}» eliminado. Toca deshacer para recuperarlo.', { name: we.exercises?.name || t('Ejercicio') }),
       restoredMsg: `«${we.exercises?.name || 'Ejercicio'}» restaurado.`,
     })
   }
@@ -1282,7 +1282,7 @@ export default function ActiveWorkout() {
         {isFinished && (
           <div style={{ paddingBottom: '32px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <Button variant="secondary" full size="lg" onClick={handleBack}>
-              ← Volver al inicio
+              ← {t('Volver al inicio')}
             </Button>
 
             {!isEditing ? (
@@ -1344,7 +1344,7 @@ export default function ActiveWorkout() {
         <AddExerciseModal
           userId={user?.id}
           title="Cambiar ejercicio"
-          subtitle="Solo cambia en este entreno, tu rutina no se modifica."
+          subtitle={t('Solo cambia en este entreno, tu rutina no se modifica.')}
           onAdd={handleSwapExercise}
           onClose={() => setSwappingId(null)}
           closeOnSelect={true}
@@ -1418,7 +1418,7 @@ export default function ActiveWorkout() {
 
       {/* Feedback compartido: región viva + snackbar de deshacer (quitar ejercicio) */}
       <LiveRegion>{exerciseDelete.liveMsg}</LiveRegion>
-      <UndoSnackbar show={!!exerciseDelete.pending} message="Ejercicio eliminado" onUndo={exerciseDelete.undo} />
+      <UndoSnackbar show={!!exerciseDelete.pending} message={t('Ejercicio eliminado')} onUndo={exerciseDelete.undo} />
     </Layout>
   )
 }
