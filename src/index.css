@@ -18,7 +18,10 @@
   algún día quieres devolverle al récord una voz propia, es una línea:
   cambia --c-record y ya, porque ningún componente escribe un hex.
 */
-:root {
+/* [data-theme="light"] comparte el bloque para poder forzar una zona clara
+   dentro de una página oscura (las bandas de la landing): las custom props
+   resuelven contra el ancestro más cercano que las declare. */
+:root, [data-theme="light"] {
   /* Easing */
   --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
