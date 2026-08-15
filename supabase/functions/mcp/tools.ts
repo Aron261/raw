@@ -54,6 +54,11 @@ const MEALS = ['desayuno', 'almuerzo', 'cena', 'snack']
 // El calendario. Estos valores son los mismos CHECK que la tabla, así que un
 // tipo inventado lo rechaza Postgres aunque el esquema de aquí se quede atrás.
 const SESSION_KINDS = ['strength', 'cardio', 'mobility', 'rest', 'deload', 'note']
+
+// Los mismos cuatro que acepta el check de `goals` (supabase/goals.sql). Si
+// esta lista y aquella se separan, el conector vuelve a proponer tipos que la
+// base rechaza.
+const GOAL_TYPES = ['exercise_weight', 'body_weight', 'sessions_per_week', 'days_trained']
 const SESSION_STATUSES = ['planned', 'done', 'skipped']
 
 // Tope de ocurrencias de una serie. Espeja MAX_SERIES_OCCURRENCES de
@@ -259,7 +264,7 @@ export const TOOLS: Record<string, Tool> = {
   },
 
   list_goals: {
-    description: 'Objetivos de entrenamiento de la persona usuaria.',
+    description: 'Objetivos de entrenamiento de la persona usuaria, cumplidos incluidos. `start_value` es de dónde partió: el progreso se mide (actual − start_value) / (objetivo − start_value), así que una meta sin él se cuenta desde cero. `completed_at` no nulo significa cumplida y archivada. `target_date` es la fecha límite, si tiene.',
     inputSchema: obj({}),
     handler: async (_a, { supabase, userId }) =>
       unwrap(await supabase.from('goals').select('*')
@@ -443,26 +448,143 @@ export const TOOLS: Record<string, Tool> = {
   },
 
   create_goal: {
-    description: 'Crea un objetivo de entrenamiento.',
+    // Los tipos que anunciaba ("strength", "bodyweight") no existen en la
+    // tabla: el check de `goals` solo acepta los cuatro de abajo, así que toda
+    // meta creada siguiendo esta descripción moría con un error de
+    // restricción. Ahora van como enum, que además los valida antes de llegar
+    // a la base.
+    description: 'Crea un objetivo de entrenamiento. `start_value` es el punto de partida (lo que la persona levanta o pesa HOY): sin él el progreso se mide desde cero y una meta de sentadilla 90 → 100 nace al 90 %. Búscalo antes con get_exercise_history; en body_weight se toma solo de la báscula si no lo mandas. `target_date` (YYYY-MM-DD) añade plazo y permite decir si va a tiempo. Las metas de constancia (days_trained, sessions_per_week) se miden contra su ventana y no llevan ni inicio ni plazo.',
     inputSchema: obj({
-      type: str('Tipo de objetivo, p. ej. "strength" o "bodyweight"'),
+      type: {
+        ...str('Tipo: "exercise_weight" (peso en un ejercicio), "body_weight" (peso corporal), "sessions_per_week" (días por semana) o "days_trained" (días al mes)'),
+        enum: GOAL_TYPES,
+      },
       label: str('Texto que describe el objetivo'),
       target_value: num('Valor a alcanzar'),
-      exercise_name: str('Ejercicio asociado, si aplica'),
-      unit: str('Unidad: "kg" o "lb"'),
+      exercise_name: str('Ejercicio asociado, obligatorio en exercise_weight'),
+      unit: str('Unidad: "kg" o "lb". En metas de constancia se ignora'),
       target_reps: num('Repeticiones objetivo, si aplica'),
+      start_value: num('Punto de partida en la misma unidad, para medir el tramo propuesto'),
+      target_date: str('Fecha límite YYYY-MM-DD, opcional'),
       is_monthly: bool('Si es un objetivo mensual'),
     }, ['type', 'label', 'target_value']),
-    handler: async (a, { supabase, userId }) =>
-      unwrap(await supabase.from('goals').insert({
+    handler: async (a, { supabase, userId }) => {
+      if (!GOAL_TYPES.includes(a.type)) {
+        throw new Error(`\`type\` debe ser uno de: ${GOAL_TYPES.join(', ')}.`)
+      }
+      // Sin ejercicio, una meta de peso en ejercicio se queda clavada en 0 %
+      // para siempre y nada explica por qué.
+      if (a.type === 'exercise_weight' && !a.exercise_name) {
+        throw new Error('`exercise_name` es obligatorio en las metas de tipo exercise_weight.')
+      }
+
+      const recurring = a.type === 'days_trained' || a.type === 'sessions_per_week'
+      const unit = recurring ? 'días' : (a.unit ?? 'kg')
+
+      // En peso corporal el inicio no es un adorno: es lo que da DIRECCIÓN. Sin
+      // él no se sabe si 76 kg es bajar o subir, así que si no viene se toma de
+      // la última pesada.
+      let startValue = a.start_value ?? null
+      if (!recurring && startValue == null && a.type === 'body_weight') {
+        const last = unwrap(await supabase.from('body_weight_logs')
+          .select('weight, unit')
+          .eq('user_id', userId)
+          .order('logged_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()) as any
+        if (last?.weight != null) {
+          const kg = last.unit === 'lb' ? last.weight * 0.453592 : last.weight
+          startValue = unit === 'lb'
+            ? Math.round((kg / 0.453592) * 10) / 10
+            : Math.round(kg * 10) / 10
+        }
+      }
+
+      return unwrap(await supabase.from('goals').insert({
         user_id: userId, type: a.type, label: a.label, target_value: a.target_value,
-        exercise_name: a.exercise_name ?? null, unit: a.unit ?? 'kg',
-        target_reps: a.target_reps ?? null, is_monthly: a.is_monthly ?? false,
-      }).select().maybeSingle()),
+        exercise_name: a.type === 'exercise_weight' ? (a.exercise_name ?? null) : null,
+        unit,
+        target_reps: a.target_reps ?? null,
+        start_value: recurring ? null : startValue,
+        target_date: recurring ? null : (a.target_date ?? null),
+        is_monthly: a.is_monthly ?? (a.type === 'days_trained'),
+      }).select().maybeSingle())
+    },
+  },
+
+  // Faltaba entera: el conector sabía crear y borrar metas, pero no tocarlas.
+  // Subir el objetivo de una meta que ya casi está, ponerle una fecha o darla
+  // por cumplida obligaba a borrarla y crearla de nuevo — y eso pierde su
+  // fecha de creación y su punto de partida, que son justo lo que mide el
+  // progreso.
+  update_goal: {
+    description: 'Edita un objetivo existente. Manda solo los campos que cambian; lo que no mandes se queda como está. `completed: true` la da por cumplida y la archiva (false la reabre). El TIPO no se puede cambiar: cada tipo mide una cosa distinta y su unidad y su punto de partida dejarían de tener sentido — para eso, borra y crea otra.',
+    inputSchema: obj({
+      goal_id: str('ID del objetivo'),
+      label: str('Nuevo texto que describe el objetivo'),
+      target_value: num('Nuevo valor a alcanzar'),
+      target_reps: num('Nuevas repeticiones objetivo. 0 lo deja vacío (comparar 1RM estimado)'),
+      exercise_name: str('Nuevo ejercicio asociado, solo en metas de tipo exercise_weight'),
+      unit: str('Nueva unidad: "kg" o "lb". No se aplica a metas de constancia'),
+      start_value: num('Nuevo punto de partida, en la misma unidad que el objetivo'),
+      target_date: str('Nueva fecha límite YYYY-MM-DD. Cadena vacía la quita'),
+      completed: bool('true la marca cumplida y la archiva; false la reabre'),
+    }, ['goal_id']),
+    handler: async (a, { supabase, userId }) => {
+      // Se lee primero para saber de qué tipo es y para poder fallar con un
+      // mensaje claro en vez de con un update de cero filas.
+      const goal = unwrap(await supabase.from('goals')
+        .select('*').eq('id', a.goal_id).eq('user_id', userId).maybeSingle()) as any
+      if (!goal) throw new Error(`No existe un objetivo tuyo con id ${a.goal_id}.`)
+
+      const recurring = goal.type === 'days_trained' || goal.type === 'sessions_per_week'
+      const patch: Record<string, unknown> = {}
+
+      if (a.label !== undefined) patch.label = a.label
+      if (a.target_value !== undefined) {
+        if (!(a.target_value > 0)) throw new Error('`target_value` tiene que ser mayor que cero.')
+        patch.target_value = a.target_value
+      }
+      if (a.target_reps !== undefined) patch.target_reps = a.target_reps || null
+      if (a.exercise_name !== undefined) {
+        if (goal.type !== 'exercise_weight') {
+          throw new Error('`exercise_name` solo aplica a los objetivos de tipo exercise_weight.')
+        }
+        patch.exercise_name = a.exercise_name || null
+      }
+      if (a.unit !== undefined) {
+        if (recurring) throw new Error('Los objetivos de constancia se miden en días; no llevan unidad de peso.')
+        if (a.unit !== 'kg' && a.unit !== 'lb') throw new Error('`unit` debe ser "kg" o "lb".')
+        patch.unit = a.unit
+      }
+      // En las recurrentes el inicio y el plazo no existen: su ventana (la
+      // semana o el mes) ya es las dos cosas.
+      if (a.start_value !== undefined) {
+        if (recurring) throw new Error('Los objetivos de constancia parten de cero cada ventana; no llevan start_value.')
+        patch.start_value = a.start_value
+      }
+      if (a.target_date !== undefined) {
+        if (recurring) throw new Error('Los objetivos de constancia no llevan fecha límite: su ventana ya lo es.')
+        if (a.target_date && !isoDate(a.target_date)) {
+          throw new Error('`target_date` debe ser una fecha YYYY-MM-DD.')
+        }
+        patch.target_date = a.target_date || null
+      }
+      if (a.completed !== undefined) {
+        patch.completed_at = a.completed ? new Date().toISOString() : null
+      }
+
+      if (Object.keys(patch).length === 0) {
+        throw new Error('No mandaste ningún campo que cambiar.')
+      }
+
+      return unwrap(await supabase.from('goals').update(patch)
+        .eq('id', a.goal_id).eq('user_id', userId).select().maybeSingle())
+    },
   },
 
   delete_goal: {
-    description: 'Borra un objetivo.',
+    description: 'Borra un objetivo. Para una meta ya lograda, prefiere update_goal con `completed: true`: la archiva y conserva el logro en vez de perderlo.',
     inputSchema: obj({ goal_id: str('ID del objetivo') }, ['goal_id']),
     handler: async (a, { supabase, userId }) => {
       unwrap(await supabase.from('goals').delete()

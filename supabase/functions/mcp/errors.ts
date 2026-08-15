@@ -49,6 +49,17 @@ export function toSpanish(err: unknown): string {
     'Sesión no encontrada', 'Día de rutina no encontrado',
     'debe ser una fecha YYYY-MM-DD', 'debe ser uno de:',
     'Hace falta `session_id` o `series_id`',
+    // Validaciones de metas (create_goal / update_goal). Sin estar aquí, un
+    // "te falta el ejercicio" se convierte en "No se pudo completar la
+    // operación." y el modelo no tiene forma de saber qué corregir: reintenta
+    // lo mismo o se rinde. El mensaje es la mitad de la herramienta.
+    'No existe un objetivo tuyo',
+    'es obligatorio en las metas',
+    'solo aplica a los objetivos',
+    'Los objetivos de constancia',
+    'tiene que ser mayor que cero',
+    'debe ser "kg" o "lb"',
+    'No mandaste ningún campo',
   ]
   for (const m of ours) if (e.message?.includes(m)) return e.message
 

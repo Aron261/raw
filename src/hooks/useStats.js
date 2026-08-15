@@ -3,8 +3,10 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { calc1RM, calc1RMKg, calcVolume } from './useWorkout'
 import { useLang } from './useLang'
-import { attributeSplit, totalOf, indexLibrary, resolveMuscles } from '../lib/volumeAttribution'
+import { attributeSplit, totalOf, roundHalf, indexLibrary, resolveMuscles } from '../lib/volumeAttribution'
+import { mondayOf } from '../lib/calendar'
 import { useCachedResource } from '../lib/swr'
+import { weeklyActivity, consistency, adherence, progression } from '../lib/statsAnalysis'
 
 // Month key (YYYY-MM) + short label for a given date.
 function monthKey(date) {
@@ -156,7 +158,68 @@ export function useStats(targetUserId = null) {
           }))
           .sort((a, b) => b.volume - a.volume)
 
-        return { totals, volumeByMonth, allLifts, muscleBalance }
+        // ── Series por semana y por músculo ───────────────────────────
+        // El tonelaje histórico dice a qué le has dedicado la vida; las series
+        // semanales dicen si un músculo está entrenado HOY. Es la unidad en la
+        // que se escriben los programas ("10-20 series por grupo a la semana")
+        // y la única de las dos con la que se puede decidir algo esta semana.
+        //
+        // Cuatro semanas completas, sin la actual: la semana en curso está a
+        // medias y haría que todos los grupos parecieran infra-entrenados cada
+        // lunes.
+        const setsByGroup = {}
+        const thisMonday = mondayOf(new Date())
+        thisMonday.setHours(0, 0, 0, 0)
+        const fourWeeksAgo = new Date(thisMonday.getTime() - 4 * 7 * 86400000)
+        list
+          .filter(w => {
+            const d = new Date(w.started_at)
+            d.setHours(0, 0, 0, 0)
+            return d >= fourWeeksAgo && d < thisMonday
+          })
+          .forEach(w => {
+            ;(w.workout_exercises || []).forEach(we => {
+              // Solo las series con trabajo real: una fila vacía que quedó en
+              // el registro no es estímulo.
+              const n = (we.sets || []).filter(s => (s.reps || 0) > 0).length
+              if (!n) return
+              attributeSplit(n, resolveMuscles(we.exercises, lookup(we.exercises)), setsByGroup)
+            })
+          })
+        const weeklySets = Object.entries(setsByGroup)
+          .map(([group, e]) => ({
+            group,
+            sets: roundHalf(totalOf(e) / 4),
+            direct: roundHalf(e.direct / 4),
+            indirect: roundHalf(e.indirect / 4),
+          }))
+          .sort((a, b) => b.sets - a.sets)
+
+        // ── Cómo estás entrenando AHORA ───────────────────────────────
+        // Todo lo de arriba es histórico y solo sube. Estas cuatro cifras son
+        // las que pueden empeorar, que es lo que las vuelve útiles.
+        //
+        // Las sesiones planificadas se piden aparte y sin romper la página: la
+        // adherencia es un módulo más, y si el calendario falla el resto de
+        // estadísticas no tiene por qué caerse con él.
+        let sessions = []
+        try {
+          const { data } = await supabase
+            .from('scheduled_sessions')
+            .select('date, kind, status')
+            .eq('user_id', ownerId)
+          sessions = data || []
+        } catch {
+          sessions = []
+        }
+
+        return {
+          totals, volumeByMonth, allLifts, muscleBalance, weeklySets,
+          weeklyActivity: weeklyActivity(list, { weeks: 12, locale }),
+          consistency: consistency(list),
+          adherence: adherence(sessions),
+          progression: progression(list),
+        }
       }
     }
   }, [ownerId])

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell,
@@ -27,8 +27,10 @@ import { computeStreak, mondayOf, KINDS } from '../lib/calendar'
 import { projectionByDate, loggedMinutes, isLoggable } from '../lib/schedule'
 import { useLang } from '../hooks/useLang'
 import { usePlan } from '../hooks/usePlan'
-import { calc1RM, calc1RMKg, convertWeight } from '../lib/progress'
+import { calc1RM, calc1RMKg } from '../lib/progress'
 import { defaultLiftUnit } from '../lib/units'
+import { computeGoals, currentValue, isRecurring } from '../lib/goals'
+import GoalRow from '../components/GoalRow'
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
@@ -120,27 +122,84 @@ function WeeklyChart({ chartData, height = 150, title, subtitle, colors }) {
 }
 
 // ── GoalModal ─────────────────────────────────────────────────────────────
-function GoalModal({ onClose, onSave, exercises = [] }) {
+// Cuatro clases de meta. Las dos de peso (fuerza y báscula) tienen plazo y
+// punto de partida; las dos de constancia no, porque su ventana ES el plazo:
+// una meta de "4 días por semana" se gana o se pierde cada lunes.
+const GOAL_KINDS = [
+  { id: 'exercise_weight',   label: 'Fuerza',        hint: 'Peso en un ejercicio' },
+  { id: 'body_weight',       label: 'Peso corporal', hint: 'Subir o bajar' },
+  { id: 'sessions_per_week', label: 'Días/semana',   hint: 'Constancia' },
+  { id: 'days_trained',      label: 'Días/mes',      hint: 'Constancia' },
+]
+
+const IS_WEIGHT_GOAL = (type) => type === 'exercise_weight' || type === 'body_weight'
+
+function GoalModal({ onClose, onSave, exercises = [], progressCtx = {}, currentWeightUnit = 'kg' }) {
   const { t } = useLang()
   const [type, setType] = useState('exercise_weight')
   const [label, setLabel] = useState('')
   const [exerciseName, setExerciseName] = useState('')
   const [targetValue, setTargetValue] = useState('')
   const [targetReps, setTargetReps] = useState('')
-  const [unit, setUnit] = useState('kg')
+  const [targetDate, setTargetDate] = useState('')
+  const [unit, setUnit] = useState(currentWeightUnit)
   const [saving, setSaving] = useState(false)
 
+  // De dónde partes hoy. Se mide ANTES de guardar y se sella en la fila: es lo
+  // que hace que la barra cuente el tramo propuesto y no la fuerza que ya
+  // tenías. Para las metas de constancia no se guarda (siempre parten de cero
+  // al abrirse la ventana).
+  const start = useMemo(() => {
+    if (!IS_WEIGHT_GOAL(type)) return null
+    return currentValue({ type, exercise_name: exerciseName, target_reps: targetReps ? parseInt(targetReps, 10) : null, unit }, progressCtx)
+  }, [type, exerciseName, targetReps, unit, progressCtx])
+
+  // El nombre deja de ser una tarea: la meta ya sabe cómo se llama. Si escribes
+  // uno propio manda el tuyo.
+  const suggestedLabel = useMemo(() => {
+    const n = parseFloat(targetValue)
+    if (!n) return ''
+    if (type === 'exercise_weight') {
+      return exerciseName ? `${exerciseName} ${n} ${unit}${targetReps ? ` × ${targetReps}` : ''}` : ''
+    }
+    if (type === 'body_weight') return `Peso corporal ${n} ${unit}`
+    if (type === 'sessions_per_week') return `${n} días por semana`
+    return `${n} días al mes`
+  }, [type, targetValue, unit, exerciseName, targetReps])
+
+  const targetNum = parseFloat(targetValue)
+  const maxDays = type === 'sessions_per_week' ? 7 : 31
+
+  // Motivos por los que la meta no se puede guardar, dichos en voz alta. Antes
+  // se podía crear una meta de ejercicio sin elegir ejercicio: se quedaba
+  // clavada en 0 % para siempre y nada explicaba por qué.
+  const problem = (() => {
+    if (!targetNum || targetNum <= 0) return null   // aún no ha escrito nada: sin regaño
+    if (type === 'exercise_weight' && !exerciseName) return ['Elige el ejercicio o la meta no podrá medirse.']
+    if (type === 'body_weight' && start == null) return ['Registra tu peso primero: sin un punto de partida no se puede medir el avance.']
+    if (type === 'body_weight' && targetNum === start) return ['El objetivo es tu peso de hoy.']
+    if (!IS_WEIGHT_GOAL(type) && targetNum > maxDays) return ['Como mucho {n} días.', { n: maxDays }]
+    if (type === 'exercise_weight' && start > 0 && targetNum <= start) {
+      return ['Ya llegas a {v} {u}. Ponte un objetivo más alto.', { v: Math.round(start * 10) / 10, u: unit }]
+    }
+    return null
+  })()
+
+  const canSave = targetNum > 0 && !problem
+
   const handleSave = async () => {
-    if (!label.trim() || !targetValue) return
+    if (!canSave) return
     setSaving(true)
     try {
       await onSave({
         type,
-        label: label.trim(),
+        label: (label.trim() || suggestedLabel || 'Meta'),
         exercise_name: type === 'exercise_weight' ? exerciseName || null : null,
-        target_value: parseFloat(targetValue),
+        target_value: targetNum,
         target_reps: type === 'exercise_weight' && targetReps ? parseInt(targetReps, 10) : null,
-        unit: type === 'days_trained' ? 'días' : unit,
+        start_value: IS_WEIGHT_GOAL(type) ? start : null,
+        target_date: IS_WEIGHT_GOAL(type) && targetDate ? targetDate : null,
+        unit: IS_WEIGHT_GOAL(type) ? unit : 'días',
         is_monthly: type === 'days_trained',
       })
     } finally {
@@ -148,39 +207,39 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
     }
   }
 
+  const valueLabel = type === 'exercise_weight' ? 'Peso objetivo'
+    : type === 'body_weight' ? 'Peso objetivo'
+    : type === 'sessions_per_week' ? 'Días por semana'
+    : 'Días este mes'
+
   return (
     <Sheet title="Nueva meta" onClose={onClose}>
       <Field label="Tipo de meta">
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {[
-            { value: 'exercise_weight', label: 'Peso en ejercicio' },
-            { value: 'days_trained', label: 'Días entrenados' },
-          ].map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setType(opt.value)}
-              style={{
-                flex: 1, padding: '10px 8px', borderRadius: 'var(--r-xs)',
-                fontSize: '10px', fontWeight: 700, letterSpacing: '-0.01em',
-                background: type === opt.value ? 'var(--c-accent)' : 'var(--c-surface-2)',
-                color: type === opt.value ? 'var(--c-on-action)' : 'var(--c-text-dim)',
-                border: `1px solid ${type === opt.value ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
-                transition: 'all 150ms',
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {GOAL_KINDS.map(opt => {
+            const on = type === opt.id
+            return (
+              <button
+                key={opt.id}
+                onClick={() => setType(opt.id)}
+                aria-pressed={on}
+                style={{
+                  padding: '10px 8px', borderRadius: 'var(--r-xs)', textAlign: 'left',
+                  background: on ? 'var(--c-accent)' : 'var(--c-surface-2)',
+                  border: `1px solid ${on ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
+                  transition: 'all 150ms',
+                }}
+              >
+                <span style={{ display: 'block', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em', color: on ? 'var(--c-on-action)' : 'var(--c-text)' }}>
+                  {t(opt.label)}
+                </span>
+                <span style={{ display: 'block', fontSize: '9.5px', fontWeight: 500, marginTop: '2px', color: on ? 'var(--c-on-action)' : 'var(--c-text-muted)', opacity: on ? 0.8 : 1 }}>
+                  {t(opt.hint)}
+                </span>
+              </button>
+            )
+          })}
         </div>
-      </Field>
-
-      <Field label="Nombre de la meta">
-        <input
-          className="input-field"
-          placeholder={type === 'exercise_weight' ? 'Ej: Sentadilla 100kg' : 'Ej: Constancia este mes'}
-          value={label}
-          onChange={e => setLabel(e.target.value)}
-        />
       </Field>
 
       {type === 'exercise_weight' && (
@@ -198,17 +257,23 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
         </Field>
       )}
 
-      <Field label={type === 'days_trained' ? 'Días objetivo (este mes)' : 'Peso objetivo'}>
+      <Field
+        label={valueLabel}
+        hint={IS_WEIGHT_GOAL(type) && start != null && start > 0
+          ? `Hoy: ${Math.round(start * 10) / 10} ${unit}`
+          : undefined}
+      >
         <div style={{ display: 'flex', gap: '8px' }}>
           <input
             className="input-field"
             type="number"
-            placeholder={type === 'days_trained' ? '20' : '100'}
+            inputMode="decimal"
+            placeholder={type === 'sessions_per_week' ? '4' : type === 'days_trained' ? '20' : '100'}
             value={targetValue}
             onChange={e => setTargetValue(e.target.value)}
             style={{ flex: 1 }}
           />
-          {type === 'exercise_weight' && (
+          {IS_WEIGHT_GOAL(type) && (
             <UnitToggle value={unit} units={['kg', 'lb']} onChange={setUnit} />
           )}
         </div>
@@ -219,6 +284,7 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
           <input
             className="input-field"
             type="number"
+            inputMode="numeric"
             placeholder="Ej: 5"
             value={targetReps}
             onChange={e => setTargetReps(e.target.value)}
@@ -226,12 +292,38 @@ function GoalModal({ onClose, onSave, exercises = [] }) {
         </Field>
       )}
 
+      {IS_WEIGHT_GOAL(type) && (
+        <Field label="Fecha límite" hint="Opcional — con fecha la app te dice si vas a tiempo">
+          <input
+            className="input-field"
+            type="date"
+            value={targetDate}
+            onChange={e => setTargetDate(e.target.value)}
+          />
+        </Field>
+      )}
+
+      <Field label="Nombre de la meta" hint="Opcional">
+        <input
+          className="input-field"
+          placeholder={suggestedLabel || 'Ej: Sentadilla 100 kg'}
+          value={label}
+          onChange={e => setLabel(e.target.value)}
+        />
+      </Field>
+
+      {problem && (
+        <p style={{ color: 'var(--c-action-text)', fontSize: '11.5px', fontWeight: 600, lineHeight: 1.4, marginBottom: '10px' }}>
+          {t(problem[0], problem[1])}
+        </p>
+      )}
+
       <Button
         variant="primary"
         full
         size="lg"
         loading={saving}
-        disabled={saving || !label.trim() || !targetValue}
+        disabled={saving || !canSave}
         onClick={handleSave}
         style={{ marginTop: '8px' }}
       >
@@ -360,24 +452,12 @@ function Chip({ label, value, hint, live, index = 0, onClick }) {
   )
 }
 
-// ── Helpers visuales de metas ────────────────────────────────────────────
-function getMotivation(pct) {
-  if (pct >= 100) return 'Meta cumplida. Crea una nueva.'
-  if (pct >= 75)  return 'Ya casi. Te falta poco.'
-  if (pct >= 50)  return 'Vas por la mitad. Sigue así.'
-  if (pct >= 25)  return 'Buen arranque. Mantén el ritmo.'
-  return 'Apenas empiezas. Suma tu próximo entreno.'
-}
-
-// On-palette + AA in every theme: success green at 100%, muted otherwise.
-// (No off-system amber; the % badge and bar already encode the tier.)
-const getMotivationColor = (pct) => (pct >= 100 ? 'var(--c-success)' : 'var(--c-text-muted)')
-
 // ── Metas ────────────────────────────────────────────────────────────────
 // Vive fuera del bloque "hay entrenos": definir una meta es justo lo que hace
 // alguien que todavía no ha registrado nada, y antes estaba fuera de alcance.
-function GoalsCard({ goals, onAdd, onDelete }) {
-  const { t, locale } = useLang()
+function GoalsCard({ goals, completed = [], onAdd, onDelete, onComplete, onReopen, coachName }) {
+  const { t } = useLang()
+  const [showArchive, setShowArchive] = useState(false)
   return (
     <div style={{
       background: 'var(--c-surface)',
@@ -440,62 +520,47 @@ function GoalsCard({ goals, onAdd, onDelete }) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {goals.map(goal => (
-            <div key={goal.id}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Goal label: sentence case, sin uppercase */}
-                  <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700, letterSpacing: '-0.01em', marginBottom: '2px' }}>
-                    {goal.label}
-                  </p>
-                  <p style={{ color: getMotivationColor(goal.pct), fontSize: '11px', fontWeight: 500 }}>
-                    {t(getMotivation(goal.pct))}
-                  </p>
-                </div>
-                <button
-                  onClick={() => onDelete(goal)}
-                  style={{ color: 'var(--c-text-muted)', fontSize: '13px', minWidth: '44px', minHeight: '44px', margin: '-12px -10px -12px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'color 120ms' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-muted)'}
-                  aria-label={`${t('Eliminar')}: ${goal.label}`}
-                  title={t('Eliminar')}
-                >
-                  ✕
-                </button>
-              </div>
-              {/* Barra de progreso */}
-              <div
-                style={{ background: 'var(--c-surface-2)', borderRadius: '999px', height: '8px', marginBottom: '6px', overflow: 'hidden' }}
-                role="progressbar"
-                aria-valuenow={goal.pct}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={goal.label}
-              >
-                <div style={{
-                  height: '100%',
-                  width: '100%',
-                  transformOrigin: 'left center',
-                  transform: `scaleX(${goal.pct / 100})`,
-                  background: goal.pct >= 100 ? 'var(--c-record)' : 'var(--c-action)',
-                  borderRadius: '999px',
-                  transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
-                }} />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500 }}>
-                  {goal.type === 'days_trained'
-                    ? `${goal.current} / ${goal.target_value} ${t('días este mes')}`
-                    : goal.target_reps
-                      ? `${goal.current} / ${goal.target_value} ${goal.unit} × ${goal.target_reps} reps`
-                      : `${goal.current} / ${goal.target_value} ${goal.unit} (1RM est.)`
-                  }
-                </span>
-                <span style={{ fontSize: '10px', fontWeight: 700, color: goal.pct >= 100 ? 'var(--c-success)' : 'var(--c-text-dim)' }}>
-                  {goal.pct}%
-                </span>
-              </div>
-            </div>
+            <GoalRow
+              key={goal.id}
+              goal={goal}
+              onDelete={onDelete}
+              onComplete={onComplete}
+              coachName={goal.assigned_by ? coachName?.(goal.assigned_by) : null}
+            />
           ))}
+        </div>
+      )}
+
+      {/* Archivo — lo cumplido no se borra, se guarda. Cerrado por defecto:
+          es historia, no la pregunta de hoy. */}
+      {completed.length > 0 && (
+        <div style={{ marginTop: goals.length ? '18px' : '14px', paddingTop: '14px', borderTop: '1px solid var(--c-border-subtle)' }}>
+          <button
+            onClick={() => setShowArchive(v => !v)}
+            aria-expanded={showArchive}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)',
+              fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em',
+            }}
+          >
+            {completed.length === 1 ? `1 ${t('meta cumplida')}` : `${completed.length} ${t('metas cumplidas')}`}
+            <span aria-hidden="true" style={{ fontSize: '12px' }}>{showArchive ? '↑' : '↓'}</span>
+          </button>
+
+          {showArchive && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '14px' }}>
+              {completed.map(goal => (
+                <GoalRow
+                  key={goal.id}
+                  goal={goal}
+                  onDelete={onDelete}
+                  onReopen={onReopen}
+                  coachName={goal.assigned_by ? coachName?.(goal.assigned_by) : null}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -510,12 +575,12 @@ export default function Training() {
   const navigate = useNavigate()
   const { t, locale } = useLang()
   const { workouts, loading, error, createWorkout, fetchWorkouts } = useWorkouts()
-  const { goals, createGoal, deleteGoal } = useGoals()
+  const { open: openGoals, completed: completedGoals, createGoal, deleteGoal, completeGoal, reopenGoal } = useGoals()
   const { profile } = useProfile()
   const firstName = profile?.name?.split(' ')[0] || ''
   const { totals: nutritionTotals } = useNutritionDay(toLocalISODate())
   const { targets: nutritionTargets } = useNutritionTargets()
-  const { latestLog: latestWeight } = useBodyWeight()
+  const { logs: weightLogs, latestLog: latestWeight } = useBodyWeight()
 
   const { sessions, createSession, updateSession, deleteSession, deleteSeries } = useSchedule()
   const { counts: unreadMap } = useUnreadCounts()
@@ -801,46 +866,40 @@ export default function Training() {
   )
 
   // ── Progreso de metas ─────────────────────────────────────────────────
+  // La cuenta vive en lib/goals: la ficha del entrenador enseña estas mismas
+  // barras y una segunda copia de la fórmula acabaría contando distinto.
+  const goalCtx = useMemo(
+    () => ({ workouts, bodyWeightLogs: weightLogs }),
+    [workouts, weightLogs]
+  )
+
   // Hide any goal awaiting an undoable delete so it vanishes optimistically.
-  const goalProgress = goals.filter(g => g.id !== goalDelete.pending?.id).map(goal => {
-    if (goal.type === 'days_trained') {
-      const current = stats.thisMonth || 0
-      const pct = Math.min(100, Math.round((current / goal.target_value) * 100))
-      return { ...goal, current, pct }
-    }
-    if (goal.type === 'exercise_weight') {
-      const hasRepsTarget = goal.target_reps && goal.target_reps > 0
-      // La meta se escribió en la unidad del perfil; las series pueden venir
-      // en otra (el toggle es por ejercicio). Todo se compara en la unidad de
-      // la meta o el progreso se infla/encoge 2,2×.
-      const goalUnit = defaultLiftUnit(profile)
-      let best = 0
+  const goalProgress = useMemo(
+    () => computeGoals(openGoals.filter(g => g.id !== goalDelete.pending?.id), goalCtx),
+    [openGoals, goalDelete.pending, goalCtx]
+  )
+  const completedProgress = useMemo(
+    () => computeGoals(completedGoals.filter(g => g.id !== goalDelete.pending?.id), goalCtx),
+    [completedGoals, goalDelete.pending, goalCtx]
+  )
 
-      workouts.filter(w => w.ended_at).forEach(w => {
-        ;(w.workout_exercises || []).forEach(we => {
-          if (we.exercises?.name?.toLowerCase() === goal.exercise_name?.toLowerCase()) {
-            ;(we.sets || []).forEach(s => {
-              if (hasRepsTarget) {
-                // Modo reps: mejor peso real donde reps >= objetivo
-                const w2 = convertWeight(s.weight || 0, we.unit, goalUnit)
-                if ((s.reps || 0) >= goal.target_reps && w2 > best) {
-                  best = w2
-                }
-              } else {
-                // Modo 1RM estimado (Epley)
-                const rm = convertWeight(calc1RMKg(s.weight, s.reps, we.unit), 'kg', goalUnit)
-                if (rm > best) best = rm
-              }
-            })
-          }
-        })
+  // Sellar sola una meta lograda. Una meta de peso que llegó a su número ya no
+  // puede cambiar de opinión —levantaste eso— así que se archiva sin pedir
+  // permiso y su tarjeta se va del bloque activo con el logro guardado. Las
+  // recurrentes quedan fuera: cumplir cuatro días esta semana no cierra nada,
+  // el lunes vuelve a empezar.
+  //
+  // El ref evita repetir el update mientras el primero está en vuelo: sin él,
+  // cada render que aún ve `completed_at` nulo dispararía otro.
+  const sealed = useRef(new Set())
+  useEffect(() => {
+    goalProgress
+      .filter(g => g.reached && !g.completed_at && !isRecurring(g) && !sealed.current.has(g.id))
+      .forEach(g => {
+        sealed.current.add(g.id)
+        completeGoal(g.id)
       })
-
-      const pct = Math.min(100, Math.round((best / goal.target_value) * 100))
-      return { ...goal, current: best, pct }
-    }
-    return { ...goal, current: 0, pct: 0 }
-  })
+  }, [goalProgress, completeGoal])
 
   // ── Señal ganada, cuando no hay PR de la semana ───────────────────────
   // Antes esto rotaba entre cuatro tarjetas según el día del año: la portada
@@ -1371,7 +1430,11 @@ export default function Training() {
 
                 <GoalsCard
                   goals={goalProgress}
+                  completed={completedProgress}
                   onAdd={() => setShowGoalModal(true)}
+                  onComplete={goal => completeGoal(goal.id)}
+                  onReopen={goal => reopenGoal(goal.id)}
+                  coachName={coachName}
                   onDelete={goal => goalDelete.request(goal, {
                     deletedMsg: `Meta «${goal.label}» eliminada. Toca deshacer para recuperarla.`,
                     restoredMsg: `Meta «${goal.label}» restaurada.`,
@@ -1407,7 +1470,11 @@ export default function Training() {
           <div className="fade-in" style={{ marginBottom: '20px', animationDelay: '60ms' }}>
             <GoalsCard
               goals={goalProgress}
+              completed={completedProgress}
               onAdd={() => setShowGoalModal(true)}
+              onComplete={goal => completeGoal(goal.id)}
+              onReopen={goal => reopenGoal(goal.id)}
+              coachName={coachName}
               onDelete={goal => goalDelete.request(goal, {
                 deletedMsg: `Meta «${goal.label}» eliminada. Toca deshacer para recuperarla.`,
                 restoredMsg: `Meta «${goal.label}» restaurada.`,
@@ -1462,6 +1529,8 @@ export default function Training() {
           onClose={() => setShowGoalModal(false)}
           onSave={async (data) => { await createGoal(data); setShowGoalModal(false); goalDelete.setLiveMsg(`Meta «${data.label}» creada.`) }}
           exercises={userExercises}
+          progressCtx={goalCtx}
+          currentWeightUnit={defaultLiftUnit(profile)}
         />
       )}
 

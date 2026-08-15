@@ -57,7 +57,11 @@ vi.mock('../hooks/useNutrition', async () => {
 })
 vi.mock('../hooks/useBodyWeight', () => ({ useBodyWeight: () => ({ latestLog: null }) }))
 vi.mock('../hooks/useGoals', () => ({
-  useGoals: () => ({ goals: [], createGoal: vi.fn(), deleteGoal: vi.fn() }),
+  useGoals: () => ({
+    goals: [], open: [], completed: [],
+    createGoal: vi.fn(), deleteGoal: vi.fn(),
+    completeGoal: vi.fn(), reopenGoal: vi.fn(),
+  }),
 }))
 vi.mock('../hooks/useRoutines', () => ({
   useRoutines: () => ({ activeRoutine: null, routines: [] }),

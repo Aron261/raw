@@ -150,6 +150,10 @@ export function useDashboard(targetUserId = null) {
           totalWorkouts: workouts.length,
           thisMonth,
           lastWorkout,
+          // La lista cruda, ya traída y con series: el progreso de las metas se
+          // calcula sobre ella (lib/goals) y sin esto la ficha del cliente
+          // tendría que pedir los mismos entrenos por segunda vez.
+          workouts,
         }
       }
   }, [ownerId])
