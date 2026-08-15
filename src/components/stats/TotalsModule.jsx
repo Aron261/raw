@@ -23,7 +23,14 @@ export default function TotalsModule({ data }) {
   // resto del código: aquí la sombreaba y hacía imposible usar useLang sin
   // romper cuatro líneas por accidente.
   const totals = data?.totals || { workouts: 0, volume: 0, sets: 0 }
+  const c = data?.consistency
   const { t, locale } = useLang()
+
+  // El total histórico solo sube, así que por sí solo no informa de nada: la
+  // línea de debajo dice qué has movido en las últimas 4 semanas y si eso es
+  // más o menos que en las 4 anteriores. Es la diferencia entre una vitrina y
+  // un instrumento.
+  const up = c?.deltaVolume != null && c.deltaVolume >= 0
 
   return (
     <section style={{ marginBottom: '40px' }}>
@@ -35,6 +42,23 @@ export default function TotalsModule({ data }) {
       <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 500, marginTop: '8px' }}>
         {t('levantados en total')}
       </p>
+
+      {c && c.volume4 > 0 && (
+        <p style={{ color: 'var(--c-text-muted)', fontSize: '12px', fontWeight: 500, marginTop: '6px' }}>
+          <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>
+            {formatVolume(c.volume4, locale, { empty: '0' })} kg
+          </span>{' '}
+          {t('en las últimas 4 semanas')}
+          {c.deltaVolume != null && (
+            <>
+              {' · '}
+              <span style={{ color: up ? 'var(--c-success)' : 'var(--c-action-text)', fontWeight: 800 }}>
+                {up ? '▲' : '▼'} {Math.abs(c.deltaVolume)}%
+              </span>
+            </>
+          )}
+        </p>
+      )}
 
       {/* Subordinate stats */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginTop: '20px' }}>

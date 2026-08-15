@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -9,7 +9,10 @@ import NutritionTargetsSheet from '../components/NutritionTargetsSheet'
 import { useClientDetail } from '../hooks/useClientDetail'
 import { useRoutines } from '../hooks/useRoutines'
 import { useGoals } from '../hooks/useGoals'
+import { useBodyWeight } from '../hooks/useBodyWeight'
 import { useDashboard } from '../hooks/useDashboard'
+import { computeGoals, currentValue } from '../lib/goals'
+import GoalRow from '../components/GoalRow'
 import { useNutritionTargets, useNutritionRange, toLocalISODate } from '../hooks/useNutrition'
 import { useTheme } from '../hooks/useTheme'
 import { pressProps, ERROR_STYLE } from '../lib/ui'
@@ -505,29 +508,70 @@ export function BuildRoutineModal({ clientName, initialType, startPicking = fals
 }
 
 // ── Modal: asignar meta ──────────────────────────────────────────────────────
-function AssignGoalModal({ clientName, onClose, onCreate }) {
-  const { t, locale } = useLang()
+// Los mismos cuatro tipos que ve el levantador. Que el entrenador pudiera
+// asignar solo dos de ellos convertía "meta" en dos cosas distintas según
+// quién la escribiera.
+const ASSIGNABLE_KINDS = [
+  { v: 'exercise_weight',   l: 'Fuerza' },
+  { v: 'body_weight',       l: 'Peso corporal' },
+  { v: 'sessions_per_week', l: 'Días/semana' },
+  { v: 'days_trained',      l: 'Días/mes' },
+]
+const ASSIGN_IS_WEIGHT = (type) => type === 'exercise_weight' || type === 'body_weight'
+
+function AssignGoalModal({ clientName, onClose, onCreate, progressCtx = {} }) {
+  const { t } = useLang()
   const [type, setType]   = useState('exercise_weight')
   const [label, setLabel] = useState('')
   const [exerciseName, setExerciseName] = useState('')
   const [target, setTarget] = useState('')
+  const [targetDate, setTargetDate] = useState('')
   const [unit, setUnit]   = useState('kg')
   const [saving, setSaving] = useState(false)
   const [localError, setLocalError] = useState(null)
 
+  // De dónde parte el cliente hoy, medido sobre SUS entrenos y SU báscula. Es
+  // lo que hace que la barra cuente el tramo asignado: sin esto, asignarle
+  // "sentadilla 100" a quien ya hace 95 nacería al 95 % de una meta recién
+  // puesta.
+  const start = useMemo(() => {
+    if (!ASSIGN_IS_WEIGHT(type)) return null
+    return currentValue({ type, exercise_name: exerciseName, unit }, progressCtx)
+  }, [type, exerciseName, unit, progressCtx])
+
+  const suggestedLabel = (() => {
+    const n = parseFloat(target)
+    if (!n) return ''
+    if (type === 'exercise_weight') return exerciseName ? `${exerciseName} ${n} ${unit}` : ''
+    if (type === 'body_weight') return `Peso corporal ${n} ${unit}`
+    if (type === 'sessions_per_week') return `${n} días por semana`
+    return `${n} días al mes`
+  })()
+
   const handleCreate = async () => {
-    if (!label.trim()) { setLocalError('Ponle un nombre a la meta'); return }
     const targetNum = parseFloat(target)
-    if (!targetNum || targetNum <= 0) { setLocalError('Ingresa un valor objetivo válido'); return }
+    if (!targetNum || targetNum <= 0) { setLocalError(t('Ingresa un valor objetivo válido')); return }
+    if (type === 'exercise_weight' && !exerciseName.trim()) {
+      setLocalError(t('Escribe el ejercicio o la meta no podrá medirse.')); return
+    }
+    const maxDays = type === 'sessions_per_week' ? 7 : 31
+    if (!ASSIGN_IS_WEIGHT(type) && targetNum > maxDays) {
+      setLocalError(t('Como mucho {n} días.', { n: maxDays })); return
+    }
+    if (type === 'body_weight' && start == null) {
+      setLocalError(t('Este cliente aún no ha registrado su peso: sin punto de partida la meta no se puede medir.')); return
+    }
     setSaving(true)
     setLocalError(null)
     try {
       await onCreate({
         type,
-        label: label.trim(),
+        label: (label.trim() || suggestedLabel || 'Meta'),
         exercise_name: type === 'exercise_weight' ? (exerciseName.trim() || null) : null,
         target_value: targetNum,
-        unit: type === 'days_trained' ? 'días' : unit,
+        start_value: ASSIGN_IS_WEIGHT(type) ? start : null,
+        target_date: ASSIGN_IS_WEIGHT(type) && targetDate ? targetDate : null,
+        unit: ASSIGN_IS_WEIGHT(type) ? unit : 'días',
         is_monthly: type === 'days_trained',
       })
       onClose()
@@ -543,29 +587,22 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
       {localError && <div style={{ ...ERROR_STYLE, marginBottom: '14px' }}>{localError}</div>}
 
       <p style={MINI_LABEL}>{t('Tipo de meta')}</p>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '18px' }}>
-        {[
-          { v: 'exercise_weight', l: t('Peso en ejercicio') },
-          { v: 'days_trained',    l: 'Días/mes' },
-        ].map(opt => (
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '18px' }}>
+        {ASSIGNABLE_KINDS.map(opt => (
           <button
             key={opt.v}
             onClick={() => setType(opt.v)}
+            aria-pressed={type === opt.v}
             style={{
-              flex: 1, padding: '10px', borderRadius: 'var(--r-sm)', fontSize: '11px', fontWeight: 700,
+              padding: '10px', borderRadius: 'var(--r-sm)', fontSize: '11px', fontWeight: 700,
               border: `1px solid ${type === opt.v ? 'var(--c-accent)' : 'var(--c-border)'}`,
               background: type === opt.v ? 'var(--c-accent-dim)' : 'var(--c-surface-2)',
               color: type === opt.v ? 'var(--c-action-text)' : 'var(--c-text-dim)',
             }}
           >
-            {opt.l}
+            {t(opt.l)}
           </button>
         ))}
-      </div>
-
-      <div style={{ marginBottom: '14px' }}>
-        <p style={MINI_LABEL}>{t('Nombre')}</p>
-        <input aria-label={t('Nombre de la meta')} className="input-field" value={label} onChange={e => setLabel(e.target.value)} placeholder="Ej: Press banca 100kg" />
       </div>
 
       {type === 'exercise_weight' && (
@@ -575,19 +612,35 @@ function AssignGoalModal({ clientName, onClose, onCreate }) {
         </div>
       )}
 
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '14px' }}>
         <p style={MINI_LABEL}>{t('Objetivo')}</p>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <input aria-label={t('Valor a alcanzar')} className="input-field" type="number" value={target} onChange={e => setTarget(e.target.value)} placeholder="0" style={{ flex: 1 }} />
-          {type === 'exercise_weight' && (
+          <input aria-label={t('Valor a alcanzar')} className="input-field" type="number" inputMode="decimal" value={target} onChange={e => setTarget(e.target.value)} placeholder="0" style={{ flex: 1 }} />
+          {ASSIGN_IS_WEIGHT(type) ? (
             <UnitToggle value={unit} units={['kg', 'lb']} onChange={setUnit} />
-          )}
-          {type === 'days_trained' && (
+          ) : (
             <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px', background: 'var(--c-surface-2)', border: '1px solid var(--c-border)', borderRadius: 'var(--r-sm)', color: 'var(--c-text-dim)', fontSize: '11px', fontWeight: 700 }}>
               {t('días')}
             </div>
           )}
         </div>
+        {ASSIGN_IS_WEIGHT(type) && start != null && start > 0 && (
+          <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', fontWeight: 500, marginTop: '6px' }}>
+            {t('Hoy')}: {Math.round(start * 10) / 10} {unit}
+          </p>
+        )}
+      </div>
+
+      {ASSIGN_IS_WEIGHT(type) && (
+        <div style={{ marginBottom: '14px' }}>
+          <p style={MINI_LABEL}>{t('Fecha límite')}</p>
+          <input aria-label={t('Fecha límite')} className="input-field" type="date" value={targetDate} onChange={e => setTargetDate(e.target.value)} />
+        </div>
+      )}
+
+      <div style={{ marginBottom: '24px' }}>
+        <p style={MINI_LABEL}>{t('Nombre')}</p>
+        <input aria-label={t('Nombre de la meta')} className="input-field" value={label} onChange={e => setLabel(e.target.value)} placeholder={suggestedLabel || 'Ej: Press banca 100kg'} />
       </div>
 
       <Button variant="primary" full size="lg" loading={saving} disabled={saving} onClick={handleCreate}>
@@ -605,9 +658,20 @@ export default function ClientDetail() {
 
   const { profile, age, loading: profLoading, error: profError } = useClientDetail(clientId)
   const { routines, loading: routLoading, error: routError, fetchRoutines, createRoutine, deleteRoutine, setActiveRoutine } = useRoutines(clientId)
-  const { goals, loading: goalsLoading, error: goalsError, fetchGoals, createGoal, deleteGoal } = useGoals(clientId)
+  const { open: openGoals, completed: completedGoals, loading: goalsLoading, error: goalsError, fetchGoals, createGoal, deleteGoal } = useGoals(clientId)
   const { data: dash, error: dashError, refetch: refetchDash } = useDashboard(clientId)
+  const { logs: clientWeightLogs } = useBodyWeight(clientId)
   const cc = useChartColors()
+
+  // El progreso se calcula sobre los entrenos y la báscula DEL CLIENTE, con la
+  // misma función que usa la portada (lib/goals). `dash.workouts` ya viene con
+  // series, así que no hace falta una segunda consulta.
+  const goalCtx = useMemo(
+    () => ({ workouts: dash?.workouts || [], bodyWeightLogs: clientWeightLogs }),
+    [dash?.workouts, clientWeightLogs]
+  )
+  const openGoalProgress = useMemo(() => computeGoals(openGoals, goalCtx), [openGoals, goalCtx])
+  const completedGoalProgress = useMemo(() => computeGoals(completedGoals, goalCtx), [completedGoals, goalCtx])
 
   const [modal, setModal] = useState(null) // 'mine' | 'cycle' | 'single' | 'goal'
   const [actionError, setActionError] = useState(null)
@@ -829,24 +893,29 @@ export default function ClientDetail() {
 
           {goalsLoading ? (
             <div style={{ height: '50px', background: 'var(--c-surface)', border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)', borderRadius: 'var(--r-md)' }} />
-          ) : goals.length === 0 ? (
+          ) : openGoalProgress.length === 0 && completedGoalProgress.length === 0 ? (
             <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', padding: '12px 0' }}>{t('Sin metas asignadas.')}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {goals.map(g => (
-                <div key={g.id} style={{ ...CARD, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <p style={{ color: 'var(--c-text)', fontSize: '13px', fontWeight: 700 }}>{g.label}</p>
-                    <p style={{ color: 'var(--c-text-muted)', fontSize: '10px', marginTop: '2px' }}>
-                      Objetivo: {g.target_value} {g.unit}
-                      {g.assigned_by ? ` · ${t('Asignada por ti')}` : ''}
-                    </p>
-                  </div>
-                  <button onClick={() => run(() => deleteGoal(g.id))} aria-label="Eliminar" style={{ color: 'var(--c-text-ghost)', fontSize: '12px', padding: '2px 4px' }}
-                    onMouseEnter={e => e.currentTarget.style.color = 'var(--c-action-text)'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'var(--c-text-ghost)'}>
-                    ✕
-                  </button>
+              {/* La misma barra que ve el cliente. Antes esto era una línea de
+                  texto con el objetivo: el entrenador sabía qué se había
+                  propuesto su cliente pero no si iba a llegar. */}
+              {openGoalProgress.map(g => (
+                <div key={g.id} style={{ ...CARD, padding: '12px 14px' }}>
+                  <GoalRow
+                    goal={g}
+                    onDelete={() => run(() => deleteGoal(g.id))}
+                    coachName={g.assigned_by ? t('ti') : null}
+                  />
+                </div>
+              ))}
+              {completedGoalProgress.map(g => (
+                <div key={g.id} style={{ ...CARD, padding: '12px 14px' }}>
+                  <GoalRow
+                    goal={g}
+                    onDelete={() => run(() => deleteGoal(g.id))}
+                    coachName={g.assigned_by ? t('ti') : null}
+                  />
                 </div>
               ))}
             </div>
@@ -857,7 +926,7 @@ export default function ClientDetail() {
       {modal === 'cycle'  && <BuildRoutineModal clientName={name} initialType="cycle"      onClose={() => setModal(null)} onCreate={createRoutine} />}
       {modal === 'single' && <BuildRoutineModal clientName={name} initialType="single_day" onClose={() => setModal(null)} onCreate={createRoutine} />}
       {modal === 'mine'   && <BuildRoutineModal clientName={name} initialType="cycle" startPicking onClose={() => setModal(null)} onCreate={createRoutine} />}
-      {modal === 'goal'   && <AssignGoalModal   clientName={name}                          onClose={() => setModal(null)} onCreate={createGoal} />}
+      {modal === 'goal'   && <AssignGoalModal   clientName={name} progressCtx={goalCtx}     onClose={() => setModal(null)} onCreate={createGoal} />}
     </Layout>
   )
 }

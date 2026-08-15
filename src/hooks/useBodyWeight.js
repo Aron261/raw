@@ -10,18 +10,25 @@ import { useCachedResource, mutateCache } from '../lib/swr'
 //
 // `logs` is oldest → newest (the chart reads it in that order); `latestLog` is
 // the entry to show when you want "today's weight".
-export function useBodyWeight() {
+//
+// Con `targetUserId` lee la báscula de un cliente: lo pide la ficha del
+// entrenador para poder pintar el progreso de una meta de peso corporal, que
+// sin los registros no se puede calcular. Es solo lectura — `addLog` escribe
+// siempre sobre la propia cuenta (el peso se registra en la báscula y en la
+// app de quien se pesa, no desde la ficha de otro).
+export function useBodyWeight(targetUserId = null) {
   const { locale } = useLang()
   const { user } = useAuth()
   const [adding, setAdding] = useState(false)
 
-  const key = user?.id ? `body-weight:${user.id}` : null
+  const ownerId = targetUserId || user?.id
+  const key = ownerId ? `body-weight:${ownerId}` : null
 
   const fetcher = async () => {
     const { data, error } = await supabase
       .from('body_weight_logs')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', ownerId)
       .order('logged_at', { ascending: true })
     if (error) throw error
     return data || []
@@ -36,6 +43,10 @@ export function useBodyWeight() {
   // de peso contaría dos jueves y ningún martes.
   const addLog = useCallback(async (weight, unit = 'kg', note = null, loggedAt = null) => {
     if (!user?.id || !weight) return null
+    // Mirando la báscula de otra persona no se escribe: el insert iría a la
+    // cuenta propia y la caché que se actualiza es la del cliente, así que el
+    // registro aparecería en la ficha equivocada.
+    if (targetUserId) return null
     setAdding(true)
     try {
       const { data: row, error: insertErr } = await supabase
@@ -57,9 +68,10 @@ export function useBodyWeight() {
     } finally {
       setAdding(false)
     }
-  }, [user?.id, key])
+  }, [user?.id, key, targetUserId])
 
   const deleteLog = useCallback(async (id) => {
+    if (targetUserId) return
     try {
       const { error: deleteErr } = await supabase.from('body_weight_logs').delete().eq('id', id)
       if (deleteErr) throw deleteErr
@@ -67,7 +79,7 @@ export function useBodyWeight() {
     } catch (err) {
       console.error('Error deleting weight log:', err)
     }
-  }, [key])
+  }, [key, targetUserId])
 
   const latestLog = logs.length > 0 ? logs[logs.length - 1] : null
 
