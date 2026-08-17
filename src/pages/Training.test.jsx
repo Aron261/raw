@@ -5,7 +5,7 @@
 // una sola pantalla. Estas pruebas fijan el recuento.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup, within } from '@testing-library/react'
+import { render, screen, cleanup, within, fireEvent } from '@testing-library/react'
 
 vi.mock('recharts', () => ({
   // El mock cubre lo que monta chartTheme además de lo que monta la pantalla:
@@ -175,11 +175,25 @@ describe('Inicio — primer uso', () => {
     expect(screen.getByRole('button', { name: /^crear meta$/i })).toBeTruthy()
   })
 
-  it('muestra el arranque y el calendario, sin números de semana vacíos', () => {
+  it('muestra el arranque, sin números de semana vacíos', () => {
     render(<Training />)
     expect(screen.getByText(/Registra tu primer entreno/i)).toBeTruthy()
-    expect(screen.getByTestId('calendar')).toBeTruthy()
     expect(screen.queryByText(/^Esta semana$/)).toBeNull()
+  })
+
+  it('el calendario está a un toque, no ocupando la portada', () => {
+    // La rejilla del mes se comía una pantalla entera de Inicio sin que nadie
+    // se lo pidiera. Planear es tarea de sofá: lo que se ve siempre es qué
+    // toca a continuación, y el mes se abre si lo pides.
+    render(<Training />)
+    expect(screen.queryByTestId('calendar')).toBeNull()
+
+    const toggle = screen.getByRole('button', { name: /^calendario$/i })
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+
+    fireEvent.click(toggle)
+    expect(screen.getByTestId('calendar')).toBeTruthy()
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
   })
 })
 

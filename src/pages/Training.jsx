@@ -1,8 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell,
-} from 'recharts'
 import Layout from '../components/Layout'
 import { useWorkouts } from '../hooks/useWorkout'
 import { useProfile } from '../hooks/useProfile'
@@ -13,9 +10,6 @@ import { useGoals } from '../hooks/useGoals'
 import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
 import { useStartRoutineWorkout } from '../hooks/useStartRoutineWorkout'
 import { useInvites } from '../hooks/useInvites'
-import { useChartColors } from '../lib/chartColors'
-import { formatVolume } from '../lib/format'
-import { ChartTooltip } from '../components/charts/chartTheme'
 import { useSchedule } from '../hooks/useSchedule'
 import { useSupplements } from '../hooks/useSupplements'
 import { useUnreadCounts } from '../hooks/useUnreadCounts'
@@ -32,7 +26,6 @@ import { defaultLiftUnit } from '../lib/units'
 import { computeGoals, groupGoals, currentValue, isRecurring } from '../lib/goals'
 import GoalRow from '../components/GoalRow'
 
-const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
 // Se resuelve en cada render, no al cargar el módulo: la PWA puede quedar
 // abierta toda la noche y la portada no puede seguir diciendo "ayer".
@@ -51,75 +44,6 @@ function greetingKey() {
   return 'Buenas noches'
 }
 
-// ── WeeklyChart ───────────────────────────────────────────────────────────
-function WeeklyChart({ chartData, height = 150, title, subtitle, colors }) {
-  const { t, locale } = useLang()
-  return (
-    <div style={{
-      background: 'var(--c-surface)',
-      border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
-      borderRadius: 'var(--r-lg)',
-      paddingBottom: '12px',
-      overflow: 'hidden',
-    }}>
-      {/* Header interno del chart */}
-      {title && (
-        <div style={{ padding: '20px 20px 0' }}>
-          <p style={{ color: 'var(--c-text)', fontSize: '14px', fontWeight: 700, marginBottom: '2px' }}>
-            {title}
-          </p>
-          {subtitle && (
-            <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500 }}>
-              {subtitle}
-            </p>
-          )}
-        </div>
-      )}
-
-      <div style={{ paddingTop: title ? '16px' : '20px', paddingLeft: '8px', paddingRight: '8px' }}>
-        {chartData.every(d => d.vol === 0) ? (
-          <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--c-text-muted)', fontSize: '11px' }}>
-            {t('Sin entrenos registrados esta semana')}
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={height}>
-            <BarChart data={chartData} barSize={22} margin={{ top: 0, right: 8, bottom: 0, left: -20 }}>
-              <XAxis
-                dataKey="day"
-                tick={{ fill: colors.axis, fontSize: 10, fontWeight: 600, fontFamily: 'Archivo, system-ui, sans-serif' }}
-                axisLine={false}
-                tickLine={false}
-                tickMargin={8}
-              />
-              <YAxis hide />
-              <Tooltip
-                content={<ChartTooltip format={(v) => `${formatVolume(v, locale, { empty: '0' })} kg`} />}
-                cursor={{ fill: colors.cursor }}
-              />
-              {/* Un solo tono para toda la serie: hoy va a plena intensidad y
-                  el resto de la semana baja la opacidad. Antes hoy usaba un
-                  color propio, y con una sola paleta eso pedía inventarse un
-                  segundo azul solo para una barra. */}
-              <Bar dataKey="vol" radius={[6, 6, 0, 0]} minPointSize={(v) => (v > 0 ? 2 : 3)}>
-                {chartData.map((entry, i) => {
-                  const isToday = i === ((new Date().getDay() + 6) % 7)
-                  const empty = entry.future || entry.vol === 0
-                  return (
-                    <Cell
-                      key={i}
-                      fill={empty ? colors.empty : colors.bar}
-                      fillOpacity={empty || isToday ? 1 : 0.42}
-                    />
-                  )
-                })}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-    </div>
-  )
-}
 
 // ── GoalModal ─────────────────────────────────────────────────────────────
 // Cuatro clases de meta. Las dos de peso (fuerza y báscula) tienen plazo y
@@ -455,11 +379,29 @@ function Chip({ label, value, hint, live, index = 0, onClick }) {
 // ── Metas ────────────────────────────────────────────────────────────────
 // Vive fuera del bloque "hay entrenos": definir una meta es justo lo que hace
 // alguien que todavía no ha registrado nada, y antes estaba fuera de alcance.
+// Tope de metas visibles en la portada. Con más, la tarjeta se comía media
+// pantalla de Inicio por algo que no cambia de un día para otro. Se ven las que
+// están en juego y el resto está a un toque.
+const GOALS_ON_HOME = 3
+
 function GoalsCard({ goals, groups = [], completed = [], onAdd, onDelete, onComplete, onReopen, coachName }) {
   const { t } = useLang()
   const [showArchive, setShowArchive] = useState(false)
+  const [showAllGoals, setShowAllGoals] = useState(false)
+
+  // El recorte se aplica sobre el total, no por familia: cortar tres de cada
+  // grupo dejaría nueve metas y no arreglaría nada.
+  const total = groups.reduce((n, g) => n + g.goals.length, 0)
+  const capped = total > GOALS_ON_HOME && !showAllGoals
+  let left = GOALS_ON_HOME
+  const shownGroups = !capped ? groups : groups.map(g => {
+    const take = Math.max(0, Math.min(left, g.goals.length))
+    left -= take
+    return { ...g, goals: g.goals.slice(0, take) }
+  }).filter(g => g.goals.length > 0)
+
   // Con una sola familia el encabezado no separa nada de nada: sobra.
-  const showGroupLabels = groups.length > 1
+  const showGroupLabels = shownGroups.length > 1
   return (
     <div style={{
       background: 'var(--c-surface)',
@@ -525,7 +467,7 @@ function GoalsCard({ goals, groups = [], completed = [], onAdd, onDelete, onComp
            mismo: un 90 % de sentadilla son 10 kg que faltan, un 90 % de
            constancia es haber ido casi todos los días. */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {groups.map(group => (
+          {shownGroups.map(group => (
             <div key={group.kind}>
               {showGroupLabels && (
                 <p style={{
@@ -550,6 +492,21 @@ function GoalsCard({ goals, groups = [], completed = [], onAdd, onDelete, onComp
             </div>
           ))}
         </div>
+      )}
+
+      {total > GOALS_ON_HOME && (
+        <button
+          onClick={() => setShowAllGoals(v => !v)}
+          aria-expanded={showAllGoals}
+          style={{
+            marginTop: '14px', display: 'inline-flex', alignItems: 'center', gap: '5px',
+            fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)',
+            fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em',
+          }}
+        >
+          {showAllGoals ? t('Ver menos') : `${t('Ver todas')} (${total})`}
+          <span aria-hidden="true" style={{ fontSize: '12px' }}>{showAllGoals ? '↑' : '↓'}</span>
+        </button>
       )}
 
       {/* Archivo — lo cumplido no se borra, se guarda. Cerrado por defecto:
@@ -613,6 +570,8 @@ export default function Training() {
   const openDay = (d) => navigate(`/dia/${toLocalISODate(d)}`)
 
   const [showGoalModal, setShowGoalModal] = useState(false)
+  // La rejilla del mes, plegada por defecto: ocupaba una pantalla entera.
+  const [showCalendar, setShowCalendar] = useState(false)
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
   const [startingCoachId, setStartingCoachId] = useState(null)
@@ -634,7 +593,6 @@ export default function Training() {
   const { activeRoutine, routines } = useRoutines()
   const { startWorkoutFromRoutineDay } = useStartRoutineWorkout()
   const { trainers } = useInvites()
-  const chartColors = useChartColors()
 
 
   // Mapa id_entrenador → nombre, para mostrar quién asignó cada rutina.
@@ -746,7 +704,7 @@ export default function Training() {
 
   // ── Stats + PR + starLift ─────────────────────────────────────────────
   const stats = useMemo(() => {
-    const empty = { count: 0, weekVolume: 0, chartData: [], thisMonth: 0, weekPR: null }
+    const empty = { count: 0, weekVolume: 0, thisMonth: 0, weekPR: null }
     if (!workouts.length) return empty
 
     const monday = mondayOf(new Date())
@@ -772,27 +730,6 @@ export default function Training() {
       }
     }
 
-    // Volumen por día (Lun–Dom)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const chartData = DAY_LABELS.map((day, i) => {
-      const date = new Date(monday)
-      date.setDate(monday.getDate() + i)
-      const isFuture = date > today
-      if (isFuture) return { day, vol: 0, future: true }
-
-      const dayWorkouts = workouts.filter(w => {
-        const d = new Date(w.started_at)
-        d.setHours(0, 0, 0, 0)
-        return d.getTime() === date.getTime()
-      })
-      const vol = dayWorkouts.reduce((sum, w) =>
-        sum + (w.workout_exercises || []).reduce((s2, we) => {
-          const factor = we.unit === 'lb' ? 0.453592 : 1
-          return s2 + (we.sets || []).reduce((s3, s) => s3 + (s.weight || 0) * (s.reps || 0) * factor, 0)
-        }, 0), 0)
-      return { day, vol, future: false }
-    })
 
     // Mejor 1RM histórico por ejercicio (antes de esta semana) — en kilos,
     // porque las sesiones comparadas pueden venir en unidades distintas.
@@ -833,7 +770,7 @@ export default function Training() {
       }
     })
 
-    return { count: thisWeekWorkouts.length, weekVolume: Math.round(weekVolume), chartData, thisMonth, weekPR }
+    return { count: thisWeekWorkouts.length, weekVolume: Math.round(weekVolume), thisMonth, weekPR }
   }, [workouts])
 
   // ── Calendario: racha y próximo plan ──────────────────────────────────
@@ -1392,12 +1329,11 @@ export default function Training() {
         {/* ── Contenido principal ── */}
         {!loading && !error && workouts.length > 0 && (
           <>
-            {/* Grid: gráfico (izq) · señal ganada + metas (der) */}
-            <div className="md:grid md:grid-cols-[1fr_360px] md:gap-x-6 md:items-start">
+                        <div>
 
               {/* ── Columna derecha: señal ganada (PR o highlight) + Metas ── */}
               <div
-                className="fade-in md:col-start-2 md:row-start-1"
+                className="fade-in"
                 style={{ animationDelay: '60ms', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}
               >
 
@@ -1471,20 +1407,6 @@ export default function Training() {
               </div>
               {/* fin columna derecha */}
 
-              {/* ── Gráfico semanal — col 1 ── */}
-              <div
-                className="fade-in md:col-start-1 md:row-start-1 mb-4 md:mb-0"
-                style={{ animationDelay: '100ms' }}
-              >
-                <WeeklyChart
-                  chartData={stats.chartData}
-                  height={160}
-                  title={t('Volumen semanal')}
-                  subtitle={`${formatVolume(stats.weekVolume)} kg · ${t('Esta semana').toLowerCase()}`}
-                  colors={chartColors}
-                />
-              </div>
-
             </div>
           </>
         )}
@@ -1511,22 +1433,18 @@ export default function Training() {
           </div>
         )}
 
-        {/* ── Calendario — lo planeado y lo hecho sobre la misma rejilla.
-            Baja por debajo de los números: planear el mes es una tarea de
-            sofá, no de gimnasio, y ocupaba una pantalla entera antes del
-            primer dato. ── */}
+        {/* ── Calendario ──
+            Sigue viviendo aquí y no en una pestaña: Raw es rotacional —el ciclo
+            avanza cuando registras un entreno, no cuando llega el martes— y
+            organizarlo alrededor de fechas invierte esa propiedad. Esa decisión
+            no cambia.
+            Lo que cambia es que ocupaba una pantalla entera de la portada sin
+            que nadie se lo pidiera. Planear es tarea de sofá: ahora la rejilla
+            está a un toque y lo que se ve siempre es lo único que importa un
+            martes — qué toca a continuación. ── */}
         {!loading && !error && (
           <section className="fade-in" style={{ marginBottom: '20px', animationDelay: '120ms' }}>
-            <Calendar
-              workouts={workouts}
-              sessions={sessions}
-              routines={routines}
-              projection={projection}
-              onSelectDay={openDay}
-            />
-
-            {/* Lo que viene — la entrada a planear un día concreto. */}
-            <div style={{ display: 'flex', alignItems: 'stretch', marginTop: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'stretch', gap: '8px' }}>
               <Chip
                 label={t('Próximo')}
                 value={
@@ -1545,7 +1463,42 @@ export default function Training() {
                   : new Date()
                 )}
               />
+              <button
+                onClick={() => setShowCalendar(v => !v)}
+                aria-expanded={showCalendar}
+                style={{
+                  flexShrink: 0, minWidth: '44px', minHeight: '44px',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                  padding: '0 14px',
+                  background: 'var(--c-surface)',
+                  border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
+                  borderRadius: 'var(--r-md)',
+                  fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)',
+                  fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em',
+                }}
+              >
+                {t('Calendario')}
+                <span aria-hidden="true" style={{
+                  fontSize: '11px',
+                  transform: showCalendar ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 180ms var(--ease-out)',
+                }}>▾</span>
+              </button>
             </div>
+
+            {/* Se desmonta al plegar: la rejilla mide su ancho al montarse y
+                uno de ancho cero la deja rota al volver. */}
+            {showCalendar && (
+              <div style={{ marginTop: '10px' }}>
+                <Calendar
+                  workouts={workouts}
+                  sessions={sessions}
+                  routines={routines}
+                  projection={projection}
+                  onSelectDay={openDay}
+                />
+              </div>
+            )}
           </section>
         )}
 
