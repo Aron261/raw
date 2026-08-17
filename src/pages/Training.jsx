@@ -29,7 +29,7 @@ import { useLang } from '../hooks/useLang'
 import { usePlan } from '../hooks/usePlan'
 import { calc1RM, calc1RMKg } from '../lib/progress'
 import { defaultLiftUnit } from '../lib/units'
-import { computeGoals, currentValue, isRecurring } from '../lib/goals'
+import { computeGoals, groupGoals, currentValue, isRecurring } from '../lib/goals'
 import GoalRow from '../components/GoalRow'
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
@@ -455,9 +455,11 @@ function Chip({ label, value, hint, live, index = 0, onClick }) {
 // ── Metas ────────────────────────────────────────────────────────────────
 // Vive fuera del bloque "hay entrenos": definir una meta es justo lo que hace
 // alguien que todavía no ha registrado nada, y antes estaba fuera de alcance.
-function GoalsCard({ goals, completed = [], onAdd, onDelete, onComplete, onReopen, coachName }) {
+function GoalsCard({ goals, groups = [], completed = [], onAdd, onDelete, onComplete, onReopen, coachName }) {
   const { t } = useLang()
   const [showArchive, setShowArchive] = useState(false)
+  // Con una sola familia el encabezado no separa nada de nada: sobra.
+  const showGroupLabels = groups.length > 1
   return (
     <div style={{
       background: 'var(--c-surface)',
@@ -518,15 +520,34 @@ function GoalsCard({ goals, completed = [], onAdd, onDelete, onComplete, onReope
           </button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {goals.map(goal => (
-            <GoalRow
-              key={goal.id}
-              goal={goal}
-              onDelete={onDelete}
-              onComplete={onComplete}
-              coachName={goal.assigned_by ? coachName?.(goal.assigned_by) : null}
-            />
+        /* Agrupadas por familia. Antes iban todas en una lista ordenada por
+           porcentaje, y eso ponía a competir números que no significan lo
+           mismo: un 90 % de sentadilla son 10 kg que faltan, un 90 % de
+           constancia es haber ido casi todos los días. */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {groups.map(group => (
+            <div key={group.kind}>
+              {showGroupLabels && (
+                <p style={{
+                  fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)',
+                  fontSize: '10px', fontWeight: 700, letterSpacing: '0.02em',
+                  textTransform: 'uppercase', marginBottom: '10px',
+                }}>
+                  {t(group.label)}
+                </p>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {group.goals.map(goal => (
+                  <GoalRow
+                    key={goal.id}
+                    goal={goal}
+                    onDelete={onDelete}
+                    onComplete={onComplete}
+                    coachName={goal.assigned_by ? coachName?.(goal.assigned_by) : null}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -881,6 +902,11 @@ export default function Training() {
   const completedProgress = useMemo(
     () => computeGoals(completedGoals.filter(g => g.id !== goalDelete.pending?.id), goalCtx),
     [completedGoals, goalDelete.pending, goalCtx]
+  )
+  // Las mismas metas abiertas, repartidas por familia para pintarlas.
+  const goalGroups = useMemo(
+    () => groupGoals(openGoals.filter(g => g.id !== goalDelete.pending?.id), goalCtx),
+    [openGoals, goalDelete.pending, goalCtx]
   )
 
   // Sellar sola una meta lograda. Una meta de peso que llegó a su número ya no
@@ -1430,6 +1456,7 @@ export default function Training() {
 
                 <GoalsCard
                   goals={goalProgress}
+                  groups={goalGroups}
                   completed={completedProgress}
                   onAdd={() => setShowGoalModal(true)}
                   onComplete={goal => completeGoal(goal.id)}
@@ -1470,6 +1497,7 @@ export default function Training() {
           <div className="fade-in" style={{ marginBottom: '20px', animationDelay: '60ms' }}>
             <GoalsCard
               goals={goalProgress}
+              groups={goalGroups}
               completed={completedProgress}
               onAdd={() => setShowGoalModal(true)}
               onComplete={goal => completeGoal(goal.id)}

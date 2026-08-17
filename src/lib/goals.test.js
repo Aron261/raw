@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   progressPct, computePace, computeGoalProgress, computeGoals, isRecurring,
+  groupGoals,
 } from './goals'
 
 // Un entreno terminado con una sola serie del ejercicio dado.
@@ -268,5 +269,45 @@ describe('computeGoals', () => {
     // 'b' está cumplida (4/4) y se va al final; entre las pendientes manda 'a'
     // (40 %) sobre 'c' (4 %).
     expect(out.map(g => g.id)).toEqual(['a', 'c', 'b'])
+  })
+})
+
+describe('groupGoals', () => {
+  const ctx = {
+    workouts: [workout('2026-08-10', 'Sentadilla', [{ weight: 95, reps: 5 }])],
+    bodyWeightLogs: [{ weight: 79, unit: 'kg', logged_at: '2026-08-10T08:00:00Z' }],
+    now: new Date('2026-08-15T12:00:00'),
+  }
+
+  it('separa fuerza, cuerpo y constancia, en ese orden', () => {
+    const out = groupGoals([
+      { id: 'c', type: 'sessions_per_week', target_value: 4, unit: 'días' },
+      { id: 'b', type: 'body_weight', target_value: 76, unit: 'kg', start_value: 82 },
+      { id: 'a', type: 'exercise_weight', exercise_name: 'Sentadilla', target_value: 100, target_reps: 5, unit: 'kg' },
+    ], ctx)
+
+    expect(out.map(g => g.kind)).toEqual(['strength', 'body', 'consistency'])
+    expect(out.map(g => g.goals.map(x => x.id))).toEqual([['a'], ['b'], ['c']])
+  })
+
+  it('no devuelve grupos vacíos', () => {
+    const out = groupGoals([
+      { id: 'a', type: 'exercise_weight', exercise_name: 'Sentadilla', target_value: 100, target_reps: 5, unit: 'kg' },
+    ], ctx)
+    expect(out).toHaveLength(1)
+    expect(out[0].kind).toBe('strength')
+  })
+
+  it('las mensuales y las semanales caen juntas en constancia', () => {
+    const out = groupGoals([
+      { id: 'm', type: 'days_trained', target_value: 20, unit: 'días' },
+      { id: 's', type: 'sessions_per_week', target_value: 4, unit: 'días' },
+    ], ctx)
+    expect(out).toHaveLength(1)
+    expect(out[0].goals).toHaveLength(2)
+  })
+
+  it('sin metas no hay grupos', () => {
+    expect(groupGoals([], ctx)).toEqual([])
   })
 })

@@ -251,6 +251,43 @@ export function computeGoalProgress(goal, ctx = {}) {
   }
 }
 
+// ── Familias ──────────────────────────────────────────────────────────────
+// Una meta de sentadilla y una de "4 días por semana" no son la misma clase de
+// compromiso: una mide una marca que sube sola una vez al mes, la otra un
+// hábito que se gana cada semana. Mezclarlas en una lista ordenada por
+// porcentaje comparaba números que no significan lo mismo — un 90 % de
+// sentadilla es estar a 10 kg, un 90 % de constancia es haber ido casi todos
+// los días. Se leen mejor separadas.
+export const GOAL_KIND = {
+  exercise_weight:   'strength',
+  body_weight:       'body',
+  sessions_per_week: 'consistency',
+  days_trained:      'consistency',
+}
+
+// El orden en que se leen: lo que levantas, lo que pesas, lo que apareces.
+export const KIND_ORDER = ['strength', 'body', 'consistency']
+export const KIND_LABEL = {
+  strength:    'Fuerza',
+  body:        'Cuerpo',
+  consistency: 'Constancia',
+}
+
+/**
+ * Las metas agrupadas por familia, cada grupo ya con su progreso y ordenado.
+ * Los grupos vacíos no salen: un encabezado sobre nada es ruido.
+ */
+export function groupGoals(goals, ctx = {}) {
+  const computed = computeGoals(goals, ctx)
+  return KIND_ORDER
+    .map(kind => ({
+      kind,
+      label: KIND_LABEL[kind],
+      goals: computed.filter(g => GOAL_KIND[g.type] === kind),
+    }))
+    .filter(group => group.goals.length > 0)
+}
+
 // Todas las metas con su progreso, ordenadas como se leen: primero lo que
 // sigue en juego (y dentro de eso, lo más cerca de caer), al final lo cumplido.
 export function computeGoals(goals, ctx = {}) {

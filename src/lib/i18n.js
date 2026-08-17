@@ -425,6 +425,7 @@ const EN = {
   'Ir a hoy': 'Go to today',
   'Hecho': 'Done',
   'Fuerza': 'Strength',
+  'Cuerpo': 'Body',
   'Cardio': 'Cardio',
   'Movilidad': 'Mobility',
   'Descanso': 'Rest',
