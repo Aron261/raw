@@ -7,6 +7,7 @@ import { attributeSplit, totalOf, roundHalf, indexLibrary, resolveMuscles } from
 import { mondayOf } from '../lib/calendar'
 import { useCachedResource } from '../lib/swr'
 import { weeklyActivity, consistency, adherence, progression } from '../lib/statsAnalysis'
+import { rankByRelativeStrength } from '../lib/strengthStandards'
 
 // Month key (YYYY-MM) + short label for a given date.
 function monthKey(date) {
@@ -213,8 +214,31 @@ export function useStats(targetUserId = null) {
           sessions = []
         }
 
+        // ── Fuerza relativa ───────────────────────────────────────────
+        // El peso corporal y el sexo salen de la persona MIRADA, no de quien
+        // mira: desde la ficha de un entrenador, usar su propio peso mediría
+        // al cliente con la vara equivocada.
+        let bodyWeightKg = null
+        let sex = 'Masculino'
+        try {
+          const [{ data: prof }, { data: bw }] = await Promise.all([
+            supabase.from('profiles').select('sex').eq('id', ownerId).maybeSingle(),
+            supabase.from('body_weight_logs').select('weight, unit')
+              .eq('user_id', ownerId).order('logged_at', { ascending: false })
+              .limit(1).maybeSingle(),
+          ])
+          if (prof?.sex) sex = prof.sex
+          if (bw?.weight > 0) {
+            bodyWeightKg = bw.unit === 'lb' ? bw.weight * 0.453592 : bw.weight
+          }
+        } catch {
+          // Sin estos dos el ranking sale vacío, que es la respuesta honesta.
+        }
+        const relativeStrength = rankByRelativeStrength(allLifts, { bodyWeightKg, sex })
+
         return {
           totals, volumeByMonth, allLifts, muscleBalance, weeklySets,
+          relativeStrength, bodyWeightKg,
           weeklyActivity: weeklyActivity(list, { weeks: 12, locale }),
           consistency: consistency(list),
           adherence: adherence(sessions),
