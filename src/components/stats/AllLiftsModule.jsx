@@ -87,7 +87,6 @@ export default function AllLiftsModule({ data, readOnly = false }) {
   return (
     <section style={{ marginBottom: '40px' }}>
       <SectionHeader
-        title={t('Mis levantamientos')}
         subtitle={subtitle}
         right={<Segmented options={options.map(o => ({ ...o, label: t(o.label) }))} value={sort} onChange={setSort} ariaLabel={t('Ordenar levantamientos')} />}
       />

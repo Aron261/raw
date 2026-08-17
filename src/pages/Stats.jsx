@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import { Sheet } from '../components/ui'
+import StatSection from '../components/stats/StatSection'
 import { useStats } from '../hooks/useStats'
 import { useStatPrefs } from '../hooks/useStatPrefs'
 import { STAT_MODULES } from '../lib/statModules'
@@ -111,11 +112,23 @@ function ReorderList({ order, enabled, onToggle, onReorder }) {
 // to see the same window for that client (read-only, no customize/classify).
 // `embedded` renders just the modules (no Layout, no title) inside Progreso.
 export default function Stats({ userId = null, readOnly = false, embedded = false }) {
-  const { t } = useLang()
+  const { t, locale } = useLang()
   const navigate = useNavigate()
   const { data, loading, error, refetch } = useStats(userId)
   const { enabled, order, toggle, setOrder } = useStatPrefs()
   const [customizing, setCustomizing] = useState(false)
+
+  // Qué módulos están desplegados. Arrancan abiertos los que el registro marca
+  // con `open`: los dos que contestan «¿cómo voy ahora?». El resto se abre a
+  // demanda — con seis abiertos a la vez la página no se pod\u00eda ojear.
+  const [openIds, setOpenIds] = useState(
+    () => new Set(STAT_MODULES.filter(m => m.open).map(m => m.id))
+  )
+  const toggleOpen = (id) => setOpenIds(prev => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
 
   // Own view: user's chosen order, filtered to enabled. Coach view: all modules,
   // registry order, read-only.
@@ -217,7 +230,14 @@ export default function Stats({ userId = null, readOnly = false, embedded = fals
             ) : (
               visible.map((m, i) => (
                 <div key={m.id} className="fade-in" style={{ animationDelay: `${i * 60}ms` }}>
-                  <m.Component data={data} refetch={refetch} readOnly={readOnly} />
+                  <StatSection
+                    label={m.label}
+                    summary={m.summary?.(data, { t, locale })}
+                    open={openIds.has(m.id)}
+                    onToggle={() => toggleOpen(m.id)}
+                  >
+                    <m.Component data={data} refetch={refetch} readOnly={readOnly} />
+                  </StatSection>
                 </div>
               ))
             )}

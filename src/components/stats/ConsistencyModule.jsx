@@ -63,7 +63,6 @@ export default function ConsistencyModule({ data }) {
   return (
     <section style={{ marginBottom: '40px' }}>
       <SectionHeader
-        title={t('Constancia')}
         subtitle={t('Sesiones por semana en las últimas 4 semanas completas.')}
       />
 

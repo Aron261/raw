@@ -46,7 +46,6 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
     return (
       <section style={{ marginBottom: '40px' }}>
         <SectionHeader
-          title="Balance muscular"
           right={<Segmented options={MODES.map(m => ({ ...m, label: t(m.label) }))} value={mode} onChange={setMode} ariaLabel={t('Medida del balance muscular')} />}
         />
         <p style={{ color: 'var(--c-text-muted)', fontSize: '11.5px', fontWeight: 500, padding: '14px 0', lineHeight: 1.5 }}>
@@ -62,7 +61,6 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
   if (!isPro) {
     return (
       <div>
-        <SectionHeader title={t('Balance muscular')} />
         <PremiumGate need="pro" title={t('A qué músculo se va tu tonelaje, directo e indirecto')} />
       </div>
     )
@@ -78,7 +76,6 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
   return (
     <section style={{ marginBottom: '40px' }}>
       <SectionHeader
-        title="Balance muscular"
         subtitle={mode === 'sets'
           ? 'Series por semana y por grupo, promedio de las últimas 4 semanas completas. Cada ejercicio cuenta entero para su músculo principal y a la mitad para cada secundario.'
           : 'Cómo se reparte tu volumen total (peso × reps) entre grupos. Cada ejercicio cuenta entero para su músculo principal y a la mitad para cada secundario.'}
