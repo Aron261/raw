@@ -441,6 +441,8 @@ const EN = {
   'Sin registrar esta semana': 'Nothing logged this week',
   'Mejoraste un {n}% en los últimos 30 días.': "You improved {n}% over the last 30 days.",
   'Calendario': 'Calendar',
+  'Lo punteado es lo que le toca al ciclo si sigues a tu ritmo. No está guardado: toca un día para fijarlo.':
+    "The dotted days are what the cycle has next at your current pace. Nothing is saved — tap a day to pin it.",
   'Ponte un peso objetivo y esta pantalla te dice si lo que comes te está llevando ahí.':
     "Set a target weight and this screen tells you whether what you're eating is getting you there.",
   'Cardio': 'Cardio',

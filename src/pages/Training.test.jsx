@@ -181,19 +181,15 @@ describe('Inicio — primer uso', () => {
     expect(screen.queryByText(/^Esta semana$/)).toBeNull()
   })
 
-  it('el calendario está a un toque, no ocupando la portada', () => {
-    // La rejilla del mes se comía una pantalla entera de Inicio sin que nadie
-    // se lo pidiera. Planear es tarea de sofá: lo que se ve siempre es qué
-    // toca a continuación, y el mes se abre si lo pides.
+  it('el calendario no vive en la portada: es su propia sección', () => {
+    // Pasó de ocupar una pantalla entera de Inicio, a estar plegado detrás de un
+    // botón, a tener sección propia. Lo que queda aquí es el chip con lo único
+    // que importa un martes —qué toca a continuación— y toca para ir allá.
     render(<Training />)
     expect(screen.queryByTestId('calendar')).toBeNull()
 
-    const toggle = screen.getByRole('button', { name: /^calendario$/i })
-    expect(toggle.getAttribute('aria-expanded')).toBe('false')
-
-    fireEvent.click(toggle)
-    expect(screen.getByTestId('calendar')).toBeTruthy()
-    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    fireEvent.click(screen.getByText('Calendario').closest('button'))
+    expect(navigate).toHaveBeenCalledWith('/calendario')
   })
 })
 

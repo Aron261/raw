@@ -16,7 +16,6 @@ import { useUnreadCounts } from '../hooks/useUnreadCounts'
 import { ERROR_STYLE, pressable, PRESS_TRANSITION } from '../lib/ui'
 import { Sheet, Field, Button, LiveRegion, UndoSnackbar, UnitToggle } from '../components/ui'
 import { useUndoableDelete } from '../hooks/useUndoableDelete'
-import Calendar from '../components/calendar/Calendar'
 import { computeStreak, mondayOf, KINDS } from '../lib/calendar'
 import { projectionByDate, loggedMinutes, isLoggable } from '../lib/schedule'
 import { useLang } from '../hooks/useLang'
@@ -359,8 +358,6 @@ export default function Training() {
   const openDay = (d) => navigate(`/dia/${toLocalISODate(d)}`)
 
   const [showGoalModal, setShowGoalModal] = useState(false)
-  // La rejilla del mes, plegada por defecto: ocupaba una pantalla entera.
-  const [showCalendar, setShowCalendar] = useState(false)
   const [startingWorkout, setStartingWorkout] = useState(false)
   const [startingRoutineWorkout, setStartingRoutineWorkout] = useState(false)
   const [startingCoachId, setStartingCoachId] = useState(null)
@@ -1224,71 +1221,27 @@ export default function Training() {
         )}
 
         {/* ── Calendario ──
-            Sigue viviendo aquí y no en una pestaña: Raw es rotacional —el ciclo
-            avanza cuando registras un entreno, no cuando llega el martes— y
-            organizarlo alrededor de fechas invierte esa propiedad. Esa decisión
-            no cambia.
-            Lo que cambia es que ocupaba una pantalla entera de la portada sin
-            que nadie se lo pidiera. Planear es tarea de sofá: ahora la rejilla
-            está a un toque y lo que se ve siempre es lo único que importa un
-            martes — qué toca a continuación. ── */}
+            Se fue a sección propia (/calendario). Aquí queda solo el chip:
+            lo único que importa un martes es qué toca a continuación, y la
+            rejilla del mes es una tarea de sofá que merece su pantalla.
+            Sigue sin ser pestaña a propósito — ver lib/sections. ── */}
         {!loading && !error && (
           <section className="fade-in" style={{ marginBottom: '20px', animationDelay: '120ms' }}>
-            <div style={{ display: 'flex', alignItems: 'stretch', gap: '8px' }}>
+            {/* El hint TAPA al valor en Chip, así que solo se pone cuando no
+                hay nada que decir: con «Previsto» encima, el chip anunciaba que
+                algo venía sin decir qué. */}
+            <div style={{ display: 'flex', alignItems: 'stretch' }}>
               <Chip
-                label={t('Próximo')}
+                label={t('Calendario')}
                 value={
-                  nextPlanned ? (nextPlanned.title || KINDS[nextPlanned.kind]?.label || '—')
+                  nextPlanned ? (nextPlanned.title || t(KINDS[nextPlanned.kind]?.label || 'Fuerza'))
                   : nextGhost ? (nextGhost.day?.day_name || t('Fuerza'))
                   : '—'
                 }
-                hint={
-                  nextPlanned ? null
-                  : nextGhost ? t('Previsto')
-                  : t('Toca un día para planear')
-                }
-                onClick={() => openDay(
-                  nextPlanned ? new Date(`${nextPlanned.date}T00:00:00`)
-                  : nextGhost ? new Date(`${nextGhost.date}T00:00:00`)
-                  : new Date()
-                )}
+                hint={(nextPlanned || nextGhost) ? null : t('Toca un día para planear')}
+                onClick={() => navigate('/calendario')}
               />
-              <button
-                onClick={() => setShowCalendar(v => !v)}
-                aria-expanded={showCalendar}
-                style={{
-                  flexShrink: 0, minWidth: '44px', minHeight: '44px',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                  padding: '0 14px',
-                  background: 'var(--c-surface)',
-                  border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
-                  borderRadius: 'var(--r-md)',
-                  fontFamily: 'var(--font-sans)', color: 'var(--c-action-text)',
-                  fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em',
-                }}
-              >
-                {t('Calendario')}
-                <span aria-hidden="true" style={{
-                  fontSize: '11px',
-                  transform: showCalendar ? 'rotate(180deg)' : 'none',
-                  transition: 'transform 180ms var(--ease-out)',
-                }}>▾</span>
-              </button>
             </div>
-
-            {/* Se desmonta al plegar: la rejilla mide su ancho al montarse y
-                uno de ancho cero la deja rota al volver. */}
-            {showCalendar && (
-              <div style={{ marginTop: '10px' }}>
-                <Calendar
-                  workouts={workouts}
-                  sessions={sessions}
-                  routines={routines}
-                  projection={projection}
-                  onSelectDay={openDay}
-                />
-              </div>
-            )}
           </section>
         )}
 
