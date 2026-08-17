@@ -68,7 +68,7 @@ export default function VolumeTrendModule({ data }) {
   }
 
   return (
-    <section style={{ marginBottom: '40px' }}>
+    <section>
       <SectionHeader
         subtitle={byWeek ? t('Kg totales por semana.') : t('Kg totales por mes.')}
         right={<Segmented options={RANGE_OPTIONS} value={range} onChange={setRange} ariaLabel={t('Rango de volumen')} />}

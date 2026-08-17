@@ -33,7 +33,7 @@ export default function TotalsModule({ data }) {
   const up = c?.deltaVolume != null && c.deltaVolume >= 0
 
   return (
-    <section style={{ marginBottom: '40px' }}>
+    <section>
       {/* Hero: total volume lifted */}
       <p style={{ color: 'var(--c-text)', fontFamily: 'var(--font-sans)', fontWeight: 900, fontSize: '64px', letterSpacing: '-0.04em', lineHeight: 0.82 }}>
         {formatVolume(totals.volume, locale, { empty: '0' })}

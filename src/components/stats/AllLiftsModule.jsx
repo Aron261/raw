@@ -85,7 +85,7 @@ export default function AllLiftsModule({ data, readOnly = false }) {
     : `${lifts.length} ${t('ejercicios')} · ${t('mejor 1RM estimado')}`
 
   return (
-    <section style={{ marginBottom: '40px' }}>
+    <section>
       <SectionHeader
         subtitle={subtitle}
         right={<Segmented options={options.map(o => ({ ...o, label: t(o.label) }))} value={sort} onChange={setSort} ariaLabel={t('Ordenar levantamientos')} />}

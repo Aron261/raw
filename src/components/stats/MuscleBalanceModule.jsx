@@ -44,7 +44,7 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
   }))
   if (rows.length === 0) {
     return (
-      <section style={{ marginBottom: '40px' }}>
+      <section>
         <SectionHeader
           right={<Segmented options={MODES.map(m => ({ ...m, label: t(m.label) }))} value={mode} onChange={setMode} ariaLabel={t('Medida del balance muscular')} />}
         />
@@ -74,7 +74,7 @@ export default function MuscleBalanceModule({ data, readOnly = false }) {
   const max = Math.max(...rows.map(g => g.value), 1)
 
   return (
-    <section style={{ marginBottom: '40px' }}>
+    <section>
       <SectionHeader
         subtitle={mode === 'sets'
           ? 'Series por semana y por grupo, promedio de las últimas 4 semanas completas. Cada ejercicio cuenta entero para su músculo principal y a la mitad para cada secundario.'

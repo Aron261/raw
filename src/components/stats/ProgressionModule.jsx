@@ -49,7 +49,7 @@ export default function ProgressionModule({ data, readOnly = false }) {
   // una tarjeta: es que todavía no ha pasado suficiente tiempo.
   if (all.length === 0) {
     return (
-      <section style={{ marginBottom: '40px' }}>
+      <section>
         <div style={{ textAlign: 'center', padding: '28px 20px', border: '1px dashed var(--c-border-subtle)', borderRadius: 'var(--r-md)' }}>
           <p style={{ color: 'var(--c-text-muted)', fontSize: '11.5px', fontWeight: 500, lineHeight: 1.5, maxWidth: '34ch', margin: '0 auto' }}>
             {t('Cuando repitas un ejercicio a lo largo de varios meses, aquí verás en cuáles subes y en cuáles te has quedado parado.')}
@@ -63,7 +63,7 @@ export default function ProgressionModule({ data, readOnly = false }) {
   const openLift = readOnly ? undefined : (name) => navigate(`/exercise/${encodeURIComponent(name)}`)
 
   return (
-    <section style={{ marginBottom: '40px' }}>
+    <section>
       <SectionHeader
         subtitle={t('Mejor 1RM de las últimas 8 semanas vs. las 8 anteriores.')}
         right={<Segmented options={FILTERS.map(f => ({ ...f, label: t(f.label) }))} value={filter} onChange={setFilter} ariaLabel={t('Filtro de progresión')} />}

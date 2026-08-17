@@ -59,7 +59,11 @@ export default function StatSection({ label, summary, open, onToggle, children }
         </span>
       </button>
 
-      {open && <div style={{ paddingBottom: '4px' }}>{children}</div>}
+      {/* El ritmo entre módulos lo lleva esta sección, no ellos. Cada uno
+          arrastraba un marginBottom de 40px de cuando eran hermanos sueltos, y
+          dentro de una fila con borde inferior eso dejaba el borde flotando a
+          40px del contenido. */}
+      {open && <div style={{ paddingBottom: '24px' }}>{children}</div>}
     </section>
   )
 }

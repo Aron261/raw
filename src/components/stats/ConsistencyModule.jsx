@@ -61,7 +61,7 @@ export default function ConsistencyModule({ data }) {
   const perWeek = c.perWeek.toLocaleString(locale, { maximumFractionDigits: 1 })
 
   return (
-    <section style={{ marginBottom: '40px' }}>
+    <section>
       <SectionHeader
         subtitle={t('Sesiones por semana en las últimas 4 semanas completas.')}
       />
