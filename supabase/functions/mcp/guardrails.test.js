@@ -72,13 +72,20 @@ describe('guardas del servidor MCP', () => {
     expect(dynamicFrom.map(m => m[1]), 'hay un .from() con tabla dinámica').toEqual([])
   })
 
-  // Los entrenos y series son de solo lectura: el outbox offline puede
-  // reenviar una escritura vieja y pisar lo que se escriba desde fuera.
-  it('ninguna herramienta escribe en tablas protegidas', () => {
+  // Lo que sigue siendo intocable después de abrir perfil, ejercicios, peso,
+  // macros y Longevidad. Cada una por una razón distinta:
+  //
+  //   · workouts / workout_exercises / sets — el outbox offline puede reenviar
+  //     una escritura vieja y pisar lo que se escriba desde fuera.
+  //   · exercises_library — es global: un mal edit lo ven todas las cuentas.
+  //   · agent_writes — es el rastro de auditoría; escribirlo es borrar huellas.
+  //   · trainer_clients / app_settings — conceden acceso, no son datos.
+  it('ninguna herramienta escribe en las tablas que siguen protegidas', () => {
     const tools = sources.find(s => s.file === 'tools.ts')
     const protectedTables = [
-      'profiles', 'nutrition_targets', 'workouts', 'workout_exercises',
-      'sets', 'exercises_library', 'app_settings', 'trainer_clients',
+      'workouts', 'workout_exercises', 'sets', 'exercises_library',
+      'app_settings', 'trainer_clients', 'trainer_invites', 'agent_writes',
+      'push_subscriptions', 'app_secrets',
     ]
     for (const table of protectedTables) {
       for (const op of ['insert', 'update', 'delete', 'upsert']) {
@@ -89,15 +96,27 @@ describe('guardas del servidor MCP', () => {
     }
   })
 
-  // Caso propio, aunque el de arriba ya lo cubra: los objetivos de macros y
-  // micros salen de un cálculo sobre el cuerpo de la persona, y la pantalla de
-  // consentimiento promete literalmente que un agente no puede cambiarlos. Si
-  // alguien añade una herramienta para «ajustar el plan», que falle aquí.
-  it('nutrition_targets solo se lee, nunca se escribe', () => {
+  // El perfil sí se puede editar, pero el plan, el rol de administrador y el
+  // acceso beta no: los blindan triggers en Postgres. Que una herramienta ni
+  // siquiera los OFREZCA es la segunda barrera — si alguien los añade al
+  // esquema, el fallo se ve aquí y no en un intento silencioso contra la base.
+  it('ninguna herramienta ofrece tocar plan, permisos ni acceso', () => {
     const tools = sources.find(s => s.file === 'tools.ts')
-    const usos = [...tools.code.matchAll(/from\('nutrition_targets'\)\s*\.(\w+)\(/g)].map(m => m[1])
-    expect(usos.length).toBeGreaterThan(0)
-    expect(usos.every(op => op === 'select'), `nutrition_targets se usa con: ${usos.join(', ')}`).toBe(true)
+    for (const campo of ['is_admin', 'beta_approved', "plan:", "'plan'"]) {
+      expect(tools.code, `tools.ts menciona ${campo}, que no debe poder escribirse`)
+        .not.toContain(campo)
+    }
+  })
+
+  // La pantalla de consentimiento es una promesa, y estuvo mintiendo: decía que
+  // un agente no podía cambiar el perfil ni los macros cuando ya podía. Si se
+  // abre otra tabla y no se actualiza esa lista, que falle aquí.
+  it('el consentimiento no promete que el perfil y los macros sean intocables', () => {
+    const consent = readFileSync(join(DIR, '../../../src/pages/OAuthConsent.jsx'), 'utf8')
+    const cannot = consent.slice(consent.indexOf('const CANNOT'), consent.indexOf(']', consent.indexOf('const CANNOT')))
+    expect(cannot).not.toMatch(/perfil|macros|suplement|peso corporal|ejercicios/i)
+    // Y lo que de verdad sigue vetado sí tiene que seguir dicho.
+    expect(cannot).toMatch(/entrenos y series/)
   })
 
   // La RLS de la app es MÁS ANCHA que este conector a propósito: un entrenador
@@ -208,8 +227,24 @@ describe('paridad del registro de nutrientes', () => {
 describe('el calendario escribible va de la mano de su auditoría', () => {
   const sql = readFileSync(join(DIR, '../../schedule_agent_writable.sql'), 'utf8')
 
-  it('la migración existe y declara la tabla escribible', () => {
-    expect(sql).toMatch(/writable text\[\][\s\S]{0,300}'scheduled_sessions'/)
+  it('la migración existe y toma la lista de la fuente única', () => {
+    // La lista dejó de estar copiada a mano aquí: vive en
+    // public.agent_writable_tables(). Estuvo duplicada en cuatro sitios y se
+    // desincronizó dos veces — re-ejecutar agent_audit.sql volvía a candar esta
+    // misma tabla y tumbaba el calendario sin que nada avisara.
+    expect(sql).toMatch(/writable text\[\]\s*:=\s*public\.agent_writable_tables\(\)/)
+  })
+
+  it('la fuente única declara escribible el calendario', () => {
+    const audit = readFileSync(join(DIR, '../../agent_audit.sql'), 'utf8')
+    const fn = audit.slice(audit.indexOf('function public.agent_writable_tables'))
+    const lista = fn.slice(0, fn.indexOf('$$;', fn.indexOf('select array[')))
+    expect(lista).toMatch(/'scheduled_sessions'/)
+    // Y lo que nunca debe entrar en esa lista.
+    for (const prohibida of ['workouts', 'sets', 'exercises_library', 'agent_writes', 'trainer_clients']) {
+      expect(lista, `${prohibida} no puede ser escribible por un agente`)
+        .not.toMatch(new RegExp(`'${prohibida}'`))
+    }
   })
 
   it('y la audita con el mismo trigger que el resto', () => {

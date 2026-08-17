@@ -113,14 +113,55 @@ begin
   return null;
 end $$;
 
+-- ── Qué puede escribir un agente ──────────────────────────────────────────
+-- UNA lista, y todo lo demás la consulta: las políticas, los triggers de
+-- auditoría y el chequeo final de este archivo, más schedule_agent_writable.sql.
+--
+-- Estuvo copiada a mano en cuatro sitios y se desincronizó dos veces — los
+-- comentarios de este archivo lo cuentan: re-ejecutarlo volvía a candar
+-- scheduled_sessions y tumbaba la escritura del calendario sin avisar, porque
+-- el chequeo miraba su propia copia. Con cuatro copias eso no es un descuido,
+-- es cuestión de tiempo.
+--
+-- Lo que deliberadamente NO está aquí:
+--   · exercises_library  — global y compartida entre todas las cuentas.
+--   · workouts / workout_exercises / sets — el outbox offline puede reenviar
+--     una escritura vieja y pisar lo que haya escrito un agente.
+--   · agent_writes — es este mismo rastro; poder escribirlo es poder borrarlo.
+--   · trainer_clients / trainer_invites / push_subscriptions — son concesiones
+--     de acceso y tokens de dispositivo, no datos de entrenamiento.
+--
+-- profiles sí está, pero is_admin, plan y beta_approved siguen blindados por
+-- sus propios triggers: la tabla se edita, los permisos no.
+create or replace function public.agent_writable_tables()
+returns text[]
+language sql
+immutable
+set search_path to 'public'
+as $$
+  select array[
+    -- Planificación
+    'routines','routine_days','routine_day_exercises','scheduled_sessions',
+    -- Metas
+    'goals',
+    -- Nutrición
+    'nutrition_entries','nutrition_foods','nutrition_targets',
+    -- Perfil y cuerpo
+    'profiles','exercises','body_weight_logs',
+    -- Longevidad
+    'supplements','supplement_logs','bloodwork_results'
+  ]
+$$;
+
+revoke all on function public.agent_writable_tables() from public, anon, authenticated;
+
 do $$
 declare t text;
 begin
-  -- scheduled_sessions entró con schedule_agent_writable.sql; está aquí
-  -- también para que re-ejecutar ESTE archivo no deje su trigger atrás.
-  foreach t in array array['routines','routine_days','routine_day_exercises',
-                           'goals','nutrition_entries','nutrition_foods','body_weight_logs',
-                           'scheduled_sessions']
+  -- Misma fuente que las políticas: lo escribible y lo auditado son por
+  -- definición el mismo conjunto. Cuando eran dos listas a mano, esta llevaba
+  -- body_weight_logs y la de arriba no.
+  foreach t in array public.agent_writable_tables()
   loop
     execute format('drop trigger if exists trg_log_agent_write on %I', t);
     execute format(
@@ -157,18 +198,12 @@ revoke execute on function public.log_agent_write() from anon, authenticated, pu
 do $$
 declare
   t text;
-  -- body_weight_logs salió de aquí: el peso corporal se ve desde un conector
-  -- pero no se escribe. Quitar la herramienta del MCP no bastaba —eso es una
-  -- omisión, no una garantía—; fuera de esta lista lo rechaza Postgres.
-  -- LA MISMA lista que schedule_agent_writable.sql. Cuando divergían,
-  -- re-ejecutar este archivo re-creaba las políticas de deny sobre
-  -- scheduled_sessions y revertía en silencio la escritura del calendario
-  -- desde el conector — y el chequeo final no se enteraba.
-  writable text[] := array[
-    'routines','routine_days','routine_day_exercises',
-    'goals','nutrition_entries','nutrition_foods',
-    'scheduled_sessions'
-  ];
+  -- La lista vive en public.agent_writable_tables() y en ningún otro sitio.
+  -- Estuvo copiada en cuatro bloques repartidos entre este archivo y
+  -- schedule_agent_writable.sql, y se desincronizó dos veces: re-ejecutar este
+  -- archivo re-creaba el candado sobre scheduled_sessions y revertía en
+  -- silencio la escritura del calendario, sin que el chequeo final se enterara.
+  writable text[] := public.agent_writable_tables();
 begin
   for t in
     select c.relname
@@ -319,11 +354,7 @@ begin
   from pg_class c
   join pg_namespace n on n.oid = c.relnamespace
   where n.nspname = 'public' and c.relkind = 'r' and c.relrowsecurity
-    and c.relname <> all (array[
-      'routines','routine_days','routine_day_exercises',
-      'goals','nutrition_entries','nutrition_foods','body_weight_logs',
-      'scheduled_sessions'
-    ])
+    and c.relname <> all (public.agent_writable_tables())
     and (select count(*) from pg_policy p
          where p.polrelid = c.oid
            and p.polname like 'Sin escritura desde agentes%') < 3;

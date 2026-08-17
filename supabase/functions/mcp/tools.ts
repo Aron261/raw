@@ -4,15 +4,16 @@
 //   1. Verbos concretos. No hay herramienta de SQL genérico, ni argumentos que
 //      nombren tablas o columnas. Una capacidad que no tiene herramienta
 //      sencillamente no existe: no está bloqueada, no hay código que la escriba.
-//   2. Nada que escriba en profiles, nutrition_targets, workouts, sets,
-//      exercises_library, app_settings ni trainer_clients. Además de no existir
-//      aquí, la guardia de supabase/agent_audit.sql lo rechaza en Postgres.
-//      En particular los objetivos de macros y micros se fijan SOLO en la app,
-//      que los calcula del peso, la grasa corporal y la fase: aquí se leen
-//      (get_nutrition_day) y se leen sus insumos (get_profile), nada más.
+//   2. Lo que puede escribirse lo decide public.agent_writable_tables(), no
+//      esta lista de herramientas: una herramienta que falte es una omisión,
+//      una tabla fuera de esa función es una garantía. Quedan fuera a propósito
+//      workouts/workout_exercises/sets, exercises_library (es global y
+//      compartida), agent_writes (el propio rastro de auditoría) y
+//      trainer_clients / push_subscriptions (conceden acceso, no son datos).
 //   3. Los entrenos registrados son de SOLO LECTURA. El outbox offline
 //      (src/lib/outbox.js) puede reenviar una escritura vieja horas después y
 //      pisar o resucitar filas; escribir sets desde fuera corrompería ese flujo.
+//      Es el único bloqueo que sobrevive por una razón técnica y no de criterio.
 //   4. Cada consulta filtra por user_id, además de pasar por RLS. La RLS no
 //      basta y creerlo costó una fuga: en la app un entrenador SÍ puede leer y
 //      editar los datos de sus clientes, así que una consulta que se apoye solo
@@ -60,6 +61,30 @@ const SESSION_KINDS = ['strength', 'cardio', 'mobility', 'rest', 'deload', 'note
 // base rechaza.
 const GOAL_TYPES = ['exercise_weight', 'body_weight', 'sessions_per_week', 'days_trained']
 const SESSION_STATUSES = ['planned', 'done', 'skipped']
+
+// Valores que acepta la base. Van como enum en el esquema de la herramienta
+// para que el modelo elija bien a la primera en vez de descubrirlo con un
+// error de restricción; Postgres sigue siendo quien manda.
+const LEVELS = ['Principiante', 'Intermedio', 'Avanzado']
+const PROFILE_GOALS = ['Ganar músculo', 'Perder grasa', 'Fuerza', 'Resistencia', 'Mantener']
+const SEXES = ['Masculino', 'Femenino', 'Otro']
+const ACTIVITY_LEVELS = ['sedentario', 'ligero', 'moderado', 'alto', 'muy_alto']
+const NUTRITION_PHASES = ['definicion', 'mantener', 'volumen']
+const BODY_FAT_SOURCES = ['estimado', 'medido']
+const LANGS = ['es', 'en']
+const WEIGHT_UNITS = ['kg', 'lb']
+const HEIGHT_UNITS = ['cm', 'ft']
+
+// Espeja MUSCLE_GROUPS + CATCH_ALL de src/lib/muscleGroups.js. Un grupo que no
+// esté aquí cae en «Otros» al repartir volumen, así que inventarse uno saca al
+// ejercicio del balance muscular sin decir nada.
+const MUSCLE_GROUPS = [
+  'Pecho', 'Espalda', 'Hombro', 'Bíceps', 'Tríceps',
+  'Core', 'Cuádriceps', 'Hamstrings', 'Glúteo', 'Gemelos', 'Otros',
+]
+
+// Los mismos momentos que ofrece la pantalla de Longevidad.
+const SUPPLEMENT_TIMING = ['AM', 'PM', 'Pre-entreno', 'Con comida', 'Antes de dormir']
 
 // Tope de ocurrencias de una serie. Espeja MAX_SERIES_OCCURRENCES de
 // src/lib/schedule.js: sin él, "ponme cardio todas las semanas" escribe filas
@@ -157,7 +182,7 @@ export const TOOLS: Record<string, Tool> = {
   // ── LECTURA ─────────────────────────────────────────────────────────────
 
   get_profile: {
-    description: 'Perfil de la persona usuaria: nombre, nivel, objetivo, días por semana, sexo, altura, peso y composición corporal (grasa, nivel de actividad, fase de nutrición). Solo lectura: el perfil no se puede modificar desde aquí. Estos son los INSUMOS con los que la app calcula los objetivos de macros; los objetivos ya aceptados están en get_nutrition_day.',
+    description: 'Perfil de la persona usuaria: nombre, nivel, objetivo, días por semana, sexo, altura, peso y composición corporal (grasa, nivel de actividad, fase de nutrición). Se edita con update_profile. Estos son los INSUMOS con los que la app calcula los objetivos de macros; los objetivos ya aceptados están en get_nutrition_day.',
     inputSchema: obj({}),
     handler: async (_a, { supabase, userId }) =>
       unwrap(await supabase.from('profiles')
@@ -309,11 +334,59 @@ export const TOOLS: Record<string, Tool> = {
   },
 
   get_body_weight: {
-    description: 'Registros de peso corporal, del más reciente al más antiguo. Solo lectura: el peso se registra en la app, no desde aquí.',
+    description: 'Registros de peso corporal, del más reciente al más antiguo.',
     inputSchema: obj({ limit: num('Máximo (por defecto 60, máximo 365)') }),
     handler: async (a, { supabase, userId }) =>
       unwrap(await supabase.from('body_weight_logs').select('*').eq('user_id', userId)
         .order('logged_at', { ascending: false }).limit(clamp(a.limit, 60, 365))),
+  },
+
+  list_exercises: {
+    description: 'Los ejercicios de esta persona, con su grupo muscular. `muscle_group` nulo significa SIN CLASIFICAR: ese ejercicio cae en «Otros» y su volumen no se reparte en el balance muscular, así que clasificarlo con update_exercise mejora las estadísticas. `custom_name` es el nombre que ella le puso encima; `name` es la clave con la que se resuelve y no se toca.',
+    inputSchema: obj({
+      unclassified_only: bool('Si es true, solo los que no tienen grupo muscular'),
+    }),
+    handler: async (a, { supabase, userId }) => {
+      let q = supabase.from('exercises')
+        .select('id,name,custom_name,muscle_group,library_id,created_at')
+        .eq('user_id', userId).order('name')
+      if (a.unclassified_only) q = q.is('muscle_group', null)
+      return unwrap(await q)
+    },
+  },
+
+  list_supplements: {
+    description: 'El stack de suplementos, con su dosis y en qué momentos se toma. `taken_today` dice si ya se marcó hoy.',
+    inputSchema: obj({ include_inactive: bool('Incluir los desactivados') }),
+    handler: async (a, { supabase, userId }) => {
+      const today = localDay(await userTimezone(supabase, userId))
+      let q = supabase.from('supplements')
+        .select('id,name,dose,timing,note,is_active,sort_order')
+        .eq('user_id', userId).order('sort_order')
+      if (!a.include_inactive) q = q.eq('is_active', true)
+      const rows = unwrap(await q) as any[]
+      const logs = unwrap(await supabase.from('supplement_logs')
+        .select('supplement_id').eq('user_id', userId).eq('taken_on', today)) as any[]
+      const taken = new Set((logs || []).map(l => l.supplement_id))
+      return { date: today, supplements: (rows || []).map(r => ({ ...r, taken_today: taken.has(r.id) })) }
+    },
+  },
+
+  list_bloodwork: {
+    description: 'Analíticas de sangre por marcador, de la más reciente a la más antigua. `ref_low` y `ref_high` son el rango de referencia del laboratorio, que cambia entre laboratorios: compara siempre contra el que venga en la propia fila y no contra un rango de memoria. Esta sección NO tiene pantalla en la app todavía, así que esto es lo único que la lee.',
+    inputSchema: obj({
+      marker: str('Filtra por marcador, p. ej. "Ferritina"'),
+      limit: num('Máximo (por defecto 100, máximo 500)'),
+    }),
+    handler: async (a, { supabase, userId }) => {
+      let q = supabase.from('bloodwork_results')
+        .select('id,panel_date,marker,value,unit,ref_low,ref_high,note')
+        .eq('user_id', userId)
+        .order('panel_date', { ascending: false })
+        .limit(clamp(a.limit, 100, 500))
+      if (a.marker) q = q.ilike('marker', a.marker)
+      return unwrap(await q)
+    },
   },
 
   list_schedule: {
@@ -808,11 +881,310 @@ export const TOOLS: Record<string, Tool> = {
     },
   },
 
-  // El peso corporal se lee (get_body_weight) pero no se escribe desde aquí.
-  // No es una omisión: la garantía está en la base de datos —body_weight_logs
-  // salió de la lista de tablas escribibles por agentes en agent_audit.sql—, así
-  // que aunque alguien vuelva a añadir la herramienta, Postgres la rechaza.
-  // Es un dato que se registra en la báscula, no por conversación.
+  // ── Perfil, cuerpo y Longevidad ─────────────────────────────────────────
+  // Lo que sigue SIN poder escribirse, y no por descuido: los entrenos y las
+  // series registradas (el outbox offline puede reenviar una escritura vieja y
+  // pisar lo que se escriba desde fuera), la biblioteca global de ejercicios
+  // (es compartida entre todas las cuentas) y el rastro de auditoría. La
+  // garantía no está en que falte la herramienta —eso es una omisión, no una
+  // garantía— sino en que Postgres los rechaza: ver agent_writable_tables().
+
+  update_profile: {
+    description: 'Cambia el perfil. Manda solo los campos que cambian. Peso, grasa corporal, nivel de actividad y fase son los INSUMOS con los que la app calcula los objetivos de macros: cambiarlos no recalcula los objetivos sola — si quieres moverlos, usa set_nutrition_targets después. El plan, el rol de administrador y el acceso beta NO se pueden tocar desde aquí; los blinda la base de datos.',
+    inputSchema: obj({
+      name: str('Nombre'),
+      level: { ...str('Nivel de entrenamiento'), enum: LEVELS },
+      goal: { ...str('Objetivo principal'), enum: PROFILE_GOALS },
+      days_per_week: num('Días que entrena por semana, 1–7'),
+      sex: { ...str('Sexo'), enum: SEXES },
+      birth_date: str('Fecha de nacimiento YYYY-MM-DD'),
+      height: num('Altura'),
+      height_unit: { ...str('Unidad de altura'), enum: HEIGHT_UNITS },
+      weight: num('Peso de referencia del perfil. Para registrar una pesada usa log_body_weight'),
+      weight_unit: { ...str('Unidad de peso'), enum: WEIGHT_UNITS },
+      body_fat_pct: num('Grasa corporal en %, 3–70'),
+      body_fat_source: { ...str('Cómo se obtuvo'), enum: BODY_FAT_SOURCES },
+      activity_level: { ...str('Nivel de actividad diaria'), enum: ACTIVITY_LEVELS },
+      nutrition_phase: { ...str('Fase de nutrición'), enum: NUTRITION_PHASES },
+      exercise_lang: { ...str('Idioma de los nombres de ejercicio'), enum: LANGS },
+      app_lang: { ...str('Idioma de la interfaz'), enum: LANGS },
+    }),
+    handler: async (a, { supabase, userId }) => {
+      const ENUMS: Record<string, string[]> = {
+        level: LEVELS, goal: PROFILE_GOALS, sex: SEXES,
+        activity_level: ACTIVITY_LEVELS, nutrition_phase: NUTRITION_PHASES,
+        body_fat_source: BODY_FAT_SOURCES, exercise_lang: LANGS, app_lang: LANGS,
+        weight_unit: WEIGHT_UNITS, height_unit: HEIGHT_UNITS,
+      }
+      const FIELDS = [
+        'name', 'level', 'goal', 'days_per_week', 'sex', 'birth_date',
+        'height', 'height_unit', 'weight', 'weight_unit',
+        'body_fat_pct', 'body_fat_source', 'activity_level', 'nutrition_phase',
+        'exercise_lang', 'app_lang',
+      ]
+
+      const patch: Record<string, unknown> = {}
+      for (const k of FIELDS) {
+        if (a[k] === undefined) continue
+        if (ENUMS[k] && !ENUMS[k].includes(a[k])) {
+          throw new Error(`\`${k}\` debe ser uno de: ${ENUMS[k].join(', ')}.`)
+        }
+        patch[k] = a[k]
+      }
+      if (a.days_per_week !== undefined && !(a.days_per_week >= 1 && a.days_per_week <= 7)) {
+        throw new Error('`days_per_week` va de 1 a 7.')
+      }
+      if (a.body_fat_pct !== undefined && !(a.body_fat_pct >= 3 && a.body_fat_pct <= 70)) {
+        throw new Error('`body_fat_pct` va de 3 a 70.')
+      }
+      if (a.birth_date !== undefined && !isoDate(a.birth_date)) {
+        throw new Error('`birth_date` debe ser una fecha YYYY-MM-DD.')
+      }
+      if (!Object.keys(patch).length) throw new Error('No mandaste ningún campo que cambiar.')
+
+      patch.updated_at = new Date().toISOString()
+      return unwrap(await supabase.from('profiles').update(patch)
+        .eq('id', userId)
+        .select('id,name,level,goal,days_per_week,sex,birth_date,height,height_unit,weight,weight_unit,body_fat_pct,body_fat_source,activity_level,nutrition_phase,exercise_lang,app_lang')
+        .maybeSingle())
+    },
+  },
+
+  update_exercise: {
+    description: 'Clasifica o renombra un ejercicio propio. `muscle_group` es lo que hace que su volumen entre en el balance muscular. `custom_name` es un nombre encima, que alcanza a todo el historial; el `name` interno no se toca porque es la clave con la que se resuelve el ejercicio y moverla partiría el seguimiento del progreso. Cadena vacía en custom_name devuelve el nombre original.',
+    inputSchema: obj({
+      exercise_id: str('ID del ejercicio (de list_exercises)'),
+      muscle_group: { ...str('Grupo muscular principal'), enum: MUSCLE_GROUPS },
+      custom_name: str('Nombre propio. Cadena vacía lo quita'),
+    }, ['exercise_id']),
+    handler: async (a, { supabase, userId }) => {
+      const patch: Record<string, unknown> = {}
+      if (a.muscle_group !== undefined) {
+        if (!MUSCLE_GROUPS.includes(a.muscle_group)) {
+          throw new Error(`\`muscle_group\` debe ser uno de: ${MUSCLE_GROUPS.join(', ')}.`)
+        }
+        patch.muscle_group = a.muscle_group
+      }
+      if (a.custom_name !== undefined) patch.custom_name = a.custom_name?.trim() || null
+      if (!Object.keys(patch).length) throw new Error('No mandaste ningún campo que cambiar.')
+
+      const row = unwrap(await supabase.from('exercises').update(patch)
+        .eq('id', a.exercise_id).eq('user_id', userId)
+        .select('id,name,custom_name,muscle_group').maybeSingle())
+      if (!row) throw new Error('Ejercicio no encontrado.')
+      return row
+    },
+  },
+
+  log_body_weight: {
+    description: 'Registra una pesada. Una por día es lo normal: si ya hay una de ese día, la reemplaza en vez de duplicarla. `date` por defecto es hoy en la zona horaria de la persona.',
+    inputSchema: obj({
+      weight: num('Peso'),
+      unit: { ...str('Unidad'), enum: WEIGHT_UNITS },
+      date: str('Fecha YYYY-MM-DD. Por defecto, hoy'),
+      note: str('Nota opcional'),
+    }, ['weight']),
+    handler: async (a, { supabase, userId }) => {
+      if (!(a.weight > 0)) throw new Error('`weight` tiene que ser mayor que cero.')
+      const unit = a.unit ?? 'kg'
+      if (!WEIGHT_UNITS.includes(unit)) throw new Error('`unit` debe ser "kg" o "lb".')
+
+      const tz = await userTimezone(supabase, userId)
+      const day = isoDate(a.date) || localDay(tz)
+      if (a.date && !isoDate(a.date)) throw new Error('`date` debe ser una fecha YYYY-MM-DD.')
+
+      // Se pesa una vez al día: dos filas del mismo día harían que la curva
+      // contara dos veces ese día y que "el peso de hoy" dependiera del orden.
+      unwrap(await supabase.from('body_weight_logs').delete()
+        .eq('user_id', userId)
+        .gte('logged_at', `${day}T00:00:00`)
+        .lte('logged_at', `${day}T23:59:59.999`))
+
+      return unwrap(await supabase.from('body_weight_logs').insert({
+        user_id: userId, weight: a.weight, unit,
+        note: a.note ?? null,
+        logged_at: `${day}T12:00:00Z`,
+      }).select().maybeSingle())
+    },
+  },
+
+  set_nutrition_targets: {
+    description: 'Fija los objetivos diarios de macros a mano. Normalmente los calcula la app a partir del peso, la grasa corporal y la fase — cámbialos solo si esa persona lo pide. Si `protein_locked` es true, ha fijado su proteína a propósito: no se la muevas sin que lo diga. Manda solo lo que cambie.',
+    inputSchema: obj({
+      kcal: num('Calorías diarias'),
+      protein_g: num('Proteína en gramos'),
+      carbs_g: num('Carbohidratos en gramos'),
+      fat_g: num('Grasa en gramos'),
+      protein_locked: bool('Fijar la proteína para que la app no la recalcule'),
+      micros: MICROS_ARG,
+    }),
+    handler: async (a, { supabase, userId }) => {
+      const cur = unwrap(await supabase.from('nutrition_targets')
+        .select('*').eq('user_id', userId).maybeSingle()) as any
+
+      const patch: Record<string, unknown> = {}
+      for (const k of ['kcal', 'protein_g', 'carbs_g', 'fat_g']) {
+        if (a[k] === undefined) continue
+        if (!(a[k] >= 0)) throw new Error(`\`${k}\` no puede ser negativo.`)
+        patch[k] = Math.round(a[k])
+      }
+      if (patch.kcal !== undefined && !((patch.kcal as number) > 0)) {
+        throw new Error('`kcal` tiene que ser mayor que cero.')
+      }
+      if (a.protein_locked !== undefined) patch.protein_locked = a.protein_locked
+      if (a.micros !== undefined) patch.micros = sanitizeMicros(a.micros)
+      if (!Object.keys(patch).length) throw new Error('No mandaste ningún campo que cambiar.')
+
+      if (!cur) {
+        throw new Error('Todavía no hay objetivos de nutrición: ábrelos una vez en la app y luego se pueden ajustar desde aquí.')
+      }
+      patch.updated_at = new Date().toISOString()
+      return unwrap(await supabase.from('nutrition_targets').update(patch)
+        .eq('user_id', userId).select().maybeSingle())
+    },
+  },
+
+  create_supplement: {
+    description: 'Añade un suplemento al stack.',
+    inputSchema: obj({
+      name: str('Nombre'),
+      dose: str('Dosis, texto libre: "5 g", "2 cápsulas"'),
+      timing: { type: 'array', items: { type: 'string', enum: SUPPLEMENT_TIMING }, description: 'Momentos del día' },
+      note: str('Nota opcional'),
+    }, ['name']),
+    handler: async (a, { supabase, userId }) => {
+      const timing = Array.isArray(a.timing) ? a.timing : []
+      for (const t of timing) {
+        if (!SUPPLEMENT_TIMING.includes(t)) {
+          throw new Error(`\`timing\` debe ser uno de: ${SUPPLEMENT_TIMING.join(', ')}.`)
+        }
+      }
+      const last = unwrap(await supabase.from('supplements').select('sort_order')
+        .eq('user_id', userId).order('sort_order', { ascending: false })
+        .limit(1).maybeSingle()) as any
+      return unwrap(await supabase.from('supplements').insert({
+        user_id: userId, name: a.name, dose: a.dose ?? null,
+        timing, note: a.note ?? null,
+        sort_order: (last?.sort_order ?? 0) + 1,
+      }).select().maybeSingle())
+    },
+  },
+
+  update_supplement: {
+    description: 'Cambia un suplemento del stack. `is_active` en false lo aparta sin borrar su historial de tomas.',
+    inputSchema: obj({
+      supplement_id: str('ID del suplemento'),
+      name: str('Nuevo nombre'),
+      dose: str('Nueva dosis'),
+      timing: { type: 'array', items: { type: 'string', enum: SUPPLEMENT_TIMING }, description: 'Nuevos momentos' },
+      note: str('Nueva nota'),
+      is_active: bool('Activo o apartado'),
+    }, ['supplement_id']),
+    handler: async (a, { supabase, userId }) => {
+      const patch: Record<string, unknown> = {}
+      if (a.name !== undefined) patch.name = a.name
+      if (a.dose !== undefined) patch.dose = a.dose?.trim() || null
+      if (a.note !== undefined) patch.note = a.note?.trim() || null
+      if (a.is_active !== undefined) patch.is_active = a.is_active
+      if (a.timing !== undefined) {
+        const timing = Array.isArray(a.timing) ? a.timing : []
+        for (const t of timing) {
+          if (!SUPPLEMENT_TIMING.includes(t)) {
+            throw new Error(`\`timing\` debe ser uno de: ${SUPPLEMENT_TIMING.join(', ')}.`)
+          }
+        }
+        patch.timing = timing
+      }
+      if (!Object.keys(patch).length) throw new Error('No mandaste ningún campo que cambiar.')
+
+      const row = unwrap(await supabase.from('supplements').update(patch)
+        .eq('id', a.supplement_id).eq('user_id', userId).select().maybeSingle())
+      if (!row) throw new Error('Suplemento no encontrado.')
+      return row
+    },
+  },
+
+  delete_supplement: {
+    description: 'Borra un suplemento y su historial de tomas. Para dejar de tomarlo conservando el historial, mejor update_supplement con is_active=false.',
+    inputSchema: obj({ supplement_id: str('ID del suplemento') }, ['supplement_id']),
+    handler: async (a, { supabase, userId }) => {
+      unwrap(await supabase.from('supplements').delete()
+        .eq('id', a.supplement_id).eq('user_id', userId))
+      return { deleted: true, supplement_id: a.supplement_id }
+    },
+  },
+
+  log_supplement: {
+    description: 'Marca (o desmarca) un suplemento como tomado en un día. Por defecto hoy, en la zona horaria de la persona.',
+    inputSchema: obj({
+      supplement_id: str('ID del suplemento'),
+      taken: bool('true lo marca tomado, false lo desmarca. Por defecto true'),
+      date: str('Fecha YYYY-MM-DD. Por defecto, hoy'),
+    }, ['supplement_id']),
+    handler: async (a, { supabase, userId }) => {
+      if (a.date && !isoDate(a.date)) throw new Error('`date` debe ser una fecha YYYY-MM-DD.')
+      const day = isoDate(a.date) || localDay(await userTimezone(supabase, userId))
+      const taken = a.taken !== false
+
+      const own = unwrap(await supabase.from('supplements').select('id')
+        .eq('id', a.supplement_id).eq('user_id', userId).maybeSingle())
+      if (!own) throw new Error('Suplemento no encontrado.')
+
+      if (!taken) {
+        unwrap(await supabase.from('supplement_logs').delete()
+          .eq('user_id', userId).eq('supplement_id', a.supplement_id).eq('taken_on', day))
+        return { supplement_id: a.supplement_id, date: day, taken: false }
+      }
+
+      // Idempotente: marcar dos veces el mismo día no crea dos filas.
+      const already = unwrap(await supabase.from('supplement_logs').select('id')
+        .eq('user_id', userId).eq('supplement_id', a.supplement_id)
+        .eq('taken_on', day).maybeSingle())
+      if (!already) {
+        unwrap(await supabase.from('supplement_logs').insert({
+          user_id: userId, supplement_id: a.supplement_id, taken_on: day,
+        }))
+      }
+      return { supplement_id: a.supplement_id, date: day, taken: true }
+    },
+  },
+
+  log_bloodwork: {
+    description: 'Guarda el resultado de un marcador de una analítica. Manda `ref_low` y `ref_high` tal como vengan en el informe del laboratorio: los rangos cambian entre laboratorios y sin ellos el valor no se puede interpretar después. Un marcador por llamada.',
+    inputSchema: obj({
+      panel_date: str('Fecha de la analítica YYYY-MM-DD'),
+      marker: str('Marcador, p. ej. "Ferritina", "HDL", "TSH"'),
+      value: num('Valor medido'),
+      unit: str('Unidad tal cual la da el laboratorio: "ng/mL", "mg/dL"…'),
+      ref_low: num('Límite bajo del rango de referencia'),
+      ref_high: num('Límite alto del rango de referencia'),
+      note: str('Nota opcional'),
+    }, ['panel_date', 'marker', 'value']),
+    handler: async (a, { supabase, userId }) => {
+      if (!isoDate(a.panel_date)) throw new Error('`panel_date` debe ser una fecha YYYY-MM-DD.')
+      if (!String(a.marker || '').trim()) throw new Error('`marker` no puede ir vacío.')
+      return unwrap(await supabase.from('bloodwork_results').insert({
+        user_id: userId,
+        panel_date: a.panel_date,
+        marker: String(a.marker).trim(),
+        value: a.value,
+        unit: a.unit?.trim() || null,
+        ref_low: a.ref_low ?? null,
+        ref_high: a.ref_high ?? null,
+        note: a.note?.trim() || null,
+      }).select().maybeSingle())
+    },
+  },
+
+  delete_bloodwork: {
+    description: 'Borra un resultado de analítica.',
+    inputSchema: obj({ result_id: str('ID del resultado') }, ['result_id']),
+    handler: async (a, { supabase, userId }) => {
+      unwrap(await supabase.from('bloodwork_results').delete()
+        .eq('id', a.result_id).eq('user_id', userId))
+      return { deleted: true, result_id: a.result_id }
+    },
+  },
 
   undo_change: {
     description: 'Revierte un cambio hecho por IA. Usa list_recent_changes para ver los IDs disponibles.',

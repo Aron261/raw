@@ -60,6 +60,20 @@ export function toSpanish(err: unknown): string {
     'tiene que ser mayor que cero',
     'debe ser "kg" o "lb"',
     'No mandaste ningún campo',
+    // Perfil, ejercicios, macros y Longevidad.
+    'va de 1 a 7',
+    'va de 3 a 70',
+    'no puede ser negativo',
+    'Ejercicio no encontrado',
+    'Suplemento no encontrado',
+    'no puede ir vacío',
+    'Todavía no hay objetivos de nutrición',
+    // Huecos que ya estaban: estos tres se lanzaban desde tools.ts y llegaban
+    // convertidos en el genérico, así que el modelo no podía enterarse de que
+    // le faltaba confirm=true ni de que no había mandado ningún cambio.
+    'hay que pasar confirm=true',
+    'No hay nada que cambiar',
+    'Versión no encontrada',
   ]
   for (const m of ours) if (e.message?.includes(m)) return e.message
 

@@ -38,11 +38,9 @@ create trigger trg_log_agent_write
 do $$
 declare
   t text;
-  writable text[] := array[
-    'routines','routine_days','routine_day_exercises',
-    'goals','nutrition_entries','nutrition_foods',
-    'scheduled_sessions'
-  ];
+  -- Una sola fuente, compartida con agent_audit.sql. Antes eran dos copias a
+  -- mano y bastaba re-ejecutar el otro archivo para volver a candar esta tabla.
+  writable text[] := public.agent_writable_tables();
 begin
   for t in
     select c.relname

@@ -31,13 +31,20 @@ const CAN_READ = [
 
 const CAN_WRITE = [
   'Crear y editar rutinas y ciclos',
-  'Crear y borrar objetivos',
+  'Crear, editar y borrar objetivos',
   'Registrar comidas, guardar alimentos y peso corporal',
+  'Cambiar tu perfil y tus objetivos de macros',
+  'Clasificar y renombrar tus ejercicios',
+  'Gestionar tus suplementos y tus analíticas de sangre',
 ]
 
+// Esta lista es una promesa, así que tiene que seguir a la guardia de verdad
+// (public.agent_writable_tables). Cuando el conector pasó a poder editar el
+// perfil y los macros, aquí seguía escrito que no podía: una pantalla de
+// consentimiento desactualizada es peor que no tenerla.
 const CANNOT = [
   'Registrar o modificar entrenos y series',
-  'Cambiar tu perfil o tus objetivos de macros',
+  'Cambiar tu plan, tus permisos o tu acceso',
   'Ver datos de otras personas',
   'Modificar la app en sí',
 ]
