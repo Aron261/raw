@@ -67,7 +67,7 @@ const EN = {
   'Valor a alcanzar': 'Target value',
 
   // ── Navegación y el botón "+" ──
-  // «Coach», «Social» y «RAW» se escriben igual en los dos idiomas y por eso
+  // «Coach» y «RAW» se escriben igual en los dos idiomas y por eso
   // no están: translate() cae a la clave, que ya es el inglés correcto.
   // «Snack» se escribe igual en los dos idiomas: no va aquí, translate() cae
   // a la clave. Meterla la marcaría como traducción hecha.
@@ -434,6 +434,15 @@ const EN = {
   'Hecho': 'Done',
   'Fuerza': 'Strength',
   'Cuerpo': 'Body',
+  'Meta de peso': 'Weight goal',
+  'Cardio y movilidad': 'Cardio and mobility',
+  'Opcional — vacío = comparar 1RM': 'Optional — empty compares estimated 1RM',
+
+  'Sin registrar esta semana': 'Nothing logged this week',
+  'Mejoraste un {n}% en los últimos 30 días.': "You improved {n}% over the last 30 days.",
+  'Calendario': 'Calendar',
+  'Ponte un peso objetivo y esta pantalla te dice si lo que comes te está llevando ahí.':
+    "Set a target weight and this screen tells you whether what you're eating is getting you there.",
   'Cardio': 'Cardio',
   'Movilidad': 'Mobility',
   'Descanso': 'Rest',
@@ -835,16 +844,6 @@ const EN = {
   'Entrar': 'Enter',
   'Verificando...': 'Checking...',
 
-  // ── Social (placeholder) ──
-  'Próximamente': 'Coming soon',
-  'Entrena con tu gente.': 'Train with your people.',
-  'Amigos': 'Friends',
-  'Sigue a la gente con la que entrenas.': 'Follow the people you train with.',
-  'Feed de entrenos': 'Workout feed',
-  'Lo que levantó tu gente, sin filtros ni poses.': 'What your people lifted — no filters, no posing.',
-  'PRs compartidos': 'Shared PRs',
-  'Un récord de un amigo se celebra una vez — y con el número.':
-    "A friend's record gets celebrated once — with the number.",
 
   // ── Asistente de plan recomendado ──
   'Ciclo recomendado': 'Recommended cycle',

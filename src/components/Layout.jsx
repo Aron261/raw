@@ -76,7 +76,7 @@ function WorkoutStarter({ children }) {
 export default function Layout({ children, hideNav = false }) {
   const { pathname } = useLocation()
   // Las pantallas con pestaña (y las que cuelgan de ellas) reservan sitio para
-  // la barra; Nutrición, Coach y Social navegan desde Inicio y sus cabeceras.
+  // la barra; Nutrición y Coach navegan desde Inicio y sus cabeceras.
   const hasTabs = hasTabBar(pathname)
 
   return (

@@ -265,6 +265,17 @@ export const GOAL_KIND = {
   days_trained:      'consistency',
 }
 
+// Dónde vive cada familia. Una meta se mide donde se actúa sobre ella: la
+// sentadilla y la constancia se miran desde Entreno, porque lo que las mueve es
+// entrenar; el peso corporal se mira desde Nutrición, porque lo que lo mueve es
+// lo que comes. Tenerlas juntas en la portada obligaba a leer una meta de
+// báscula en la pantalla donde no puedes hacer nada al respecto.
+export const GOAL_HOME = {
+  strength:    'training',
+  consistency: 'training',
+  body:        'nutrition',
+}
+
 // El orden en que se leen: lo que levantas, lo que pesas, lo que apareces.
 export const KIND_ORDER = ['strength', 'body', 'consistency']
 export const KIND_LABEL = {
@@ -276,10 +287,13 @@ export const KIND_LABEL = {
 /**
  * Las metas agrupadas por familia, cada grupo ya con su progreso y ordenado.
  * Los grupos vacíos no salen: un encabezado sobre nada es ruido.
+ *
+ * Con `home` solo salen las familias que viven en esa pantalla (ver GOAL_HOME).
  */
-export function groupGoals(goals, ctx = {}) {
+export function groupGoals(goals, ctx = {}, { home = null } = {}) {
   const computed = computeGoals(goals, ctx)
   return KIND_ORDER
+    .filter(kind => !home || GOAL_HOME[kind] === home)
     .map(kind => ({
       kind,
       label: KIND_LABEL[kind],
@@ -287,6 +301,10 @@ export function groupGoals(goals, ctx = {}) {
     }))
     .filter(group => group.goals.length > 0)
 }
+
+/** Los tipos de meta que se crean y se miden en una pantalla. */
+export const typesForHome = (home) =>
+  Object.keys(GOAL_KIND).filter(type => GOAL_HOME[GOAL_KIND[type]] === home)
 
 // Todas las metas con su progreso, ordenadas como se leen: primero lo que
 // sigue en juego (y dentro de eso, lo más cerca de caer), al final lo cumplido.

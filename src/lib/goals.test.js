@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   progressPct, computePace, computeGoalProgress, computeGoals, isRecurring,
   groupGoals,
+  typesForHome,
 } from './goals'
 
 // Un entreno terminado con una sola serie del ejercicio dado.
@@ -309,5 +310,35 @@ describe('groupGoals', () => {
 
   it('sin metas no hay grupos', () => {
     expect(groupGoals([], ctx)).toEqual([])
+  })
+})
+
+describe('dónde vive cada meta', () => {
+  const ctx = { workouts: [], bodyWeightLogs: [], now: new Date('2026-08-17T12:00:00') }
+  const todas = [
+    { id: 'f', type: 'exercise_weight', exercise_name: 'Sentadilla', target_value: 100, unit: 'kg' },
+    { id: 'p', type: 'body_weight', target_value: 83, unit: 'kg', start_value: 78 },
+    { id: 'c', type: 'sessions_per_week', target_value: 5, unit: 'días' },
+  ]
+
+  it('Entreno se queda con fuerza y constancia, nunca con la báscula', () => {
+    const out = groupGoals(todas, ctx, { home: 'training' })
+    expect(out.map(g => g.kind)).toEqual(['strength', 'consistency'])
+    expect(out.flatMap(g => g.goals.map(x => x.id))).not.toContain('p')
+  })
+
+  it('Nutrición se queda solo con el peso corporal', () => {
+    const out = groupGoals(todas, ctx, { home: 'nutrition' })
+    expect(out.map(g => g.kind)).toEqual(['body'])
+    expect(out[0].goals.map(x => x.id)).toEqual(['p'])
+  })
+
+  it('sin home salen todas, como antes', () => {
+    expect(groupGoals(todas, ctx)).toHaveLength(3)
+  })
+
+  it('cada pantalla crea solo los tipos que sabe medir', () => {
+    expect(typesForHome('nutrition')).toEqual(['body_weight'])
+    expect(typesForHome('training').sort()).toEqual(['days_trained', 'exercise_weight', 'sessions_per_week'])
   })
 })

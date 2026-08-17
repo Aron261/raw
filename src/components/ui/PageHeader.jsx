@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 
-// Cabecera de sección (Nutrición, Longevidad, Social…): volver al menú en
+// Cabecera de sección (Nutrición, Longevidad…): volver al menú en
 // mobile (el sidebar cubre desktop), título display y un slot de control.
 export default function PageHeader({ title, sub, right, backTo = '/' }) {
   const navigate = useNavigate()

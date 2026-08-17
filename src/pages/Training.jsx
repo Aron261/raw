@@ -23,8 +23,9 @@ import { useLang } from '../hooks/useLang'
 import { usePlan } from '../hooks/usePlan'
 import { calc1RM, calc1RMKg } from '../lib/progress'
 import { defaultLiftUnit } from '../lib/units'
-import { computeGoals, groupGoals, currentValue, isRecurring } from '../lib/goals'
+import { groupGoals, isRecurring } from '../lib/goals'
 import GoalRow from '../components/GoalRow'
+import GoalModal from '../components/GoalModal'
 
 
 // Se resuelve en cada render, no al cargar el módulo: la PWA puede quedar
@@ -44,218 +45,6 @@ function greetingKey() {
   return 'Buenas noches'
 }
 
-
-// ── GoalModal ─────────────────────────────────────────────────────────────
-// Cuatro clases de meta. Las dos de peso (fuerza y báscula) tienen plazo y
-// punto de partida; las dos de constancia no, porque su ventana ES el plazo:
-// una meta de "4 días por semana" se gana o se pierde cada lunes.
-const GOAL_KINDS = [
-  { id: 'exercise_weight',   label: 'Fuerza',        hint: 'Peso en un ejercicio' },
-  { id: 'body_weight',       label: 'Peso corporal', hint: 'Subir o bajar' },
-  { id: 'sessions_per_week', label: 'Días/semana',   hint: 'Constancia' },
-  { id: 'days_trained',      label: 'Días/mes',      hint: 'Constancia' },
-]
-
-const IS_WEIGHT_GOAL = (type) => type === 'exercise_weight' || type === 'body_weight'
-
-function GoalModal({ onClose, onSave, exercises = [], progressCtx = {}, currentWeightUnit = 'kg' }) {
-  const { t } = useLang()
-  const [type, setType] = useState('exercise_weight')
-  const [label, setLabel] = useState('')
-  const [exerciseName, setExerciseName] = useState('')
-  const [targetValue, setTargetValue] = useState('')
-  const [targetReps, setTargetReps] = useState('')
-  const [targetDate, setTargetDate] = useState('')
-  const [unit, setUnit] = useState(currentWeightUnit)
-  const [saving, setSaving] = useState(false)
-
-  // De dónde partes hoy. Se mide ANTES de guardar y se sella en la fila: es lo
-  // que hace que la barra cuente el tramo propuesto y no la fuerza que ya
-  // tenías. Para las metas de constancia no se guarda (siempre parten de cero
-  // al abrirse la ventana).
-  const start = useMemo(() => {
-    if (!IS_WEIGHT_GOAL(type)) return null
-    return currentValue({ type, exercise_name: exerciseName, target_reps: targetReps ? parseInt(targetReps, 10) : null, unit }, progressCtx)
-  }, [type, exerciseName, targetReps, unit, progressCtx])
-
-  // El nombre deja de ser una tarea: la meta ya sabe cómo se llama. Si escribes
-  // uno propio manda el tuyo.
-  const suggestedLabel = useMemo(() => {
-    const n = parseFloat(targetValue)
-    if (!n) return ''
-    if (type === 'exercise_weight') {
-      return exerciseName ? `${exerciseName} ${n} ${unit}${targetReps ? ` × ${targetReps}` : ''}` : ''
-    }
-    if (type === 'body_weight') return `Peso corporal ${n} ${unit}`
-    if (type === 'sessions_per_week') return `${n} días por semana`
-    return `${n} días al mes`
-  }, [type, targetValue, unit, exerciseName, targetReps])
-
-  const targetNum = parseFloat(targetValue)
-  const maxDays = type === 'sessions_per_week' ? 7 : 31
-
-  // Motivos por los que la meta no se puede guardar, dichos en voz alta. Antes
-  // se podía crear una meta de ejercicio sin elegir ejercicio: se quedaba
-  // clavada en 0 % para siempre y nada explicaba por qué.
-  const problem = (() => {
-    if (!targetNum || targetNum <= 0) return null   // aún no ha escrito nada: sin regaño
-    if (type === 'exercise_weight' && !exerciseName) return ['Elige el ejercicio o la meta no podrá medirse.']
-    if (type === 'body_weight' && start == null) return ['Registra tu peso primero: sin un punto de partida no se puede medir el avance.']
-    if (type === 'body_weight' && targetNum === start) return ['El objetivo es tu peso de hoy.']
-    if (!IS_WEIGHT_GOAL(type) && targetNum > maxDays) return ['Como mucho {n} días.', { n: maxDays }]
-    if (type === 'exercise_weight' && start > 0 && targetNum <= start) {
-      return ['Ya llegas a {v} {u}. Ponte un objetivo más alto.', { v: Math.round(start * 10) / 10, u: unit }]
-    }
-    return null
-  })()
-
-  const canSave = targetNum > 0 && !problem
-
-  const handleSave = async () => {
-    if (!canSave) return
-    setSaving(true)
-    try {
-      await onSave({
-        type,
-        label: (label.trim() || suggestedLabel || 'Meta'),
-        exercise_name: type === 'exercise_weight' ? exerciseName || null : null,
-        target_value: targetNum,
-        target_reps: type === 'exercise_weight' && targetReps ? parseInt(targetReps, 10) : null,
-        start_value: IS_WEIGHT_GOAL(type) ? start : null,
-        target_date: IS_WEIGHT_GOAL(type) && targetDate ? targetDate : null,
-        unit: IS_WEIGHT_GOAL(type) ? unit : 'días',
-        is_monthly: type === 'days_trained',
-      })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const valueLabel = type === 'exercise_weight' ? 'Peso objetivo'
-    : type === 'body_weight' ? 'Peso objetivo'
-    : type === 'sessions_per_week' ? 'Días por semana'
-    : 'Días este mes'
-
-  return (
-    <Sheet title="Nueva meta" onClose={onClose}>
-      <Field label="Tipo de meta">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          {GOAL_KINDS.map(opt => {
-            const on = type === opt.id
-            return (
-              <button
-                key={opt.id}
-                onClick={() => setType(opt.id)}
-                aria-pressed={on}
-                style={{
-                  padding: '10px 8px', borderRadius: 'var(--r-xs)', textAlign: 'left',
-                  background: on ? 'var(--c-accent)' : 'var(--c-surface-2)',
-                  border: `1px solid ${on ? 'var(--c-accent)' : 'var(--c-border-subtle)'}`,
-                  transition: 'all 150ms',
-                }}
-              >
-                <span style={{ display: 'block', fontSize: '11px', fontWeight: 800, letterSpacing: '-0.01em', color: on ? 'var(--c-on-action)' : 'var(--c-text)' }}>
-                  {t(opt.label)}
-                </span>
-                <span style={{ display: 'block', fontSize: '9.5px', fontWeight: 500, marginTop: '2px', color: on ? 'var(--c-on-action)' : 'var(--c-text-muted)', opacity: on ? 0.8 : 1 }}>
-                  {t(opt.hint)}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </Field>
-
-      {type === 'exercise_weight' && (
-        <Field label="Ejercicio">
-          <select
-            className="input-field"
-            value={exerciseName}
-            onChange={e => setExerciseName(e.target.value)}
-          >
-            <option value="">— Selecciona un ejercicio —</option>
-            {exercises.map(name => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
-        </Field>
-      )}
-
-      <Field
-        label={valueLabel}
-        hint={IS_WEIGHT_GOAL(type) && start != null && start > 0
-          ? `Hoy: ${Math.round(start * 10) / 10} ${unit}`
-          : undefined}
-      >
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input
-            className="input-field"
-            type="number"
-            inputMode="decimal"
-            placeholder={type === 'sessions_per_week' ? '4' : type === 'days_trained' ? '20' : '100'}
-            value={targetValue}
-            onChange={e => setTargetValue(e.target.value)}
-            style={{ flex: 1 }}
-          />
-          {IS_WEIGHT_GOAL(type) && (
-            <UnitToggle value={unit} units={['kg', 'lb']} onChange={setUnit} />
-          )}
-        </div>
-      </Field>
-
-      {type === 'exercise_weight' && (
-        <Field label="Reps objetivo" hint="Opcional — vacío = comparar 1RM">
-          <input
-            className="input-field"
-            type="number"
-            inputMode="numeric"
-            placeholder="Ej: 5"
-            value={targetReps}
-            onChange={e => setTargetReps(e.target.value)}
-          />
-        </Field>
-      )}
-
-      {IS_WEIGHT_GOAL(type) && (
-        <Field label="Fecha límite" hint="Opcional — con fecha la app te dice si vas a tiempo">
-          <input
-            className="input-field"
-            type="date"
-            value={targetDate}
-            onChange={e => setTargetDate(e.target.value)}
-          />
-        </Field>
-      )}
-
-      <Field label="Nombre de la meta" hint="Opcional">
-        <input
-          className="input-field"
-          placeholder={suggestedLabel || 'Ej: Sentadilla 100 kg'}
-          value={label}
-          onChange={e => setLabel(e.target.value)}
-        />
-      </Field>
-
-      {problem && (
-        <p style={{ color: 'var(--c-action-text)', fontSize: '11.5px', fontWeight: 600, lineHeight: 1.4, marginBottom: '10px' }}>
-          {t(problem[0], problem[1])}
-        </p>
-      )}
-
-      <Button
-        variant="primary"
-        full
-        size="lg"
-        loading={saving}
-        disabled={saving || !canSave}
-        onClick={handleSave}
-        style={{ marginTop: '8px' }}
-      >
-        {saving ? 'Guardando...' : 'Guardar meta'}
-      </Button>
-    </Sheet>
-  )
-}
 
 // ── EntrenaHoyCard ────────────────────────────────────────────────────────
 // Muestra el próximo día del ciclo activo con CTA para empezar.
@@ -277,7 +66,7 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
       {/* Label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
         <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', opacity: hasExercises ? 0.85 : 1, color: hasExercises ? 'var(--c-on-action)' : 'var(--c-action-text)' }}>
-          {fromCoach ? `Recomendado por ${coachName || 'tu entrenador'}` : 'Entreno de hoy'}
+          {fromCoach ? `${t('Recomendado por')} ${coachName || t('tu entrenador')}` : t('Entreno de hoy')}
         </p>
         {fromCoach && (
           <span style={{
@@ -298,14 +87,14 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
 
       {/* Ciclo activo — siempre visible */}
       <p style={{ fontSize: '11px', fontWeight: 500, marginBottom: '2px', opacity: hasExercises ? 0.85 : 1, color: hasExercises ? 'var(--c-on-action)' : 'var(--c-text-dim)' }}>
-        Ciclo activo: {routineName}
+        {t('Ciclo activo')}: {routineName}
       </p>
 
       {/* Detalle: ejercicios + focus */}
       <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', marginBottom: '14px', opacity: hasExercises ? 0.75 : 1, color: hasExercises ? 'var(--c-on-action)' : 'var(--c-text-muted)' }}>
         {hasExercises
-          ? `${exCount} ${exCount === 1 ? 'ejercicio' : 'ejercicios'}${day.focus ? ' · ' + day.focus : ''}`
-          : 'Sin ejercicios todavía'
+          ? `${exCount} ${t(exCount === 1 ? 'ejercicio' : 'ejercicios')}${day.focus ? ' · ' + day.focus : ''}`
+          : t('Sin ejercicios todavía')
         }
       </p>
 
@@ -325,7 +114,7 @@ function EntrenaHoyCard({ day, routineName, onStart, starting, fromCoach, coachN
           opacity: starting ? 0.6 : 1,
         }}
       >
-        {starting ? 'Creando entreno...' : hasExercises ? 'Empezar entreno' : 'Sin ejercicios todavía'}
+        {starting ? t('Creando entreno...') : hasExercises ? t('Empezar entreno') : t('Sin ejercicios todavía')}
       </button>
     </div>
   )
@@ -831,19 +620,20 @@ export default function Training() {
     [workouts, weightLogs]
   )
 
+  // Las metas que se miden desde Entreno —fuerza y constancia—, por familia.
+  // La báscula no está aquí: vive en Nutrición, que es donde se actúa sobre
+  // ella. `home` es lo que decide el reparto (lib/goals).
+  //
   // Hide any goal awaiting an undoable delete so it vanishes optimistically.
-  const goalProgress = useMemo(
-    () => computeGoals(openGoals.filter(g => g.id !== goalDelete.pending?.id), goalCtx),
-    [openGoals, goalDelete.pending, goalCtx]
-  )
-  const completedProgress = useMemo(
-    () => computeGoals(completedGoals.filter(g => g.id !== goalDelete.pending?.id), goalCtx),
-    [completedGoals, goalDelete.pending, goalCtx]
-  )
-  // Las mismas metas abiertas, repartidas por familia para pintarlas.
   const goalGroups = useMemo(
-    () => groupGoals(openGoals.filter(g => g.id !== goalDelete.pending?.id), goalCtx),
+    () => groupGoals(openGoals.filter(g => g.id !== goalDelete.pending?.id), goalCtx, { home: 'training' }),
     [openGoals, goalDelete.pending, goalCtx]
+  )
+  const goalProgress = useMemo(() => goalGroups.flatMap(g => g.goals), [goalGroups])
+  const completedProgress = useMemo(
+    () => groupGoals(completedGoals.filter(g => g.id !== goalDelete.pending?.id), goalCtx, { home: 'training' })
+      .flatMap(g => g.goals),
+    [completedGoals, goalDelete.pending, goalCtx]
   )
 
   // Sellar sola una meta lograda. Una meta de peso que llegó a su número ya no
@@ -912,7 +702,7 @@ export default function Training() {
         label: 'Mayor progreso',
         title: topGain.name,
         value: `+${topGain.gain}%`,
-        sub: `Mejoraste un ${topGain.gain}% en los últimos 30 días.`,
+        sub: t('Mejoraste un {n}% en los últimos 30 días.', { n: topGain.gain }),
       }
     }
 
@@ -1512,6 +1302,7 @@ export default function Training() {
           exercises={userExercises}
           progressCtx={goalCtx}
           currentWeightUnit={defaultLiftUnit(profile)}
+          home="training"
         />
       )}
 

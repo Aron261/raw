@@ -28,7 +28,7 @@ describe('hasTabBar', () => {
   })
 
   it('las secciones que se navegan desde Inicio no la llevan', () => {
-    for (const p of ['/coach', '/coach/cliente/1', '/chat/2', '/social']) {
+    for (const p of ['/coach', '/coach/cliente/1', '/chat/2']) {
       expect(hasTabBar(p)).toBe(false)
     }
   })

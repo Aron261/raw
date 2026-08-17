@@ -4,6 +4,7 @@ import Layout from '../components/Layout'
 import { Button, PageHeader, LiveRegion, UndoSnackbar, Toast } from '../components/ui'
 import CalorieRing from '../components/CalorieRing'
 import MacroLegend from '../components/MacroLegend'
+import BodyWeightGoalCard from '../components/BodyWeightGoalCard'
 import MicroGrid from '../components/MicroGrid'
 import NutritionTargetsSheet from '../components/NutritionTargetsSheet'
 import NutritionMicrosSheet from '../components/NutritionMicrosSheet'
@@ -298,6 +299,10 @@ export default function Nutrition({ userId = null, readOnly = false }) {
           targets={tgt}
           onOpenAll={() => setSheet('micros')}
         />
+
+        {/* La meta de peso vive aquí y no en Inicio: lo que mueve la báscula
+            es lo que comes. Va debajo de los macros, que son la palanca. */}
+        <BodyWeightGoalCard userId={userId} readOnly={readOnly} />
 
         {/* ── Comidas del día ── */}
         {loading && entries.length === 0 ? (

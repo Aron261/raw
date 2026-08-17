@@ -5,7 +5,6 @@ export function sectionFor(pathname) {
   if (pathname === '/') return 'training'
   if (TRAINING.test(pathname)) return 'training'
   if (pathname.startsWith('/nutrition')) return 'nutrition'
-  if (pathname.startsWith('/social')) return 'social'
   if (pathname.startsWith('/coach') || pathname.startsWith('/chat')) return 'coach'
   if (pathname.startsWith('/profile')) return 'profile'
   return 'training'
@@ -21,8 +20,8 @@ export function sectionFor(pathname) {
 // SÍ conserva la barra: sin ella se entra a configurar y no hay forma de volver
 // más que con el gesto de atrás del navegador.
 //
-// Coach y Social siguen sin barra: se navega a ellos desde los chips de Inicio
-// y sus propias cabeceras.
+// Coach sigue sin barra: se navega a él desde los chips de Inicio y su propia
+// cabecera.
 export function hasTabBar(pathname) {
   const section = sectionFor(pathname)
   return section === 'training' || section === 'profile' || section === 'nutrition'
