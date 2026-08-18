@@ -16,7 +16,6 @@ const ResetPassword  = lazy(() => import('./pages/ResetPassword'))
 const Training       = lazy(() => import('./pages/Training'))
 const Day            = lazy(() => import('./pages/Day'))
 const Nutrition      = lazy(() => import('./pages/Nutrition'))
-const Calendario     = lazy(() => import('./pages/Calendario'))
 const Longevidad     = lazy(() => import('./pages/Longevidad'))
 const Onboarding     = lazy(() => import('./pages/Onboarding'))
 const ActiveWorkout  = lazy(() => import('./pages/ActiveWorkout'))
@@ -230,7 +229,9 @@ function AppWithAuth() {
 
           {/* Nutrición */}
           <Route path="/nutrition"  element={<R auth={auth} element={<Nutrition />} />} />} />} />
-          <Route path="/calendario" element={<R auth={auth} element={<Calendario />} />} />
+          {/* El calendario volvió entero a Inicio: aquí ya no hay pantalla,
+              solo la promesa de que los enlaces viejos siguen llevando a él. */}
+          <Route path="/calendario" element={<Navigate to="/" replace />} />
           <Route path="/longevidad" element={<R auth={auth} element={<Longevidad />} />} />
 
           <Route path="/profile"    element={<R auth={auth} element={<Profile />} />} />

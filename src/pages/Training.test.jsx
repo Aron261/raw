@@ -58,7 +58,7 @@ vi.mock('../hooks/useNutrition', async () => {
 vi.mock('../hooks/useBodyWeight', () => ({ useBodyWeight: () => ({ latestLog: null }) }))
 vi.mock('../hooks/useGoals', () => ({
   useGoals: () => ({
-    goals: [], open: [], completed: [],
+    goals: state.goals, open: state.goals, completed: [],
     createGoal: vi.fn(), deleteGoal: vi.fn(),
     completeGoal: vi.fn(), reopenGoal: vi.fn(),
   }),
@@ -90,7 +90,7 @@ vi.mock('../hooks/useUndoableDelete', () => ({
 import Training from './Training'
 
 beforeEach(() => {
-  state = { workouts: [], profile: { name: 'Pedro', is_trainer: false }, kcal: 1200 }
+  state = { workouts: [], goals: [], profile: { name: 'Pedro', is_trainer: false }, kcal: 1200 }
   navigate.mockClear()
 })
 afterEach(cleanup)
@@ -181,15 +181,34 @@ describe('Inicio — primer uso', () => {
     expect(screen.queryByText(/^Esta semana$/)).toBeNull()
   })
 
-  it('el calendario no vive en la portada: es su propia sección', () => {
-    // Pasó de ocupar una pantalla entera de Inicio, a estar plegado detrás de un
-    // botón, a tener sección propia. Lo que queda aquí es el chip con lo único
-    // que importa un martes —qué toca a continuación— y toca para ir allá.
+  it('el calendario vive entero en la portada, no detrás de un chip', () => {
+    // Estuvo desplegado aquí, luego plegado tras un botón, luego exiliado a
+    // sección propia detrás de un chip que solo cantaba el titular. La rejilla
+    // es donde se decide algo —qué toca el jueves, qué semana se cayó— así que
+    // vuelve completa: sin chip intermedio y sin viaje a /calendario.
     render(<Training />)
-    expect(screen.queryByTestId('calendar')).toBeNull()
+    expect(screen.getByTestId('calendar')).toBeTruthy()
+    expect(navigate).not.toHaveBeenCalledWith('/calendario')
+  })
+})
 
-    fireEvent.click(screen.getByText('Calendario').closest('button'))
-    expect(navigate).toHaveBeenCalledWith('/calendario')
+describe('Inicio — las metas', () => {
+  it('llegan plegadas: una fila que dice cuántas hay en juego', () => {
+    // El calendario cambia todos los días; una meta no. Desplegada por defecto
+    // repetía media pantalla de barras idénticas cada mañana por encima de la
+    // rejilla, que sí trae noticias.
+    state.goals = [
+      { id: 'g1', type: 'exercise_weight', label: 'Sentadilla 140', exercise_name: 'Sentadilla', target_value: 140, unit: 'kg' },
+      { id: 'g2', type: 'days_trained', label: 'Constancia', target_value: 20 },
+    ]
+    render(<Training />)
+
+    const toggle = screen.getByRole('button', { expanded: false })
+    expect(within(toggle).getByText(/2 activas/)).toBeTruthy()
+    expect(screen.queryByText('Sentadilla 140')).toBeNull()
+
+    fireEvent.click(toggle)
+    expect(screen.getByText('Sentadilla 140')).toBeTruthy()
   })
 })
 

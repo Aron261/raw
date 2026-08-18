@@ -4,7 +4,6 @@ const TRAINING = /^\/(menu|training|history|stats|progreso|rutinas|rutina|ejerci
 export function sectionFor(pathname) {
   if (pathname === '/') return 'training'
   if (TRAINING.test(pathname)) return 'training'
-  if (pathname.startsWith('/calendario')) return 'calendar'
   if (pathname.startsWith('/nutrition')) return 'nutrition'
   if (pathname.startsWith('/coach') || pathname.startsWith('/chat')) return 'coach'
   if (pathname.startsWith('/profile')) return 'profile'
@@ -21,8 +20,9 @@ export function sectionFor(pathname) {
 // SÍ conserva la barra: sin ella se entra a configurar y no hay forma de volver
 // más que con el gesto de atrás del navegador.
 //
-// Coach y Calendario siguen sin barra: se navega a ellos desde los chips de
-// Inicio y sus propias cabeceras. El calendario en particular NO es pestaña a
+// Coach sigue sin barra: se navega a él desde los chips de Inicio y su propia
+// cabecera. El calendario ya no aparece aquí porque dejó de ser una pantalla:
+// vive entero en Inicio, y /calendario redirige allí. Sigue sin ser pestaña a
 // propósito — Raw es rotacional, y hacerlo espina dorsal invertiría eso.
 export function hasTabBar(pathname) {
   const section = sectionFor(pathname)

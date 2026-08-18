@@ -5,6 +5,7 @@ import { useWorkouts } from '../hooks/useWorkout'
 import { useProfile } from '../hooks/useProfile'
 import { useNutritionDay, useNutritionTargets, toLocalISODate, DEFAULT_TARGETS } from '../hooks/useNutrition'
 import TodayNutritionCard from '../components/TodayNutritionCard'
+import Calendar from '../components/calendar/Calendar'
 import { useBodyWeight } from '../hooks/useBodyWeight'
 import { useGoals } from '../hooks/useGoals'
 import { useRoutines, getNextRoutineDay } from '../hooks/useRoutines'
@@ -167,13 +168,19 @@ function Chip({ label, value, hint, live, index = 0, onClick }) {
 // ── Metas ────────────────────────────────────────────────────────────────
 // Vive fuera del bloque "hay entrenos": definir una meta es justo lo que hace
 // alguien que todavía no ha registrado nada, y antes estaba fuera de alcance.
-// Tope de metas visibles en la portada. Con más, la tarjeta se comía media
-// pantalla de Inicio por algo que no cambia de un día para otro. Se ven las que
-// están en juego y el resto está a un toque.
+//
+// Plegada por defecto, en una fila. El calendario cambia todos los días; una
+// meta no: llegar a 120 kg de sentadilla dice lo mismo hoy que ayer. Repetir
+// esas barras cada mañana en media pantalla de portada era pagar el espacio
+// más caro de la app por una noticia vieja. Plegada dice lo único que cambia
+// —cuántas tienes en juego— y el detalle está a un toque.
+// Tope de metas visibles al desplegar. Con más, la lista vuelve a comerse la
+// pantalla; se ven las que están en juego y el resto está a otro toque.
 const GOALS_ON_HOME = 3
 
 function GoalsCard({ goals, groups = [], completed = [], onAdd, onDelete, onComplete, onReopen, coachName }) {
   const { t } = useLang()
+  const [open, setOpen] = useState(false)
   const [showArchive, setShowArchive] = useState(false)
   const [showAllGoals, setShowAllGoals] = useState(false)
 
@@ -190,22 +197,77 @@ function GoalsCard({ goals, groups = [], completed = [], onAdd, onDelete, onComp
 
   // Con una sola familia el encabezado no separa nada de nada: sobra.
   const showGroupLabels = shownGroups.length > 1
+
+  // Sin nada que contar no hay nada que plegar: la tarjeta se queda abierta
+  // enseñando la invitación. Plegar un vacío sería esconder la única acción.
+  const empty = goals.length === 0 && completed.length === 0
+  const expanded = open || empty
+
+  // Lo que se lee plegada: cuántas están en juego y cuántas ya cayeron.
+  const resumen = [
+    goals.length > 0 ? `${goals.length} ${t(goals.length === 1 ? 'activa' : 'activas')}` : null,
+    completed.length > 0 ? `${completed.length} ${t(completed.length === 1 ? 'cumplida' : 'cumplidas')}` : null,
+  ].filter(Boolean).join(' · ')
+
+  const label = (
+    <span style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em', flexShrink: 0 }}>
+      {t('Mis metas')}
+    </span>
+  )
+
   return (
     <div style={{
       background: 'var(--c-surface)',
       border: '1px solid var(--c-border-subtle)', boxShadow: 'var(--e-1)',
       borderRadius: 'var(--r-lg)',
-      padding: '20px',
+      padding: expanded ? '4px 16px 18px' : '4px 16px',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em' }}>
-          {t('Mis metas')}
-        </p>
+      {/* Cabecera: el título es el propio interruptor. El «+» va al lado, no
+          dentro —un botón no puede anidar otro— y sigue visible plegada:
+          añadir una meta no debería obligar a desplegar la lista. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {empty ? (
+          <div style={{ display: 'flex', alignItems: 'center', minHeight: '44px', flex: 1, minWidth: 0 }}>
+            {label}
+          </div>
+        ) : (
+          <button
+            onClick={() => setOpen(v => !v)}
+            aria-expanded={open}
+            style={{
+              flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '10px',
+              minHeight: '44px', background: 'transparent', border: 'none',
+              padding: 0, textAlign: 'left',
+            }}
+          >
+            {label}
+            <span style={{
+              fontFamily: 'var(--font-sans)', color: 'var(--c-text-muted)',
+              fontSize: '11.5px', fontWeight: 600, letterSpacing: '-0.01em',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {resumen}
+            </span>
+            {/* La misma flecha que usan «Ver todas» y el archivo de abajo:
+                dos glifos distintos para el mismo gesto en una tarjeta de
+                cinco centímetros se leen como dos gestos distintos. */}
+            <span
+              aria-hidden="true"
+              style={{
+                marginLeft: 'auto', flexShrink: 0,
+                color: 'var(--c-action-text)', fontSize: '12px', lineHeight: 1,
+              }}
+            >
+              {open ? '↑' : '↓'}
+            </span>
+          </button>
+        )}
         <button
           onClick={onAdd}
           style={{
+            flexShrink: 0,
             color: 'var(--c-action-text)', fontSize: '22px', lineHeight: 1, fontWeight: 300,
-            minWidth: '44px', minHeight: '44px', margin: '-11px -10px -11px 0',
+            minWidth: '44px', minHeight: '44px',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             transition: 'opacity 150ms',
           }}
@@ -218,7 +280,7 @@ function GoalsCard({ goals, groups = [], completed = [], onAdd, onDelete, onComp
         </button>
       </div>
 
-      {goals.length === 0 ? (
+      {expanded && (goals.length === 0 ? (
         /* Empty state humanizado */
         <div style={{
           background: 'var(--c-surface-2)',
@@ -254,7 +316,7 @@ function GoalsCard({ goals, groups = [], completed = [], onAdd, onDelete, onComp
            porcentaje, y eso ponía a competir números que no significan lo
            mismo: un 90 % de sentadilla son 10 kg que faltan, un 90 % de
            constancia es haber ido casi todos los días. */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingTop: '4px' }}>
           {shownGroups.map(group => (
             <div key={group.kind}>
               {showGroupLabels && (
@@ -280,9 +342,9 @@ function GoalsCard({ goals, groups = [], completed = [], onAdd, onDelete, onComp
             </div>
           ))}
         </div>
-      )}
+      ))}
 
-      {total > GOALS_ON_HOME && (
+      {expanded && total > GOALS_ON_HOME && (
         <button
           onClick={() => setShowAllGoals(v => !v)}
           aria-expanded={showAllGoals}
@@ -299,7 +361,7 @@ function GoalsCard({ goals, groups = [], completed = [], onAdd, onDelete, onComp
 
       {/* Archivo — lo cumplido no se borra, se guarda. Cerrado por defecto:
           es historia, no la pregunta de hoy. */}
-      {completed.length > 0 && (
+      {expanded && completed.length > 0 && (
         <div style={{ marginTop: goals.length ? '18px' : '14px', paddingTop: '14px', borderTop: '1px solid var(--c-border-subtle)' }}>
           <button
             onClick={() => setShowArchive(v => !v)}
@@ -602,6 +664,17 @@ export default function Training() {
     const iso = dates.find(d => !nextPlanned || d < nextPlanned.date)
     return iso ? projection[iso] : null
   }, [projection, nextPlanned])
+
+  // El titular del calendario, en una línea. Antes era el valor de un chip;
+  // ahora acompaña a la rejilla, que es la que enseña el resto.
+  const proximo = nextPlanned
+    ? (nextPlanned.title || t(KINDS[nextPlanned.kind]?.label || 'Fuerza'))
+    : nextGhost ? (nextGhost.day?.day_name || t('Fuerza'))
+    : null
+
+  // La nota de los fantasmas solo tiene sentido si hay fantasmas: sin ciclo
+  // activo (o sin Pro) explicaría un punteado que nadie ve.
+  const hasProjection = Object.keys(projection).length > 0
 
   // Mensajes sin leer — el único dato de Coach que merece sitio en la portada.
   const unread = useMemo(
@@ -1101,6 +1174,50 @@ export default function Training() {
           </section>
         )}
 
+        {/* ── Calendario ──
+            La superficie grande de la portada. Estuvo desplegado aquí, luego
+            plegado tras un botón, luego exiliado a sección propia detrás de un
+            chip que solo decía «lo próximo: Upper A». Ese chip contaba el
+            titular y escondía la única pantalla donde se decide algo: qué toca
+            el jueves, qué semana se cayó, dónde meter el cardio. Vuelve entero
+            —mes y semana, navegación y leyenda— porque planear no es leer un
+            dato, es mirar la forma del mes.
+            Sigue sin ser pestaña a propósito: Raw es rotacional, el ciclo
+            avanza cuando registras un entreno y no cuando llega el martes.
+            Está en la portada, no en la espina dorsal — ver lib/sections. ── */}
+        {!loading && !error && (
+          <section className="fade-in" style={{ marginBottom: '24px', animationDelay: '120ms' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', marginBottom: '10px' }}>
+              <p style={{ fontFamily: 'var(--font-sans)', color: 'var(--c-text-dim)', fontSize: '11.5px', fontWeight: 700, letterSpacing: '-0.01em' }}>
+                {t('Calendario')}
+              </p>
+              {/* Lo que el chip decía, ahora como pie de la sección: un plan
+                  escrito gana a una previsión, y si no hay nada escrito el
+                  calendario dice qué le toca al ciclo en vez de un guion. */}
+              <p style={{
+                fontFamily: 'var(--font-sans)', color: 'var(--c-text-muted)',
+                fontSize: '11.5px', fontWeight: 600, letterSpacing: '-0.01em',
+                minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {proximo ? `${t('Próximo')}: ${proximo}` : t('Toca un día para planear')}
+              </p>
+            </div>
+
+            <Calendar
+              workouts={workouts}
+              sessions={sessions}
+              routines={routines}
+              projection={projection}
+              onSelectDay={openDay}
+            />
+
+            {hasProjection && (
+              <p style={{ color: 'var(--c-text-muted)', fontSize: '11px', fontWeight: 500, lineHeight: 1.5, marginTop: '12px' }}>
+                {t('Lo punteado es lo que le toca al ciclo si sigues a tu ritmo. No está guardado: toca un día para fijarlo.')}
+              </p>
+            )}
+          </section>
+        )}
         {/* ── Empty state — first run ── */}
         {!loading && !error && workouts.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 24px', border: '1px dashed var(--c-border)', borderRadius: 'var(--r-lg)' }}>
@@ -1218,31 +1335,6 @@ export default function Training() {
               })}
             />
           </div>
-        )}
-
-        {/* ── Calendario ──
-            Se fue a sección propia (/calendario). Aquí queda solo el chip:
-            lo único que importa un martes es qué toca a continuación, y la
-            rejilla del mes es una tarea de sofá que merece su pantalla.
-            Sigue sin ser pestaña a propósito — ver lib/sections. ── */}
-        {!loading && !error && (
-          <section className="fade-in" style={{ marginBottom: '20px', animationDelay: '120ms' }}>
-            {/* El hint TAPA al valor en Chip, así que solo se pone cuando no
-                hay nada que decir: con «Previsto» encima, el chip anunciaba que
-                algo venía sin decir qué. */}
-            <div style={{ display: 'flex', alignItems: 'stretch' }}>
-              <Chip
-                label={t('Calendario')}
-                value={
-                  nextPlanned ? (nextPlanned.title || t(KINDS[nextPlanned.kind]?.label || 'Fuerza'))
-                  : nextGhost ? (nextGhost.day?.day_name || t('Fuerza'))
-                  : '—'
-                }
-                hint={(nextPlanned || nextGhost) ? null : t('Toca un día para planear')}
-                onClick={() => navigate('/calendario')}
-              />
-            </div>
-          </section>
         )}
 
       </div>

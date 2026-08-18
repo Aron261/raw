@@ -341,6 +341,11 @@ const EN = {
   'Cumplida el {d}': 'Achieved on {d}',
   'meta cumplida': 'goal achieved',
   'metas cumplidas': 'goals achieved',
+  // El resumen de la tarjeta plegada: «2 activas · 1 cumplida».
+  'activa': 'active',
+  'activas': 'active',
+  'cumplida': 'achieved',
+  'cumplidas': 'achieved',
   'Guardar como cumplida': 'Save as achieved',
   'Meta de': 'Goal from',
   'ti': 'you',
