@@ -57,24 +57,29 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
 
       // Buscar en paralelo: ejercicios propios del usuario + librería global.
       //
-      // La librería va por RPC y no por `ilike`: buscaba solo contra `name`, o
-      // sea solo el nombre en español, así que con la app en inglés "bench
-      // press" no encontraba "Press de banca" — y `ilike` tampoco ignora los
-      // acentos, de modo que "jalon" no encontraba "Jalón".
-      // search_exercise_library mira nombre, nombre en inglés y alias con el
-      // mismo criterio que usa el resolutor, y deja fuera lo retirado.
+      // Las DOS van por RPC, y las dos buscan por palabras (ver
+      // supabase/exercises_search_words.sql). Lo propio iba con `ilike
+      // '%q%'` sobre `name`, que exigía la frase entera seguida y en ese
+      // orden: teclear «Single Leg Seated Curl» no encontraba «Curl femoral
+      // sentado» —ni el ejercicio propio ni el de la biblioteca—, la lista
+      // salía vacía y el único botón que quedaba era «+ Crear». Así nace un
+      // duplicado con el historial en blanco de algo que ya tenías.
       const [{ data: own }, { data: lib }] = await Promise.all([
-        supabase.from('exercises')
-          .select('id, name, library:exercises_library ( gif_url, media_reviewed )')
-          .eq('user_id', userId).ilike('name', `%${q}%`).order('name').limit(10),
+        supabase.rpc('search_my_exercises', { q, lim: 10 }),
         supabase.rpc('search_exercise_library', { q, lim: 12 }),
       ])
 
-      // Fusionar: primero los propios, luego la librería sin repetir nombres
-      const seen = new Set((own || []).map(e => e.name.toLowerCase()))
+      // Fusionar: primero los propios, luego la librería sin repetirlos.
+      //
+      // La identidad es `library_id`, no el texto: un ejercicio tuyo al que le
+      // pusiste nombre propio sigue siendo esa fila de la biblioteca, y
+      // ofrecerla otra vez debajo es ofrecerte crear lo que ya tienes.
+      const mine = (own || []).map(e => ({ ...e, label: e.custom_name?.trim() || e.name }))
+      const seenLib = new Set(mine.map(e => e.library_id).filter(Boolean))
+      const seenName = new Set(mine.map(e => e.name.toLowerCase()))
       const merged = [
-        ...(own || []),
-        ...(lib || []).filter(e => !seen.has(e.name.toLowerCase())),
+        ...mine,
+        ...(lib || []).filter(e => !seenLib.has(e.id) && !seenName.has(e.name.toLowerCase())),
       ].slice(0, 12)
 
       setResults(merged)
@@ -103,7 +108,13 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
     setAdded(prev => [...prev, name])
     setQuery('')
   }
-  const exactMatch = results.some(r => r.name.toLowerCase() === query.trim().toLowerCase())
+  // «+ Crear» no aparece si lo tecleado YA es uno de los resultados — ni por su
+  // nombre canónico ni por el nombre que tú le pusiste. Antes solo miraba
+  // `name`, así que escribir entero tu propio apodo del ejercicio te seguía
+  // ofreciendo crearlo por segunda vez.
+  const typed = query.trim().toLowerCase()
+  const exactMatch = results.some(r =>
+    r.name.toLowerCase() === typed || (r.label || '').toLowerCase() === typed)
 
   if (pendingNew) {
     return (
@@ -198,7 +209,7 @@ export default function AddExerciseModal({ userId, onAdd, onClose, title = 'Agre
               }}>
                 <ExerciseGif exercise={ex} size={38} rounded={7} />
               </span>
-              <span style={{ minWidth: 0 }}>{ex.name}</span>
+              <span style={{ minWidth: 0 }}>{ex.label || ex.name}</span>
             </button>
           ))}
 
